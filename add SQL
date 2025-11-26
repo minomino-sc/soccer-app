@@ -1,0 +1,80 @@
+-- ユーザー（保護者）
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(200) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- チーム
+CREATE TABLE teams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age_category VARCHAR(20), -- U8, U10 など
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ユーザーとチームの紐づけ（保護者が複数チームを見る場合）
+CREATE TABLE user_team (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    team_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (team_id) REFERENCES teams(id)
+);
+
+-- 試合
+CREATE TABLE matches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    team_id INT NOT NULL,
+    opponent VARCHAR(100) NOT NULL,
+    match_date DATE NOT NULL,
+    location VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (team_id) REFERENCES teams(id)
+);
+
+-- 試合動画
+CREATE TABLE videos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    match_id INT NOT NULL,
+    uploader_id INT NOT NULL,
+    video_url TEXT NOT NULL,
+    duration_seconds INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (match_id) REFERENCES matches(id),
+    FOREIGN KEY (uploader_id) REFERENCES users(id)
+);
+
+-- ハイライト（ゴールシーンなど）
+CREATE TABLE highlights (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    video_id INT NOT NULL,
+    highlight_time INT NOT NULL,  -- 秒数で記録
+    description VARCHAR(255),     -- 「◯◯君ゴール！」など
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (video_id) REFERENCES videos(id)
+);
+
+-- スコア
+CREATE TABLE scores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    match_id INT NOT NULL,
+    team_score INT NOT NULL,
+    opponent_score INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (match_id) REFERENCES matches(id)
+);
+
+-- イベント（ゴールやファウルなど詳細）
+CREATE TABLE match_events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    match_id INT NOT NULL,
+    event_type VARCHAR(50) NOT NULL, -- goal, foul, change 等
+    event_time INT NOT NULL, -- 秒数
+    player_name VARCHAR(100),
+    description VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (match_id) REFERENCES matches(id)
+);
