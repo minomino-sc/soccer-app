@@ -1,0 +1,100 @@
+
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>箕谷SC 動画共有システム</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header card">
+      <h1 id="title">箕谷SC 動画共有システム</h1>
+    </header>
+
+    <section class="card" id="teamSection">
+      <h2>チーム参加 / ログイン（簡易）</h2>
+      <div class="row">
+        <input id="teamNameInput" placeholder="チーム名（例：箕谷SC）" />
+        <input id="inviteCodeInput" placeholder="招待コード（任意）" />
+        <button id="btnJoin" class="btn primary">参加 / 作成</button>
+      </div>
+      <p class="muted small">招待コードを使って簡易にチーム共有できます。完全無料の YouTube 限定公開方式です。</p>
+    </section>
+
+    <section class="card" id="addVideoSection">
+      <h2>YouTube 動画を追加</h2>
+      <div class="row">
+        <input id="youtubeUrl" placeholder="YouTube の共有URL（例 https://youtu.be/xxxxx）" />
+        <button id="btnAddYouTube" class="btn primary">追加</button>
+      </div>
+      <p class="muted small">動画は YouTube に限定公開でアップロードして共有してください。</p>
+    </section>
+
+    <section class="card" id="createMatchSection">
+      <h2>試合（Score）を作成</h2>
+      <div class="row">
+        <input id="matchDate" type="date" />
+        <input id="opponent" placeholder="対戦相手" />
+      </div>
+      <div class="row">
+        <input id="place" placeholder="会場（改行は自動で調整されます）" />
+      </div>
+      <div class="row">
+        <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
+        <input id="scoreB" placeholder="相手得点" type="number" min="0" />
+        <select id="videoSelect">
+          <option value="">— 紐づけ動画なし —</option>
+        </select>
+        <button id="btnCreateMatch" class="btn">作成</button>
+      </div>
+      <p class="muted small">作成後にカードをタップすると編集できます。</p>
+    </section>
+
+    <section class="card" id="scoresSection">
+      <h2>スコア一覧</h2>
+      <div id="scoreGroups"></div>
+    </section>
+
+    <!-- Viewer / Edit Modal -->
+    <div id="editModal" class="modal" aria-hidden="true">
+      <div class="modal-card card">
+        <button id="closeModal" class="btn">閉じる</button>
+        <h3 id="modalTitle">試合編集</h3>
+        <div class="row">
+          <input id="editDate" type="date" />
+          <input id="editOpponent" placeholder="対戦相手" />
+        </div>
+        <div class="row">
+          <input id="editPlace" class="match-venue" placeholder="会場" />
+        </div>
+        <div class="row">
+          <input id="editScoreA" type="number" min="0" placeholder="自チーム得点" />
+          <input id="editScoreB" type="number" min="0" placeholder="相手得点" />
+          <select id="editVideoSelect"></select>
+        </div>
+
+        <div class="row">
+          <input id="hlSeconds" type="number" placeholder="ハイライト秒数（例 42）" />
+          <button id="btnAddHL" class="btn">Add highlight</button>
+          <button id="btnMarkGoal" class="btn">Mark Goal</button>
+        </div>
+
+        <div id="hlList"></div>
+
+        <div class="row" style="margin-top:12px;">
+          <button id="btnSave" class="btn primary">保存</button>
+          <button id="btnDelete" class="btn danger">削除</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="card small muted">© 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）</footer>
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>
