@@ -58,3 +58,16 @@ input[type="date"]{flex:0.8}
 
 /* responsive */
 @media(min-width:900px){.container{padding:24px} #title{font-size:3.6rem}}
+#title{
+  font-size:1.4rem;
+  margin:0;
+  text-align:center;
+  text-decoration:underline;
+  color:var(--accent-dark);
+}
+
+@media(min-width:900px){
+  #title{
+    font-size:1.8rem;
+  }
+}
