@@ -1,0 +1,59 @@
+name: Update Teams JSON
+
+on:
+  workflow_dispatch:
+    inputs:
+      teamName:
+        description: "新しいチーム名"
+        required: true
+      inviteCode:
+        description: "招待コード"
+        required: true
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Update teams.json
+        run: |
+          TEAM_NAME="${{ github.event.inputs.teamName }}"
+          INVITE_CODE="${{ github.event.inputs.inviteCode }}"
+          FILE_PATH="data/teams.json"
+
+          echo "Updating $FILE_PATH ..."
+
+          node <<EOF
+          const fs = require('fs');
+          const path = "$FILE_PATH";
+          const data = JSON.parse(fs.readFileSync(path));
+
+          data.teams.push({
+            name: process.env.TEAM_NAME,
+            inviteCode: process.env.INVITE_CODE
+          });
+
+          fs.writeFileSync(path, JSON.stringify(data, null, 2));
+          EOF
+
+        env:
+          TEAM_NAME: ${{ github.event.inputs.teamName }}
+          INVITE_CODE: ${{ github.event.inputs.inviteCode }}
+
+      - name: Commit updates
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add data/teams.json
+          git commit -m "Add new team"
+          git push
