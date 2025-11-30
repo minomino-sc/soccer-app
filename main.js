@@ -1,58 +1,30 @@
-let teams = JSON.parse(localStorage.getItem("teams") || "{}");
-
-function getCurrentTeam() {
-  return localStorage.getItem("currentTeam");
-}
-
-function saveTeams() {
-  localStorage.setItem("teams", JSON.stringify(teams));
-}
-
-function extractYouTubeId(url) {
-  const match = url.match(/(?:youtu.be\/|v=)([^&]+)/);
-  return match ? match[1] : "";
-}
-
+const YT_KEY = "yt_videos";
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("btnAddYouTube").addEventListener("click", () => {
-    const url = youtubeUrl.value.trim();
-    if (!url) return;
-
-    const team = getCurrentTeam() || "default";
-    if (!teams[team]) teams[team] = {};
-    if (!teams[team].videos) teams[team].videos = [];
-
-    teams[team].videos.push({
-      url,
-      id: Date.now()
-    });
-
-    saveTeams();
-    youtubeUrl.value = "";
-    renderVideoList();
-  });
-
-  renderVideoList();
+  document.getElementById("addYtBtn").addEventListener("click", addYoutube);
+  renderYoutubeList();
 });
-
-function renderVideoList() {
-  const list = document.getElementById("videoList");
-  const team = getCurrentTeam() || "default";
-
-  if (!teams[team] || !teams[team].videos || teams[team].videos.length === 0) {
-    list.innerHTML = "<p>動画がありません</p>";
+function addYoutube() {
+  const url = document.getElementById("ytUrl").value.trim();
+  if (!url) return alert("URL を入力してください");
+  if (!url.includes("youtu")) return alert("YouTube の URL を入力してください");
+  const list = JSON.parse(localStorage.getItem(YT_KEY) || "[]");
+  list.push({ url, added: new Date().toISOString() });
+  localStorage.setItem(YT_KEY, JSON.stringify(list));
+  document.getElementById("ytUrl").value = "";
+  renderYoutubeList();
+}
+function renderYoutubeList() {
+  const area = document.getElementById("ytList");
+  const list = JSON.parse(localStorage.getItem(YT_KEY) || "[]");
+  if (list.length === 0) {
+    area.innerHTML = `<p class="muted">まだ動画がありません。</p>`;
     return;
   }
-
-  list.innerHTML = teams[team].videos
-    .map(v => {
-      const vid = extractYouTubeId(v.url);
-      return `
-        <div class="video-item">
-          <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" class="thumb" />
-          <p>${v.url}</p>
-        </div>
-      `;
-    })
-    .join("");
+  area.innerHTML = "";
+  list.forEach(v => {
+    const div = document.createElement("div");
+    div.className = "yt-item";
+    div.innerHTML = `<a href="${v.url}" target="_blank" class="yt-link">${v.url}</a>`;
+    area.appendChild(div);
+  });
 }

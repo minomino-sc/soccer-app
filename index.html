@@ -1,22 +1,34 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Minotani Video</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minotani 動画共有</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
 </head>
 <body>
-<section class="card">
-  <h1>YouTube 動画を追加</h1>
-  <input id="youtubeUrl" placeholder="https://youtu.be/xxxxx">
-  <button id="btnAddYouTube">追加</button>
-</section>
-
-<section class="card" id="videoListSection">
-  <h2>動画一覧</h2>
-  <div id="videoList"></div>
-</section>
-
-<script src="main.js"></script>
+  <div class="container">
+    <div class="card">
+      <h2>チーム参加 / ログイン</h2>
+      <input id="teamName" placeholder="箕谷SC" />
+      <input id="invite" placeholder="招待コード（任意）" />
+      <button id="joinBtn" class="btn primary">参加 / 作成</button>
+      <p>招待コードを使ってチーム共有できます。完全無料の YouTube 限定公開方式です。</p>
+    </div>
+    <div class="card">
+      <h2>YouTube 動画を追加</h2>
+      <div class="row">
+        <input id="ytUrl" placeholder="YouTube の共有URL（例 https://youtu.be/xxxxx）" />
+        <button id="addYtBtn" class="btn primary">追加</button>
+      </div>
+      <p>動画は YouTube に限定公開でアップロードして共有してください。</p>
+    </div>
+    <div class="card">
+      <h2>動画一覧</h2>
+      <div id="ytList" class="yt-list"></div>
+    </div>
+  </div>
+  <script src="main.js"></script>
 </body>
 </html>
