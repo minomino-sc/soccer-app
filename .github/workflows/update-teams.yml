@@ -10,17 +10,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run data update script
         run: |
-          echo "更新処理をここに書く（後で追加）"
+          echo "ここに teams.json を自動更新する処理を後で追加できます"
+          # 例：Python or Node.js スクリプトを呼ぶ
+          # node scripts/updateTeams.js
+          # python3 scripts/updateTeams.py
 
       - name: Commit and push changes
         run: |
           git config --local user.name "github-actions"
           git config --local user.email "actions@github.com"
-          git add data/*
-          git commit -m "Auto-update team data" || echo "No changes"
+
+          # 変更があれば追加
+          git add data/teams.json || true
+
+          # コミット（変更無ければスキップ）
+          git commit -m "Auto-update team data" || echo "No changes to commit"
+
+          # プッシュ
           git push
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
