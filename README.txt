@@ -1,13 +1,1 @@
-
-箕谷SC 動画共有システム（YouTube限定公開方式） - 完全無料版
-
-使い方（簡単）
-1. チームを作成 / 参加
-2. 保護者は自分のYouTube上で動画を「限定公開」にアップロード
-3. 共有URL（https://youtu.be/xxxx または https://www.youtube.com/watch?v=xxxx）をアプリの「YouTube動画を追加」に貼る
-4. 「試合を作成」で対戦情報を登録し、動画を紐づける
-5. ハイライト秒数を入力して登録。ハイライトは「Jump」で該当秒から再生します（YouTubeの再生ページで開きます）
-
-注意点
-- 動画本体はYouTubeが保管します。アプリはURLとメタデータのみを保存（localStorage）します。
-- ハイライトの自動抽出はYouTubeのクロスオリジン制約で利用できません（要アップロード→サーバ解析）。
+Minotani Video List App — 自動生成ZIP版

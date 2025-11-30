@@ -1,15 +1,1 @@
- {
-  "name": "箕谷SC 動画共有システム",
-  "short_name": "動画共有APP",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1c8f3e",
-  "icons": [
-    {
-      "src": "1E569EC3-AFE4-49CB-B48A-D00C9287EF72.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}
+{ "name": "Minotani Video", "short_name": "VideoApp" }
