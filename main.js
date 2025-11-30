@@ -1,251 +1,243 @@
 
-/*
- main.js - YouTube-limited SPA
- Storage: localStorage
- Models:
-  videos: [{id, ytId, url, title, createdAt}]
-  matches: [{id, date, opponent, place, score, videoId, highlights: [{t,isGoal}], createdAt}]
-*/
+// YouTube-based SPA for Minotani Soccer Videos (completely free)
+(() => {
+  const qs = s => document.querySelector(s);
+  const qsa = s => Array.from(document.querySelectorAll(s));
+  const gid = n => document.getElementById(n);
 
-const VIDEOS_KEY = 'msv_videos_v1';
-const MATCHES_KEY = 'msv_matches_v1';
-const SESSION_KEY = 'msv_session_v1';
+  // Elements
+  const auth = qs('#auth');
+  const uploader = qs('#uploader');
+  const videosSec = qs('#videos');
+  const btnCreate = qs('#btnCreate');
+  const btnJoin = qs('#btnJoin');
+  const btnAddVideo = qs('#btnAddVideo');
+  const btnRefresh = qs('#btnRefresh');
+  const btnShowGoals = qs('#btnShowGoals');
+  const btnOpenYoutube = qs('#openYoutube');
 
-// Elements
-const teamNameInput = document.getElementById('teamNameInput');
-const inviteCodeInput = document.getElementById('inviteCodeInput');
-const btnJoin = document.getElementById('btnJoin');
+  const joinCode = qs('#joinCode');
+  const ownerTeam = qs('#ownerTeam');
+  const ownerCode = qs('#ownerCode');
+  const videoUrl = qs('#videoUrl');
+  const matchDate = qs('#matchDate');
+  const opponent = qs('#opponent');
+  const venue = qs('#venue');
 
-const youtubeUrl = document.getElementById('youtubeUrl');
-const btnAddYouTube = document.getElementById('btnAddYouTube');
-const videoSelect = document.getElementById('videoSelect');
+  const monthFilter = qs('#monthFilter');
+  const teamFilter = qs('#teamFilter');
+  const list = qs('#list');
 
-const matchDate = document.getElementById('matchDate');
-const opponent = document.getElementById('opponent');
-const place = document.getElementById('place');
-const scoreA = document.getElementById('scoreA');
-const scoreB = document.getElementById('scoreB');
-const btnCreateMatch = document.getElementById('btnCreateMatch');
+  const viewer = qs('#viewer');
+  const viewerTitle = qs('#viewerTitle');
+  const playerWrap = qs('#playerWrap');
+  const scoreInput = qs('#score');
+  const saveScore = qs('#saveScore');
+  const hlTime = qs('#hlTime');
+  const addHl = qs('#addHl');
+  const addCurrent = qs('#addCurrent');
+  const markGoal = qs('#markGoal');
+  const hlList = qs('#hlList');
+  const closeViewer = qs('#closeViewer');
 
-const scoreGroups = document.getElementById('scoreGroups');
+  // LocalStorage keys
+  const KEY_TEAMS = 'msv_teams_v1';
+  const KEY_SESSION = 'msv_session_v1';
+  const KEY_VIDEOS = 'msv_videos_v1';
 
-// Modal
-const editModal = document.getElementById('editModal');
-const closeModalBtn = document.getElementById('closeModal');
-const modalTitle = document.getElementById('modalTitle');
-const editDate = document.getElementById('editDate');
-const editOpponent = document.getElementById('editOpponent');
-const editPlace = document.getElementById('editPlace');
-const editScoreA = document.getElementById('editScoreA');
-const editScoreB = document.getElementById('editScoreB');
-const editVideoSelect = document.getElementById('editVideoSelect');
-const hlSeconds = document.getElementById('hlSeconds');
-const btnAddHL = document.getElementById('btnAddHL');
-const btnMarkGoal = document.getElementById('btnMarkGoal');
-const hlList = document.getElementById('hlList');
-const btnSave = document.getElementById('btnSave');
-const btnDelete = document.getElementById('btnDelete');
+  // Data
+  let teams = JSON.parse(localStorage.getItem(KEY_TEAMS) || '[]');
+  let session = JSON.parse(localStorage.getItem(KEY_SESSION) || 'null');
+  let videos = JSON.parse(localStorage.getItem(KEY_VIDEOS) || '[]');
+  let currentItem = null;
 
-// Data
-let videos = load(VIDEOS_KEY) || [];
-let matches = load(MATCHES_KEY) || [];
-let session = load(SESSION_KEY) || null;
-let editingMatchId = null;
+  // Helpers
+  function saveAll(){ localStorage.setItem(KEY_TEAMS, JSON.stringify(teams)); localStorage.setItem(KEY_SESSION, JSON.stringify(session)); localStorage.setItem(KEY_VIDEOS, JSON.stringify(videos)); }
+  function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+  function parseYouTubeId(url){
+    try{
+      const u = new URL(url);
+      if(u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if(u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+      return null;
+    }catch(e){ return null; }
+  }
+  function fmtYM(d){ const dt = new Date(d); const y = dt.getFullYear(); const m = ('0'+(dt.getMonth()+1)).slice(-2); return y+'-'+m; }
+  function formatMonthLabel(m){ const [y,mm]=m.split('-'); return y+'年'+mm+'月'; }
 
-// Init
-renderVideoSelect();
-renderMatches();
-if(session && session.teamName){ teamNameInput.value = session.teamName; }
+  // Init UI
+  function renderTeams(){
+    teamFilter.innerHTML = '<option value="all">すべて</option>';
+    teams.forEach(t=>{ const o=document.createElement('option'); o.value=t.code; o.textContent=t.name; teamFilter.appendChild(o); });
+    // also ensure uploader team select exists as teamFilter used for upload selection by session
+  }
 
-// Join/create team (simple)
-btnJoin.addEventListener('click', ()=>{
-  const name = (teamNameInput.value||'').trim();
-  const code = (inviteCodeInput.value||'').trim() || null;
-  if(!name) return alert('チーム名を入力してください');
-  session = { teamName: name, inviteCode: code };
-  save(SESSION_KEY, session);
-  alert('チーム参加しました: ' + name);
-});
+  function showAuth(){ auth.classList.remove('hidden'); document.getElementById('uploader')?.classList.add('hidden'); document.getElementById('videos')?.classList.add('hidden'); }
+  function showApp(){ auth.classList.add('hidden'); document.getElementById('uploader').classList.remove('hidden'); document.getElementById('videos').classList.remove('hidden'); }
 
-// Add YouTube
-btnAddYouTube.addEventListener('click', ()=>{
-  const url = (youtubeUrl.value||'').trim();
-  if(!url) return alert('URLを入力してください');
-  const yt = parseYouTubeId(url);
-  if(!yt) return alert('YouTube URL を正しく入力してください');
-  const id = 'v_' + Date.now();
-  const item = { id, ytId: yt, url, title: 'YouTube: ' + yt, createdAt: new Date().toISOString() };
-  videos.unshift(item);
-  save(VIDEOS_KEY, videos);
-  youtubeUrl.value = '';
-  renderVideoSelect();
-  renderMatches();
-  alert('動画を追加しました');
-});
-
-// Create match
-btnCreateMatch.addEventListener('click', ()=>{
-  const d = matchDate.value || new Date().toISOString().slice(0,10);
-  const opp = (opponent.value||'').trim();
-  const plc = (place.value||'').trim();
-  const a = scoreA.value===''? null : parseInt(scoreA.value,10);
-  const b = scoreB.value===''? null : parseInt(scoreB.value,10);
-  const videoId = videoSelect.value || '';
-  const id = 'm_' + Date.now();
-  const rec = { id, date: d, opponent: opp, place: plc, score: (a===null||b===null)?'': (a + '-' + b), videoId, highlights: [], createdAt: new Date().toISOString() };
-  matches.unshift(rec);
-  save(MATCHES_KEY, matches);
-  // reset inputs
-  opponent.value=''; place.value=''; scoreA.value=''; scoreB.value=''; videoSelect.value='';
-  renderMatches();
-});
-
-// Render video select lists
-function renderVideoSelect(){
-  const sel = videoSelect;
-  sel.innerHTML = '<option value="">— 紐づけ動画なし —</option>';
-  videos.forEach(v=>{
-    const o = document.createElement('option');
-    o.value = v.id;
-    o.textContent = v.title || v.ytId;
-    sel.appendChild(o);
+  // Create team (owner)
+  btnCreate.addEventListener('click', ()=>{
+    const name = ownerTeam.value.trim(); const code = ownerCode.value.trim();
+    if(!name || !code) return alert('チーム名と招待コードを入力してください');
+    if(teams.find(t=>t.code===code)) return alert('その招待コードは既に使われています');
+    const t = { id: uid(), name, code };
+    teams.push(t); session = { teamCode: code, teamName: name, role:'owner' }; saveAll(); renderTeams(); showApp(); alert('チーム作成しました。招待コード: '+code);
   });
-  // modal select
-  editVideoSelect.innerHTML = '<option value="">— 未選択 —</option>';
-  videos.forEach(v=>{
-    const o = document.createElement('option');
-    o.value = v.id;
-    o.textContent = v.title || v.ytId;
-    editVideoSelect.appendChild(o);
-  });
-}
 
-// Render matches grouped by month
-function renderMatches(){
-  scoreGroups.innerHTML = '';
-  if(matches.length===0){ scoreGroups.innerHTML = '<div class="muted">試合がありません</div>'; return; }
-  const groups = {};
-  matches.forEach(m=>{
-    const ym = m.date ? m.date.slice(0,7) : '未設定';
-    groups[ym] = groups[ym] || [];
-    groups[ym].push(m);
+  // Join by code
+  btnJoin.addEventListener('click', ()=>{
+    const code = joinCode.value.trim();
+    if(!code) return alert('招待コードを入力してください');
+    const t = teams.find(x=>x.code===code);
+    if(!t) return alert('招待コードが見つかりません');
+    session = { teamCode: t.code, teamName: t.name, role:'member' }; saveAll(); renderTeams(); showApp(); alert('チームに参加しました: '+t.name);
   });
-  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(mon=>{
-    const wrap = document.createElement('div'); wrap.className='month';
-    const header = document.createElement('div'); header.className='month-header';
-    header.innerHTML = `<strong>${formatMonth(mon)}</strong><span>${groups[mon].length} 件</span>`;
-    const body = document.createElement('div'); body.className='month-body';
-    groups[mon].forEach(m=>{
-      const card = document.createElement('div');
-      const resClass = resultClass(m.score);
-      card.className = 'score-card ' + resClass;
-      card.dataset.id = m.id;
-      const title = `<div class="meta"><div class="title">${escape(m.opponent||'対戦相手未設定')}</div><div class="sub">${m.date || ''} ・ <span class="match-venue">${escape(m.place||'')}</span></div></div>`;
-      const right = `<div><div class="badge">${m.score || '—'}</div></div>`;
-      card.innerHTML = title + right;
-      card.addEventListener('click', ()=> openEdit(m.id));
-      body.appendChild(card);
+
+  // Add video (YouTube URL)
+  btnAddVideo.addEventListener('click', ()=>{
+    const url = videoUrl.value.trim();
+    const id = parseYouTubeId(url);
+    if(!id) return alert('YouTubeの共有URLを正しく貼ってください');
+    const dateVal = matchDate.value || (new Date()).toISOString().slice(0,10);
+    const ym = fmtYM(dateVal);
+    const entry = {
+      id: uid(), teamCode: session.teamCode, teamName: session.teamName, ytId: id, url, createdAt: new Date().toISOString(),
+      yearMonth: ym, opponent: opponent.value||'', venue: venue.value||'', score:'', highlights:[]
+    };
+    videos.unshift(entry); saveAll(); videoUrl.value=''; matchDate.value=''; opponent.value=''; venue.value=''; populateMonthFilter(); renderList(); alert('動画を登録しました（YouTube限定公開を推奨）');
+  });
+
+  // Helpers: populate filters
+  function populateMonthFilter(){
+    const months = Array.from(new Set(videos.map(v=>v.yearMonth))).sort().reverse();
+    monthFilter.innerHTML = '<option value="all">すべて</option>';
+    months.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=formatMonthLabel(m); monthFilter.appendChild(o); });
+    // teamFilter handled by renderTeams
+  }
+
+  // Render list grouped by month
+  function renderList(){
+    list.innerHTML = '';
+    const mf = monthFilter.value||'all'; const tf = teamFilter.value||'all';
+    const groups = {};
+    videos.forEach(v=>{
+      if(tf!=='all' && v.teamCode!==tf) return;
+      if(mf!=='all' && v.yearMonth!==mf) return;
+      (groups[v.yearMonth]=groups[v.yearMonth]||[]).push(v);
     });
-    header.addEventListener('click', ()=>{ body.style.display = body.style.display === 'none' ? 'block' : 'none'; });
-    wrap.appendChild(header); wrap.appendChild(body); scoreGroups.appendChild(wrap);
+    const months = Object.keys(groups).sort().reverse();
+    if(months.length===0){ list.innerHTML = '<div class="muted">動画がありません</div>'; return; }
+    months.forEach(m=>{
+      const wrap = document.createElement('div');
+      const header = document.createElement('div'); header.className='row';
+      const title = document.createElement('div'); title.textContent = formatMonthLabel(m); title.style.fontWeight='700';
+      const cnt = document.createElement('div'); cnt.textContent = '('+groups[m].length+'件)'; cnt.style.marginLeft='8px';
+      const toggle = document.createElement('button'); toggle.className='btn'; toggle.textContent='開く';
+      header.appendChild(title); header.appendChild(cnt); header.appendChild(toggle);
+      wrap.appendChild(header);
+      const container = document.createElement('div'); container.className='month-list hidden';
+      groups[m].forEach(v=>{
+        const card = document.createElement('div'); card.className='video-card';
+        const thumb = document.createElement('img'); thumb.className='video-thumb'; thumb.src = 'https://img.youtube.com/vi/'+v.ytId+'/hqdefault.jpg';
+        card.appendChild(thumb);
+        const meta = document.createElement('div'); meta.className='meta'; meta.textContent = v.fileName||v.teamName+' ・ '+(v.opponent||''); card.appendChild(meta);
+        const actions = document.createElement('div'); actions.className='row';
+        const open = document.createElement('button'); open.className='btn'; open.textContent='再生'; open.onclick = ()=> openViewer(v);
+        const dl = document.createElement('button'); dl.className='btn'; dl.textContent='YouTubeで開く'; dl.onclick = ()=> window.open(v.url, '_blank');
+        const del = document.createElement('button'); del.className='btn'; del.textContent='削除'; del.onclick = ()=> { if(confirm('削除しますか？')){ videos = videos.filter(x=>x.id!==v.id); saveAll(); renderList(); } };
+        actions.appendChild(open); actions.appendChild(dl); actions.appendChild(del);
+        card.appendChild(actions);
+        // highlights mini-list
+        if(v.highlights && v.highlights.length){
+          const hl = document.createElement('div'); hl.className='small muted'; hl.innerHTML = 'Highlights: '+ v.highlights.map(h=> h.t + 's' + (h.isGoal? ' (G)':'' ) ).join(', ');
+          card.appendChild(hl);
+        }
+        container.appendChild(card);
+      });
+      toggle.onclick = ()=>{ container.classList.toggle('hidden'); toggle.textContent = container.classList.contains('hidden') ? '開く':'閉じる'; };
+      wrap.appendChild(container);
+      list.appendChild(wrap);
+    });
+  }
+
+  // Viewer functions
+  function openViewer(item){
+    currentItem = item;
+    viewerTitle.textContent = (item.teamName||'') + ' - ' + (item.opponent||'') + ' ' + (item.createdAt? item.createdAt.slice(0,10):'');
+    playerWrap.innerHTML = '<iframe width="100%" height="360" src="https://www.youtube.com/embed/'+item.ytId+'?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+    scoreInput.value = item.score||'';
+    renderHLs(item);
+    viewer.classList.remove('hidden');
+    btnOpenYoutube.href = item.url;
+    btnOpenYoutube.target = '_blank';
+  }
+  closeViewer.addEventListener('click', ()=>{ viewer.classList.add('hidden'); playerWrap.innerHTML=''; currentItem=null; });
+
+  // Highlights
+  addHl.addEventListener('click', ()=>{
+    const t = parseInt(hlTime.value||0);
+    if(isNaN(t)) return alert('秒数を入力してください');
+    currentItem.highlights = currentItem.highlights || [];
+    currentItem.highlights.push({ t, isGoal:false, team: session.teamCode });
+    saveAll(); renderHLs(currentItem); renderList();
   });
-}
-
-// Open edit modal
-function openEdit(id){
-  const m = matches.find(x=>x.id===id);
-  if(!m) return;
-  editingMatchId = id;
-  editDate.value = m.date || '';
-  editOpponent.value = m.opponent || '';
-  editPlace.value = m.place || '';
-  if(m.score){
-    const parts = m.score.split('-'); editScoreA.value = parts[0]||''; editScoreB.value = parts[1]||'';
-  } else { editScoreA.value=''; editScoreB.value=''; }
-  editVideoSelect.value = m.videoId || '';
-  renderHLList(m);
-  editModal.setAttribute('aria-hidden','false');
-}
-
-// render highlights for a match in modal
-function renderHLList(match){
-  hlList.innerHTML = '';
-  (match.highlights||[]).forEach((h,idx)=>{
-    const div = document.createElement('div'); div.className='hl-item';
-    div.innerHTML = `<div>${h.t}s ${h.isGoal? '⚽':''}</div><div style="margin-left:auto"><button class="btn" data-act="jump" data-t="${h.t}">Jump</button> <button class="btn" data-act="del" data-idx="${idx}">Del</button></div>`;
-    hlList.appendChild(div);
+  addCurrent.addEventListener('click', ()=>{
+    alert('注: iframeの再生時刻取得は同一ドメイン制限で不可です。秒数を手入力する運用になります。');
+    const t = parseInt(hlTime.value||0);
+    if(isNaN(t)) return alert('秒数を入力してください');
+    currentItem.highlights = currentItem.highlights || [];
+    currentItem.highlights.push({ t, isGoal:false, team: session.teamCode });
+    saveAll(); renderHLs(currentItem); renderList();
   });
-  if((match.highlights||[]).length===0) hlList.innerHTML = '<div class="muted small">ハイライトはありません</div>';
-}
+  markGoal.addEventListener('click', ()=>{
+    const t = parseInt(hlTime.value||0);
+    if(isNaN(t)) return alert('秒数を入力してください');
+    currentItem.highlights = currentItem.highlights || [];
+    currentItem.highlights.push({ t, isGoal:true, team: session.teamCode });
+    saveAll(); renderHLs(currentItem); renderList();
+  });
 
-// modal button handlers
-closeModalBtn.addEventListener('click', ()=>{ editModal.setAttribute('aria-hidden','true'); editingMatchId=null; });
-btnAddHL.addEventListener('click', ()=>{
-  const sec = parseInt(hlSeconds.value||0,10); if(isNaN(sec)){ alert('秒数を入力してください'); return; }
-  const m = matches.find(x=>x.id===editingMatchId); if(!m) return;
-  m.highlights = m.highlights||[]; m.highlights.push({t:sec,isGoal:false}); save(MATCHES_KEY,matches); renderHLList(m); renderMatches(); hlSeconds.value='';
-});
-btnMarkGoal.addEventListener('click', ()=>{
-  const sec = parseInt(hlSeconds.value||0,10); if(isNaN(sec)){ alert('秒数を入力してください'); return; }
-  const m = matches.find(x=>x.id===editingMatchId); if(!m) return;
-  m.highlights = m.highlights||[]; m.highlights.push({t:sec,isGoal:true}); save(MATCHES_KEY,matches); renderHLList(m); renderMatches(); hlSeconds.value='';
-});
+  function renderHLs(item){
+    hlList.innerHTML = '';
+    (item.highlights||[]).forEach((h,idx)=>{
+      const row = document.createElement('div'); row.className='row';
+      const left = document.createElement('div'); left.textContent = h.t + 's ' + (h.isGoal? '⚽' : ''); row.appendChild(left);
+      const jump = document.createElement('button'); jump.className='btn'; jump.textContent='Jump'; jump.onclick = ()=> { window.open(item.url + '?t=' + h.t, '_blank'); };
+      const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.onclick = ()=> { item.highlights.splice(idx,1); saveAll(); renderHLs(item); renderList(); };
+      row.appendChild(jump); row.appendChild(del);
+      hlList.appendChild(row);
+    });
+    if((item.highlights||[]).length===0) hlList.innerHTML = '<div class="muted small">ハイライトはありません</div>';
+  }
 
-// HL list delegation (jump/delete)
-hlList.addEventListener('click', (e)=>{
-  const b = e.target.closest('button'); if(!b) return;
-  const act = b.dataset.act; if(act==='jump'){ const t = b.dataset.t; openVideoAtTime(t); }
-  if(act==='del'){ const idx = parseInt(b.dataset.idx,10); const m = matches.find(x=>x.id===editingMatchId); if(!m) return; m.highlights.splice(idx,1); save(MATCHES_KEY,matches); renderHLList(m); renderMatches(); }
-});
+  // Show team goals
+  btnShowGoals.addEventListener('click', ()=>{
+    if(!session){ return alert('チームに参加してください'); }
+    const team = session.teamCode;
+    const found = [];
+    videos.forEach(v=>{ (v.highlights||[]).forEach(h=>{ if(h.isGoal && h.team===team) found.push({v,t:h.t}); }); });
+    if(found.length===0) return alert('ゴールシーンは見つかりませんでした');
+    let s = 'ゴールシーン一覧:\n';
+    found.forEach(f=> s += f.v.url + ' - ' + f.t + 's\n');
+    alert(s);
+  });
 
-btnSave.addEventListener('click', ()=>{
-  if(!editingMatchId) return;
-  const m = matches.find(x=>x.id===editingMatchId); if(!m) return;
-  m.date = editDate.value; m.opponent = editOpponent.value; m.place = editPlace.value;
-  const a = editScoreA.value===''? null: parseInt(editScoreA.value,10); const b = editScoreB.value===''? null: parseInt(editScoreB.value,10);
-  m.score = (a===null||b===null)? '': (a+'-'+b); m.videoId = editVideoSelect.value || '';
-  save(MATCHES_KEY,matches); editModal.setAttribute('aria-hidden','true'); renderMatches();
-});
-btnDelete.addEventListener('click', ()=>{
-  if(!editingMatchId) return;
-  if(!confirm('本当にこの試合を削除しますか？')) return;
-  const idx = matches.findIndex(x=>x.id===editingMatchId); if(idx>=0){ matches.splice(idx,1); save(MATCHES_KEY,matches); editModal.setAttribute('aria-hidden','true'); renderMatches(); }
-});
+  // Download note: opens YouTube; downloading official is via YouTube app
+  function downloadNote(){ alert('YouTubeの動画は再生ページで保存（ダウンロード）はYouTubeアプリの機能をお使いください。'); }
 
-// open video at time using YouTube URL parameter t
-function openVideoAtTime(t){
-  const m = matches.find(x=>x.id===editingMatchId); if(!m) return alert('紐づけがないか選択してください');
-  if(!m.videoId) return alert('この試合に紐づけられた動画がありません');
-  const v = videos.find(x=>x.id===m.videoId); if(!v) return alert('動画が見つかりません');
-  // open youtube at seconds
-  const sec = parseInt(t,10)||0;
-  const url = v.url.includes('youtu') ? (v.url + (v.url.includes('?')? '&':'?') + 't=' + sec) : v.url;
-  window.open(url,'_blank');
-}
+  // Filters and refresh
+  btnRefresh.addEventListener('click', ()=>{ populateMonthFilter(); renderList(); });
 
-// helpers
-function resultClass(score){
-  if(!score) return '';
-  const m = score.match(/(\d+)\s*-\s*(\d+)/); if(!m) return '';
-  const a = parseInt(m[1],10), b = parseInt(m[2],10);
-  if(a>b) return 'win'; if(a<b) return 'lose'; return 'draw';
-}
+  // Bootstrap: load from storage
+  function init(){
+    teams = JSON.parse(localStorage.getItem(KEY_TEAMS) || '[]');
+    session = JSON.parse(localStorage.getItem(KEY_SESSION) || 'null');
+    videos = JSON.parse(localStorage.getItem(KEY_VIDEOS) || '[]');
+    renderTeams();
+    populateMonthFilter();
+    if(session && session.teamCode){ showApp(); } else { showAuth(); }
+  }
 
-function formatMonth(ym){
-  if(!ym) return '未設定';
-  const [y,mo] = ym.split('-'); return y + '年' + mo + '月';
-}
+  init();
 
-function parseYouTubeId(url){
-  try{
-    const u = new URL(url);
-    if(u.hostname.includes('youtu.be')) return u.pathname.slice(1);
-    if(u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-    return null;
-  }catch(e){ return null; }
-}
-
-function escape(s){ return (s||'').toString().replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
-
-function save(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
-function load(key){ try{ return JSON.parse(localStorage.getItem(key)); }catch(e){ return null; } }
+})();

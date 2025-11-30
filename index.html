@@ -4,97 +4,80 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>箕谷SC 動画共有システム</title>
+<title>箕谷SC 動画共有システム（無料版・YouTube方式）</title>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="manifest.json" />
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="container">
-    <header class="header card">
-      <h1 id="title">⚽️箕谷SC 動画共有システム⚽️</h1>
-    </header>
+<main class="container">
+  <header>
+    <h1 id="title">箕谷SC 動画共有システム</h1>
+  </header>
 
-    <section class="card" id="teamSection">
-      <h2>チーム参加 / ログイン</h2>
-      <div class="row">
-        <input id="teamNameInput" placeholder="チーム名（例：箕谷SC）" />
-        <input id="inviteCodeInput" placeholder="招待コード（任意）" />
-        <button id="btnJoin" class="btn primary">参加 / 作成</button>
-      </div>
-      <p class="muted small">招待コードを使って簡易にチーム共有できます。完全無料の YouTube 限定公開方式です。</p>
-    </section>
-
-    <section class="card" id="addVideoSection">
-      <h2>YouTube 動画を追加</h2>
-      <div class="row">
-        <input id="youtubeUrl" placeholder="YouTube の共有URL（例 https://youtu.be/xxxxx）" />
-        <button id="btnAddYouTube" class="btn primary">追加</button>
-      </div>
-      <p class="muted small">動画は YouTube に限定公開でアップロードして共有してください。</p>
-    </section>
-
-    <section class="card" id="createMatchSection">
-      <h2>試合（Score）を作成</h2>
-      <div class="row">
-        <input id="matchDate" type="date" />
-        <input id="opponent" placeholder="対戦相手" />
-      </div>
-      <div class="row">
-        <input id="place" placeholder="会場（改行は自動で調整されます）" />
-      </div>
-      <div class="row">
-        <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
-        <input id="scoreB" placeholder="相手得点" type="number" min="0" />
-        <select id="videoSelect">
-          <option value="">— 紐づけ動画なし —</option>
-        </select>
-        <button id="btnCreateMatch" class="btn">作成</button>
-      </div>
-      <p class="muted small">作成後にカードをタップすると編集できます。</p>
-    </section>
-
-    <section class="card" id="scoresSection">
-      <h2>スコア一覧</h2>
-      <div id="scoreGroups"></div>
-    </section>
-
-    <!-- Viewer / Edit Modal -->
-    <div id="editModal" class="modal" aria-hidden="true">
-      <div class="modal-card card">
-        <button id="closeModal" class="btn">閉じる</button>
-        <h3 id="modalTitle">試合編集</h3>
-        <div class="row">
-          <input id="editDate" type="date" />
-          <input id="editOpponent" placeholder="対戦相手" />
-        </div>
-        <div class="row">
-          <input id="editPlace" class="match-venue" placeholder="会場" />
-        </div>
-        <div class="row">
-          <input id="editScoreA" type="number" min="0" placeholder="自チーム得点" />
-          <input id="editScoreB" type="number" min="0" placeholder="相手得点" />
-          <select id="editVideoSelect"></select>
-        </div>
-
-        <div class="row">
-          <input id="hlSeconds" type="number" placeholder="ハイライト秒数（例 42）" />
-          <button id="btnAddHL" class="btn">Add highlight</button>
-          <button id="btnMarkGoal" class="btn">Mark Goal</button>
-        </div>
-
-        <div id="hlList"></div>
-
-        <div class="row" style="margin-top:12px;">
-          <button id="btnSave" class="btn primary">保存</button>
-          <button id="btnDelete" class="btn danger">削除</button>
-        </div>
-      </div>
+  <section id="auth" class="card">
+    <h2>チームに参加 / ログイン</h2>
+    <div class="row">
+      <input id="joinCode" placeholder="招待コードを入力（例: minotani）" />
+      <button id="btnJoin" class="btn primary">参加</button>
     </div>
+    <div class="row">
+      <input id="ownerTeam" placeholder="チーム名 (管理者用)" />
+      <input id="ownerCode" placeholder="招待コード (管理者用)" />
+      <button id="btnCreate" class="btn">チーム作成</button>
+    </div>
+    <p class="muted small">※ 完全無料運用: 動画の保存は YouTube の限定公開リンクで行います。アプリにはURLのみを保存します。</p>
+  </section>
 
-    <footer class="card small muted">© 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）</footer>
-  </main>
+  <section id="uploader" class="card hidden">
+    <h2>動画を登録（YouTube URL）</h2>
+    <div class="row">
+      <input id="videoUrl" placeholder="YouTubeの共有URLを貼ってください（例：https://youtu.be/xxxx）" />
+      <button id="btnAddVideo" class="btn primary">登録</button>
+    </div>
+    <div class="row small muted">
+      <label>試合日: <input type="date" id="matchDate" /></label>
+      <label>対戦: <input id="opponent" placeholder="対戦相手" /></label>
+      <label>会場: <input id="venue" placeholder="会場" /></label>
+    </div>
+  </section>
 
-  <script src="main.js"></script>
+  <section id="videos" class="card hidden">
+    <h2>動画一覧</h2>
+    <div class="controls row">
+      <label>表示月: <select id="monthFilter"><option value="all">すべて</option></select></label>
+      <label>チーム: <select id="teamFilter"></select></label>
+      <button id="btnRefresh" class="btn">更新</button>
+      <button id="btnShowGoals" class="btn">自チームのゴール一覧</button>
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <!-- Viewer modal -->
+  <div id="viewer" class="modal hidden">
+    <div class="modal-card card">
+      <button id="closeViewer" class="btn">閉じる</button>
+      <h3 id="viewerTitle"></h3>
+      <div id="playerWrap"></div>
+      <div class="row" style="margin-top:8px;">
+        <a id="openYoutube" class="btn">YouTubeで開く</a>
+        <label>Score: <input id="score" placeholder="例 1-0" /></label>
+        <button id="saveScore" class="btn">保存</button>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <input id="hlTime" type="number" placeholder="秒数を入力" />
+        <button id="addHl" class="btn">Add highlight</button>
+        <button id="addCurrent" class="btn">Add current (再生中)</button>
+        <button id="markGoal" class="btn">Mark Goal</button>
+      </div>
+      <div id="hlList"></div>
+    </div>
+  </div>
+
+  <footer class="card small muted">
+    © 箕谷SC 動画共有システム - 完全無料版（YouTube限定公開方式）
+  </footer>
+</main>
+
+<script src="main.js"></script>
 </body>
 </html>
