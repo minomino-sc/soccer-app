@@ -1,127 +1,127 @@
-// ===============================
-// 設定
-// ===============================
-const TEAMS_JSON_URL = "https://raw.githubusercontent.com/minomino-sc/soccer-app/main/data/teams.json";
-const TEAMS_JSON_EDIT_URL = "https://api.github.com/repos/minomino-sc/soccer-app/contents/data/teams.json";
+/* ------------------------------
+  ユーティリティ
+------------------------------ */
 
-// ※ GitHub トークンは GitHub → Settings → Developer settings → Tokens で作成
-// 「Fine-grained token」→ soccer-app のみ Read/Write 権限
-const GITHUB_TOKEN = "";   // ★ここに貼る（外には公開しない）
-
-// ===============================
-// GitHub から JSON を取得
-// ===============================
-async function loadTeams() {
-    const res = await fetch(TEAMS_JSON_URL + "?t=" + Date.now());
-    return res.json();
+// ランダム6桁招待コード
+function generateInviteCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-// ===============================
-// GitHub に JSON を保存
-// ===============================
-async function saveTeams(updatedJson) {
-    const getRes = await fetch(TEAMS_JSON_EDIT_URL, {
-        headers: { "Authorization": `Bearer ${GITHUB_TOKEN}` }
-    });
-    const fileData = await getRes.json();
-
-    const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(updatedJson, null, 2))));
-
-    const putRes = await fetch(TEAMS_JSON_EDIT_URL, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${GITHUB_TOKEN}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: "Update teams.json",
-            content: newContent,
-            sha: fileData.sha
-        })
-    });
-
-    return putRes.ok;
+// teamId 生成
+function generateTeamId(name, code) {
+  return (
+    name.replace(/\s+/g, "-").toLowerCase() +
+    "-" +
+    code.toLowerCase()
+  );
 }
 
-// ===============================
-// チーム作成
-// ===============================
-async function createTeam() {
-    const teamName = prompt("チーム名を入力してください");
-    if (!teamName) return;
 
-    const inviteCode = Math.random().toString(36).substring(2, 8);
+/* ------------------------------
+  ログイン/チーム作成処理
+------------------------------ */
 
-    const data = await loadTeams();
-    data.teams.push({
-        name: teamName,
-        invite: inviteCode,
-        members: []
-    });
+document.getElementById('joinButton').addEventListener('click', async () => {
+  const teamName = document.getElementById('teamName').value.trim();
+  const inviteCodeInput = document.getElementById('inviteCode').value.trim().toUpperCase();
 
-    const ok = await saveTeams(data);
-    if (ok) {
-        alert(`チーム作成完了！ 招待コード:\n\n${inviteCode}`);
-        showTeams();
-    } else {
-        alert("保存に失敗しました。");
-    }
-}
+  if (!teamName) {
+    alert("チーム名を入力してください");
+    return;
+  }
 
-// ===============================
-// チーム参加
-// ===============================
-async function joinTeam() {
-    const code = prompt("招待コードを入力してください");
-    if (!code) return;
+  // 現在の teams.json を読み込む
+  const res = await fetch('./data/teams.json');
+  const json = await res.json();
+  const teams = json.teams || [];
 
-    const data = await loadTeams();
-    const team = data.teams.find(t => t.invite === code);
+  // 入力された招待コードで既存チーム検索
+  const existingTeam = teams.find(t =>
+    t.teamName === teamName && t.inviteCode === inviteCodeInput
+  );
 
-    if (!team) {
-        alert("チームが見つかりません");
-        return;
-    }
+  if (existingTeam) {
+    /* ----------------------------
+        既存チームにログイン
+    ---------------------------- */
+    console.log("ログイン成功:", existingTeam);
 
-    const user = prompt("参加者の名前を入力してください");
-    if (!user) return;
+    saveTeamToLocal(existingTeam);
+    showMainScreen(existingTeam);
+    return;
+  }
 
-    team.members.push(user);
-    const ok = await saveTeams(data);
+  /* ----------------------------
+      新規チーム作成
+  ---------------------------- */
 
-    if (ok) {
-        alert("参加しました！");
-        showTeams();
-    } else {
-        alert("保存に失敗しました。");
-    }
-}
+  // 招待コードが空なら自動生成
+  const inviteCode = inviteCodeInput || generateInviteCode();
 
-// ===============================
-// チーム一覧表示
-// ===============================
-async function showTeams() {
-    const data = await loadTeams();
-    const list = document.getElementById("teamList");
-    list.innerHTML = "";
+  const newTeam = {
+    teamId: generateTeamId(teamName, inviteCode),
+    teamName: teamName,
+    inviteCode: inviteCode,
+    videos: [],
+    scores: [],
+    highlights: [],
+    goalScenes: []
+  };
 
-    data.teams.forEach(team => {
-        const div = document.createElement("div");
-        div.className = "team-card";
-        div.innerHTML = `
-            <h3>${team.name}</h3>
-            <p>招待コード：<b>${team.invite}</b></p>
-            <p>メンバー：${team.members.join("、")}</p>
-        `;
-        list.appendChild(div);
-    });
-}
+  console.log("新規チーム作成:", newTeam);
 
-// ===============================
-// 初期化
-// ===============================
-document.addEventListener("DOMContentLoaded", () => {
-    showTeams();
-    document.getElementById("createTeamBtn").onclick = createTeam;
-    document.getElementById("joinTeamBtn").onclick = joinTeam;
+  // ローカルに即反映
+  saveTeamToLocal(newTeam);
+  showMainScreen(newTeam);
+
+  // GitHub Actions に送るためのペイロード
+  sendTeamToGitHub(newTeam);
 });
+
+
+/* ------------------------------
+  ローカル保存
+------------------------------ */
+function saveTeamToLocal(team) {
+  localStorage.setItem('teamInfo', JSON.stringify(team));
+}
+
+
+/* ------------------------------
+  ログイン後の画面切り替え
+------------------------------ */
+function showMainScreen(team) {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('mainSection').style.display = 'block';
+
+  // 表示中のチーム名を更新
+  document.getElementById('currentTeamName').textContent = `${team.teamName}（招待コード: ${team.inviteCode}）`;
+}
+
+
+/* ------------------------------
+  GitHub Actions に送信
+------------------------------ */
+async function sendTeamToGitHub(team) {
+  const payload = {
+    action: "createTeam",
+    team: team
+  };
+
+  // ここは update-teams.yml が受け取る API エンドポイント
+  await fetch(
+    "https://api.github.com/repos/＜あなたのGitHubユーザー名＞/＜リポジトリ名＞/dispatches",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/vnd.github.everest-preview+json",
+        Authorization: `token ＜PATトークン＞`
+      },
+      body: JSON.stringify({
+        event_type: "update_teams",
+        client_payload: payload
+      })
+    }
+  );
+}
