@@ -1,3 +1,29 @@
 {
-  "teams": []
+  "teams": [
+    {
+      "grade": "6年",
+      "name": "A",
+      "members": []
+    },
+    {
+      "grade": "6年",
+      "name": "B",
+      "members": []
+    },
+    {
+      "grade": "5年",
+      "name": "C",
+      "members": []
+    },
+    {
+      "grade": "4年",
+      "name": "D",
+      "members": []
+    },
+    {
+      "grade": "4年",
+      "name": "E",
+      "members": []
+    }
+  ]
 }
