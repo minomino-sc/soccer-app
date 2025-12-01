@@ -122,6 +122,25 @@
     <button onclick="closeMemberModal()">閉じる</button>
   </div>
 </div>
+<!-- Team Edit Modal -->
+<div id="teamEditModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>チーム編集</h2>
+
+    <label>学年</label>
+    <input type="text" id="editTeamGrade">
+
+    <label>チーム名</label>
+    <input type="text" id="editTeamName">
+
+    <label>選手一覧（カンマ区切り）</label>
+    <textarea id="editTeamMembers" rows="4"></textarea>
+
+    <button id="saveTeamEdit">保存</button>
+    <button id="deleteTeam">チーム削除</button>
+    <button onclick="closeTeamEditModal()">閉じる</button>
+  </div>
+</div>
 <script src="main.js"></script>
 </body>
 </html>
