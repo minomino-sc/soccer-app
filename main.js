@@ -128,7 +128,10 @@ async function sendTeamToGitHub(team) {
 /* ======= モーダル開閉 ======= */
 
 // 編集モーダルを開く
-function openEditModal(date, opponent, place, myScore, opponentScore, highlights) {
+function openEditModal(index, date, opponent, place, myScore, opponentScore, highlights) {
+// 編集対象の試合番号を保存
+window.currentEditIndex = index;
+
     const modal = document.getElementById("editModal");
     const dateInput = document.getElementById("edit-date");
     const opponentInput = document.getElementById("edit-opponent");
