@@ -94,7 +94,34 @@
 
     <footer class="card small muted">© 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）</footer>
   </main>
+<!-- Team Edit Modal -->
+<div id="teamEditModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>チーム編集</h2>
+    <label>学年</label>
+    <input type="text" id="editTeamGrade">
 
-  <script src="main.js"></script>
+    <label>チーム名</label>
+    <input type="text" id="editTeamName">
+
+    <button id="saveTeamEdit">保存</button>
+    <button id="deleteTeam">チーム削除</button>
+    <button onclick="closeTeamEditModal()">閉じる</button>
+  </div>
+</div>
+<!-- Member Modal -->
+<div id="memberModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>メンバー管理</h2>
+
+    <div id="memberList"></div>
+
+    <input type="text" id="newMemberName" placeholder="新しいメンバー名">
+    <button id="addMemberBtn">追加</button>
+
+    <button onclick="closeMemberModal()">閉じる</button>
+  </div>
+</div>
+<script src="main.js"></script>
 </body>
 </html>
