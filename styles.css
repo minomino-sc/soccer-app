@@ -60,3 +60,31 @@ button:hover {
     margin-top: 12px;
     box-shadow: 0 0 10px rgba(0,0,0,0.05);
 }
+/* ===== Modal Base ===== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ===== Hide ===== */
+.modal.hidden {
+  display: none;
+}
+
+/* ===== Modal Content ===== */
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
