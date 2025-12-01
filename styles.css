@@ -88,3 +88,17 @@ button:hover {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
+/* ボタンが見えなくなる問題の修正 */
+.btn {
+  background: #2a8cff;
+  color: #fff !important;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 16px;
+  border: none;
+}
+
+.btn.primary {
+  background: #2a8cff;
+  color: #fff !important;
+}
