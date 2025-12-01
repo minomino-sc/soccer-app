@@ -141,6 +141,35 @@
     <button onclick="closeTeamEditModal()">閉じる</button>
   </div>
 </div>
+<!-- ===== 編集モーダル（Edit Modal） ===== -->
+<div id="editModal" class="modal hidden">
+  <div class="modal-content">
+    <button id="modalClose" class="close-btn">閉じる</button>
+
+    <h2>試合編集</h2>
+
+    <label>日付</label>
+    <input type="date" id="edit-date">
+
+    <label>対戦相手</label>
+    <input type="text" id="edit-opponent">
+
+    <label>会場</label>
+    <input type="text" id="edit-place">
+
+    <label>自チーム得点</label>
+    <input type="number" id="edit-my-score">
+
+    <label>相手得点</label>
+    <input type="number" id="edit-opponent-score">
+
+    <label>ハイライト秒数</label>
+    <div id="edit-highlight-list"></div>
+
+    <button id="saveEdit" class="save-btn">保存</button>
+  </div>
+</div>
+<!-- ===== モーダルここまで ===== -->
 <script src="main.js"></script>
 </body>
 </html>
