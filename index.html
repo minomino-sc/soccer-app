@@ -59,39 +59,6 @@
       <div id="scoreGroups"></div>
     </section>
 
-    <!-- Viewer / Edit Modal -->
-    <div id="editModal" class="modal" aria-hidden="true">
-      <div class="modal-card card">
-        <button id="closeModal" class="btn">閉じる</button>
-        <h3 id="modalTitle">試合編集</h3>
-        <div class="row">
-          <input id="editDate" type="date" />
-          <input id="editOpponent" placeholder="対戦相手" />
-        </div>
-        <div class="row">
-          <input id="editPlace" class="match-venue" placeholder="会場" />
-        </div>
-        <div class="row">
-          <input id="editScoreA" type="number" min="0" placeholder="自チーム得点" />
-          <input id="editScoreB" type="number" min="0" placeholder="相手得点" />
-          <select id="editVideoSelect"></select>
-        </div>
-
-        <div class="row">
-          <input id="hlSeconds" type="number" placeholder="ハイライト秒数（例 42）" />
-          <button id="btnAddHL" class="btn">Add highlight</button>
-          <button id="btnMarkGoal" class="btn">Mark Goal</button>
-        </div>
-
-        <div id="hlList"></div>
-
-        <div class="row" style="margin-top:12px;">
-          <button id="btnSave" class="btn primary">保存</button>
-          <button id="btnDelete" class="btn danger">削除</button>
-        </div>
-      </div>
-    </div>
-
     <footer class="card small muted">© 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）</footer>
   </main>
 <!-- Team Edit Modal -->
