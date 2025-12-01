@@ -157,3 +157,36 @@ function openEditModal(date, opponent, place, myScore, opponentScore, highlights
 function closeModal() {
     document.getElementById("editModal").classList.add("hidden");
 }
+// ====== 編集内容を保存（Save Edit） ======
+document.getElementById("saveEdit").addEventListener("click", function () {
+    const date = document.getElementById("edit-date").value;
+    const opponent = document.getElementById("edit-opponent").value;
+    const place = document.getElementById("edit-place").value;
+    const myScore = document.getElementById("edit-my-score").value;
+    const opponentScore = document.getElementById("edit-opponent-score").value;
+
+    // ハイライトリストの取得
+    const highlightElements = document.querySelectorAll("#edit-highlight-list .highlight-item");
+    const highlights = Array.from(highlightElements).map(el => el.querySelector("input").value);
+
+    // 編集対象の試合データを更新
+    if (window.currentEditIndex !== undefined) {
+        scores[window.currentEditIndex] = {
+            date,
+            opponent,
+            place,
+            myScore,
+            opponentScore,
+            highlights
+        };
+
+        // LocalStorage に保存
+        localStorage.setItem("scores", JSON.stringify(scores));
+
+        // 一覧を更新
+        loadScores();
+
+        // モーダルを閉じる
+        closeEditModal();
+    }
+});
