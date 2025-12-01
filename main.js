@@ -125,3 +125,35 @@ async function sendTeamToGitHub(team) {
     }
   );
 }
+/* ======= モーダル開閉 ======= */
+
+// 編集モーダルを開く
+function openEditModal(date, opponent, place, myScore, opponentScore, highlights) {
+    const modal = document.getElementById("editModal");
+    const dateInput = document.getElementById("edit-date");
+    const opponentInput = document.getElementById("edit-opponent");
+    const placeInput = document.getElementById("edit-place");
+    const myScoreInput = document.getElementById("edit-my-score");
+    const opponentScoreInput = document.getElementById("edit-opponent-score");
+    const highlightList = document.getElementById("edit-highlight-list");
+
+    dateInput.value = date;
+    opponentInput.value = opponent;
+    placeInput.value = place;
+    myScoreInput.value = myScore;
+    opponentScoreInput.value = opponentScore;
+
+    highlightList.innerHTML = "";
+    highlights.forEach((h) => {
+        const item = document.createElement("li");
+        item.textContent = h + "秒";
+        highlightList.appendChild(item);
+    });
+
+    modal.classList.remove("hidden");
+}
+
+// モーダルを閉じる
+function closeModal() {
+    document.getElementById("editModal").classList.add("hidden");
+}
