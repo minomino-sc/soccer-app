@@ -1,0 +1,26 @@
+name: Update Teams JSON
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run data update script
+        run: |
+          echo "ここに JSON を更新する処理を書く（後で追加）"
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.name "github-actions"
+          git config --local user.email "actions@github.com"
+          git add data/*
+          git commit -m "Auto-update teams.json" || echo "No changes"
+          git push
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
