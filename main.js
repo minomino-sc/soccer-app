@@ -154,9 +154,10 @@ function openEditModal(date, opponent, place, myScore, opponentScore, highlights
 }
 
 // モーダルを閉じる
-function closeModal() {
+function closeEditModal() {
     document.getElementById("editModal").classList.add("hidden");
 }
+
 // ====== 編集内容を保存（Save Edit） ======
 document.getElementById("saveEdit").addEventListener("click", function () {
     const date = document.getElementById("edit-date").value;
