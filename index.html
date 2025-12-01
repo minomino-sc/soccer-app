@@ -14,6 +14,7 @@
       <h1 id="title">⚽️箕谷SC 動画共有システム⚽️</h1>
     </header>
 
+    <!-- ▼ チーム参加 -->
     <section class="card" id="teamSection">
       <h2>チーム参加 / ログイン</h2>
       <div class="row">
@@ -24,7 +25,8 @@
       <p class="muted small">招待コードを使って簡易にチーム共有できます。完全無料の YouTube 限定公開方式です。</p>
     </section>
 
-    <section class="card" id="addVideoSection" style="display:block;">
+    <!-- ▼ YouTube追加 -->
+    <section class="card" id="addVideoSection" style="display:none;">
       <h2>YouTube 動画を追加</h2>
       <div class="row">
         <input id="youtubeUrl" placeholder="YouTube の共有URL（例 https://youtu.be/xxxxx）" />
@@ -32,3 +34,66 @@
       </div>
       <p class="muted small">動画は YouTube に限定公開でアップロードして共有してください。</p>
     </section>
+
+    <!-- ▼ 試合作成 -->
+    <section class="card" id="createMatchSection" style="display:none;">
+      <h2>試合（Score）を作成</h2>
+      <div class="row">
+        <input id="matchDate" type="date" />
+        <input id="opponent" placeholder="対戦相手" />
+      </div>
+      <div class="row">
+        <input id="place" placeholder="会場（改行は自動で調整されます）" />
+      </div>
+      <div class="row">
+        <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
+        <input id="scoreB" placeholder="相手得点" type="number" min="0" />
+      </div>
+      <div class="row">
+        <select id="videoSelect"><option value="">— 紐づけ動画なし —</option></select>
+        <button id="btnCreateMatch" class="btn">作成</button>
+      </div>
+      <p class="muted small">作成後にカードをタップすると編集できます。</p>
+    </section>
+
+    <!-- ▼ スコア一覧 -->
+    <section class="card" id="scoresSection" style="display:none;">
+      <h2>スコア一覧</h2>
+      <div id="scoreGroups"></div>
+    </section>
+
+    <footer class="card small muted">© 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）</footer>
+  </main>
+
+  <!-- ▼ 編集モーダル -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal-content">
+      <button id="modalClose" class="close-btn">閉じる</button>
+
+      <h2>試合編集</h2>
+
+      <label>日付</label>
+      <input type="date" id="edit-date">
+
+      <label>対戦相手</label>
+      <input type="text" id="edit-opponent">
+
+      <label>会場</label>
+      <input type="text" id="edit-place">
+
+      <label>自チーム得点</label>
+      <input type="number" id="edit-my-score">
+
+      <label>相手得点</label>
+      <input type="number" id="edit-opponent-score">
+
+      <label>ハイライト秒数</label>
+      <div id="edit-highlight-list"></div>
+
+      <button id="saveEdit" class="save-btn">保存</button>
+    </div>
+  </div>
+
+<script src="main.js"></script>
+</body>
+</html>
