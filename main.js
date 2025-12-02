@@ -186,15 +186,17 @@ if (cls) {
         <div class="sub match-venue">${it.place || ""}</div>
         <div class="sub">Score: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>
       `;
+      
+const badge = document.createElement("div");
+badge.className = "badge";
+badge.innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+    ${it.videoId ? `<a href="https://youtu.be/${it.videoId}" target="_blank" class="btn">試合動画再生</a>` : ""}
+    <button class="btn" onclick='openEditModal(${idx}, "${it.date}", "${escapeHtml(it.opponent)}", "${escapeHtml(it.place)}", "${it.myScore ?? ""}", "${it.opponentScore ?? ""}", ${JSON.stringify(it.highlights)})'>編集</button>
 
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-          ${it.videoId ? `<a href="https://youtu.be/${it.videoId}" target="_blank" class="btn">試合動画再生</a>` : ""}
-          <button class="btn" onclick='openEditModal(${idx}, "${it.date}", "${escapeHtml(it.opponent)}", "${escapeHtml(it.place)}", "${it.myScore ?? ""}", "${it.opponentScore ?? ""}", ${JSON.stringify(it.highlights)})'>編集</button>
-        </div>
-      `;
+    <button class="btn danger" onclick="deleteMatchFromList(${idx})">削除</button>
+  </div>
+`;
 
       scoreCard.appendChild(meta);
       scoreCard.appendChild(badge);
