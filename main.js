@@ -280,17 +280,7 @@ function openEditModal(index, date, opponent, place, myScore, opponentScore, hig
     if (modal) modal.classList.remove("hidden");
   }
 }
-// ★ゴール秒数リストの初期化
-const goalList = document.getElementById("goalSecondsList");
-if (goalList) {
-  goalList.innerHTML = "";
-  parsedHighlights.forEach(sec => {
-    const div = document.createElement("div");
-    div.textContent = `${sec} 秒`;
-    goalList.appendChild(div);
-  });
-
-  // ★ゴール秒数リストの初期化（色付き）
+// ★ゴール秒数リストの初期化（色付き）
 const goalList = document.getElementById("goalSecondsList");
 if (goalList) {
   goalList.innerHTML = "";
@@ -304,9 +294,6 @@ if (goalList) {
 
     goalList.appendChild(div);
   });
-}
-
-  
 }
 
 function closeEditModal() {
