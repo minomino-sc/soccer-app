@@ -210,31 +210,29 @@ function escapeHtml(str) {
   return String(str).replace(/"/g, '\\"').replace(/\n/g, "\\n");
 }
 
-/* ------------------------------
-  モーダル（編集）制御
------------------------------- */
+/* --------------------------------------------------
+   モーダル（編集）制御
+-------------------------------------------------- */
 function openEditModal(index, date, opponent, place, myScore, opponentScore, highlights) {
-  // set index
   window.currentEditIndex = index;
 
-  // Prefer top modal (editDate) if exists, otherwise bottom modal (edit-date).
   const topDate = document.getElementById("editDate");
   const bottomDate = document.getElementById("edit-date");
 
-  // Normalize values
   const parsedHighlights = Array.isArray(highlights) ? highlights : [];
 
+  // -------------- 上部モーダル（editModal） --------------
   if (topDate) {
     topDate.value = date || "";
     document.getElementById("editOpponent").value = opponent || "";
     document.getElementById("editPlace").value = place || "";
     document.getElementById("editScoreA").value = myScore ?? "";
     document.getElementById("editScoreB").value = opponentScore ?? "";
-    // set video select if present
+
     if (document.getElementById("editVideoSelect")) {
       document.getElementById("editVideoSelect").value = scores[index]?.videoId || "";
     }
-    // populate hlList
+
     const hlList = document.getElementById("hlList");
     if (hlList) {
       hlList.innerHTML = "";
@@ -245,13 +243,13 @@ function openEditModal(index, date, opponent, place, myScore, opponentScore, hig
         hlList.appendChild(item);
       });
     }
-    // show top modal
+
     const modal = document.getElementById("editModal");
     if (modal) modal.classList.remove("hidden");
     return;
   }
 
-  // bottom modal fallback
+  // -------------- 下部モーダル（edit-date） --------------
   if (bottomDate) {
     bottomDate.value = date || "";
     document.getElementById("edit-opponent").value = opponent || "";
@@ -263,56 +261,54 @@ function openEditModal(index, date, opponent, place, myScore, opponentScore, hig
     if (hlList) {
       hlList.innerHTML = "";
       parsedHighlights.forEach(h => {
-        // create highlight input item
         const li = document.createElement("div");
         li.className = "highlight-item";
+
         const input = document.createElement("input");
         input.type = "number";
         input.value = h;
         input.style.width = "80px";
         li.appendChild(input);
+
         hlList.appendChild(li);
       });
     }
 
-    // show bottom modal
     const modal = document.getElementById("editModal");
     if (modal) modal.classList.remove("hidden");
   }
 }
-    // 新：色付け（自チーム＝青）
-    div.style.color = "#007bff"; // 青
-    div.style.fontWeight = "bold";
 
-    goalList.appendChild(div);
-  });
-}
-
+/* --------------------------------------------------
+   モーダル閉じる
+-------------------------------------------------- */
 function closeEditModal() {
-  // hide any edit modal variants
   const modals = document.querySelectorAll("#editModal, #teamEditModal, #memberModal");
   modals.forEach(m => {
-    if (m.classList.contains("hidden")) return;
-    m.classList.add("hidden");
+    if (!m.classList.contains("hidden")) {
+      m.classList.add("hidden");
+    }
   });
   window.currentEditIndex = undefined;
 }
 
-/* Save (for bottom modal) */
+/* --------------------------------------------------
+   保存（編集モーダル）
+-------------------------------------------------- */
 function saveEditGeneric() {
-  // support both modal variants:
   const topDate = document.getElementById("editDate");
   const bottomDate = document.getElementById("edit-date");
 
   let date, opponent, place, myScore, opponentScore, highlights = [], videoId = null;
 
+  // -------- 上部モーダル --------
   if (topDate) {
     date = document.getElementById("editDate").value;
     opponent = document.getElementById("editOpponent").value;
     place = document.getElementById("editPlace").value;
     myScore = document.getElementById("editScoreA").value;
     opponentScore = document.getElementById("editScoreB").value;
-    // highlights from hlList
+
     const hlList = document.getElementById("hlList");
     highlights = [];
     if (hlList) {
@@ -321,29 +317,33 @@ function saveEditGeneric() {
         if (s) highlights.push(Number(s));
       });
     }
+
     if (document.getElementById("editVideoSelect")) {
       videoId = document.getElementById("editVideoSelect").value || null;
     }
-  } else if (bottomDate) {
+  }
+
+  // -------- 下部モーダル --------
+  else if (bottomDate) {
     date = document.getElementById("edit-date").value;
     opponent = document.getElementById("edit-opponent").value;
     place = document.getElementById("edit-place").value;
     myScore = document.getElementById("edit-my-score").value;
     opponentScore = document.getElementById("edit-opponent-score").value;
+
     const hlElems = document.querySelectorAll("#edit-highlight-list .highlight-item input");
     highlights = Array.from(hlElems).map(i => Number(i.value));
-    // no video select in bottom modal by default
+
     videoId = scores[window.currentEditIndex]?.videoId || null;
   } else {
     return;
   }
 
-  if (window.currentEditIndex === undefined || window.currentEditIndex === null) {
+  if (window.currentEditIndex === undefined) {
     alert("編集対象が見つかりません。");
     return;
   }
 
-  // normalize numeric
   const sA = myScore === "" ? null : Number(myScore);
   const sB = opponentScore === "" ? null : Number(opponentScore);
 
@@ -364,115 +364,129 @@ function saveEditGeneric() {
   alert("保存しました。");
 }
 
-/* Delete match */
+/* --------------------------------------------------
+   試合削除
+-------------------------------------------------- */
 function deleteCurrentMatch() {
-  if (window.currentEditIndex === undefined || window.currentEditIndex === null) {
-    alert("編集対象が見つかりません。");
-    return;
-  }
-  if (!confirm("この試合を削除してよいですか？")) return;
+  if (window.currentEditIndex === undefined) return;
+
+  if (!confirm("この試合を削除しますか？")) return;
+
   scores.splice(window.currentEditIndex, 1);
   saveAll();
   loadScores();
   closeEditModal();
 }
 
-/* Add highlight (top modal) */
+/* --------------------------------------------------
+   ハイライト追加（上モーダル）
+-------------------------------------------------- */
 function addHighlightTop() {
   const secondsInput = document.getElementById("hlSeconds");
   if (!secondsInput) return;
+
   const v = secondsInput.value;
   if (!v) {
-    alert("秒数を入力してください（例：42）");
+    alert("秒数を入力してください。");
     return;
   }
+
   const hlList = document.getElementById("hlList");
-  if (!hlList) return;
   const item = document.createElement("div");
   item.className = "hl-item";
   item.textContent = `${v} 秒`;
   hlList.appendChild(item);
+
   secondsInput.value = "";
 }
 
-/* Mark Goal (top modal) — 簡易：現在入力された秒数をハイライト追加 */
+/* --------------------------------------------------
+   ゴール追加ボタン（上モーダル）
+-------------------------------------------------- */
 function markGoalTop() {
   const secondsInput = document.getElementById("hlSeconds");
-  if (!secondsInput) return;
-  const v = secondsInput.value || prompt("ゴール発生時の秒数を入れてください（例：123）");
+  const v = secondsInput.value || prompt("ゴール秒数を入力してください（例：123）");
   if (!v) return;
+
   const hlList = document.getElementById("hlList");
-  if (!hlList) return;
   const item = document.createElement("div");
   item.className = "hl-item";
   item.textContent = `${v} 秒`;
   hlList.appendChild(item);
+
   secondsInput.value = "";
 }
 
-/* ------------------------------
-  イベントバインド / 初期化
------------------------------- */
+/* --------------------------------------------------
+   DOMContentLoaded（全イベント登録）
+-------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
-  // initial render
   renderVideoSelects();
   loadScores();
 
-  // add YouTube button
+  // --- YouTube 追加 ---
   const btnAddYT = document.getElementById("btnAddYouTube");
   if (btnAddYT) {
     btnAddYT.addEventListener("click", () => {
       const url = document.getElementById("youtubeUrl").value.trim();
-      if (!url) return alert("YouTube のURLを入力してください");
+      if (!url) return alert("URLを入力してください");
       addYouTubeVideo(url);
       document.getElementById("youtubeUrl").value = "";
     });
   }
 
-  // create match button
+  // --- 試合作成 ---
   const btnCreateMatch = document.getElementById("btnCreateMatch");
-  if (btnCreateMatch) {
-    btnCreateMatch.addEventListener("click", createMatch);
-  }
+  if (btnCreateMatch) btnCreateMatch.addEventListener("click", createMatch);
 
-  // bind close buttons (both possible ids)
+  // --- モーダル閉じる ---
   const closeTop = document.getElementById("closeModal");
   if (closeTop) closeTop.addEventListener("click", closeEditModal);
+
   const closeBottom = document.getElementById("modalClose");
   if (closeBottom) closeBottom.addEventListener("click", closeEditModal);
 
-  // bind save buttons
+  // --- 保存ボタン ---
   const saveTop = document.getElementById("btnSave");
   if (saveTop) saveTop.addEventListener("click", saveEditGeneric);
+
   const saveBottom = document.getElementById("saveEdit");
   if (saveBottom) saveBottom.addEventListener("click", saveEditGeneric);
 
-  // bind delete
+  // --- 削除 ---
   const delTop = document.getElementById("btnDelete");
   if (delTop) delTop.addEventListener("click", deleteCurrentMatch);
 
-  // bind add highlight / mark goal (top modal)
+  // --- ハイライト追加 ---
   const btnAddHL = document.getElementById("btnAddHL");
   if (btnAddHL) btnAddHL.addEventListener("click", addHighlightTop);
+
   const btnMarkGoal = document.getElementById("btnMarkGoal");
   if (btnMarkGoal) btnMarkGoal.addEventListener("click", markGoalTop);
 
-  // Team / Join form (IDs in your index.html: btnJoin, teamNameInput, inviteCodeInput)
+  // --- チーム参加 / 作成 ---
   const btnJoin = document.getElementById("btnJoin");
   if (btnJoin) {
-    btnJoin.addEventListener("click", async () => {
+    btnJoin.addEventListener("click", () => {
       const name = document.getElementById("teamNameInput").value.trim();
       const code = document.getElementById("inviteCodeInput").value.trim().toUpperCase();
-      if (!name) return alert("チーム名を入れてください");
-      // very simple local demo: persist team in localStorage
+
+      if (!name) return alert("チーム名を入力してください");
+
       const team = { teamName: name, inviteCode: code || null };
       localStorage.setItem("teamInfo", JSON.stringify(team));
+
       document.getElementById("teamSection").style.display = "none";
       document.getElementById("addVideoSection").style.display = "block";
       document.getElementById("createMatchSection").style.display = "block";
       document.getElementById("scoresSection").style.display = "block";
-      document.getElementById("currentTeamName") && (document.getElementById("currentTeamName").textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`);
-      alert("チーム参加しました（ローカル保存）。実運用ではサーバーに保存してください。");
+
+      if (document.getElementById("currentTeamName")) {
+        document.getElementById("currentTeamName").textContent =
+          `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+      }
+
+      alert("チーム参加しました！");
     });
   }
 });
