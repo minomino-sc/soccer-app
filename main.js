@@ -189,7 +189,7 @@ function loadScores() {
       badge.className = "badge";
       badge.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-          ${it.videoId ? `<a href="https://youtu.be/${it.videoId}" target="_blank" class="btn">再生</a>` : ""}
+          ${it.videoId ? `<a href="https://youtu.be/${it.videoId}" target="_blank" class="btn">試合動画再生</a>` : ""}
           <button class="btn" onclick='openEditModal(${idx}, "${it.date}", "${escapeHtml(it.opponent)}", "${escapeHtml(it.place)}", "${it.myScore ?? ""}", "${it.opponentScore ?? ""}", ${JSON.stringify(it.highlights)})'>編集</button>
         </div>
       `;
