@@ -302,26 +302,37 @@ function saveEditGeneric() {
   let date, opponent, place, myScore, opponentScore, highlights = [], videoId = null;
 
   // -------- 上部モーダル --------
-  if (topDate) {
-    date = document.getElementById("editDate").value;
-    opponent = document.getElementById("editOpponent").value;
-    place = document.getElementById("editPlace").value;
-    myScore = document.getElementById("editScoreA").value;
-    opponentScore = document.getElementById("editScoreB").value;
+if (topDate) {
+  date = document.getElementById("editDate").value;
+  opponent = document.getElementById("editOpponent").value;
+  place = document.getElementById("editPlace").value;
+  myScore = document.getElementById("editScoreA").value;
+  opponentScore = document.getElementById("editScoreB").value;
 
-    const hlList = document.getElementById("hlList");
-    highlights = [];
-    if (hlList) {
-      Array.from(hlList.children).forEach(ch => {
-        const s = ch.textContent.replace(" 秒", "").trim();
-        if (s) highlights.push(Number(s));
-      });
-    }
+  highlights = [];
 
-    if (document.getElementById("editVideoSelect")) {
-      videoId = document.getElementById("editVideoSelect").value || null;
-    }
+  // --- ① 自チームゴール秒数（goalSecondsList） ---
+  const goalList = document.getElementById("goalSecondsList");
+  if (goalList) {
+    Array.from(goalList.children).forEach(ch => {
+      const s = ch.textContent.replace(" 秒", "").trim();
+      if (s) highlights.push(Number(s));
+    });
   }
+
+  // --- ② ハイライト秒数（hlList） ---
+  const hlList = document.getElementById("hlList");
+  if (hlList) {
+    Array.from(hlList.children).forEach(ch => {
+      const s = ch.textContent.replace(" 秒", "").trim();
+      if (s) highlights.push(Number(s));
+    });
+  }
+
+  if (document.getElementById("editVideoSelect")) {
+    videoId = document.getElementById("editVideoSelect").value || null;
+  }
+}
 
   // -------- 下部モーダル --------
   else if (bottomDate) {
