@@ -175,7 +175,9 @@ function loadScores() {
         else if (it.myScore < it.opponentScore) cls = "lose";
         else cls = "draw";
       }
-      scoreCard.classList.add(cls);
+if (cls) {
+  scoreCard.classList.add(cls);
+}
 
       const meta = document.createElement("div");
       meta.className = "meta";
