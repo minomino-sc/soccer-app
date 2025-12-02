@@ -102,3 +102,18 @@ button:hover {
   background: #2a8cff;
   color: #fff !important;
 }
+/* スコア結果の色分け */
+.score-card.win {
+  border-left: 6px solid #007bff; /* 自チーム勝ち＝青 */
+}
+.score-card.lose {
+  border-left: 6px solid #ff4d4f; /* 負け＝赤 */
+}
+.score-card.draw {
+  border-left: 6px solid #666; /* 引き分け＝グレー */
+}
+
+/* クリック領域やレイアウト崩れがあればスペーシング調整 */
+.score-card .badge {
+  margin-top: 12px;
+}
