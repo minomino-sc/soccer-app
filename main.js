@@ -463,6 +463,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnCreateMatch = document.getElementById("btnCreateMatch");
   if (btnCreateMatch) btnCreateMatch.addEventListener("click", createMatch);
 
+// ▼ ログイン画面に戻るボタン
+const backToLogin = document.getElementById("btnBackLogin");
+if (backToLogin) {
+    backToLogin.addEventListener("click", () => {
+        // すべてのセクションを非表示に
+        document.getElementById("teamSection").style.display = "block";
+        document.getElementById("addVideoSection").style.display = "none";
+        document.getElementById("createMatchSection").style.display = "none";
+        document.getElementById("scoresSection").style.display = "none";
+
+        // モーダルも閉じる（保険）
+        closeEditModal();
+    });
+}
+  
 /* --------------------------------------------------
    モーダル閉じる / 保存 / 削除（編集モーダル）
 -------------------------------------------------- */
