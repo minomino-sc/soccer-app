@@ -289,6 +289,24 @@ if (goalList) {
     div.textContent = `${sec} 秒`;
     goalList.appendChild(div);
   });
+
+  // ★ゴール秒数リストの初期化（色付き）
+const goalList = document.getElementById("goalSecondsList");
+if (goalList) {
+  goalList.innerHTML = "";
+  parsedHighlights.forEach(h => {
+    const div = document.createElement("div");
+    div.textContent = `${h.sec ?? h} 秒`;
+
+    // 新：色付け（自チーム＝青）
+    div.style.color = "#007bff"; // 青
+    div.style.fontWeight = "bold";
+
+    goalList.appendChild(div);
+  });
+}
+
+  
 }
 
 function closeEditModal() {
