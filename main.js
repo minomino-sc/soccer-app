@@ -476,6 +476,10 @@ if (backToLogin) {
     document.getElementById("addVideoSection").style.display = "none";
     document.getElementById("createMatchSection").style.display = "none";
     document.getElementById("scoresSection").style.display = "none";
+
+    // ▼ 入力リセット（任意）
+    document.getElementById("teamNameInput").value = "";
+    document.getElementById("inviteCodeInput").value = "";
   });
 }
   
