@@ -65,46 +65,54 @@
     <footer class="card small muted">© 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）</footer>
   </main>
 
-  <!-- ▼ 編集モーダル -->
-  <div id="editModal" class="modal hidden">
-    <div class="modal-content">
-      <button id="modalClose" class="close-btn">閉じる</button>
+<!-- ▼ 編集モーダル -->
+<div id="editModal" class="modal hidden">
+  <div class="modal-content">
 
-      <h2>試合編集</h2>
+    <!-- 上部：閉じるボタン -->
+    <button id="modalClose" class="close-btn">閉じる</button>
 
-      <label>日付</label>
-      <input type="date" id="edit-date">
+    <h2>試合編集</h2>
 
-      <label>対戦相手</label>
-      <input type="text" id="edit-opponent">
+    <label>日付</label>
+    <input type="date" id="edit-date">
 
-      <label>会場</label>
-      <input type="text" id="edit-place">
+    <label>対戦相手</label>
+    <input type="text" id="edit-opponent">
 
-      <label>自チーム得点</label>
-      <input type="number" id="edit-my-score">
+    <label>会場</label>
+    <input type="text" id="edit-place">
 
-      <label>相手得点</label>
-      <input type="number" id="edit-opponent-score">
+    <label>自チーム得点</label>
+    <input type="number" id="edit-my-score">
 
-<label>自チームゴール秒数</label>
-<div class="row">
-  <input id="hlSeconds" type="number" placeholder="例：85" />
-  <button id="btnMarkGoal" class="btn">追加</button>
-</div>
+    <label>相手得点</label>
+    <input type="number" id="edit-opponent-score">
 
-<div id="hlList" class="muted small" style="margin-top:8px;"></div>
-      
-      <label>ハイライト秒数</label>
-<div id="edit-highlight-list"></div>
-
-<button id="deleteMatch" class="delete-btn" style="background:#d9534f; color:white; margin-top:10px;">
-  この試合を削除
-</button>
-
-<button id="saveEdit" class="save-btn">保存</button>      
+    <!-- ▼ ゴール秒数追加 -->
+    <label>自チームゴール秒数</label>
+    <div class="row">
+      <input id="hlSeconds" type="number" placeholder="例：85" />
+      <button id="btnMarkGoal" class="btn">追加</button>
     </div>
+
+    <!-- ゴール一覧 -->
+    <div id="hlList" class="muted small" style="margin-top:8px;"></div>
+
+    <!-- ▼ ハイライト秒数 -->
+    <label>ハイライト秒数</label>
+    <div id="edit-highlight-list"></div>
+
+    <!-- ▼ 下部の保存ボタン -->
+    <button id="saveEdit" class="save-btn">保存</button>
+
+    <!-- ▼ 削除ボタン（今回追加したもの） -->
+    <button id="deleteMatch" class="delete-btn" style="margin-top:16px;">
+      この試合を削除
+    </button>
+
   </div>
+</div>
 
 <script src="main.js"></script>
 </body>
