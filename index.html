@@ -35,26 +35,36 @@
       <p class="muted small">動画は YouTube に限定公開でアップロードして共有してください。</p>
     </section>
 
-    <!-- ▼ 試合作成 -->
-    <section class="card" id="createMatchSection" style="display:none;">
-      <h2>試合（Score）を作成</h2>
-      <div class="row">
-        <input id="matchDate" type="date" />
-        <input id="opponent" placeholder="対戦相手" />
-      </div>
-      <div class="row">
-        <input id="place" placeholder="会場（改行は自動で調整されます）" />
-      </div>
-      <div class="row">
-        <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
-        <input id="scoreB" placeholder="相手得点" type="number" min="0" />
-      </div>
-      <div class="row">
-        <select id="videoSelect"><option value="">— 紐づけ動画なし —</option></select>
-        <button id="btnCreateMatch" class="btn">作成</button>
-      </div>
-      <p class="muted small">作成後にカードをタップすると編集できます。</p>
-    </section>
+<!-- ▼ 試合作成 -->
+<section class="card" id="createMatchSection" style="display:none;">
+  <h2>試合（Score）を作成</h2>
+
+  <div class="row">
+    <input id="matchDate" type="date" />
+    <input id="opponent" placeholder="対戦相手" />
+  </div>
+  <div class="row">
+    <input id="place" placeholder="会場（改行は自動で調整されます）" />
+  </div>
+  <div class="row">
+    <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
+    <input id="scoreB" placeholder="相手得点" type="number" min="0" />
+  </div>
+  <div class="row">
+    <select id="videoSelect"><option value="">— 紐づけ動画なし —</option></select>
+    <button id="btnCreateMatch" class="btn">作成</button>
+  </div>
+
+  <p class="muted small">作成後にカードをタップすると編集できます。</p>
+
+  <!-- ▼ 戻るボタン（正しい位置） -->
+  <div style="margin-top:12px;">
+    <button id="btnBackLogin" class="btn" style="background:#888;">
+      ログイン画面に戻る
+    </button>
+  </div>
+
+</section>
 
     <!-- ▼ スコア一覧 -->
     <section class="card" id="scoresSection" style="display:none;">
