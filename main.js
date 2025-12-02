@@ -464,18 +464,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnCreateMatch) btnCreateMatch.addEventListener("click", createMatch);
 
 // ▼ ログイン画面に戻るボタン
-const backToLogin = document.getElementById("btnBackLogin");
+const backToLogin = document.getElementById("btnBackToLogin");
 if (backToLogin) {
-    backToLogin.addEventListener("click", () => {
-        // すべてのセクションを非表示に
-        document.getElementById("teamSection").style.display = "block";
-        document.getElementById("addVideoSection").style.display = "none";
-        document.getElementById("createMatchSection").style.display = "none";
-        document.getElementById("scoresSection").style.display = "none";
+  backToLogin.addEventListener("click", () => {
 
-        // モーダルも閉じる（保険）
-        closeEditModal();
-    });
+    // ▼ ログイン画面だけ表示
+    document.getElementById("teamSection").style.display = "block";
+
+    // ▼ その他の画面はすべて非表示
+    document.getElementById("backToLoginSection").style.display = "none";
+    document.getElementById("addVideoSection").style.display = "none";
+    document.getElementById("createMatchSection").style.display = "none";
+    document.getElementById("scoresSection").style.display = "none";
+  });
 }
   
 /* --------------------------------------------------
