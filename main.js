@@ -512,29 +512,31 @@ if (deleteBtn) {
   const btnMarkGoal = document.getElementById("btnMarkGoal");
   if (btnMarkGoal) btnMarkGoal.addEventListener("click", markGoalTop);
 
-  // --- チーム参加 / 作成 ---
-  const btnJoin = document.getElementById("btnJoin");
-  if (btnJoin) {
-    btnJoin.addEventListener("click", () => {
-      const name = document.getElementById("teamNameInput").value.trim();
-      const code = document.getElementById("inviteCodeInput").value.trim().toUpperCase();
+// --- チーム参加 / 作成 ---
+const btnJoin = document.getElementById("btnJoin");
+if (btnJoin) {
+  btnJoin.addEventListener("click", () => {
+    const name = document.getElementById("teamNameInput").value.trim();
+    const code = document.getElementById("inviteCodeInput").value.trim().toUpperCase();
 
-      if (!name) return alert("チーム名を入力してください");
+    if (!name) return alert("チーム名を入力してください");
 
-      const team = { teamName: name, inviteCode: code || null };
-      localStorage.setItem("teamInfo", JSON.stringify(team));
+    const team = { teamName: name, inviteCode: code || null };
+    localStorage.setItem("teamInfo", JSON.stringify(team));
 
-      document.getElementById("teamSection").style.display = "none";
-      document.getElementById("addVideoSection").style.display = "block";
-      document.getElementById("createMatchSection").style.display = "block";
-      document.getElementById("scoresSection").style.display = "block";
+    document.getElementById("teamSection").style.display = "none";
+    document.getElementById("addVideoSection").style.display = "block";
+    document.getElementById("createMatchSection").style.display = "block";
+    document.getElementById("scoresSection").style.display = "block";
 
-      if (document.getElementById("currentTeamName")) {
-        document.getElementById("currentTeamName").textContent =
-          `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
-      }
+    // ★★★ 必須！これが無いから戻れなくなる！
+    document.getElementById("backToLoginSection").style.display = "block";
 
-      alert("チーム参加しました！");
-    });
-  }
-});
+    if (document.getElementById("currentTeamName")) {
+      document.getElementById("currentTeamName").textContent =
+        `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+    }
+
+    alert("チーム参加しました！");
+  });
+}
