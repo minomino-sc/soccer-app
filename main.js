@@ -529,11 +529,10 @@ if (btnJoin) {
     document.getElementById("scoresSection").style.display = "block";
 
     // ★★★ 必須！これが無いから戻れなくなる！
-
-    if (document.getElementById("currentTeamName")) {
-      document.getElementById("currentTeamName").textContent =
-        `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
-    }
+if (document.getElementById("currentTeamName")) {
+  document.getElementById("currentTeamName").textContent =
+    `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+}
 
     alert("チーム参加しました！");
   });
