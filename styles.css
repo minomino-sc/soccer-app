@@ -1,3 +1,7 @@
+:root {
+  --accent: #2a8cff;
+  --accent-dark: #005fcc;
+}
 /* ===== 基本レイアウト ===== */
 body {
     margin: 0;
