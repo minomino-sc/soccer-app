@@ -391,6 +391,15 @@ function deleteCurrentMatch() {
   closeEditModal();
 }
 
+// ▼▼ これを追加 ▼▼
+function deleteMatchFromList(index) {
+  if (!confirm("この試合を削除しますか？")) return;
+  scores.splice(index, 1);
+  saveAll();
+  loadScores();
+}
+// ▲▲ これを追加 ▲▲
+
 /* --------------------------------------------------
    ハイライト追加（上モーダル）
 -------------------------------------------------- */
