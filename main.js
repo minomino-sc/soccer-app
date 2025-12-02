@@ -463,23 +463,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnCreateMatch = document.getElementById("btnCreateMatch");
   if (btnCreateMatch) btnCreateMatch.addEventListener("click", createMatch);
 
-  // --- モーダル閉じる ---
-  const closeTop = document.getElementById("closeModal");
-  if (closeTop) closeTop.addEventListener("click", closeEditModal);
+/* --------------------------------------------------
+   モーダル閉じる / 保存 / 削除（編集モーダル）
+-------------------------------------------------- */
 
-  const closeBottom = document.getElementById("modalClose");
-  if (closeBottom) closeBottom.addEventListener("click", closeEditModal);
+// ▼ モーダルを閉じる（HTML にあるボタン）
+const closeBottom = document.getElementById("modalClose");
+if (closeBottom) {
+  closeBottom.addEventListener("click", closeEditModal);
+}
 
-  // --- 保存ボタン ---
-  const saveTop = document.getElementById("btnSave");
-  if (saveTop) saveTop.addEventListener("click", saveEditGeneric);
+// ▼ 保存ボタン（HTML にあるボタン）
+const saveBottom = document.getElementById("saveEdit");
+if (saveBottom) {
+  saveBottom.addEventListener("click", saveEditGeneric);
+}
 
-  const saveBottom = document.getElementById("saveEdit");
-  if (saveBottom) saveBottom.addEventListener("click", saveEditGeneric);
-
-  // --- 削除 ---
-  const delTop = document.getElementById("btnDelete");
-  if (delTop) delTop.addEventListener("click", deleteCurrentMatch);
+// ▼ 削除ボタン（あなたが追加したもの）
+const deleteBtn = document.getElementById("deleteMatch");
+if (deleteBtn) {
+  deleteBtn.addEventListener("click", deleteCurrentMatch);
+}
 
   // --- ハイライト追加 ---
   const btnAddHL = document.getElementById("btnAddHL");
