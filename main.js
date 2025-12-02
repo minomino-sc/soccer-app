@@ -529,7 +529,6 @@ if (btnJoin) {
     document.getElementById("scoresSection").style.display = "block";
 
     // ★★★ 必須！これが無いから戻れなくなる！
-    document.getElementById("backToLoginSection").style.display = "block";
 
     if (document.getElementById("currentTeamName")) {
       document.getElementById("currentTeamName").textContent =
