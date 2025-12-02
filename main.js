@@ -280,14 +280,6 @@ function openEditModal(index, date, opponent, place, myScore, opponentScore, hig
     if (modal) modal.classList.remove("hidden");
   }
 }
-// ★ゴール秒数リストの初期化（色付き）
-const goalList = document.getElementById("goalSecondsList");
-if (goalList) {
-  goalList.innerHTML = "";
-  parsedHighlights.forEach(h => {
-    const div = document.createElement("div");
-    div.textContent = `${h.sec ?? h} 秒`;
-
     // 新：色付け（自チーム＝青）
     div.style.color = "#007bff"; // 青
     div.style.fontWeight = "bold";
