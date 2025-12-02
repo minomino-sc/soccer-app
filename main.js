@@ -464,20 +464,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnCreateMatch) btnCreateMatch.addEventListener("click", createMatch);
 
 // ▼ ログイン画面に戻るボタン
-const backToLogin = document.getElementById("btnBackToLogin");
+const backToLogin = document.getElementById("btnBackLogin");
 if (backToLogin) {
   backToLogin.addEventListener("click", () => {
 
-    // ▼ ログイン画面だけ表示
+    // ログイン画面だけ表示
     document.getElementById("teamSection").style.display = "block";
 
-    // ▼ その他の画面はすべて非表示
-    document.getElementById("backToLoginSection").style.display = "none";
+    // 他は全部非表示
     document.getElementById("addVideoSection").style.display = "none";
     document.getElementById("createMatchSection").style.display = "none";
     document.getElementById("scoresSection").style.display = "none";
 
-    // ▼ 入力リセット（任意）
+    // 入力リセット
     document.getElementById("teamNameInput").value = "";
     document.getElementById("inviteCodeInput").value = "";
   });
