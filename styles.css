@@ -125,3 +125,6 @@ button:hover {
 .score-card .badge {
   margin-top: 12px;
 }
+#title {
+  color: black;
+}
