@@ -260,3 +260,30 @@ button:hover {
   color: #000 !important;
   -webkit-text-fill-color: #000 !important;
 }
+
+/* ===== チームタイトル + ロゴ横並び ===== */
+.team-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.team-title-row h2 {
+  margin: 0;
+}
+
+.team-logo {
+  width: 48px;      /* ←ちょうど良いサイズ */
+  height: auto;
+  object-fit: contain;
+}
+
+/* スマホでは自然に縦積みにする */
+@media (max-width: 480px) {
+  .team-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
