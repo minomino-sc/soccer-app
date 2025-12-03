@@ -39,7 +39,6 @@
 <section class="card" id="createMatchSection" style="display:none;">
   <h2>試合（Score）を作成</h2>
 
-  <!-- ★ 修正：id を matchTypeCreate に統一 -->
   <div class="row">
     <select id="matchTypeCreate">
       <option value="">試合種別を選択</option>
@@ -53,6 +52,7 @@
   <div class="row">
     <input id="opponent" placeholder="対戦相手" />
   </div>
+
   <div class="row">
     <input id="place" placeholder="会場（改行は自動で調整されます）" />
   </div>
@@ -67,12 +67,12 @@
 
   <p class="muted small">作成後にカードをタップすると編集できます。</p>
 
-  <!-- ▼ 戻るボタン -->
   <div style="margin-top:12px;">
     <button id="btnBackLogin" class="btn" style="background:#888;">
       ログイン画面に戻る
     </button>
   </div>
+
 </section>
 
 <!-- ▼ スコア一覧 -->
@@ -87,14 +87,13 @@
 <!-- ▼ 編集モーダル -->
 <div id="editModal" class="modal hidden">
   <div class="modal-content">
-
     <button id="modalClose" class="close-btn">閉じる</button>
+
     <h2>試合編集</h2>
 
     <label>日付</label>
     <input type="date" id="edit-date">
 
-    <!-- ★ 修正：編集モーダルにも試合種別を追加 -->
     <label>試合種別</label>
     <select id="matchType">
       <option value="">試合種別を選択</option>
@@ -102,7 +101,7 @@
       <option value="カップ戦">カップ戦</option>
       <option value="交流戦">交流戦</option>
     </select>
-
+   
     <label>対戦相手</label>
     <input type="text" id="edit-opponent">
 
@@ -122,6 +121,9 @@
     </div>
 
     <div id="hlList" class="muted small" style="margin-top:8px;"></div>
+
+    <label>ハイライト秒数</label>
+    <div id="edit-highlight-list"></div>
 
     <button id="saveEdit" class="save-btn">保存</button>
 
