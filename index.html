@@ -39,6 +39,16 @@
 <section class="card" id="createMatchSection" style="display:none;">
   <h2>試合（Score）を作成</h2>
 
+<div class="row">
+  <select id="matchType">
+    <option value="">試合種別を選択</option>
+    <option value="公式戦">公式戦</option>
+    <option value="カップ戦">カップ戦</option>
+    <option value="交流戦">交流戦</option>
+  </select>
+  <input id="matchDate" type="date" />
+</div>
+  
   <div class="row">
     <input id="matchDate" type="date" />
     <input id="opponent" placeholder="対戦相手" />
@@ -87,15 +97,7 @@
 
     <label>日付</label>
     <input type="date" id="edit-date">
-
-<!-- 試合種別 -->
-<select id="matchType">
-  <option value="">試合種別を選択</option>
-  <option value="公式戦">公式戦</option>
-  <option value="カップ戦">カップ戦</option>
-  <option value="交流戦">交流戦</option>
-</select>
-    
+   
     <label>対戦相手</label>
     <input type="text" id="edit-opponent">
 
