@@ -1,7 +1,12 @@
 :root {
   --accent: #2a8cff;
   --accent-dark: #005fcc;
+
+  --type-official: #1e88e5; /* 公式戦：青 */
+  --type-cup: #2e7d32;      /* カップ戦：緑 */
+  --type-friendly: #fb8c00; /* 交流戦：オレンジ */
 }
+
 /* ===== 基本レイアウト ===== */
 body {
     margin: 0;
@@ -28,9 +33,7 @@ body {
 
 /* PC 画面調整 */
 @media (min-width: 900px) {
-    #title {
-        font-size: 1.8rem;
-    }
+    #title { font-size: 1.8rem; }
 }
 
 /* ===== 入力フォーム ===== */
@@ -44,17 +47,8 @@ input, select, button, textarea {
     margin: 6px 0;
 }
 
-/* ボタン */
-button {
-    background-color: var(--accent);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    opacity: 0.9;
-}
+button { background-color: var(--accent); color: #fff; border: none; cursor: pointer; }
+button:hover { opacity: 0.9; }
 
 /* スコアカード */
 .score-card {
@@ -63,81 +57,51 @@ button:hover {
     padding: 18px;
     margin-top: 12px;
     box-shadow: 0 0 10px rgba(0,0,0,0.05);
-}
-/* ===== Modal Base ===== */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
 }
 
-/* ===== Hide ===== */
-.modal.hidden {
-  display: none;
+/* 勝敗の左ライン（維持） */
+.score-card.win { border-left: 6px solid #007bff; }
+.score-card.lose { border-left: 6px solid #ff4d4f; }
+.score-card.draw { border-left: 6px solid #666; }
+
+/* 種別による薄い左バー（上書きしないように右側に小バッジ） */
+.type-icon {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 20px;
 }
 
-/* ===== Modal Content ===== */
-.modal-content {
-  background: #fff;
-  padding: 20px;
-  width: 90%;
-  max-width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-
-  /* 追加（これが無いとボタンが表示されません） */
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
-}
-/* ボタンが見えなくなる問題の修正 */
-.btn {
-  background: #2a8cff;
-  color: #fff !important;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 16px;
-  border: none;
+/* 種別ラベル */
+.sub.type {
+  margin-top: 6px;
+  font-weight: 700;
 }
 
-.btn.primary {
-  background: #2a8cff;
-  color: #fff !important;
-}
-/* スコア結果の色分け */
-.score-card.win {
-  border-left: 6px solid #007bff; /* 自チーム勝ち＝青 */
-}
-.score-card.lose {
-  border-left: 6px solid #ff4d4f; /* 負け＝赤 */
-}
-.score-card.draw {
-  border-left: 6px solid #666; /* 引き分け＝グレー */
+/* 種別別の色（バッジ風） */
+.type-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:12px;
+  color:#fff;
+  font-weight:700;
+  font-size:14px;
 }
 
-/* クリック領域やレイアウト崩れがあればスペーシング調整 */
-.score-card .badge {
-  margin-top: 12px;
-}
-#title {
-  color: black;
-}
-.search-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
-}
+/* 色指定 */
+.type-official { background: var(--type-official); }
+.type-cup { background: var(--type-cup); }
+.type-friendly { background: var(--type-friendly); }
 
-/* ▼ 共通ワイドボタン（試合動画再生と同じサイズ用） */
+/* 検索入力 */
+.search-input { width:100%; padding:10px; margin-bottom:12px; border:1px solid #ccc; border-radius:6px; font-size:16px; }
+
+/* wide-btn */
 .wide-btn {
   width: 100%;
   padding: 14px 0;
@@ -148,15 +112,11 @@ button:hover {
   color: white;
   background: #1e88e5;
   display: block;
-  margin: 8px 0;
   cursor: pointer;
 }
+.wide-btn.danger { background: #e53935; }
 
-.wide-btn.danger {
-  background: #e53935;
-}
-
-/* ▼ 小型ボタン（ハイライト秒数用） */
+/* hl-btn small */
 .hl-btn {
   width: 48%;
   padding: 10px 0;
@@ -169,34 +129,39 @@ button:hover {
   cursor: pointer;
 }
 
-/* ▼ ハイライト秒数の行を2列にする */
-.hl-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
+/* hl-wrap two columns */
+.hl-wrap { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
 
-/* ▼ 下３つのボタン（試合動画再生／編集／削除）を横並びにする */
+/* action-row horizontal */
 .action-row {
-  display: flex;
-  width: 100%;
-  margin-top: 10px;
-  gap: 8px;
+  display:flex;
+  width:100%;
+  margin-top:10px;
+  gap:8px;
 }
-
-.action-row button,
-.action-row a {
-  flex: 1;
-  padding: 12px 0;
-  font-size: 15px;
-  text-align: center;
-  border-radius: 8px;
-  border: none;
-  color: #fff;
-  background: #1e88e5;
+.action-row button, .action-row a {
+  flex:1;
+  padding:12px 0;
+  font-size:15px;
+  text-align:center;
+  border-radius:8px;
+  border:none;
+  color:#fff;
+  background:#1e88e5;
 }
+.action-row .danger { background:#e53935; }
 
-/* 削除ボタンだけ赤くする */
-.action-row .danger {
-  background: #e53935;
+/* month header layout (with aggregation) */
+.month-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.month-header .agg { font-size:0.95rem; color:#666; }
+
+/* small responsive tweak */
+@media (max-width:600px){
+  .score-card { flex-direction:column; }
+  .action-row { flex-direction:column; }
 }
