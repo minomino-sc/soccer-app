@@ -249,8 +249,14 @@ button:hover {
   cursor: pointer;
 }
 
-/* タイトルリンクを黒文字にする */
+/* タイトルリンクを黒に固定 */
 #title a {
   color: #000 !important;
   text-decoration: none !important;
+}
+
+/* タイトル全体を黒に固定（Safari 対策） */
+#title {
+  color: #000 !important;
+  -webkit-text-fill-color: #000 !important;
 }
