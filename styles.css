@@ -292,3 +292,9 @@ button:hover {
 .page-title {
   margin-top: 20px !important;
 }
+
+#title::after {
+  content: "";
+  display: block;
+  height: 20px; /* ←欲しい余白量 */
+}
