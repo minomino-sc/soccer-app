@@ -136,3 +136,21 @@ button:hover {
   border-radius: 6px;
   font-size: 16px;
 }
+/* ▼ 共通ワイドボタン（試合動画再生と同じサイズ用） */
+.wide-btn {
+  width: 100%;
+  padding: 14px 0;
+  font-size: 18px;
+  text-align: center;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  background: #1e88e5;
+  display: block;
+  margin: 8px 0;
+  cursor: pointer;
+}
+
+.wide-btn.danger {
+  background: #e53935;
+}
