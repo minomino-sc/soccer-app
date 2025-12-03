@@ -9,41 +9,41 @@
 
 /* ===== 基本レイアウト ===== */
 body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: #f6f7f8;
-    color: #333;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background: #f6f7f8;
+  color: #333;
 }
 
 .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
 /* ===== タイトル ===== */
 #title {
-    font-size: 1.4rem;
-    margin: 0;
-    text-align: center;
-    text-decoration: underline;
-    color: var(--accent-dark);
+  font-size: 1.4rem;
+  margin: 0;
+  text-align: center;
+  text-decoration: underline;
+  color: var(--accent-dark);
 }
 
 @media (min-width: 900px) {
-    #title { font-size: 1.8rem; }
+  #title { font-size: 1.8rem; }
 }
 
-/* ===== 入力フォーム ===== */
+/* ===== 入力・ボタン ===== */
 input, select, button, textarea {
-    padding: 10px;
-    width: 100%;
-    font-size: 1rem;
-    box-sizing: border-box;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin: 6px 0;
+  padding: 10px;
+  width: 100%;
+  font-size: 1rem;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin: 6px 0;
 }
 
 button {
@@ -54,13 +54,13 @@ button {
 }
 button:hover { opacity: 0.9; }
 
-/* ===== スコアカード（縦レイアウト維持） ===== */
+/* ===== スコアカード ===== */
 .score-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 18px;
-    margin-top: 12px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
 }
 
 /* 勝敗の左ライン */
@@ -68,18 +68,7 @@ button:hover { opacity: 0.9; }
 .score-card.lose { border-left: 6px solid #ff4d4f; }
 .score-card.draw { border-left: 6px solid #666; }
 
-/* ===== 試合種別アイコン・バッジ ===== */
-.type-icon {
-  display: inline-block;
-  margin-right: 8px;
-  font-size: 20px;
-}
-
-.sub.type {
-  margin-top: 6px;
-  font-weight: 700;
-}
-
+/* ===== 試合種別バッジ ===== */
 .type-badge {
   display:inline-flex;
   align-items:center;
@@ -91,7 +80,6 @@ button:hover { opacity: 0.9; }
   font-size:14px;
 }
 
-/* 色分類 */
 .type-official { background: var(--type-official); }
 .type-cup      { background: var(--type-cup); }
 .type-friendly { background: var(--type-friendly); }
@@ -106,37 +94,7 @@ button:hover { opacity: 0.9; }
   font-size:16px;
 }
 
-/* ===== ワイドボタン ===== */
-.wide-btn {
-  width: 100%;
-  padding: 14px 0;
-  font-size: 18px;
-  text-align: center;
-  border-radius: 8px;
-  border: none;
-  color: white;
-  background: #1e88e5;
-  display: block;
-  cursor: pointer;
-}
-.wide-btn.danger { background: #e53935; }
-
-/* ===== ゴール秒数ボタン ===== */
-.hl-btn {
-  width: 48%;
-  padding: 10px 0;
-  font-size: 14px;
-  background: #1e88e5;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  margin: 4px 1%;
-  cursor: pointer;
-}
-
-.hl-wrap { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
-
-/* ===== 下部3ボタン（再生・編集・削除）横並び固定 ===== */
+/* ===== 下部3ボタン（横並び固定） ===== */
 .action-row {
   display:flex;
   width:100%;
@@ -158,8 +116,20 @@ button:hover { opacity: 0.9; }
 
 .action-row .danger { background:#e53935; }
 
-/* ← スマホでも横並び維持（縦にならない） */
+/* ===== ゴール秒数 ===== */
+.hl-btn {
+  width: 48%;
+  padding: 10px 0;
+  font-size: 14px;
+  background: #1e88e5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  margin: 4px 1%;
+  cursor: pointer;
+}
 
+.hl-wrap { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
 
 /* ===== 月別ヘッダー ===== */
 .month-header {
@@ -168,11 +138,11 @@ button:hover { opacity: 0.9; }
   align-items:center;
   gap:12px;
 }
+
 .month-header .agg {
   font-size:0.95rem;
   color:#666;
 }
-
 
 /* ===== モーダル ===== */
 .modal {
@@ -181,14 +151,16 @@ button:hover { opacity: 0.9; }
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
 
-.modal.hidden { display: none; }
+.modal.hidden {
+  display: none;
+}
 
 .modal-content {
   background: #fff;
@@ -196,12 +168,12 @@ button:hover { opacity: 0.9; }
   width: 90%;
   max-width: 400px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
   max-height: calc(100vh - 40px);
   overflow-y: auto;
 }
 
+/* 閉じるボタン */
 .close-btn {
   background:#999;
   padding:8px 16px;
