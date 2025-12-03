@@ -287,3 +287,8 @@ button:hover {
     gap: 4px;
   }
 }
+
+/* タイトルとページ見出しの間に余白を入れる */
+.page-title {
+  margin-top: 20px !important;
+}
