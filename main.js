@@ -249,7 +249,7 @@ function loadScores() {
           const btn = document.createElement("button");
           // small class - define .hl-btn in CSS (or combine with .wide-btn if preferred)
           btn.className = "hl-btn";
-          btn.textContent = `${sec} 秒`;
+          btn.textContent = `ゴールシーン ${sec} 秒`;
           btn.type = "button";
 
           btn.addEventListener("click", (e) => {
