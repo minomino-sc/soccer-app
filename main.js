@@ -1,5 +1,6 @@
-/* main.js — 種別アイコン & 色 & 月集計対応版
-   既存機能（検索 / ハイライト / 秒数クリック再生 / 編集 / 削除 等）は維持 */
+/* main.js — 種別アイコン & 色 & 月集計対応版（完全版）
+   機能: 検索 / ハイライト / 秒数クリック再生 / 編集 / 削除 / 種別表示等
+*/
 
 let scores = JSON.parse(localStorage.getItem("scores")) || [];
 let videos = JSON.parse(localStorage.getItem("videos")) || [];
@@ -68,7 +69,7 @@ function addYouTubeVideo(url) {
 }
 
 /* ------------------------------
-   試合作成（matchTypeCreateを使う）
+   試合作成
 ------------------------------ */
 function createMatch() {
   const dateEl = document.getElementById("matchDate");
@@ -106,7 +107,7 @@ function createMatch() {
   saveAll();
   loadScores();
 
-  // clear
+  // clear inputs
   dateEl.value = "";
   if (typeEl) typeEl.value = "";
   oppEl.value = "";
@@ -149,6 +150,21 @@ function matchesSearch(it, q) {
   return false;
 }
 
+/* helper: create play button (opens youtube with no time or at time) */
+function createPlayButton(videoId, timeSec) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "wide-btn";
+  btn.textContent = timeSec ? `再生 (${timeSec}s)` : "試合動画再生";
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!videoId) return alert("紐づく動画がありません。");
+    const url = timeSec ? `https://youtu.be/${videoId}?t=${timeSec}` : `https://youtu.be/${videoId}`;
+    window.open(url, "_blank", "noopener");
+  });
+  return btn;
+}
+
 /* ==========================================================
    スコア一覧描画（種別色・アイコン・月集計対応）
 ========================================================== */
@@ -175,13 +191,13 @@ function loadScores() {
     const d = new Date(it.date);
     const cd = isNaN(d) ? new Date(it.createdAt || Date.now()) : d;
     const key = `${cd.getFullYear()}-${String(cd.getMonth() + 1).padStart(2, "0")}`;
-    if (!groups[key]) groups[key] = { items: [], counts: { "公式戦":0, "カップ戦":0, "交流戦":0, "":0 } };
+    if (!groups[key]) groups[key] = { items: [], counts: { "公式戦":0, "カップ戦":0, "交流戦":0, "未設定":0 } };
     groups[key].items.push({ it, idx });
-    const mt = it.matchType || "";
+    const mt = it.matchType || "未設定";
     if (mt === "公式戦") groups[key].counts["公式戦"]++;
     else if (mt === "カップ戦") groups[key].counts["カップ戦"]++;
     else if (mt === "交流戦") groups[key].counts["交流戦"]++;
-    else groups[key].counts[""]++;
+    else groups[key].counts["未設定"]++;
   });
 
   Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(key => {
@@ -190,7 +206,6 @@ function loadScores() {
 
     const header = document.createElement("div");
     header.className = "month-header";
-    // aggregation text: show counts with icons
     const c = groups[key].counts;
     const aggText = `(${TYPE_ICON["公式戦"]}${c["公式戦"]} ${TYPE_ICON["カップ戦"]}${c["カップ戦"]} ${TYPE_ICON["交流戦"]}${c["交流戦"]})`;
     header.innerHTML = `<strong>${key}</strong> <span class="muted small">${groups[key].items.length} 試合</span> <span class="agg">${aggText}</span>`;
@@ -248,51 +263,52 @@ function loadScores() {
           btn.className = "hl-btn";
           btn.type = "button";
           btn.textContent = `ゴールシーン ${sec} 秒`;
-          btn.addEventListener("click", () => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
             if (!it.videoId) return alert("紐づく動画がありません。");
             const url = `https://youtu.be/${it.videoId}?t=${sec}`;
-            window.open(url, "_blank");
+            window.open(url, "_blank", "noopener");
           });
           hlWrap.appendChild(btn);
         });
         meta.appendChild(hlWrap);
       }
 
-      // action row (横並び)
+      // action row (横並び) - ensure these are inside the card
       const badge = document.createElement("div");
       badge.className = "badge";
       const actionRow = document.createElement("div");
       actionRow.className = "action-row";
 
+      // Play button (use createPlayButton to ensure consistent behavior)
       if (it.videoId) {
-        const a = document.createElement("a");
-        a.href = `https://youtu.be/${it.videoId}`;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.className = "wide-btn";
-        a.textContent = "試合動画再生";
-        actionRow.appendChild(a);
+        const playBtn = createPlayButton(it.videoId, null);
+        actionRow.appendChild(playBtn);
       } else {
+        // if no video, keep a spacer so layout stays even
         const spacer = document.createElement("div");
         spacer.style.flex = "1 1 0";
         actionRow.appendChild(spacer);
       }
 
+      // 編集ボタン
       const editBtn = document.createElement("button");
       editBtn.type = "button";
       editBtn.className = "wide-btn";
       editBtn.textContent = "編集";
-      editBtn.addEventListener("click", () => {
-        // openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights)
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         openEditModal(idx, it.date, it.matchType || "", it.opponent, it.place, it.myScore, it.opponentScore, it.highlights || []);
       });
       actionRow.appendChild(editBtn);
 
+      // 削除ボタン
       const delBtn = document.createElement("button");
       delBtn.type = "button";
       delBtn.className = "wide-btn danger";
       delBtn.textContent = "削除";
-      delBtn.addEventListener("click", () => {
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         if (!confirm("この試合を削除しますか？")) return;
         scores.splice(idx, 1);
         saveAll();
@@ -302,6 +318,7 @@ function loadScores() {
 
       badge.appendChild(actionRow);
 
+      // append meta and badge INTO card (ensures action-row is inside score-card)
       card.appendChild(meta);
       card.appendChild(badge);
       body.appendChild(card);
@@ -314,17 +331,21 @@ function loadScores() {
 
 /* ==========================================================
    編集モーダル関連
-   openEditModal signature changed to accept matchType param
 ========================================================== */
 function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights) {
   window.currentEditIndex = index;
-  document.getElementById("edit-date").value = date || "";
+  const elDate = document.getElementById("edit-date");
+  if (elDate) elDate.value = date || "";
   const mtEl = document.getElementById("matchType");
   if (mtEl) mtEl.value = matchType || "";
-  document.getElementById("edit-opponent").value = opponent || "";
-  document.getElementById("edit-place").value = place || "";
-  document.getElementById("edit-my-score").value = myScore ?? "";
-  document.getElementById("edit-opponent-score").value = opponentScore ?? "";
+  const elOpp = document.getElementById("edit-opponent");
+  if (elOpp) elOpp.value = opponent || "";
+  const elPlace = document.getElementById("edit-place");
+  if (elPlace) elPlace.value = place || "";
+  const elMy = document.getElementById("edit-my-score");
+  if (elMy) elMy.value = myScore ?? "";
+  const elOp = document.getElementById("edit-opponent-score");
+  if (elOp) elOp.value = opponentScore ?? "";
 
   const hlList = document.getElementById("hlList");
   if (hlList) {
