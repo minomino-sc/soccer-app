@@ -131,8 +131,19 @@ function ensureSearchBar() {
   const scoresSection = document.getElementById("scoresSection");
   if (!scoresSection) return;
 
-  // 既に存在すれば何もしない
-  if (document.getElementById("scoreSearchBar")) return;
+  // 既に存在すれば何もしない（scoreSearchBar または scoreSearch に対応）
+  if (document.getElementById("scoreSearchBar") || document.getElementById("scoreSearch")) {
+    // 既にある場合、既存の要素にイベントがついていなければ付ける
+    const existing = document.getElementById("scoreSearchBar") || document.getElementById("scoreSearch");
+    if (existing && !existing._hasSearchListener) {
+      existing.addEventListener("input", (e) => {
+        currentSearchQuery = (e.target.value || "").trim().toLowerCase();
+        loadScores();
+      });
+      existing._hasSearchListener = true;
+    }
+    return;
+  }
 
   const wrapper = document.createElement("div");
   wrapper.style.margin = "8px 0 0 0";
@@ -198,6 +209,20 @@ function loadScores() {
   // insert search bar if not present
   ensureSearchBar();
 
+  // if there is an existing search input (#scoreSearch) and user typed there, sync it
+  const nativeSearch = document.getElementById("scoreSearch");
+  if (nativeSearch && !nativeSearch._hasSearchListener) {
+    nativeSearch.addEventListener("input", (e) => {
+      currentSearchQuery = (e.target.value || "").trim().toLowerCase();
+      loadScores();
+    });
+    nativeSearch._hasSearchListener = true;
+  }
+  if (nativeSearch) {
+    // sync query to our variable (so both inputs behave the same)
+    currentSearchQuery = (nativeSearch.value || "").trim().toLowerCase();
+  }
+
   container.innerHTML = "";
 
   if (!scores.length) {
@@ -214,9 +239,7 @@ function loadScores() {
     return;
   }
 
-  const groups = groupByMonth(filtered.map(f => f.it));
-  // groups created from filtered items: but we need original indices for edit/delete
-  // Build mapping: for each group key, list entries from filtered with original idx
+  // Build grouped map preserving original indices
   const grouped = {};
   filtered.forEach(({ it, idx }) => {
     const d = new Date(it.date);
@@ -275,8 +298,11 @@ function loadScores() {
         const a = document.createElement("a");
         a.href = `https://youtu.be/${it.videoId}`;
         a.target = "_blank";
+        a.rel = "noopener noreferrer";
         a.className = "btn";
         a.textContent = "試合動画再生";
+        // ensure pointer cursor for mobile
+        a.style.cursor = "pointer";
         inner.appendChild(a);
       }
 
@@ -399,7 +425,6 @@ function saveEditGeneric() {
   const highlights = [];
   if (hlList) {
     Array.from(hlList.children).forEach(ch => {
-      // expect span with data-second or "NN 秒"
       const span = ch.querySelector("span") || ch;
       const s = (span.dataset && span.dataset.second) ? String(span.dataset.second) : String(span.textContent || "");
       const num = s.replace(" 秒", "").trim();
