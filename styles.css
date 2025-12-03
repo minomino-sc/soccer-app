@@ -248,3 +248,9 @@ button:hover {
   border: none;
   cursor: pointer;
 }
+
+/* タイトルリンクを黒文字にする */
+#title a {
+  color: #000 !important;
+  text-decoration: none !important;
+}
