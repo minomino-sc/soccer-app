@@ -212,7 +212,6 @@ async function loadScores() {
   }
 
   // ここより下（194行目以降）はそのまま現行コードを使う！
-}
 
   const filtered = scores.map((it, idx) => ({ it, idx })).filter(({ it }) => matchesSearch(it, currentSearchQuery));
   if (!filtered.length) {
