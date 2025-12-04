@@ -261,16 +261,14 @@ scores = scores.filter(s => {
   //-------------------------------------------------
   // 🔽ここから描画部分（★ここが今消えていた★）
   //-------------------------------------------------
-const filtered = scores
-  .filter(it => matchesSearch(it, currentSearchQuery))
-  .map(it => ({
-    it,
-    idx: scores.findIndex(s => s.id === it.id)
-  }))
-  // 🔽 最終的に id で重複排除（重要）
-  .filter((item, i, arr) =>
-    arr.findIndex(t => t.it.id === item.it.id) === i
-  );
+// 🔥重複を根絶 filtered生成
+const filteredMap = {};
+scores.forEach((s, idx) => {
+  if (!matchesSearch(s, currentSearchQuery)) return;
+  filteredMap[s.id] = { it: s, idx };
+});
+
+const filtered = Object.values(filteredMap);
 
   if (!filtered.length) {
     container.innerHTML = `<p class="muted small">検索に一致する試合がありません。</p>`;
