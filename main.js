@@ -344,19 +344,41 @@ editBtn.addEventListener("click", (e) => {
   );
 });
 actionRow.appendChild(editBtn);
-
+       
 // 削除ボタン
 const delBtn = document.createElement("button");
 delBtn.type = "button";
 delBtn.className = "wide-btn danger";
 delBtn.textContent = "削除";
-delBtn.addEventListener("click", (e) => {
+
+delBtn.addEventListener("click", async (e) => {
   e.stopPropagation();
+
   if (!confirm("この試合を削除しますか？")) return;
-  scores.splice(idx, 1);
-  saveAll();
-  loadScores();
+
+  const current = scores[idx];
+
+  if (!current.id) {
+    alert("Firestore のIDが存在しません。削除できません。");
+    return;
+  }
+
+  try {
+    // Firestore 側を削除
+    const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
+    await window._firebaseFns.deleteDoc(ref);
+
+    alert("Firestore から削除しました");
+
+    // 最新表示へ
+    await loadScores();
+
+  } catch (err) {
+    console.error("Firestore削除エラー:", err);
+    alert("Firestore の削除に失敗しました");
+  }
 });
+       
 actionRow.appendChild(delBtn);
 
 badge.appendChild(actionRow);
