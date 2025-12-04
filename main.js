@@ -114,6 +114,9 @@ async function createMatch() {
     console.log("🔥 Firestore に保存完了:", match);
     alert("Firestore に保存しました！");
 
+    // 🔥ここが重要！（自動更新）
+    await loadScores();
+
   } catch (err) {
     console.error("Firestore 保存エラー:", err);
     alert("Firestore 保存でエラーが発生しました");
@@ -502,14 +505,6 @@ async function saveEditGeneric() {
     });
 
    alert("Firestore に保存しました！");
-
-// 🔽 追加する！
-await loadScores();
-
-} catch (err) {
-  console.error("Firestore 保存エラー:", err);
-  alert("Firestore 保存でエラーが発生しました");
-}
     closeEditModal();
 
     // 再読み込み（Firestore → 画面へ）
