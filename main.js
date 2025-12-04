@@ -69,9 +69,9 @@ function addYouTubeVideo(url) {
 }
 
 /* ------------------------------
-   試合作成
+   試合作成（Firestore 対応版）
 ------------------------------ */
-function createMatch() {
+async function createMatch() {
   const dateEl = document.getElementById("matchDate");
   const typeEl = document.getElementById("matchTypeCreate");
   const oppEl = document.getElementById("opponent");
@@ -79,6 +79,7 @@ function createMatch() {
   const myScoreEl = document.getElementById("scoreA");
   const opScoreEl = document.getElementById("scoreB");
   const videoSelect = document.getElementById("videoSelect");
+
   if (!dateEl || !oppEl) return;
 
   const date = (dateEl.value || "").trim();
@@ -103,11 +104,22 @@ function createMatch() {
     createdAt: new Date().toISOString()
   };
 
-  scores.unshift(match);
-  saveAll();
-  loadScores();
+  /* Firestore 保存 */
+  try {
+    const db = window._firebaseDB;
+    const { collection, addDoc } = window._firebaseFns;
 
-  // clear inputs
+    await addDoc(collection(db, "scores"), match);
+
+    console.log("🔥 Firestore に保存完了:", match);
+    alert("Firestore に保存しました！");
+
+  } catch (err) {
+    console.error("Firestore 保存エラー:", err);
+    alert("Firestore 保存でエラーが発生しました");
+  }
+
+  /* 入力クリア */
   dateEl.value = "";
   if (typeEl) typeEl.value = "";
   oppEl.value = "";
