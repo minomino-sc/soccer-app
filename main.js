@@ -485,13 +485,32 @@ async function saveEditGeneric() {
 }
 
 /* 削除（編集モーダル内） */
-function deleteCurrentMatch() {
+async function deleteCurrentMatch() {
   if (window.currentEditIndex === undefined) return;
   if (!confirm("この試合を削除しますか？")) return;
-  scores.splice(window.currentEditIndex, 1);
-  saveAll();
-  loadScores();
-  closeEditModal();
+
+  const current = scores[window.currentEditIndex];
+  if (!current.id) {
+    alert("Firestore のIDが存在しません。削除できません。");
+    return;
+  }
+
+  try {
+    // Firestore の削除処理
+    const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
+    await window._firebaseFns.deleteDoc(ref);
+
+    alert("Firestore から削除しました");
+
+    closeEditModal();
+
+    // Firestore の最新データを再取得
+    await loadScores();
+
+  } catch (err) {
+    console.error("Firestore 削除エラー:", err);
+    alert("Firestore の削除に失敗しました");
+  }
 }
 
 /* ハイライト追加（編集モーダル） */
