@@ -234,8 +234,9 @@ async function loadScores() {
 
     groups[key].items.push({ it, idx });
 
-    const mt = it.matchType || "未設定";
-    groups[key].counts[mt]++;
+let mt = it.matchType;
+if (!mt || mt === "") mt = "未設定";
+groups[key].counts[mt]++;
   });
 
   Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(key => {
