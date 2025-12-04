@@ -205,16 +205,16 @@ async function loadScores() {
     return;
   }
 
-  // データがない場合
+  // データなし
   if (!scores.length) {
     container.innerHTML = `<p class="muted small">まだ試合がありません。</p>`;
     return;
   }
 
-  /*
-    ▼▼ここから元の描画処理を実行（※重要）▼▼
-  */
-  
+  //-------------------------------------------------
+  // 🔽ここから描画部分（★ここが今消えていた★）
+  //-------------------------------------------------
+
   const filtered = scores.map((it, idx) => ({ it, idx }))
     .filter(({ it }) => matchesSearch(it, currentSearchQuery));
 
@@ -223,48 +223,76 @@ async function loadScores() {
     return;
   }
 
-  // grouped by year-month
   const groups = {};
   filtered.forEach(({ it, idx }) => {
     const d = new Date(it.date);
     const cd = isNaN(d) ? new Date(it.createdAt || Date.now()) : d;
-    const key = `${cd.getFullYear()}-${String(cd.getMonth() + 1).padStart(2, "0")}`;
-    if (!groups[key]) groups[key] = { items: [], counts: { "公式戦":0, "カップ戦":0, "交流戦":0 } };
+    const key = `${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,"0")}`;
+
+    if (!groups[key])
+      groups[key] = { items: [], counts: { "公式戦":0, "カップ戦":0, "交流戦":0, "未設定":0 } };
+
     groups[key].items.push({ it, idx });
 
-    const mt = it.matchType || "交流戦";
-    groups[key].counts[mt] = (groups[key].counts[mt] ?? 0) + 1;
+    const mt = it.matchType || "未設定";
+    groups[key].counts[mt]++;
   });
 
-  Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(key => {
+  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(key => {
     const group = document.createElement("div");
     group.className = "month card";
 
+    const c = groups[key].counts;
+    const aggText =
+      `(${TYPE_ICON["公式戦"]}${c["公式戦"]} ` +
+      `${TYPE_ICON["カップ戦"]}${c["カップ戦"]} ` +
+      `${TYPE_ICON["交流戦"]}${c["交流戦"]})`;
+
     const header = document.createElement("div");
     header.className = "month-header";
-    const c = groups[key].counts;
-    header.innerHTML = `<strong>${key}</strong> <span class="muted small">${groups[key].items.length} 試合</span>`;
+    header.innerHTML =
+      `<strong>${key}</strong> `+
+      `<span class="muted small">${groups[key].items.length} 試合</span> `+
+      `<span class="agg">${aggText}</span>`;
     group.appendChild(header);
 
     const body = document.createElement("div");
     body.className = "month-body";
 
-    groups[key].items.forEach(({ it, idx }) => {
+    groups[key].items.forEach(({it,idx})=>{
       const card = document.createElement("div");
       card.className = "score-card";
 
-      card.innerHTML = `
-        <div class="meta">
-          <div class="title">${it.date} — ${it.opponent}</div>
-          <div class="sub">Score: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>
-        </div>
-      `;
+      // 勝敗色
+      if (typeof it.myScore === "number" && typeof it.opponentScore === "number") {
+        if (it.myScore > it.opponentScore) card.classList.add("win");
+        else if (it.myScore < it.opponentScore) card.classList.add("lose");
+        else card.classList.add("draw");
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+
+      const icon = TYPE_ICON[it.matchType || ""] || "🏳️";
+      const typeClass = typeClassName(it.matchType || "");
+
+      meta.innerHTML =
+        `<div class="title">`+
+        `<span class="type-icon ${typeClass}">${icon}</span> `+
+        `${it.date} — ${it.opponent}`+
+        `</div>`+
+        `<div class="type-badge ${typeClass}">${it.matchType || "未設定"}</div>`+
+        `<div class="sub match-venue">${it.place || ""}</div>`+
+        `<div class="sub">Score: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>`;
+
+      card.appendChild(meta);
 
       body.appendChild(card);
     });
 
     group.appendChild(body);
     container.appendChild(group);
+
   });
 }
 
