@@ -501,7 +501,15 @@ async function saveEditGeneric() {
       highlights
     });
 
-    alert("Firestore に保存しました！");
+   alert("Firestore に保存しました！");
+
+// 🔽 追加する！
+await loadScores();
+
+} catch (err) {
+  console.error("Firestore 保存エラー:", err);
+  alert("Firestore 保存でエラーが発生しました");
+}
     closeEditModal();
 
     // 再読み込み（Firestore → 画面へ）
