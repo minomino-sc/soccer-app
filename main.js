@@ -180,16 +180,39 @@ function createPlayButton(videoId, timeSec) {
 /* ==========================================================
    スコア一覧描画（種別色・アイコン・月集計対応）
 ========================================================== */
-function loadScores() {
+// ▼ Firestoreから読み込む版 loadScores()
+async function loadScores() {
   const container = document.getElementById("scoreGroups");
   if (!container) return;
+
   ensureSearchBar();
   container.innerHTML = "";
 
+  // Firestore 読み込み
+  try {
+    const snap = await window._firebaseFns.getDocs(
+      window._firebaseFns.collection(window._firebaseDB, "scores")
+    );
+
+    scores = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+  } catch (e) {
+    console.error("Firestore 読み込み失敗:", e);
+    container.innerHTML = `<p class="muted small">データの読み込みに失敗しました。</p>`;
+    return;
+  }
+
+  // データがない場合
   if (!scores.length) {
     container.innerHTML = `<p class="muted small">まだ試合がありません。</p>`;
     return;
   }
+
+  // ここより下（194行目以降）はそのまま現行コードを使う！
+}
 
   const filtered = scores.map((it, idx) => ({ it, idx })).filter(({ it }) => matchesSearch(it, currentSearchQuery));
   if (!filtered.length) {
