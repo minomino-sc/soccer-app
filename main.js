@@ -58,14 +58,33 @@ function renderVideoSelects() {
 }
 
 /* YouTube 追加 */
-function addYouTubeVideo(url) {
+async function addYouTubeVideo(url) {
   const id = extractYouTubeId(url);
-  if (!id) return alert("YouTube のURLが正しくありません。例: https://youtu.be/xxxx");
+  if (!id) return alert("YouTube のURLが正しくありません。");
+
+  // 🔍 既登録チェック
   if (videos.find(v => v.id === id)) return alert("この動画は既に追加済みです。");
-  videos.push({ id, url, title: url });
+
+  // 👇 タイトル取得（APIキー不要）
+  let title = url;
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=https://youtu.be/${id}&format=json`
+    );
+    if (res.ok) {
+      const data = await res.json();
+      title = data.title;
+    }
+  } catch (err) {
+    console.warn("タイトル取得に失敗", err);
+  }
+
+  videos.push({ id, url, title });
+
   saveAll();
   renderVideoSelects();
-  alert("YouTube 動画を追加しました（限定公開推奨）");
+
+  alert("YouTube 動画を追加しました！");
 }
 
 /* ------------------------------
