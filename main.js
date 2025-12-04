@@ -261,14 +261,16 @@ scores = scores.filter(s => {
   //-------------------------------------------------
   // 🔽ここから描画部分（★ここが今消えていた★）
   //-------------------------------------------------
-
 const filtered = scores
-  .map(it => it) // 元データコピー
   .filter(it => matchesSearch(it, currentSearchQuery))
   .map(it => ({
     it,
-    idx: scores.findIndex(s => s.id === it.id)  // ←正しい位置に補正
-  }));
+    idx: scores.findIndex(s => s.id === it.id)
+  }))
+  // 🔽 最終的に id で重複排除（重要）
+  .filter((item, i, arr) =>
+    arr.findIndex(t => t.it.id === item.it.id) === i
+  );
 
   if (!filtered.length) {
     container.innerHTML = `<p class="muted small">検索に一致する試合がありません。</p>`;
