@@ -424,9 +424,20 @@ function closeEditModal() {
 }
 
 /* 保存（編集モーダル） */
-function saveEditGeneric() {
-  if (window.currentEditIndex === undefined) { alert("編集対象が見つかりません。"); return; }
+async function saveEditGeneric() {
+  if (window.currentEditIndex === undefined) {
+    alert("編集対象が見つかりません。");
+    return;
+  }
 
+  // --- 現在の Firestore ドキュメントID を取得（scores 配列に id を保持）
+  const current = scores[window.currentEditIndex];
+  if (!current.id) {
+    alert("Firestore のIDがありません（不整合）");
+    return;
+  }
+
+  // --- 入力値の取得 ---
   const date = (document.getElementById("edit-date")?.value || "").trim();
   const matchType = (document.getElementById("matchType")?.value || "").trim();
   const opponent = (document.getElementById("edit-opponent")?.value || "").trim();
@@ -434,32 +445,43 @@ function saveEditGeneric() {
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
 
+  // ハイライト（秒）取得
   const hlList = document.getElementById("hlList");
   const highlights = [];
   if (hlList) {
     Array.from(hlList.children).forEach(child => {
       const span = child.querySelector("span");
       if (!span) return;
-      const n = Number(String(span.dataset.second || span.textContent).replace(" 秒", "").trim());
+      const n = Number(
+        String(span.dataset.second || span.textContent).replace(" 秒", "").trim()
+      );
       if (!isNaN(n)) highlights.push(n);
     });
   }
 
-  scores[window.currentEditIndex] = {
-    ...scores[window.currentEditIndex],
-    date,
-    matchType,
-    opponent,
-    place,
-    myScore: myScoreVal === "" ? null : Number(myScoreVal),
-    opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
-    highlights
-  };
+  // --- Firestore に更新 ---
+  try {
+    const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
+    await window._firebaseFns.updateDoc(ref, {
+      date,
+      matchType,
+      opponent,
+      place,
+      myScore: myScoreVal === "" ? null : Number(myScoreVal),
+      opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
+      highlights
+    });
 
-  saveAll();
-  loadScores();
-  closeEditModal();
-  alert("保存しました。");
+    alert("Firestore に保存しました！");
+    closeEditModal();
+
+    // 再読み込み（Firestore → 画面へ）
+    await loadScores();
+
+  } catch (err) {
+    console.error("Firestore 更新エラー:", err);
+    alert("Firestore の更新に失敗しました。");
+  }
 }
 
 /* 削除（編集モーダル内） */
