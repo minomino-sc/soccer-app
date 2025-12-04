@@ -221,6 +221,13 @@ async function loadScores() {
       ...doc.data(),
     }));
 
+  // 🔽 ここに追加！
+  scores.sort((a, b) => {
+    const da = new Date(a.date);
+    const db = new Date(b.date);
+    return db - da;
+  });
+
   } catch (e) {
     console.error("Firestore 読み込み失敗:", e);
     container.innerHTML = `<p class="muted small">データの読み込みに失敗しました。</p>`;
