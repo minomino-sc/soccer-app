@@ -288,6 +288,80 @@ groups[key].counts[mt]++;
 
       card.appendChild(meta);
 
+// ハイライト（小ボタン）
+if (Array.isArray(it.highlights) && it.highlights.length) {
+  const hlWrap = document.createElement("div");
+  hlWrap.className = "hl-wrap";
+  it.highlights.forEach(sec => {
+    const btn = document.createElement("button");
+    btn.className = "hl-btn";
+    btn.type = "button";
+    btn.textContent = `ゴールシーン ${sec} 秒`;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!it.videoId) return alert("紐づく動画がありません。");
+      const url = `https://youtu.be/${it.videoId}?t=${sec}`;
+      window.open(url, "_blank", "noopener");
+    });
+    hlWrap.appendChild(btn);
+  });
+  meta.appendChild(hlWrap);
+}
+
+// action row（横ボタンエリア）
+const badge = document.createElement("div");
+badge.className = "badge";
+
+const actionRow = document.createElement("div");
+actionRow.className = "action-row";
+
+// 再生ボタン（YouTube）
+if (it.videoId) {
+  const playBtn = createPlayButton(it.videoId, null);
+  actionRow.appendChild(playBtn);
+} else {
+  const spacer = document.createElement("div");
+  spacer.style.flex = "1 1 0";
+  actionRow.appendChild(spacer);
+}
+
+// 編集ボタン
+const editBtn = document.createElement("button");
+editBtn.type = "button";
+editBtn.className = "wide-btn";
+editBtn.textContent = "編集";
+editBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openEditModal(
+    idx,
+    it.date,
+    it.matchType || "",
+    it.opponent,
+    it.place,
+    it.myScore,
+    it.opponentScore,
+    it.highlights || []
+  );
+});
+actionRow.appendChild(editBtn);
+
+// 削除ボタン
+const delBtn = document.createElement("button");
+delBtn.type = "button";
+delBtn.className = "wide-btn danger";
+delBtn.textContent = "削除";
+delBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (!confirm("この試合を削除しますか？")) return;
+  scores.splice(idx, 1);
+  saveAll();
+  loadScores();
+});
+actionRow.appendChild(delBtn);
+
+badge.appendChild(actionRow);
+card.appendChild(badge);
+       
       body.appendChild(card);
     });
 
