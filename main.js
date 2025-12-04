@@ -291,6 +291,7 @@ if (!mt || mt === "") mt = "未設定";
 groups[key].counts[mt]++;
   });
 
+container.innerHTML = "";
   Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(key => {
     const group = document.createElement("div");
     group.className = "month card";
