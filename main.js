@@ -221,6 +221,24 @@ async function loadScores() {
       ...doc.data(),
     }));
 
+// 🔽 FirestoreのID重複除外
+const seenIds = new Set();
+scores = scores.filter(s => {
+  if (!s.id) return false;
+  if (seenIds.has(s.id)) return false;
+  seenIds.add(s.id);
+  return true;
+});
+
+// 🔽 同じ日 & 相手 & 会場が同じデータも除外（念のため）
+const seenKeys = new Set();
+scores = scores.filter(s => {
+  const key = `${s.date}||${s.opponent}||${s.place}`;
+  if (seenKeys.has(key)) return false;
+  seenKeys.add(key);
+  return true;
+});
+
   // 🔽 ここに追加！
   scores.sort((a, b) => {
     const da = new Date(a.date);
