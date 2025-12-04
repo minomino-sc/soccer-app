@@ -137,6 +137,33 @@
   </div>
 </div>
 
+<!-- ▼ Firebase 初期化（ここを追加！） -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  // Firebase 設定
+  const firebaseConfig = {
+    apiKey: "AIzaSyDMJfAd5BffteapT51ZUO06VP-XDReFSwY",
+    authDomain: "minotani-sc-app.firebaseapp.com",
+    projectId: "minotani-sc-app",
+    storageBucket: "minotani-sc-app.firebasestorage.app",
+    messagingSenderId: "757066295000",
+    appId: "1:757066295000:web:1c7a90f968af75d26099ad"
+  };
+
+  // Firebase 初期化
+  const app = initializeApp(firebaseConfig);
+
+  // Firestore 初期化
+  const db = getFirestore(app);
+
+  // 他のJSで使えるように window に公開
+  window._firebaseDB = db;
+</script>
+
+<!-- ▼ 既存 -->
 <script src="main.js"></script>
+
 </body>
 </html>
