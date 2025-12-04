@@ -211,7 +211,64 @@ async function loadScores() {
     return;
   }
 
-  // ここより下（194行目以降）はそのまま現行コードを使う！
+  /*
+    ▼▼ここから元の描画処理を実行（※重要）▼▼
+  */
+  
+  const filtered = scores.map((it, idx) => ({ it, idx }))
+    .filter(({ it }) => matchesSearch(it, currentSearchQuery));
+
+  if (!filtered.length) {
+    container.innerHTML = `<p class="muted small">検索に一致する試合がありません。</p>`;
+    return;
+  }
+
+  // grouped by year-month
+  const groups = {};
+  filtered.forEach(({ it, idx }) => {
+    const d = new Date(it.date);
+    const cd = isNaN(d) ? new Date(it.createdAt || Date.now()) : d;
+    const key = `${cd.getFullYear()}-${String(cd.getMonth() + 1).padStart(2, "0")}`;
+    if (!groups[key]) groups[key] = { items: [], counts: { "公式戦":0, "カップ戦":0, "交流戦":0 } };
+    groups[key].items.push({ it, idx });
+
+    const mt = it.matchType || "交流戦";
+    groups[key].counts[mt] = (groups[key].counts[mt] ?? 0) + 1;
+  });
+
+  Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(key => {
+    const group = document.createElement("div");
+    group.className = "month card";
+
+    const header = document.createElement("div");
+    header.className = "month-header";
+    const c = groups[key].counts;
+    header.innerHTML = `<strong>${key}</strong> <span class="muted small">${groups[key].items.length} 試合</span>`;
+    group.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "month-body";
+
+    groups[key].items.forEach(({ it, idx }) => {
+      const card = document.createElement("div");
+      card.className = "score-card";
+
+      card.innerHTML = `
+        <div class="meta">
+          <div class="title">${it.date} — ${it.opponent}</div>
+          <div class="sub">Score: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>
+        </div>
+      `;
+
+      body.appendChild(card);
+    });
+
+    group.appendChild(body);
+    container.appendChild(group);
+  });
+}
+
+  // ここより下はそのまま現行コードを使う！
 
   const filtered = scores.map((it, idx) => ({ it, idx })).filter(({ it }) => matchesSearch(it, currentSearchQuery));
   if (!filtered.length) {
