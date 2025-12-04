@@ -140,7 +140,9 @@
 <!-- ▼ Firebase 初期化（ここを追加！） -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+  import { 
+    getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc 
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
   // Firebase 設定
   const firebaseConfig = {
@@ -158,10 +160,11 @@
   // Firestore 初期化
   const db = getFirestore(app);
 
-  // 他のJSで使えるように window に公開
+  // 🔥 main.js から Firestore を使えるように全関数を公開
   window._firebaseDB = db;
+  window._firebaseFns = { collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc };
 </script>
-
+  
 <!-- ▼ 既存 -->
 <script src="main.js"></script>
 
