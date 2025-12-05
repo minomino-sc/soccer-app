@@ -704,10 +704,10 @@ if (!name) {
     }
   });
 
-  if (!matchedTeamId) {
-    alert("チーム名または招待コードが違います");
-    return;
-  }
+//  if (!matchedTeamId) {
+//    alert("チーム名または招待コードが違います");
+//    return;
+//  }
 
   // 🔥 ログイン情報を保存
   localStorage.setItem("teamInfo", JSON.stringify({
