@@ -674,10 +674,17 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const name = (document.getElementById("teamNameInput")?.value || "").trim();
   const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
 
-  if (!name || !code) {
-    alert("チーム名と招待コードを入力してください");
-    return;
-  }
+//  if (!name || !code) {
+//    alert("チーム名と招待コードを入力してください");
+//    return;
+//}
+
+if (!name) {
+  alert("チーム名を入力してください");
+  return;
+}
+
+// 🔥コード入力がなくても許可する
 
   // Firestore接続
   const db = window._firebaseDB;
