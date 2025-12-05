@@ -688,5 +688,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("scoresSection").style.display = "block";
     const tn = document.getElementById("currentTeamName"); if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
     alert("チーム参加しました！");
+
+  await loadScores();  // ★★←これが超重要★★
   });
 });
