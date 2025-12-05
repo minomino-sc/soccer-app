@@ -679,19 +679,23 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-  document.getElementById("btnJoin")?.addEventListener("click", () => {
-    const name = (document.getElementById("teamNameInput")?.value || "").trim();
-    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-    if (!name) return alert("チーム名を入力してください");
-    const team = { teamName: name, inviteCode: code || null };
-    localStorage.setItem("teamInfo", JSON.stringify(team));
-    document.getElementById("teamSection").style.display = "none";
-    document.getElementById("addVideoSection").style.display = "block";
-    document.getElementById("createMatchSection").style.display = "block";
-    document.getElementById("scoresSection").style.display = "block";
-    const tn = document.getElementById("currentTeamName"); if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
-    alert("チーム参加しました！");
+document.getElementById("btnJoin")?.addEventListener("click", async () => {
+  const name = (document.getElementById("teamNameInput")?.value || "").trim();
+  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+  if (!name) return alert("チーム名を入力してください");
+  const team = { teamName: name, inviteCode: code || null };
+  localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  await loadScores();  // ★★←これが超重要★★
-  });
+  document.getElementById("teamSection").style.display = "none";
+  document.getElementById("addVideoSection").style.display = "block";
+  document.getElementById("createMatchSection").style.display = "block";
+  document.getElementById("scoresSection").style.display = "block";
+
+  const tn = document.getElementById("currentTeamName");
+  if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+
+  alert("チーム参加しました！");
+
+  await loadScores(); // 🔥ここで await が問題だった
+});
 });
