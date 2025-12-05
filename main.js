@@ -1,3 +1,9 @@
+// 🔥 自動ログイン状態取得
+const autoTeamData = JSON.parse(localStorage.getItem("teamInfo") || "null");
+
+// 🔥 ログイン済みの場合 → 表示制御フラグ
+let isAutoLoggedIn = !!autoTeamData;
+
 /* main.js — 種別アイコン & 色 & 月集計対応版（完全版）
    機能: 検索 / ハイライト / 秒数クリック再生 / 編集 / 削除 / 種別表示等
 */
