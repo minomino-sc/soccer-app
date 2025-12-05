@@ -628,6 +628,24 @@ document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
   loadScores();
 
+  // 🔥 自動ログイン適用処理
+  if (isAutoLoggedIn && autoTeamData) {
+    console.log("🚀 自動ログイン適用", autoTeamData);
+
+    document.getElementById("teamSection").style.display = "none";
+    document.getElementById("addVideoSection").style.display = "block";
+    document.getElementById("createMatchSection").style.display = "block";
+    document.getElementById("scoresSection").style.display = "block";
+
+    const tn = document.getElementById("currentTeamName");
+    if (tn)
+      tn.textContent =
+        `${autoTeamData.teamName}（招待コード: ${autoTeamData.inviteCode || "-"})`;
+
+    // 🔥 スコア一覧更新
+    loadScores();
+  }
+   
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
