@@ -4,6 +4,8 @@
 
 let scores = JSON.parse(localStorage.getItem("scores")) || [];
 let videos = JSON.parse(localStorage.getItem("videos")) || [];
+// ⭐ 折りたたみ状態を復元（ここが抜けている）
+let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 window.currentEditIndex = undefined;
 let currentSearchQuery = "";
 
@@ -210,9 +212,6 @@ async function loadScores() {
   ensureSearchBar();
   container.innerHTML = "";
 
-  // ⭐ 折りたたみ状態を復元（ここが抜けている）
-  let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
-   
   // Firestore 読み込み
   try {
     const snap = await window._firebaseFns.getDocs(
