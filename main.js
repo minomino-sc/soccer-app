@@ -493,6 +493,7 @@ header.addEventListener("click", () => {
 ========================================================== */
 function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights) {
   window.currentEditIndex = index;
+
   const elDate = document.getElementById("edit-date");
   if (elDate) elDate.value = date || "";
   const mtEl = document.getElementById("matchType");
@@ -513,6 +514,9 @@ function openEditModal(index, date, matchType, opponent, place, myScore, opponen
       hlList.appendChild(createHlItemElement(sec));
     });
   }
+
+  // ⭐⭐⭐ ←ここを追加！
+  renderVideoSelectsForEdit(scores[index]?.videoId);
 
   const modal = document.getElementById("editModal");
   if (modal) modal.classList.remove("hidden");
