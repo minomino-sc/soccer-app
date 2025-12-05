@@ -702,8 +702,17 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const name = (document.getElementById("teamNameInput")?.value || "").trim();
   const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
   if (!name) return alert("チーム名を入力してください");
+
   const team = { teamName: name, inviteCode: code || null };
   localStorage.setItem("teamInfo", JSON.stringify(team));
+
+  // 🔥 ここが追記部分 🔥
+  if (code === "MINO-ADMIN") {
+    localStorage.setItem("userRole", "admin");
+  } else {
+    localStorage.setItem("userRole", "parent");
+  }
+  // ここまで追加
 
   document.getElementById("teamSection").style.display = "none";
   document.getElementById("addVideoSection").style.display = "block";
@@ -715,6 +724,6 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
 
   alert("チーム参加しました！");
 
-  await loadScores(); // 🔥ここで await が問題だった
+  await loadScores();
 });
 });
