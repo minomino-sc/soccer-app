@@ -170,6 +170,26 @@
   window._firebaseDB = db;
   window._firebaseFns = { collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc };
 </script>
+
+<!-- ▼ 自動ログイン処理（ここを追加） -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const team = JSON.parse(localStorage.getItem("teamInfo") || "null");
+
+  // すでに参加済み（ログイン済み）
+  if (team) {
+    // 画面表示切り替え
+    document.getElementById("teamSection").style.display = "none";
+    document.getElementById("addVideoSection").style.display = "block";
+    document.getElementById("createMatchSection").style.display = "block";
+    document.getElementById("scoresSection").style.display = "block";
+
+    // チーム名表示
+    const tn = document.getElementById("currentTeamName");
+    if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+  }
+});
+</script>
   
 <!-- ▼ 既存 -->
 <script src="main.js"></script>
