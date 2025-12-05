@@ -545,6 +545,21 @@ function createHlItemElement(sec) {
   return wrapper;
 }
 
+function renderVideoSelectsForEdit(selectedVideoId) {
+  const sel = document.getElementById("edit-video-select");
+  if (!sel) return;
+
+  sel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+  videos.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v.id;
+    opt.textContent = v.title || v.url;
+    sel.appendChild(opt);
+  });
+
+  sel.value = selectedVideoId || "";
+}
+
 function closeEditModal() {
   const modal = document.getElementById("editModal");
   if (modal && !modal.classList.contains("hidden")) modal.classList.add("hidden");
