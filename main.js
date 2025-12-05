@@ -385,6 +385,13 @@ editBtn.className = "wide-btn";
 editBtn.textContent = "編集";
 editBtn.addEventListener("click", (e) => {
   e.stopPropagation();
+
+  const pass = prompt("編集にはパスワードが必要です。入力してください：");
+  if (pass !== "mino2025") {
+    alert("パスワードが違います");
+    return;
+  }
+
   openEditModal(
     idx,
     it.date,
@@ -407,6 +414,12 @@ delBtn.textContent = "削除";
 delBtn.addEventListener("click", async (e) => {
   e.stopPropagation();
 
+  const pass = prompt("削除にはパスワードが必要です。入力してください：");
+  if (pass !== "mino2025") {
+    alert("パスワードが違います");
+    return;
+  }
+
   if (!confirm("この試合を削除しますか？")) return;
 
   const current = scores[idx];
@@ -417,13 +430,10 @@ delBtn.addEventListener("click", async (e) => {
   }
 
   try {
-    // Firestore 側を削除
     const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
     await window._firebaseFns.deleteDoc(ref);
 
     alert("Firestore から削除しました");
-
-    // 最新表示へ
     await loadScores();
 
   } catch (err) {
