@@ -453,14 +453,16 @@ card.appendChild(badge);
     group.appendChild(body);
     container.appendChild(group);
 
-// ▼ ここに追加！
-header.addEventListener("click", () => {
-  const body = group.querySelector(".month-body");
-  if (!body) return;
-  body.classList.toggle("hidden");
-});
-});
-}
+    // ▼ 折りたたみイベント
+    header.addEventListener("click", () => {
+      const body = group.querySelector(".month-body");
+      if (!body) return;
+      body.classList.toggle("hidden");
+    });
+
+  }); // ← forEach(key) 終了
+
+} // ← loadScores() 終了
 
 /* ==========================================================
    編集モーダル関連
