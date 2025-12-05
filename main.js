@@ -459,6 +459,7 @@ header.addEventListener("click", () => {
   if (!body) return;
   body.classList.toggle("hidden");
 });
+});
 }
 
 /* ==========================================================
