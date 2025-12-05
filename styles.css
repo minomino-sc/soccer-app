@@ -331,3 +331,13 @@ button:hover {
   cursor: pointer;
 }
 
+/* 開いている時（展開中） → 白 */
+.month-header.open {
+  background: #ffffff !important;
+}
+
+/* 閉じている時（折りたたみ状態） → オレンジ */
+.month-header.closed {
+  background: #fb8c00 !important;
+  color: #fff;
+}
