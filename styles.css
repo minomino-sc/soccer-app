@@ -331,8 +331,8 @@ button:hover {
   background: #ffffff !important;
 }
 
-/* 閉じている時（折りたたみ状態） → オレンジ */
+/* 閉じている時（折りたたみ状態） → 黄緑 */
 .month-header.closed {
-  background: #fb8c00 !important;
-  color: #fff;
+  background: #b2e672 !important; /* 黄緑 */
+  color: #333 !important;
 }
