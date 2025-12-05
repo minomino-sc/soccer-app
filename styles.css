@@ -298,3 +298,12 @@ button:hover {
   display: block;
   height: 20px; /* ←欲しい余白量 */
 }
+
+.month-body.hidden {
+  display: none;
+}
+
+.month-header {
+  cursor: pointer;
+}
+
