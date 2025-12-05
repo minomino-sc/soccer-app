@@ -313,6 +313,14 @@ container.innerHTML = "";
     const body = document.createElement("div");
     body.className = "month-body";
 
+// ✔ 初期状態で閉じているか判定（復元処理）
+if (collapsedMonths.includes(key)) {
+  body.classList.add("hidden");
+  header.classList.add("closed");
+} else {
+  header.classList.add("open");
+}
+     
     groups[key].items.forEach(({it,idx})=>{
       const card = document.createElement("div");
       card.className = "score-card";
