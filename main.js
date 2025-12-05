@@ -454,12 +454,26 @@ card.appendChild(badge);
     container.appendChild(group);
 
     // ▼ 折りたたみイベント
-    header.addEventListener("click", () => {
-      const body = group.querySelector(".month-body");
-      if (!body) return;
-      body.classList.toggle("hidden");
-    });
+header.addEventListener("click", () => {
+  body.classList.toggle("hidden");
 
+  const isHidden = body.classList.contains("hidden");
+
+  if (isHidden) {
+    header.classList.remove("open");
+    header.classList.add("closed");
+
+    if (!collapsedMonths.includes(key)) collapsedMonths.push(key);
+  } else {
+    header.classList.remove("closed");
+    header.classList.add("open");
+
+    collapsedMonths = collapsedMonths.filter(k => k !== key);
+  }
+
+  localStorage.setItem("collapsedMonths", JSON.stringify(collapsedMonths));
+});
+     
   }); // ← forEach(key) 終了
 
 } // ← loadScores() 終了
