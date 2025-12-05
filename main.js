@@ -674,6 +674,18 @@ document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
   loadScores();
 
+// ▼ 権限チェック
+const role = localStorage.getItem("userRole");
+
+// 保護者の場合は管理UIを非表示
+if (role !== "admin") {
+  const addVideoSec = document.getElementById("addVideoSection");
+  const createMatchSec = document.getElementById("createMatchSection");
+
+  if (addVideoSec) addVideoSec.style.display = "none";
+  if (createMatchSec) createMatchSec.style.display = "none";
+}
+
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
