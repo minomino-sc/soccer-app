@@ -1,9 +1,3 @@
-// 🔥 自動ログイン状態取得
-const autoTeamData = JSON.parse(localStorage.getItem("teamInfo") || "null");
-
-// 🔥 ログイン済みの場合 → 表示制御フラグ
-let isAutoLoggedIn = !!autoTeamData;
-
 /* main.js — 種別アイコン & 色 & 月集計対応版（完全版）
    機能: 検索 / ハイライト / 秒数クリック再生 / 編集 / 削除 / 種別表示等
 */
@@ -628,24 +622,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
   loadScores();
 
-  // 🔥 自動ログイン適用処理
-  if (isAutoLoggedIn && autoTeamData) {
-    console.log("🚀 自動ログイン適用", autoTeamData);
-
-    document.getElementById("teamSection").style.display = "none";
-    document.getElementById("addVideoSection").style.display = "block";
-    document.getElementById("createMatchSection").style.display = "block";
-    document.getElementById("scoresSection").style.display = "block";
-
-    const tn = document.getElementById("currentTeamName");
-    if (tn)
-      tn.textContent =
-        `${autoTeamData.teamName}（招待コード: ${autoTeamData.inviteCode || "-"})`;
-
-    // 🔥 スコア一覧更新
-    loadScores();
-  }
-   
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
@@ -670,65 +646,17 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-document.getElementById("btnJoin")?.addEventListener("click", async () => {
-  const name = (document.getElementById("teamNameInput")?.value || "").trim();
-  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-
-//  if (!name || !code) {
-//    alert("チーム名と招待コードを入力してください");
-//    return;
-//}
-
-if (!name) {
-  alert("チーム名を入力してください");
-  return;
-}
-
-// 🔥コード入力がなくても許可する
-
-  // Firestore接続
-  const db = window._firebaseDB;
-  const { collection, getDocs } = window._firebaseFns;
-
-  // teamsをすべて取得
-  const snap = await getDocs(collection(db, "teams"));
-
-  let matchedTeamId = null;
-  let matchedTeamData = null;
-
-  snap.forEach(doc => {
-    const d = doc.data();
-    if (d.teamName === name && d.inviteCode === code) {
-      matchedTeamId = doc.id;
-      matchedTeamData = d;
-    }
+  document.getElementById("btnJoin")?.addEventListener("click", () => {
+    const name = (document.getElementById("teamNameInput")?.value || "").trim();
+    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+    if (!name) return alert("チーム名を入力してください");
+    const team = { teamName: name, inviteCode: code || null };
+    localStorage.setItem("teamInfo", JSON.stringify(team));
+    document.getElementById("teamSection").style.display = "none";
+    document.getElementById("addVideoSection").style.display = "block";
+    document.getElementById("createMatchSection").style.display = "block";
+    document.getElementById("scoresSection").style.display = "block";
+    const tn = document.getElementById("currentTeamName"); if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+    alert("チーム参加しました！");
   });
-
-//  if (!matchedTeamId) {
-//    alert("チーム名または招待コードが違います");
-//    return;
-//  }
-
-  // 🔥 ログイン情報を保存
-  localStorage.setItem("teamInfo", JSON.stringify({
-    teamName: matchedTeamData.teamName,
-    inviteCode: matchedTeamData.inviteCode,
-    teamId: matchedTeamId
-  }));
-
-  alert("ログイン成功！");
-
-  // 🔥画面切替
-  document.getElementById("teamSection").style.display = "none";
-  document.getElementById("addVideoSection").style.display = "block";
-  document.getElementById("createMatchSection").style.display = "block";
-  document.getElementById("scoresSection").style.display = "block";
-
-  const tn = document.getElementById("currentTeamName");
-  if (tn)
-    tn.textContent =
-      `${matchedTeamData.teamName}（招待コード: ${matchedTeamData.inviteCode}）`;
-
-  // 🔥スコアを再描画
-  loadScores();
 });
