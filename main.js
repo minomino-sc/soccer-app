@@ -210,6 +210,9 @@ async function loadScores() {
   ensureSearchBar();
   container.innerHTML = "";
 
+  // ⭐ 折りたたみ状態を復元（ここが抜けている）
+  let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
+   
   // Firestore 読み込み
   try {
     const snap = await window._firebaseFns.getDocs(
