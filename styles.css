@@ -194,12 +194,26 @@ button:hover {
 /* =========================================
    月別ヘッダー
 ========================================= */
+
+/* =========================================
+   月別ヘッダー（折りたたみ対応版）
+========================================= */
 .month-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 6px;
+  padding: 14px 14px;
   font-weight: bold;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0,0,0,0.08);
+  margin-top: 8px;
+}
+
+/* 子要素のイベント阻止 → headerクリックに集約 */
+.month-header * {
+  pointer-events: none;
 }
 
 .month-header .agg {
@@ -207,6 +221,16 @@ button:hover {
   gap: 10px;
   color: #555;
   font-size: 0.9rem;
+}
+
+/* 閉じた時 */
+.month-body.hidden {
+  display: none;
+}
+
+/* 開いている時の見た目 */
+.month-header.open {
+  background: #e8f3ff;
 }
 
 /* =========================================
