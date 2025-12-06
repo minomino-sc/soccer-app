@@ -736,9 +736,9 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
     localStorage.setItem("userRole", "parent");
   }
 
-  // 画面切り替え
-  document.getElementById("teamSection")?.style.display = "none";
-  document.getElementById("scoresSection")?.style.display = "block";
+  // 🔥ここが重要（あなたのコードには無い）
+  document.getElementById("teamSection").style.display = "none";
+  document.getElementById("scoresSection").style.display = "block";
 
   if (isAdmin()) {
     document.getElementById("addVideoSection")?.style.display = "block";
@@ -752,7 +752,7 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
-  // 戻るボタンは常に表示（管理者・保護者問わず）
+  // 🔥戻るボタンは常に表示
   const backBtn = document.getElementById("btnBackLogin");
   if (backBtn) {
     backBtn.style.display = "block";
