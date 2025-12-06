@@ -676,6 +676,18 @@ function addHighlightTop() {
 /* DOMContentLoaded: イベント登録 */
 document.addEventListener("DOMContentLoaded", () => {
 
+// ▼ 再訪問時の判定（ログイン状態維持の場合）
+document.addEventListener("DOMContentLoaded", () => {
+  const role = localStorage.getItem("userRole");
+  const teamInfo = localStorage.getItem("teamInfo");
+
+  // 既にログイン済み状態なら戻るボタン表示
+  if (teamInfo && role) {
+    const backBtn = document.getElementById("btnBackLogin");
+    if (backBtn) backBtn.style.display = "block";
+  }
+});
+   
   // ⭐ 初期状態で非表示にする
   const backBtn = document.getElementById("btnBackLogin");
   if (backBtn) backBtn.style.display = "none";
