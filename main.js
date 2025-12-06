@@ -686,10 +686,10 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   localStorage.setItem("teamInfo", JSON.stringify(team));
 
   document.getElementById("teamSection").style.display = "none";
-  document.getElementById("addVideoSection").style.display = "block";
-  document.getElementById("createMatchSection").style.display = "block";
-  document.getElementById("scoresSection").style.display = "block";
-
+document.getElementById("addVideoSection").style.display = "none";
+document.getElementById("createMatchSection").style.display = "none";
+document.getElementById("scoresSection").style.display = "none";
+   
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
