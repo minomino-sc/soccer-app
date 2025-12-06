@@ -8,10 +8,6 @@ let videos = JSON.parse(localStorage.getItem("videos")) || [];
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 window.currentEditIndex = undefined;
 let currentSearchQuery = "";
-/* ▼ 権限判定 utility（ここを追加） */
-function isAdmin() {
-  return String(localStorage.getItem("userRole") || "").toLowerCase() === "admin";
-}
 
 /* 保存ユーティリティ */
 function saveAll() {
@@ -392,71 +388,71 @@ if (it.videoId) {
   actionRow.appendChild(spacer);
 }
 
-/* ▼ 管理者のみ 編集・削除を表示 */
-if (isAdmin()) {
-  // 編集ボタン
-  const editBtn = document.createElement("button");
-  editBtn.type = "button";
-  editBtn.className = "wide-btn";
-  editBtn.textContent = "編集";
-  editBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const pass = prompt("編集にはパスワードが必要です。入力してください：");
-    if (pass !== "mino2025") {
-      alert("パスワードが違います");
-      return;
-    }
+// 編集ボタン
+const editBtn = document.createElement("button");
+editBtn.type = "button";
+editBtn.className = "wide-btn";
+editBtn.textContent = "編集";
+editBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
 
-    openEditModal(
-      idx,
-      it.date,
-      it.matchType || "",
-      it.opponent,
-      it.place,
-      it.myScore,
-      it.opponentScore,
-      it.highlights || []
-    );
-  });
-  actionRow.appendChild(editBtn);
+  const pass = prompt("編集にはパスワードが必要です。入力してください：");
+  if (pass !== "mino2025") {
+    alert("パスワードが違います");
+    return;
+  }
 
-  // 削除ボタン
-  const delBtn = document.createElement("button");
-  delBtn.type = "button";
-  delBtn.className = "wide-btn danger";
-  delBtn.textContent = "削除";
-  delBtn.addEventListener("click", async (e) => {
-    e.stopPropagation();
+  openEditModal(
+    idx,
+    it.date,
+    it.matchType || "",
+    it.opponent,
+    it.place,
+    it.myScore,
+    it.opponentScore,
+    it.highlights || []
+  );
+});
+actionRow.appendChild(editBtn);
+       
+// 削除ボタン
+const delBtn = document.createElement("button");
+delBtn.type = "button";
+delBtn.className = "wide-btn danger";
+delBtn.textContent = "削除";
 
-    const pass = prompt("削除にはパスワードが必要です。入力してください：");
-    if (pass !== "mino2025") {
-      alert("パスワードが違います");
-      return;
-    }
+delBtn.addEventListener("click", async (e) => {
+  e.stopPropagation();
 
-    if (!confirm("この試合を削除しますか？")) return;
+  const pass = prompt("削除にはパスワードが必要です。入力してください：");
+  if (pass !== "mino2025") {
+    alert("パスワードが違います");
+    return;
+  }
 
-    const current = scores[idx];
+  if (!confirm("この試合を削除しますか？")) return;
 
-    if (!current.id) return alert("Firestore のIDが存在しません。");
+  const current = scores[idx];
 
-    try {
-      const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
-      await window._firebaseFns.deleteDoc(ref);
+  if (!current.id) {
+    alert("Firestore のIDが存在しません。削除できません。");
+    return;
+  }
 
-      alert("Firestore から削除しました");
-      await loadScores();
-    } catch (err) {
-      alert("削除に失敗しました");
-    }
-  });
-  actionRow.appendChild(delBtn);
-} else {
-  // 保護者用：空スペース保持
-  const blank = document.createElement("div");
-  blank.style.flex = "1";
-  actionRow.appendChild(blank);
-}       
+  try {
+    const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
+    await window._firebaseFns.deleteDoc(ref);
+
+    alert("Firestore から削除しました");
+    await loadScores();
+
+  } catch (err) {
+    console.error("Firestore削除エラー:", err);
+    alert("Firestore の削除に失敗しました");
+  }
+});
+       
+actionRow.appendChild(delBtn);
 
 badge.appendChild(actionRow);
 card.appendChild(badge);
@@ -497,7 +493,6 @@ header.addEventListener("click", () => {
 ========================================================== */
 function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights) {
   window.currentEditIndex = index;
-
   const elDate = document.getElementById("edit-date");
   if (elDate) elDate.value = date || "";
   const mtEl = document.getElementById("matchType");
@@ -518,9 +513,6 @@ function openEditModal(index, date, matchType, opponent, place, myScore, opponen
       hlList.appendChild(createHlItemElement(sec));
     });
   }
-
-  // ⭐⭐⭐ ←ここを追加！
-  renderVideoSelectsForEdit(scores[index]?.videoId);
 
   const modal = document.getElementById("editModal");
   if (modal) modal.classList.remove("hidden");
@@ -547,21 +539,6 @@ function createHlItemElement(sec) {
   wrapper.appendChild(sp);
   wrapper.appendChild(del);
   return wrapper;
-}
-
-function renderVideoSelectsForEdit(selectedVideoId) {
-  const sel = document.getElementById("edit-video-select");
-  if (!sel) return;
-
-  sel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
-  videos.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v.id;
-    opt.textContent = v.title || v.url;
-    sel.appendChild(opt);
-  });
-
-  sel.value = selectedVideoId || "";
 }
 
 function closeEditModal() {
@@ -609,16 +586,15 @@ async function saveEditGeneric() {
   // --- Firestore に更新 ---
   try {
     const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
-await window._firebaseFns.updateDoc(ref, {
-  date,
-  matchType,
-  opponent,
-  place,
-  myScore: myScoreVal === "" ? null : Number(myScoreVal),
-  opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
-  highlights,
-  videoId: document.getElementById("edit-video-select")?.value || null
-});   
+    await window._firebaseFns.updateDoc(ref, {
+      date,
+      matchType,
+      opponent,
+      place,
+      myScore: myScoreVal === "" ? null : Number(myScoreVal),
+      opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
+      highlights
+    });
 
    alert("Firestore に保存しました！");
     closeEditModal();
@@ -678,18 +654,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
   loadScores();
 
-// ▼ 権限チェック
-const role = localStorage.getItem("userRole");
-
-// 保護者の場合は管理UIを非表示
-if (role !== "admin") {
-  const addVideoSec = document.getElementById("addVideoSection");
-  const createMatchSec = document.getElementById("createMatchSection");
-
-  if (addVideoSec) addVideoSec.style.display = "none";
-  if (createMatchSec) createMatchSec.style.display = "none";
-}
-
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
@@ -718,34 +682,19 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const name = (document.getElementById("teamNameInput")?.value || "").trim();
   const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
   if (!name) return alert("チーム名を入力してください");
-
   const team = { teamName: name, inviteCode: code || null };
   localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  // 🔥 ここが追記部分 🔥
-  if (code === "MINO-ADMIN") {
-    localStorage.setItem("userRole", "admin");
-  } else {
-    localStorage.setItem("userRole", "parent");
-  }
-  // ここまで追加
-
-document.getElementById("teamSection").style.display = "none";
-document.getElementById("scoresSection").style.display = "block";
-
-if (isAdmin()) {
+  document.getElementById("teamSection").style.display = "none";
   document.getElementById("addVideoSection").style.display = "block";
   document.getElementById("createMatchSection").style.display = "block";
-} else {
-  document.getElementById("addVideoSection").style.display = "none";
-  document.getElementById("createMatchSection").style.display = "none";
-}
+  document.getElementById("scoresSection").style.display = "block";
 
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
   alert("チーム参加しました！");
 
-  await loadScores();
+  await loadScores(); // 🔥ここで await が問題だった
 });
 });
