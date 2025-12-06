@@ -654,6 +654,10 @@ document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
   loadScores();
 
+  document.getElementById("addVideoSection").style.display = "none";
+  document.getElementById("createMatchSection").style.display = "none";
+  document.getElementById("scoresSection").style.display = "none";
+
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
@@ -677,11 +681,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
-
-   // ーーー 初期表示制御（ログイン前は非表示）ーーー  
-   document.getElementById("addVideoSection").style.display = "none";
-   document.getElementById("createMatchSection").style.display = "none";
-   document.getElementById("scoresSection").style.display = "none";
    
    document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const name = (document.getElementById("teamNameInput")?.value || "").trim();
