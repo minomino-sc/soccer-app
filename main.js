@@ -675,22 +675,22 @@ function addHighlightTop() {
 
 /* DOMContentLoaded: イベント登録 */
 document.addEventListener("DOMContentLoaded", () => {
+
+  // ⭐ 初期状態で非表示にする
+  const backBtn = document.getElementById("btnBackLogin");
+  if (backBtn) backBtn.style.display = "none";
+
   renderVideoSelects();
   loadScores();
 
-// ▼ 権限チェック
-const role = localStorage.getItem("userRole");
+  const role = localStorage.getItem("userRole");
 
-// 保護者の場合は管理UIを非表示
-if (role !== "admin") {
-  const addVideoSec = document.getElementById("addVideoSection");
-  const createMatchSec = document.getElementById("createMatchSection");
-
-  // 編集系は非表示
-  if (addVideoSec) addVideoSec.style.display = "none";
-  if (createMatchSec) createMatchSec.style.display = "none";
-
-}
+  if (role !== "admin") {
+    const addVideoSec = document.getElementById("addVideoSection");
+    const createMatchSec = document.getElementById("createMatchSection");
+    if (addVideoSec) addVideoSec.style.display = "none";
+    if (createMatchSec) createMatchSec.style.display = "none";
+  }
 
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
