@@ -733,8 +733,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (code === "MINO-ADMIN") {
       localStorage.setItem("userRole", "admin");
     } else {
-      localStorage.setItem("userRole", "parent");
-    }
+// 保護者ログイン
+localStorage.setItem("userRole", "parent");
+
+// ⭐ ログイン後は戻るボタンを強制表示
+const backBtn = document.getElementById("btnBackLogin");
+if (backBtn) {
+  backBtn.style.display = "block";
+  backBtn.style.visibility = "visible";
+}
 
     document.getElementById("teamSection").style.display = "none";
     document.getElementById("scoresSection").style.display = "block";
