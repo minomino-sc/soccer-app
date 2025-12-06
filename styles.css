@@ -336,3 +336,21 @@ button:hover {
   background: #b2e672 !important; /* 黄緑 */
   color: #333 !important;
 }
+/* ================================
+   ▼ 枠付きカードデザイン 共通化
+================================ */
+.section-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #d1ead1; /* 薄い緑枠 */
+  padding: 18px;
+  margin: 20px 0;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+}
+
+/* ↑ タイトル（h2/h3）に余白調整 */
+.section-card h2,
+.section-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
