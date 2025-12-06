@@ -674,28 +674,22 @@ function addHighlightTop() {
 }
 
 /* DOMContentLoaded: イベント登録 */
+/* DOMContentLoaded: イベント登録 */
 document.addEventListener("DOMContentLoaded", () => {
 
-// ▼ 再訪問時の判定（ログイン状態維持の場合）
-document.addEventListener("DOMContentLoaded", () => {
-  const role = localStorage.getItem("userRole");
-  const teamInfo = localStorage.getItem("teamInfo");
-
-  // 既にログイン済み状態なら戻るボタン表示
-  if (teamInfo && role) {
-    const backBtn = document.getElementById("btnBackLogin");
-    if (backBtn) backBtn.style.display = "block";
-  }
-});
-   
-  // ⭐ 初期状態で非表示にする
+  // ⭐ 初期で非表示
   const backBtn = document.getElementById("btnBackLogin");
   if (backBtn) backBtn.style.display = "none";
 
+  // ⭐ 再ログイン状態なら表示
+  const role = localStorage.getItem("userRole");
+  const teamInfo = localStorage.getItem("teamInfo");
+  if (teamInfo && role) {
+    if (backBtn) backBtn.style.display = "block";
+  }
+
   renderVideoSelects();
   loadScores();
-
-  const role = localStorage.getItem("userRole");
 
   if (role !== "admin") {
     const addVideoSec = document.getElementById("addVideoSection");
@@ -728,43 +722,40 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-document.getElementById("btnJoin")?.addEventListener("click", async () => {
-  const name = (document.getElementById("teamNameInput")?.value || "").trim();
-  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-  if (!name) return alert("チーム名を入力してください");
+  document.getElementById("btnJoin")?.addEventListener("click", async () => {
+    const name = (document.getElementById("teamNameInput")?.value || "").trim();
+    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+    if (!name) return alert("チーム名を入力してください");
 
-  const team = { teamName: name, inviteCode: code || null };
-  localStorage.setItem("teamInfo", JSON.stringify(team));
+    const team = { teamName: name, inviteCode: code || null };
+    localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  // 権限設定
-  if (code === "MINO-ADMIN") {
-    localStorage.setItem("userRole", "admin");
-  } else {
-    localStorage.setItem("userRole", "parent");
-  }
+    // 権限設定
+    if (code === "MINO-ADMIN") {
+      localStorage.setItem("userRole", "admin");
+    } else {
+      localStorage.setItem("userRole", "parent");
+    }
 
-  // 画面切り替え
-  document.getElementById("teamSection").style.display = "none";
-  document.getElementById("scoresSection").style.display = "block";
+    document.getElementById("teamSection").style.display = "none";
+    document.getElementById("scoresSection").style.display = "block";
 
-  if (isAdmin()) {
-    document.getElementById("addVideoSection").style.display = "block";
-    document.getElementById("createMatchSection").style.display = "block";
-  } else {
-    document.getElementById("addVideoSection").style.display = "none";
-    document.getElementById("createMatchSection").style.display = "none";
-  }
+    if (isAdmin()) {
+      document.getElementById("addVideoSection").style.display = "block";
+      document.getElementById("createMatchSection").style.display = "block";
+    } else {
+      document.getElementById("addVideoSection").style.display = "none";
+      document.getElementById("createMatchSection").style.display = "none";
+    }
 
-  // チーム名設定
-  const tn = document.getElementById("currentTeamName");
-  if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+    const tn = document.getElementById("currentTeamName");
+    if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
-  // ⭐⭐ ここに移動（最後に！）
-  const backBtn = document.getElementById("btnBackLogin");
-  if (backBtn) backBtn.style.display = "block";
+    // ⭐ ログイン後は常に表示
+    if (backBtn) backBtn.style.display = "block";
 
-  alert("チーム参加しました！");
+    alert("チーム参加しました！");
 
-  await loadScores();
-});
+    await loadScores();
+  });
 });
