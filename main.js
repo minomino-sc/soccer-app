@@ -724,31 +724,33 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const team = { teamName: name, inviteCode: code || null };
   localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  // 🔥 ここが追記部分 🔥
+  // 権限設定
   if (code === "MINO-ADMIN") {
     localStorage.setItem("userRole", "admin");
   } else {
     localStorage.setItem("userRole", "parent");
   }
-  // ここまで追加
 
-document.getElementById("teamSection").style.display = "none";
-document.getElementById("scoresSection").style.display = "block";
+  // 画面切り替え
+  document.getElementById("teamSection").style.display = "none";
+  document.getElementById("scoresSection").style.display = "block";
 
-if (isAdmin()) {
-  document.getElementById("addVideoSection").style.display = "block";
-  document.getElementById("createMatchSection").style.display = "block";
-} else {
-  document.getElementById("addVideoSection").style.display = "none";
-  document.getElementById("createMatchSection").style.display = "none";
-}
+  if (isAdmin()) {
+    document.getElementById("addVideoSection").style.display = "block";
+    document.getElementById("createMatchSection").style.display = "block";
+  } else {
+    document.getElementById("addVideoSection").style.display = "none";
+    document.getElementById("createMatchSection").style.display = "none";
+  }
 
+  // チーム名設定
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
-  // ⭐ここに移動
-  document.getElementById("btnBackLogin").style.display = "block";
- 
+  // ⭐⭐ ここに移動（最後に！）
+  const backBtn = document.getElementById("btnBackLogin");
+  if (backBtn) backBtn.style.display = "block";
+
   alert("チーム参加しました！");
 
   await loadScores();
