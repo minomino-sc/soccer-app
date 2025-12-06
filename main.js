@@ -392,71 +392,71 @@ if (it.videoId) {
   actionRow.appendChild(spacer);
 }
 
-// 編集ボタン
-const editBtn = document.createElement("button");
-editBtn.type = "button";
-editBtn.className = "wide-btn";
-editBtn.textContent = "編集";
-editBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
+/* ▼ 管理者のみ 編集・削除を表示 */
+if (isAdmin()) {
+  // 編集ボタン
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "wide-btn";
+  editBtn.textContent = "編集";
+  editBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const pass = prompt("編集にはパスワードが必要です。入力してください：");
+    if (pass !== "mino2025") {
+      alert("パスワードが違います");
+      return;
+    }
 
-  const pass = prompt("編集にはパスワードが必要です。入力してください：");
-  if (pass !== "mino2025") {
-    alert("パスワードが違います");
-    return;
-  }
+    openEditModal(
+      idx,
+      it.date,
+      it.matchType || "",
+      it.opponent,
+      it.place,
+      it.myScore,
+      it.opponentScore,
+      it.highlights || []
+    );
+  });
+  actionRow.appendChild(editBtn);
 
-  openEditModal(
-    idx,
-    it.date,
-    it.matchType || "",
-    it.opponent,
-    it.place,
-    it.myScore,
-    it.opponentScore,
-    it.highlights || []
-  );
-});
-actionRow.appendChild(editBtn);
-       
-// 削除ボタン
-const delBtn = document.createElement("button");
-delBtn.type = "button";
-delBtn.className = "wide-btn danger";
-delBtn.textContent = "削除";
+  // 削除ボタン
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "wide-btn danger";
+  delBtn.textContent = "削除";
+  delBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
 
-delBtn.addEventListener("click", async (e) => {
-  e.stopPropagation();
+    const pass = prompt("削除にはパスワードが必要です。入力してください：");
+    if (pass !== "mino2025") {
+      alert("パスワードが違います");
+      return;
+    }
 
-  const pass = prompt("削除にはパスワードが必要です。入力してください：");
-  if (pass !== "mino2025") {
-    alert("パスワードが違います");
-    return;
-  }
+    if (!confirm("この試合を削除しますか？")) return;
 
-  if (!confirm("この試合を削除しますか？")) return;
+    const current = scores[idx];
 
-  const current = scores[idx];
+    if (!current.id) return alert("Firestore のIDが存在しません。");
 
-  if (!current.id) {
-    alert("Firestore のIDが存在しません。削除できません。");
-    return;
-  }
+    try {
+      const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
+      await window._firebaseFns.deleteDoc(ref);
 
-  try {
-    const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
-    await window._firebaseFns.deleteDoc(ref);
-
-    alert("Firestore から削除しました");
-    await loadScores();
-
-  } catch (err) {
-    console.error("Firestore削除エラー:", err);
-    alert("Firestore の削除に失敗しました");
-  }
-});
-       
-actionRow.appendChild(delBtn);
+      alert("Firestore から削除しました");
+      await loadScores();
+    } catch (err) {
+      alert("削除に失敗しました");
+    }
+  });
+  actionRow.appendChild(delBtn);
+} else {
+  // 保護者用：空スペース保持
+  const blank = document.createElement("div");
+  blank.style.flex = "1";
+  actionRow.appendChild(blank);
+}       
 
 badge.appendChild(actionRow);
 card.appendChild(badge);
