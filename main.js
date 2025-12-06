@@ -721,54 +721,45 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-  document.getElementById("btnJoin")?.addEventListener("click", async () => {
-    const name = (document.getElementById("teamNameInput")?.value || "").trim();
-    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-    if (!name) return alert("チーム名を入力してください");
+document.getElementById("btnJoin")?.addEventListener("click", async () => {
+  const name = (document.getElementById("teamNameInput")?.value || "").trim();
+  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+  if (!name) return alert("チーム名を入力してください");
 
-    const team = { teamName: name, inviteCode: code || null };
-    localStorage.setItem("teamInfo", JSON.stringify(team));
+  const team = { teamName: name, inviteCode: code || null };
+  localStorage.setItem("teamInfo", JSON.stringify(team));
 
-    // 権限設定
-    if (code === "MINO-ADMIN") {
-      localStorage.setItem("userRole", "admin");
-    } else {
-// 保護者ログイン
-localStorage.setItem("userRole", "parent");
+  // 権限設定
+  if (code === "MINO-ADMIN") {
+    localStorage.setItem("userRole", "admin");
+  } else {
+    localStorage.setItem("userRole", "parent");
+  }
 
-// ⭐ ログイン後は戻るボタンを強制表示
-const backBtn = document.getElementById("btnBackLogin");
-if (backBtn) {
-  backBtn.style.display = "block";
-  backBtn.style.visibility = "visible";
-}
+  // 画面切り替え
+  document.getElementById("teamSection")?.style.display = "none";
+  document.getElementById("scoresSection")?.style.display = "block";
 
-    document.getElementById("teamSection").style.display = "none";
-    document.getElementById("scoresSection").style.display = "block";
+  if (isAdmin()) {
+    document.getElementById("addVideoSection")?.style.display = "block";
+    document.getElementById("createMatchSection")?.style.display = "block";
+  } else {
+    document.getElementById("addVideoSection")?.style.display = "none";
+    document.getElementById("createMatchSection")?.style.display = "none";
+  }
 
-    if (isAdmin()) {
-      document.getElementById("addVideoSection").style.display = "block";
-      document.getElementById("createMatchSection").style.display = "block";
-    } else {
-      document.getElementById("addVideoSection").style.display = "none";
-      document.getElementById("createMatchSection").style.display = "none";
-    }
+  // チーム名表示
+  const tn = document.getElementById("currentTeamName");
+  if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
-    const tn = document.getElementById("currentTeamName");
-    if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+  // 戻るボタンは常に表示（管理者・保護者問わず）
+  const backBtn = document.getElementById("btnBackLogin");
+  if (backBtn) {
+    backBtn.style.display = "block";
+    backBtn.style.visibility = "visible";
+  }
 
-    // ⭐ ログイン後は常に表示
-    if (backBtn) backBtn.style.display = "block";
+  alert("チーム参加しました！");
 
-    alert("チーム参加しました！");
-
-// ⭐ 保護者でも管理者でもログイン後は確実に表示
-const backBtn2 = document.getElementById("btnBackLogin");
-if (backBtn2) {
-  backBtn2.style.display = "block";
-  backBtn2.style.visibility = "visible";
-}
-
-await loadScores();
-});
+  await loadScores();
 });
