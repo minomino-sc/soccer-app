@@ -679,7 +679,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ⭐ 初期で非表示
   const backBtn = document.getElementById("btnBackLogin");
-  if (backBtn) backBtn.style.display = "none";
 
   // ⭐ 再ログイン状態なら表示
   const role = localStorage.getItem("userRole");
