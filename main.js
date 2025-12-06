@@ -730,10 +730,16 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   }
   // ここまで追加
 
-  document.getElementById("teamSection").style.display = "none";
+document.getElementById("teamSection").style.display = "none";
+document.getElementById("scoresSection").style.display = "block";
+
+if (isAdmin()) {
   document.getElementById("addVideoSection").style.display = "block";
   document.getElementById("createMatchSection").style.display = "block";
-  document.getElementById("scoresSection").style.display = "block";
+} else {
+  document.getElementById("addVideoSection").style.display = "none";
+  document.getElementById("createMatchSection").style.display = "none";
+}
 
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
