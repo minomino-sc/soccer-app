@@ -756,6 +756,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     alert("チーム参加しました！");
 
-    await loadScores();
-  });
+// ⭐ 保護者でも管理者でもログイン後は確実に表示
+const backBtn2 = document.getElementById("btnBackLogin");
+if (backBtn2) {
+  backBtn2.style.display = "block";
+  backBtn2.style.visibility = "visible";
+}
+
+await loadScores();
+});
 });
