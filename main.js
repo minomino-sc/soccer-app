@@ -690,8 +690,6 @@ if (role !== "admin") {
   if (addVideoSec) addVideoSec.style.display = "none";
   if (createMatchSec) createMatchSec.style.display = "none";
 
-  // ⭐ 戻るボタンだけ再表示
-  document.getElementById("btnBackLogin")?.style.display = "block";
 }
 
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
@@ -748,6 +746,9 @@ if (isAdmin()) {
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
+  // ⭐ここに移動
+  document.getElementById("btnBackLogin").style.display = "block";
+ 
   alert("チーム参加しました！");
 
   await loadScores();
