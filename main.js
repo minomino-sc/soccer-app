@@ -678,7 +678,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-document.getElementById("btnJoin")?.addEventListener("click", async () => {
+   // ーーー 初期表示制御（ログイン前は非表示）ーーー  
+   document.getElementById("addVideoSection").style.display = "none";
+   document.getElementById("createMatchSection").style.display = "none";
+   document.getElementById("scoresSection").style.display = "none";
+   
+   document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const name = (document.getElementById("teamNameInput")?.value || "").trim();
   const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
   if (!name) return alert("チーム名を入力してください");
