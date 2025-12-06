@@ -763,3 +763,4 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
 
   await loadScores();
 });
+});
