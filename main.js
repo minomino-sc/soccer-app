@@ -674,28 +674,21 @@ function addHighlightTop() {
 }
 
 /* DOMContentLoaded: イベント登録 */
-/* DOMContentLoaded: イベント登録 */
 document.addEventListener("DOMContentLoaded", () => {
-
-  // ⭐ 初期で非表示
-  const backBtn = document.getElementById("btnBackLogin");
-
-  // ⭐ 再ログイン状態なら表示
-  const role = localStorage.getItem("userRole");
-  const teamInfo = localStorage.getItem("teamInfo");
-  if (teamInfo && role) {
-    if (backBtn) backBtn.style.display = "block";
-  }
-
   renderVideoSelects();
   loadScores();
 
-  if (role !== "admin") {
-    const addVideoSec = document.getElementById("addVideoSection");
-    const createMatchSec = document.getElementById("createMatchSection");
-    if (addVideoSec) addVideoSec.style.display = "none";
-    if (createMatchSec) createMatchSec.style.display = "none";
-  }
+// ▼ 権限チェック
+const role = localStorage.getItem("userRole");
+
+// 保護者の場合は管理UIを非表示
+if (role !== "admin") {
+  const addVideoSec = document.getElementById("addVideoSection");
+  const createMatchSec = document.getElementById("createMatchSection");
+
+  if (addVideoSec) addVideoSec.style.display = "none";
+  if (createMatchSec) createMatchSec.style.display = "none";
+}
 
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
@@ -729,35 +722,27 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
   const team = { teamName: name, inviteCode: code || null };
   localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  // 権限設定
+  // 🔥 ここが追記部分 🔥
   if (code === "MINO-ADMIN") {
     localStorage.setItem("userRole", "admin");
   } else {
     localStorage.setItem("userRole", "parent");
   }
+  // ここまで追加
 
-  // 🔥ここが重要（あなたのコードには無い）
-  document.getElementById("teamSection").style.display = "none";
-  document.getElementById("scoresSection").style.display = "block";
+document.getElementById("teamSection").style.display = "none";
+document.getElementById("scoresSection").style.display = "block";
 
-  if (isAdmin()) {
-    document.getElementById("addVideoSection")?.style.display = "block";
-    document.getElementById("createMatchSection")?.style.display = "block";
-  } else {
-    document.getElementById("addVideoSection")?.style.display = "none";
-    document.getElementById("createMatchSection")?.style.display = "none";
-  }
+if (isAdmin()) {
+  document.getElementById("addVideoSection").style.display = "block";
+  document.getElementById("createMatchSection").style.display = "block";
+} else {
+  document.getElementById("addVideoSection").style.display = "none";
+  document.getElementById("createMatchSection").style.display = "none";
+}
 
-  // チーム名表示
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
-
-  // 🔥戻るボタンは常に表示
-  const backBtn = document.getElementById("btnBackLogin");
-  if (backBtn) {
-    backBtn.style.display = "block";
-    backBtn.style.visibility = "visible";
-  }
 
   alert("チーム参加しました！");
 
