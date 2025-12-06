@@ -686,8 +686,12 @@ if (role !== "admin") {
   const addVideoSec = document.getElementById("addVideoSection");
   const createMatchSec = document.getElementById("createMatchSection");
 
+  // 編集系は非表示
   if (addVideoSec) addVideoSec.style.display = "none";
   if (createMatchSec) createMatchSec.style.display = "none";
+
+  // ⭐ 戻るボタンだけ再表示
+  document.getElementById("btnBackLogin")?.style.display = "block";
 }
 
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
