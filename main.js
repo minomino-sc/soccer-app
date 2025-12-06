@@ -8,6 +8,10 @@ let videos = JSON.parse(localStorage.getItem("videos")) || [];
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 window.currentEditIndex = undefined;
 let currentSearchQuery = "";
+/* ▼ 権限判定 utility（ここを追加） */
+function isAdmin() {
+  return String(localStorage.getItem("userRole") || "").toLowerCase() === "admin";
+}
 
 /* 保存ユーティリティ */
 function saveAll() {
