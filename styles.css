@@ -395,3 +395,16 @@ button:hover {
   margin-right: auto;
   display: block;
 }
+
+/* 試合作成の日付入力欄を統一する */
+#createMatchSection input[type="date"] {
+  width: 100%;
+  height: 50px;
+  padding-left: 14px;
+  padding-right: 14px;
+  font-size: 16px;
+  box-sizing: border-box;
+  text-align: center;
+  display: flex;
+  align-items: center;
+}
