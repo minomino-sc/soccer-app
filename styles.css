@@ -400,3 +400,10 @@ button:hover {
   color: white !important;
   border: none !important;
 }
+
+/* 閉じるボタンを黄緑色に変更 */
+.close-btn {
+  background: #8cd95b !important; /* 黄緑色 */
+  color: #fff !important;
+  border: none;
+}
