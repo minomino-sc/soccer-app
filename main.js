@@ -724,6 +724,8 @@ document.getElementById("scoresSection").style.display = "block";
 
   alert("チーム参加しました！");
 
+  showBackButton();  // ← ← これ！
+    
   await loadScores(); // 🔥ここで await が問題だった
 });
 });
