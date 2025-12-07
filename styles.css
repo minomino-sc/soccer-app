@@ -382,3 +382,8 @@ button:hover {
   color: #444;
   opacity: 0.8;
 }
+
+.wide-btn.gray {
+  background-color: #888;
+  color: white;
+}
