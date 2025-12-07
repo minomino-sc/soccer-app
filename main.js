@@ -585,7 +585,10 @@ async function saveEditGeneric() {
   const place = (document.getElementById("edit-place")?.value || "").trim();
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
-
+   // ⭐追加！
+   const videoSelect = document.getElementById("edit-video-select");
+   const videoId = videoSelect?.value || null;
+  
   // ハイライト（秒）取得
   const hlList = document.getElementById("hlList");
   const highlights = [];
