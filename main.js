@@ -675,6 +675,10 @@ document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
   loadScores();
 
+  // ▼ ログイン画面に戻るボタンは最初は非表示
+  document.getElementById("btnBackLogin").style.display = "none";
+});  
+
   document.getElementById("addVideoSection").style.display = "none";
   document.getElementById("createMatchSection").style.display = "none";
   document.getElementById("scoresSection").style.display = "none";
