@@ -387,3 +387,11 @@ button:hover {
   background-color: #888;
   color: white;
 }
+
+/* 試合作成内の日付入力欄の横幅調整 */
+#createMatchSection input[type="date"] {
+  width: 85% !important;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
