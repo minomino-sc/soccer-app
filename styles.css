@@ -394,3 +394,9 @@ button:hover {
   width: 80%;
   text-align: center;
 }
+
+#deleteMatch {
+  background-color: #e53935 !important;
+  color: white !important;
+  border: none !important;
+}
