@@ -412,3 +412,7 @@ button.close-btn {
   background: #8cd95b !important; /* 黄緑色 */
   color: #fff !important;
 }
+
+#modalClose {
+  width: 100%;
+}
