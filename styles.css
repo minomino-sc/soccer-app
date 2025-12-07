@@ -387,3 +387,10 @@ button:hover {
   background-color: #888;
   color: white;
 }
+
+#btnBackLogin {
+  display: block;
+  margin: 20px auto; /* 左右中央寄せ */
+  width: 80%;
+  text-align: center;
+}
