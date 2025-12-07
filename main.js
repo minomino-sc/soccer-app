@@ -723,8 +723,6 @@ document.getElementById("scoresSection").style.display = "block";
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
   alert("チーム参加しました！");
-
-  showBackButton();  // ← ← これ！
     
   await loadScores(); // 🔥ここで await が問題だった
 });
