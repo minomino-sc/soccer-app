@@ -677,7 +677,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ▼ ログイン画面に戻るボタンは最初は非表示
   document.getElementById("btnBackLogin").style.display = "none";
-});  
 
   document.getElementById("addVideoSection").style.display = "none";
   document.getElementById("createMatchSection").style.display = "none";
