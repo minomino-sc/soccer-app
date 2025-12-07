@@ -670,6 +670,13 @@ function addHighlightTop() {
   inp.value = "";
 }
 
+// 🔥 ログイン後に「ログイン画面に戻る」を表示する関数（新規追加）
+function showBackButton() {
+  const btn = document.getElementById("btnBackLogin");
+  if (!btn) return;
+  btn.style.display = "block";
+}
+
 /* DOMContentLoaded: イベント登録 */
 document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
