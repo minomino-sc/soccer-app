@@ -354,3 +354,22 @@ button:hover {
   margin-top: 0;
   margin-bottom: 12px;
 }
+/* ボタン文字を少し小さめに */
+.wide-btn,
+.hl-btn {
+  font-size: 12px;
+  line-height: 1.1;
+  padding: 4px 6px;
+  white-space: nowrap; /* ← 改行させない */
+}
+
+/* ボタン同士の隙間を詰める */
+.action-row {
+  gap: 4px !important;
+}
+
+/* 横幅を均等配分して綺麗に揃える */
+.badge .wide-btn,
+.badge button {
+  flex: 1;
+}
