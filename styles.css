@@ -373,3 +373,12 @@ button:hover {
 .badge button {
   flex: 1;
 }
+
+#creatorLabel {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 12px;
+  color: #444;
+  opacity: 0.8;
+}
