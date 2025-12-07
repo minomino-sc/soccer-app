@@ -449,24 +449,24 @@ delBtn.addEventListener("click", async (e) => {
 
   if (!confirm("この試合を削除しますか？")) return;
 
-  const current = scores[idx];
+const matchId = it.id; // ← it はその試合データ本体
 
-  if (!current.id) {
-    alert("Firestore のIDが存在しません。削除できません。");
-    return;
-  }
+if (!matchId) {
+  alert("Firestore のIDが存在しないため削除できません。");
+  return;
+}
 
-  try {
-    const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
-    await window._firebaseFns.deleteDoc(ref);
+try {
+  const ref = window._firebaseFns.doc(window._firebaseDB, "scores", matchId);
+  await window._firebaseFns.deleteDoc(ref);
 
-    alert("Firestore から削除しました");
-    await loadScores();
+  alert("Firestore から削除しました");
+  await loadScores();
 
-  } catch (err) {
-    console.error("Firestore削除エラー:", err);
-    alert("Firestore の削除に失敗しました");
-  }
+} catch (err) {
+  console.error("Firestore削除エラー:", err);
+  alert("Firestore の削除に失敗しました");
+}
 });
        
 actionRow.appendChild(delBtn);
