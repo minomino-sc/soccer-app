@@ -47,16 +47,33 @@ function typeClassName(matchType) {
 /* ------------------------------
    動画セレクト描画
 ------------------------------ */
-function renderVideoSelects() {
+/* 動画セレクト描画（新：編集用セレクトも更新） */
+function renderVideoSelects(selectedForEdit) {
+  // 新規作成用セレクト
   const videoSelect = document.getElementById("videoSelect");
-  if (!videoSelect) return;
-  videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
-  videos.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v.id;
-    opt.textContent = v.title || v.url;
-    videoSelect.appendChild(opt);
-  });
+  if (videoSelect) {
+    videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+    videos.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v.id;
+      opt.textContent = v.title || v.url;
+      videoSelect.appendChild(opt);
+    });
+  }
+
+  // 編集モーダル用セレクト（ある場合）
+  const editSel = document.getElementById("edit-video-select");
+  if (editSel) {
+    editSel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+    videos.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v.id;
+      opt.textContent = v.title || v.url;
+      editSel.appendChild(opt);
+    });
+    // 編集時に反映したければ selectedForEdit をセット（未指定時は空）
+    editSel.value = selectedForEdit || "";
+  }
 }
 
 /* YouTube 追加 */
