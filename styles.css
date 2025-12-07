@@ -387,19 +387,3 @@ button:hover {
   background-color: #888;
   color: white;
 }
-
-/* ----- 置き換える（または重複行を削除してこれを残す） ----- */
-#createMatchSection input[type="date"] {
-  width: 100%;
-  box-sizing: border-box;
-  height: 44px;                /* 他の input に合わせる高さ */
-  padding: 10px 14px;          /* 左右の余白を確保 */
-  font-size: 16px;
-  line-height: 24px;           /* テキスト縦位置の補正 */
-  text-align: center;          /* 日付を中央寄せ表示に */
-  -webkit-appearance: textfield; /* iOS Safari の不要なスタイルを抑制 */
-  appearance: textfield;
-  border-radius: 8px;
-  margin: 6px 0;
-  display: block;              /* input は通常 block で良い */
-}
