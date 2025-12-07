@@ -606,15 +606,16 @@ async function saveEditGeneric() {
   // --- Firestore に更新 ---
   try {
     const ref = window._firebaseFns.doc(window._firebaseDB, "scores", current.id);
-    await window._firebaseFns.updateDoc(ref, {
-      date,
-      matchType,
-      opponent,
-      place,
-      myScore: myScoreVal === "" ? null : Number(myScoreVal),
-      opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
-      highlights
-    });
+await window._firebaseFns.updateDoc(ref, {
+  date,
+  matchType,
+  opponent,
+  place,
+  myScore: myScoreVal === "" ? null : Number(myScoreVal),
+  opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
+  highlights,
+  videoId   // ⭐ 追加!!
+});
 
    alert("Firestore に保存しました！");
     closeEditModal();
