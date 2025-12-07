@@ -699,14 +699,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
 
-  document.getElementById("btnBackLogin")?.addEventListener("click", () => {
+   document.getElementById("btnBackLogin")?.addEventListener("click", () => {
     const team = document.getElementById("teamSection"); if (team) team.style.display = "block";
     const addVideo = document.getElementById("addVideoSection"); if (addVideo) addVideo.style.display = "none";
     const create = document.getElementById("createMatchSection"); if (create) create.style.display = "none";
     const scoresSec = document.getElementById("scoresSection"); if (scoresSec) scoresSec.style.display = "none";
     const t = document.getElementById("teamNameInput"); if (t) t.value = "";
     const c = document.getElementById("inviteCodeInput"); if (c) c.value = "";
-  });
+
+    // 👇⭐️戻る時は必ず非表示にする
+    document.getElementById("btnBackLogin").style.display = "none";
+   });
 
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
