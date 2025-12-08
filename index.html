@@ -114,60 +114,82 @@
   </main>
 
 <!-- ▼ 編集モーダル -->
+<!-- ▼ 編集モーダル -->
 <div id="editModal" class="modal hidden">
   <div class="modal-content">
 
     <h2>試合編集</h2>
 
-    <label>日付</label>
-    <input type="date" id="edit-date">
-
-    <label>試合種別</label>
-    <select id="matchType">
-      <option value="">試合種別を選択</option>
-      <option value="公式戦">公式戦</option>
-      <option value="カップ戦">カップ戦</option>
-      <option value="交流戦">交流戦</option>
-    </select>
-   
-    <label>対戦相手</label>
-    <input type="text" id="edit-opponent">
-
-    <label>会場</label>
-    <input type="text" id="edit-place">
-
-    <label>自チーム得点</label>
-    <input type="number" id="edit-my-score">
-
-    <label>相手得点</label>
-    <input type="number" id="edit-opponent-score">
-
-<label>紐づけ動画</label>
-<select id="edit-video-select">
-  <option value="">— 紐づけ動画なし —</option>
-</select>
-   
-    <label>自チームゴール秒数</label>
     <div class="row">
-      <input id="hlSeconds" type="number" placeholder="例：85" />
-      <button id="btnMarkGoal" class="btn">追加</button>
+      <label style="min-width:110px; align-self:center; margin:0;">日付</label>
+      <input type="date" id="edit-date">
     </div>
 
-    <div id="hlList" class="muted small" style="margin-top:8px;"></div>
+    <div class="row">
+      <label style="min-width:110px; align-self:center; margin:0;">試合種別</label>
+      <select id="matchType">
+        <option value="">試合種別を選択</option>
+        <option value="公式戦">公式戦</option>
+        <option value="カップ戦">カップ戦</option>
+        <option value="交流戦">交流戦</option>
+      </select>
+    </div>
 
-    <label>ハイライト秒数</label>
-    <div id="edit-highlight-list"></div>
+    <div class="row">
+      <label style="min-width:110px; align-self:center; margin:0;">対戦相手</label>
+      <input type="text" id="edit-opponent">
+    </div>
 
-    <button id="saveEdit" class="save-btn">保存</button>
+    <div class="row">
+      <label style="min-width:110px; align-self:center; margin:0;">会場</label>
+      <input type="text" id="edit-place">
+    </div>
 
-    <button id="deleteMatch" class="delete-btn" style="margin-top:16px;">
-      この試合を削除
-    </button>
+    <div class="row">
+      <label style="min-width:110px; align-self:center; margin:0;">自チーム得点</label>
+      <input type="number" id="edit-my-score">
+    </div>
 
-<button id="modalClose" class="close-btn" style="margin-top:16px;">
-  閉じる
-</button>
-    
+    <div class="row">
+      <label style="min-width:110px; align-self:center; margin:0;">相手得点</label>
+      <input type="number" id="edit-opponent-score">
+    </div>
+
+    <div class="row">
+      <label style="min-width:110px; align-self:center; margin:0;">紐づけ動画</label>
+      <select id="edit-video-select">
+        <option value="">— 紐づけ動画なし —</option>
+      </select>
+    </div>
+
+    <div class="row" style="align-items:flex-start;">
+      <label style="min-width:110px; align-self:center; margin:0;">自チームゴール秒数</label>
+      <div style="flex:1;">
+        <div class="row" style="gap:8px;">
+          <input id="hlSeconds" type="number" placeholder="例：85" />
+          <button id="btnMarkGoal" class="btn">追加</button>
+        </div>
+        <div id="hlList" class="muted small" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label style="min-width:110px; align-self:center; margin:0;">ハイライト秒数</label>
+      <div id="edit-highlight-list" style="flex:1;"></div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <button id="saveEdit" class="save-btn" style="flex:1;">保存</button>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <button id="deleteMatch" class="delete-btn" style="flex:1;">この試合を削除</button>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <button id="modalClose" class="close-btn" style="flex:1;">閉じる</button>
+    </div>
+
   </div>
 </div>
 
