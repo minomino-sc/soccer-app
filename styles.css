@@ -447,3 +447,9 @@ input[type="date"]::-webkit-datetime-edit-text {
   margin: 0 2px !important;
   padding: 0 !important;
 }
+
+/* ▼ 入力欄の並びを強制縦並び＆幅100%に統一 */
+.row {
+  display: block !important;
+  width: 100% !important;
+}
