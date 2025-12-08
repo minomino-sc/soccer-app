@@ -470,3 +470,27 @@ button.close-btn {
   width: 100% !important;
   box-sizing: border-box !important;
 }
+
+/* 日付入力欄を常に全面表示させるリセット */
+input[type="date"] {
+  width: 100% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+/* 内部のテキストを中央揃え */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: center !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Safariが勝手に余白を付けるのを禁止 */
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field {
+  padding: 0 !important;
+  margin: 0 !important;
+}
