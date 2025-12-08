@@ -417,23 +417,33 @@ button.close-btn {
   width: 100%;
 }
 
-/* 日付欄 iPhone Safari対応・これだけ残す！！ */
+/* ▼ 日付欄の横幅を必ず100%に */
 input[type="date"] {
   width: 100% !important;
-  padding: 10px !important;
-  font-size: 16px !important;
-  height: 48px !important;
-  text-align: center !important;
-  border-radius: 8px !important;
-  border: 1px solid #ccc !important;
   display: block !important;
   box-sizing: border-box !important;
+  padding: 10px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  height: 40px !important; /* ←高さを確定 */
+  line-height: 40px !important; /* ←文字を縦中央化 */
 }
 
-/* 内部文字中央化 */
-input[type="date"]::-webkit-datetime-edit,
-input[type="date"]::-webkit-date-and-time-value {
+/* ▼ 内部を横幅100%で内包させる */
+input[type="date"]::-webkit-datetime-edit {
   width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* ▼ “年/月/日” の位置を中央揃え */
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-text {
   text-align: center !important;
-  display: block !important;
+  margin: 0 2px !important;
+  padding: 0 !important;
 }
