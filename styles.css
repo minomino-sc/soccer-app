@@ -499,3 +499,18 @@ input[type="date"]::-webkit-datetime-edit-text {
 #edit-date::-webkit-datetime-edit-text {
   text-align: center !important;
 }
+
+/* ▼ YouTube入力欄の幅を調整 */
+#youtubeUrl {
+  flex: 3 1 0 !important; /* 入力欄を広く */
+  min-width: 0 !important;
+}
+
+#btnAddYouTube {
+  flex: 1 1 0 !important; /* ボタンは標準幅 */
+}
+
+/* レイアウトが崩れないよう高さ統一 */
+#btnAddYouTube {
+  height: 44px !important;
+}
