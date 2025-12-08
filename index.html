@@ -45,41 +45,46 @@
         <p class="muted small">動画は YouTube に限定公開でアップロードして共有してください。</p>
       </section>
 
-    <!-- ▼ 試合作成 -->
-      <section id="createMatchSection" style="display:none;">
-        <h2>試合（Score）を作成</h2>
+    <!-- 試合作成（修正版） -->
+    <section id="createMatchSection" style="display:none;"> 
+      <h2>試合（Score）を作成</h2>  
 
-        <div class="row">
-          <select id="matchTypeCreate">
-            <option value="">試合種別を選択</option>
-            <option value="公式戦">公式戦</option>
-            <option value="カップ戦">カップ戦</option>
-            <option value="交流戦">交流戦</option>
-          </select>
-          <input id="matchDate" type="date" />
-        </div>
-        
-        <div class="row">
-          <input id="opponent" placeholder="対戦相手" />
-        </div>
+      <!-- 試合種別は単独行 -->
+      <div class="row">   
+        <select id="matchTypeCreate">    
+          <option value="">試合種別を選択</option>     
+          <option value="公式戦">公式戦</option>  
+          <option value="カップ戦">カップ戦</option>      
+          <option value="交流戦">交流戦</option>   
+        </select>  
+      </div>
+ 
+      <!-- 日付も単独行 -->
+      <div class="row">   
+        <input id="matchDate" type="date" /> 
+      </div>
+  
+      <div class="row">    
+        <input id="opponent" placeholder="対戦相手" /> 
+      </div>
+    
+      <div class="row">  
+        <input id="place" placeholder="会場（改行は自動で調整されます）" />  
+      </div>
+  
+      <div class="row">   
+        <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
+        <input id="scoreB" placeholder="相手得点" type="number" min="0" />
+      </div>
 
-        <div class="row">
-          <input id="place" placeholder="会場（改行は自動で調整されます）" />
-        </div>
-
-        <div class="row">
-          <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
-          <input id="scoreB" placeholder="相手得点" type="number" min="0" />
-        </div>
-
-        <div class="row">
-          <select id="videoSelect"><option value="">— 紐づけ動画なし —</option></select>
-          <button id="btnCreateMatch" class="btn">作成</button>
-        </div>
-
-        <p class="muted small">作成後にスコア一覧で対象試合の編集ボタンをタップすると編集できます。</p>
-
-      </section>
+      <div class="row">  
+        <select id="videoSelect"><option value="">— 紐づけ動画なし —</option></select>    
+        <button id="btnCreateMatch" class="btn">作成      
+        </button>     
+      </div>
+ 
+      <p class="muted small">作成後にスコア一覧で対象試合の編集ボタンをタップすると編集できます。</p>
+    </section>
 
     <!-- ▼ スコア一覧 -->
       <section id="scoresSection" style="display:none;">
