@@ -456,3 +456,25 @@ button.close-btn {
   width: 100% !important;
   text-align: center !important;
 }
+
+/* ▼ Safari（iPhone）が勝手に余白を付ける根本を無効化 */
+#matchDate::-webkit-datetime-edit-text,
+#matchDate::-webkit-datetime-edit-year-field,
+#matchDate::-webkit-datetime-edit-month-field,
+#matchDate::-webkit-datetime-edit-day-field {
+  padding: 0 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  width: auto !important;
+}
+
+/* 入力部分そのものに中央寄せ */
+#matchDate::-webkit-date-and-time-value {
+  text-align: center !important;
+}
+
+/* 入力欄自体は幅固定 */
+#matchDate {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
