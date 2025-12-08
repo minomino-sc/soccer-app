@@ -417,14 +417,6 @@ button.close-btn {
   width: 100%;
 }
 
-#matchDate {
-  flex-grow: 1 !important;
-}
-
-#matchTypeCreate {
-  flex-grow: 1 !important;
-}
-
 /* ▼ 日付入力欄の幅と表示位置を統一（Safari対策） */
 #matchDate {
   width: 100% !important;
