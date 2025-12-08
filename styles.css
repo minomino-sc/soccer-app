@@ -514,3 +514,15 @@ input[type="date"]::-webkit-datetime-edit-text {
 #btnAddYouTube {
   height: 44px !important;
 }
+
+/* ▼ 紐づけ動画枠のレイアウト調整 */
+#videoSelect {
+  flex: 3 1 0 !important; /* ← 広く確保 */
+  min-width: 0 !important;
+}
+
+#btnCreateMatch {
+  flex: 1 1 0 !important; /* ← ボタン幅は標準 */
+  min-width: 0 !important;
+  height: 44px !important; /* ← 入力欄と高さ揃える */
+}
