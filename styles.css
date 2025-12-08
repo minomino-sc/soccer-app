@@ -526,3 +526,17 @@ input[type="date"]::-webkit-datetime-edit-text {
   min-width: 0 !important;
   height: 44px !important; /* ← 入力欄と高さ揃える */
 }
+
+/* 共通ラベル */
+.lbl {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 3px;
+}
+
+/* 行方向の縦配置を可能に */
+.row.vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
