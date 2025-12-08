@@ -364,7 +364,7 @@ if (collapsedMonths.includes(key)) {
         `</div>`+
         `<div class="type-badge ${typeClass}">${it.matchType || "未設定"}</div>`+
         `<div class="sub match-venue">${it.place || ""}</div>`+
-        `<div class="sub">Score得点: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>`;
+        `<div class="sub">得点: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>`;
 
       card.appendChild(meta);
 
