@@ -452,3 +452,24 @@ input[type="date"]::-webkit-datetime-edit-text {
 #matchDate {
   max-width: calc(100% - 2px) !important;
 }
+
+/* ★ 行配置をflexに戻す → 必須 ★ */
+.row {
+  display: flex !important;
+  width: 100% !important;
+  gap: 6px;
+}
+
+/* ★ 全入力欄を均等に扱う → 超重要 ★ */
+.row input,
+.row select {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+}
+
+/* 日付欄もflex子供として固定幅に従う */
+#matchDate {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
