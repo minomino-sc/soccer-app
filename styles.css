@@ -449,3 +449,10 @@ button.close-btn {
   text-align: center !important;
   width: auto !important;
 }
+
+/* ▼ Safari の内部表示幅を強制拡張 → これが重要！ */
+#matchDate::-webkit-datetime-edit {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+}
