@@ -448,8 +448,7 @@ input[type="date"]::-webkit-datetime-edit-text {
   padding: 0 !important;
 }
 
-/* ▼ 入力欄の並びを強制縦並び＆幅100%に統一 */
-.row {
-  display: block !important;
-  width: 100% !important;
+/* 日付欄の幅を確実に他と揃える */
+#matchDate {
+  max-width: calc(100% - 2px) !important;
 }
