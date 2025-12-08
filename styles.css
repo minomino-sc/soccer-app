@@ -416,3 +416,8 @@ button.close-btn {
 #modalClose {
   width: 100%;
 }
+
+/* 日付入力欄の横幅を他の入力欄と揃える */
+#matchDate {
+  width: 100% !important;
+}
