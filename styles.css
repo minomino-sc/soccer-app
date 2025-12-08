@@ -417,60 +417,6 @@ button.close-btn {
   width: 100%;
 }
 
-/* ▼ 日付入力欄の幅と表示位置を統一（Safari対策） */
-#matchDate {
-  width: 100% !important;
-}
-
-/* 入力領域を中央寄せ */
-#matchDate::-webkit-date-and-time-value {
-  text-align: center !important;
-  width: 100% !important;
-}
-
-/* iPhoneが独自に付ける padding修正 */
-#matchDate::-webkit-datetime-edit-fields-wrapper {
-  padding: 0 !important;
-  margin: 0 auto !important;
-}
-
-/* 年/月/日を均等配置 */
-#matchDate::-webkit-datetime-edit-year-field,
-#matchDate::-webkit-datetime-edit-month-field,
-#matchDate::-webkit-datetime-edit-day-field {
-  text-align: center !important;
-  width: auto !important;
-}
-
-/* ▼ Safari の内部表示幅を強制拡張 → これが重要！ */
-#matchDate::-webkit-datetime-edit {
-  display: block !important;
-  width: 100% !important;
-  text-align: center !important;
-}
-
-/* ▼ Safari（iPhone）が勝手に余白を付ける根本を無効化 */
-#matchDate::-webkit-datetime-edit-text,
-#matchDate::-webkit-datetime-edit-year-field,
-#matchDate::-webkit-datetime-edit-month-field,
-#matchDate::-webkit-datetime-edit-day-field {
-  padding: 0 !important;
-  margin: 0 !important;
-  text-align: center !important;
-  width: auto !important;
-}
-
-/* 入力部分そのものに中央寄せ */
-#matchDate::-webkit-date-and-time-value {
-  text-align: center !important;
-}
-
-/* 入力欄自体は幅固定 */
-#matchDate {
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
 /* 日付入力欄を常に全面表示させるリセット */
 input[type="date"] {
   width: 100% !important;
@@ -493,4 +439,25 @@ input[type="date"]::-webkit-datetime-edit-month-field,
 input[type="date"]::-webkit-datetime-edit-day-field {
   padding: 0 !important;
   margin: 0 !important;
+}
+
+/* 日付欄 iPhone Safari対応・これだけ残す！！ */
+input[type="date"] {
+  width: 100% !important;
+  padding: 10px !important;
+  font-size: 16px !important;
+  height: 48px !important;
+  text-align: center !important;
+  border-radius: 8px !important;
+  border: 1px solid #ccc !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+/* 内部文字中央化 */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-date-and-time-value {
+  width: 100% !important;
+  text-align: center !important;
+  display: block !important;
 }
