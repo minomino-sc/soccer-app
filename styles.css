@@ -417,18 +417,20 @@ button.close-btn {
   width: 100%;
 }
 
-/* 日付入力欄の横幅を他の入力欄と揃える */
-#matchDate {
+/* ▼ iPhone・Safari の日付入力欄の幅を100%に固定する */
+input[type="date"] {
   width: 100% !important;
+  display: block !important;
 }
 
-#matchDate {
+input[type="date"]::-webkit-datetime-edit {
   width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
+  display: block !important;
+  text-align: left !important;
 }
 
-#matchDate::-webkit-date-and-time-value {
-  text-align: left;
-  width: 100% !important;
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field {
+  width: auto !important;
 }
