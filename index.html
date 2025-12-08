@@ -54,46 +54,59 @@
       </section>
 
     <!-- 試合作成（修正版） -->
-    <section id="createMatchSection" style="display:none;"> 
-      <h2>試合（Score）を作成</h2>  
+<section id="createMatchSection" style="display:none;"> 
+  <h2>試合（Score）を作成</h2>  
 
-      <!-- 試合種別は単独行 -->
-      <div class="row">   
-        <select id="matchTypeCreate">    
-          <option value="">試合種別を選択</option>     
-          <option value="公式戦">公式戦</option>  
-          <option value="カップ戦">カップ戦</option>      
-          <option value="交流戦">交流戦</option>   
-        </select>  
-      </div>
- 
-      <!-- 日付も単独行 -->
-      <div class="row">   
-        <input id="matchDate" type="date" /> 
-      </div>
+  <!-- 試合種別 -->
+  <div class="row vertical">
+    <label class="lbl">試合種別</label>
+    <select id="matchTypeCreate">    
+      <option value="">選択してください</option>     
+      <option value="公式戦">公式戦</option>  
+      <option value="カップ戦">カップ戦</option>      
+      <option value="交流戦">交流戦</option>   
+    </select>  
+  </div>
+
+  <!-- 日付 -->
+  <div class="row vertical">
+    <label class="lbl">試合日</label>
+    <input id="matchDate" type="date" /> 
+  </div>
+
+  <!-- 対戦相手 -->
+  <div class="row vertical">
+    <label class="lbl">対戦相手</label>
+    <input id="opponent" placeholder="例：○○SC" /> 
+  </div>
+
+  <!-- 会場 -->
+  <div class="row vertical">
+    <label class="lbl">会場</label>
+    <input id="place" placeholder="例：しあわせの村グラウンド" />  
+  </div>
+
+  <!-- 得点 -->
+  <div class="row vertical">
+    <label class="lbl">スコア</label>
+    <div class="row">
+      <input id="scoreA" type="number" min="0" placeholder="自チーム" />
+      <input id="scoreB" type="number" min="0" placeholder="相手チーム" />
+    </div>
+  </div>
+
+  <!-- 紐付け動画 -->
+  <div class="row vertical">
+    <label class="lbl">紐づけ動画</label>
+    <div class="row">
+      <select id="videoSelect"></select>    
+      <button id="btnCreateMatch" class="btn">作成</button>     
+    </div>
+  </div>
+
+  <p class="muted small">作成後にスコア一覧で編集できます。</p>
+</section>
   
-      <div class="row">    
-        <input id="opponent" placeholder="対戦相手" /> 
-      </div>
-    
-      <div class="row">  
-        <input id="place" placeholder="会場（改行は自動で調整されます）" />  
-      </div>
-  
-      <div class="row">   
-        <input id="scoreA" placeholder="自チーム得点" type="number" min="0" />
-        <input id="scoreB" placeholder="相手得点" type="number" min="0" />
-      </div>
-
-      <div class="row">  
-        <select id="videoSelect"><option value="">— 紐づけ動画なし —</option></select>    
-        <button id="btnCreateMatch" class="btn">作成      
-        </button>     
-      </div>
- 
-      <p class="muted small">作成後にスコア一覧で対象試合の編集ボタンをタップすると編集できます。</p>
-    </section>
-
     <!-- ▼ スコア一覧 -->
       <section id="scoresSection" style="display:none;">
         <h2>スコア一覧</h2>
@@ -114,53 +127,41 @@
   </main>
 
 <!-- ▼ 編集モーダル -->
-<!-- ▼ 編集モーダル -->
 <div id="editModal" class="modal hidden">
   <div class="modal-content">
 
-    <h2>試合編集</h2>
+<h2>試合編集</h2>
 
-    <div class="row">
-      <label style="min-width:110px; align-self:center; margin:0;">日付</label>
-      <input type="date" id="edit-date">
-    </div>
+<div class="row vertical"><label class="lbl">試合日</label><input type="date" id="edit-date"></div>
 
-    <div class="row">
-      <label style="min-width:110px; align-self:center; margin:0;">試合種別</label>
-      <select id="matchType">
-        <option value="">試合種別を選択</option>
-        <option value="公式戦">公式戦</option>
-        <option value="カップ戦">カップ戦</option>
-        <option value="交流戦">交流戦</option>
-      </select>
-    </div>
+<div class="row vertical"><label class="lbl">試合種別</label>
+<select id="matchType">
+  <option value="">選択してください</option>
+  <option value="公式戦">公式戦</option>
+  <option value="カップ戦">カップ戦</option>
+  <option value="交流戦">交流戦</option>
+</select>
+</div>
 
-    <div class="row">
-      <label style="min-width:110px; align-self:center; margin:0;">対戦相手</label>
-      <input type="text" id="edit-opponent">
-    </div>
+<div class="row vertical"><label class="lbl">対戦相手</label>
+<input type="text" id="edit-opponent">
+</div>
 
-    <div class="row">
-      <label style="min-width:110px; align-self:center; margin:0;">会場</label>
-      <input type="text" id="edit-place">
-    </div>
+<div class="row vertical"><label class="lbl">会場</label>
+<input type="text" id="edit-place">
+</div>
 
-    <div class="row">
-      <label style="min-width:110px; align-self:center; margin:0;">自チーム得点</label>
-      <input type="number" id="edit-my-score">
-    </div>
+<div class="row vertical"><label class="lbl">自チーム得点</label>
+<input type="number" id="edit-my-score">
+</div>
 
-    <div class="row">
-      <label style="min-width:110px; align-self:center; margin:0;">相手得点</label>
-      <input type="number" id="edit-opponent-score">
-    </div>
+<div class="row vertical"><label class="lbl">相手得点</label>
+<input type="number" id="edit-opponent-score">
+</div>
 
-    <div class="row">
-      <label style="min-width:110px; align-self:center; margin:0;">紐づけ動画</label>
-      <select id="edit-video-select">
-        <option value="">— 紐づけ動画なし —</option>
-      </select>
-    </div>
+<div class="row vertical"><label class="lbl">紐づけ動画</label>
+<select id="edit-video-select"></select>
+</div>
 
     <div class="row" style="align-items:flex-start;">
       <label style="min-width:110px; align-self:center; margin:0;">自チームゴール秒数</label>
