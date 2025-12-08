@@ -473,3 +473,29 @@ input[type="date"]::-webkit-datetime-edit-text {
   min-width: 0 !important;
   max-width: 100% !important;
 }
+
+/* ▼ 編集画面専用の日付調整 */
+#edit-date {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  height: 40px !important;
+  line-height: 40px !important;
+}
+
+/* ▼ 編集画面用 内部文字中央寄せ */
+#edit-date::-webkit-datetime-edit {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* ▼ 年/月/日を中央配置 */
+#edit-date::-webkit-datetime-edit-year-field,
+#edit-date::-webkit-datetime-edit-month-field,
+#edit-date::-webkit-datetime-edit-day-field,
+#edit-date::-webkit-datetime-edit-text {
+  text-align: center !important;
+}
