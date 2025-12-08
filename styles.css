@@ -416,3 +416,7 @@ button.close-btn {
 #modalClose {
   width: 100%;
 }
+
+#editModal {
+  display: none;
+}
