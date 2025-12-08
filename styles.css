@@ -417,28 +417,35 @@ button.close-btn {
   width: 100%;
 }
 
-/* ▼ iPhone・Safari の日付入力欄の幅を100%に固定する */
-input[type="date"] {
-  width: 100% !important;
-  display: block !important;
-}
-
-input[type="date"]::-webkit-datetime-edit {
-  width: 100% !important;
-  display: block !important;
-  text-align: left !important;
-}
-
-input[type="date"]::-webkit-datetime-edit-year-field,
-input[type="date"]::-webkit-datetime-edit-month-field,
-input[type="date"]::-webkit-datetime-edit-day-field {
-  width: auto !important;
-}
-
 #matchDate {
   flex-grow: 1 !important;
 }
 
 #matchTypeCreate {
   flex-grow: 1 !important;
+}
+
+/* ▼ 日付入力欄の幅と表示位置を統一（Safari対策） */
+#matchDate {
+  width: 100% !important;
+}
+
+/* 入力領域を中央寄せ */
+#matchDate::-webkit-date-and-time-value {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* iPhoneが独自に付ける padding修正 */
+#matchDate::-webkit-datetime-edit-fields-wrapper {
+  padding: 0 !important;
+  margin: 0 auto !important;
+}
+
+/* 年/月/日を均等配置 */
+#matchDate::-webkit-datetime-edit-year-field,
+#matchDate::-webkit-datetime-edit-month-field,
+#matchDate::-webkit-datetime-edit-day-field {
+  text-align: center !important;
+  width: auto !important;
 }
