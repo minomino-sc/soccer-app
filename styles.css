@@ -553,18 +553,10 @@ input[type="date"]::-webkit-datetime-edit-text {
   height: 44px !important; /* 高さ合わせ */
 }
 
-.modal-content.section-card {
-  background: #ffffff !important;
-  border: 2px solid #d1ead1 !important;
-  border-radius: 16px !important;
-  padding: 18px !important;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.04) !important;
-}
-
-/* 🔥 試合編集モーダルに確実に枠を出す */
 #editModal .modal-content.section-card {
-  border: 2px solid #d1ead1 !important;
-  border-radius: 16px !important;
-  padding: 18px !important;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.04) !important;
+  background: #ffffff !important;
+  border: 3px solid #b8e8a0 !important;
+  border-radius: 18px !important;
+  padding: 20px !important;
+  box-shadow: 0 0 8px rgba(0,0,0,0.08) !important;
 }
