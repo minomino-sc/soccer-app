@@ -544,16 +544,17 @@ body {
   background-color: #f7ffe5; /* 薄い黄緑背景 */
   padding: 20px;
   max-width: 600px;
-  margin: 40px auto; /* 画面中央に配置 */
+  margin: 40px auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 1000;
+
+  /* この2行を削除または変更 */
+  /* position: relative; */
+  /* z-index: 1000; */
+
+  display: none; /* hidden状態と統一 */
 }
 
-#editModal.hidden {
-  display: none;
-}
-
-#editModal:not(.hidden) {
+/* モーダル表示時 */
+#editModal.show {
   display: block;
 }
