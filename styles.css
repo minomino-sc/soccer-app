@@ -552,3 +552,11 @@ input[type="date"]::-webkit-datetime-edit-text {
   min-width: 0 !important;
   height: 44px !important; /* 高さ合わせ */
 }
+
+.modal-content.section-card {
+  background: #ffffff !important;
+  border: 2px solid #d1ead1 !important;
+  border-radius: 16px !important;
+  padding: 18px !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.04) !important;
+}
