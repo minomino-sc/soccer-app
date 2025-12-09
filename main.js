@@ -15,6 +15,12 @@ function saveAll() {
   localStorage.setItem("videos", JSON.stringify(videos));
 }
 
+/* 管理者判定 */
+function isAdmin() {
+  const team = JSON.parse(localStorage.getItem("teamInfo") || "{}");
+  return team.inviteCode === "MINO-ADMIN";
+}
+
 /* YouTube ID 抽出 */
 function extractYouTubeId(url) {
   try {
@@ -724,9 +730,18 @@ document.addEventListener("DOMContentLoaded", () => {
   localStorage.setItem("teamInfo", JSON.stringify(team));
 
   document.getElementById("teamSection").style.display = "none";
-document.getElementById("addVideoSection").style.display = "block";
-document.getElementById("createMatchSection").style.display = "block";
-document.getElementById("scoresSection").style.display = "block"; 
+
+// 試合一覧は常に見せる
+document.getElementById("scoresSection").style.display = "block";
+
+// 管理者のみ操作可能
+if (isAdmin()) {
+  document.getElementById("addVideoSection").style.display = "block";
+  document.getElementById("createMatchSection").style.display = "block";
+} else {
+  document.getElementById("addVideoSection").style.display = "none";
+  document.getElementById("createMatchSection").style.display = "none";
+}      
    
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
