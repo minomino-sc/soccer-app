@@ -536,3 +536,24 @@ input[type="date"]::-webkit-date-and-time-value {
 body {
   background-color: #e6f7d9;
 }
+
+/* 編集モーダルの外枠 */
+#editModal {
+  border: 2px solid #a0c060; /* 薄い黄緑の枠線 */
+  border-radius: 8px;
+  background-color: #f7ffe5; /* 薄い黄緑背景 */
+  padding: 20px;
+  max-width: 600px;
+  margin: 40px auto; /* 画面中央に配置 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1000;
+}
+
+#editModal.hidden {
+  display: none;
+}
+
+#editModal:not(.hidden) {
+  display: block;
+}
