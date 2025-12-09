@@ -509,12 +509,14 @@ header.addEventListener("click", () => {
      
   }); // ← forEach(key) 終了
 
-  // ▼ 管理者以外は編集/削除ボタンを削除
-  if (!isAdmin()) {
-    document.querySelectorAll(".action-row").forEach(row => {
-      row.style.display = "none";
+if (!isAdmin()) {
+  document.querySelectorAll(".action-row").forEach(row => {
+    // 編集と削除ボタンだけ非表示
+    row.querySelectorAll(".wide-btn:not(:first-child)").forEach(btn => {
+      btn.style.display = "none";
     });
-  }
+  });
+}
 
 } // ← loadScores() 終了
 
