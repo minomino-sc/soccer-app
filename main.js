@@ -136,17 +136,24 @@ async function createMatch() {
 
   if (!date || !opponent) return alert("日付と対戦相手は必須です");
 
-  const match = {
-    date,
-    matchType,
-    opponent,
-    place,
-    myScore: myScore === "" ? null : Number(myScore),
-    opponentScore: opponentScore === "" ? null : Number(opponentScore),
-    videoId,
-    highlights: [],
-    createdAt: new Date().toISOString()
-  };
+const match = {
+  date,
+  matchType,
+  opponent,
+  place,
+  myScore: myScore === "" ? null : Number(myScore),
+  opponentScore: opponentScore === "" ? null : Number(opScoreVal),
+  pkScore: { // ← ここ追加
+    myPK: Number(document.getElementById("pkScoreA")?.value || 0),
+    opPK: Number(document.getElementById("pkScoreB")?.value || 0)
+  },
+  videoId,
+  highlights: [],
+  createdAt: new Date().toISOString()
+};
+
+
+   
 
   /* Firestore 保存 */
   try {
@@ -628,8 +635,12 @@ await window._firebaseFns.updateDoc(ref, {
   place,
   myScore: myScoreVal === "" ? null : Number(myScoreVal),
   opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
+  pkScore: { // ← ここ追加
+    myPK: Number(document.getElementById("editPkA")?.value || 0),
+    opPK: Number(document.getElementById("editPkB")?.value || 0)
+  },
   highlights,
-  videoId   // ⭐ 追加!!
+  videoId
 });
 
    alert("Firestore に保存しました！");
