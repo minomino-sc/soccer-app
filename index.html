@@ -98,6 +98,15 @@
     </div>
   </div>
 
+<!-- 試合作成：PK欄 -->
+<div class="row vertical" id="pkRow" style="display:none;">
+  <label class="lbl">PK得点</label>
+  <div class="row">
+    <input id="pkScoreA" type="number" min="0" placeholder="自チームPK得点" />
+    <input id="pkScoreB" type="number" min="0" placeholder="相手チームPK得点" />
+  </div>
+</div>
+
   <!-- 紐付け動画 -->
 <div class="row vertical">
   <label class="lbl">紐づけ動画</label>
@@ -162,6 +171,15 @@
 <input type="number" id="edit-opponent-score">
 </div>
 
+<!-- 編集モーダル：PK欄 -->
+<div class="row vertical" id="editPkRow" style="display:none;">
+  <label class="lbl">PK得点</label>
+  <div class="row">
+    <input id="editPkA" type="number" min="0" placeholder="自チームPK得点" />
+    <input id="editPkB" type="number" min="0" placeholder="相手チームPK得点" />
+  </div>
+</div>
+    
 <div class="row vertical">
   <label class="lbl">紐づけ動画</label>
   <select id="edit-video-select"></select>
