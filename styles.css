@@ -540,3 +540,15 @@ input[type="date"]::-webkit-datetime-edit-text {
   flex-direction: column;
   align-items: flex-start;
 }
+
+/* 編集画面：自チームゴール秒数の幅調整 */
+#hlSeconds {
+  flex: 3 1 0 !important;  /* 入力欄を広く */
+  min-width: 0 !important;
+}
+
+#btnMarkGoal {
+  flex: 1 1 0 !important;  /* ボタンを標準幅に */
+  min-width: 0 !important;
+  height: 44px !important; /* 高さ合わせ */
+}
