@@ -531,3 +531,8 @@ input[type="date"]::-webkit-date-and-time-value {
   text-align: center !important;
   width: 100% !important;
 }
+
+/* ページ全体の背景を外枠と同じ薄い黄緑に */
+body {
+  background-color: #e6f7d9;
+}
