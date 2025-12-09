@@ -536,3 +536,33 @@ input[type="date"]::-webkit-date-and-time-value {
 body {
   background-color: #e6f7d9;
 }
+
+/* ▼ 試合日の入力欄（作成画面 & 編集画面） 一発改修 */
+#matchDate,
+#edit-date {
+  width: 180px !important;       /* 適度な横幅 */
+  max-width: 100% !important;    /* 親幅を超えない */
+  height: 40px !important;       /* 高さを少し低めに */
+  line-height: 40px !important;  
+  font-size: 16px !important;
+  padding: 0 10px !important;
+  box-sizing: border-box !important;
+  flex: none !important;         /* flex 配下で勝手に広がらない */
+  border: 1px solid #777 !important;
+  border-radius: 8px !important;
+}
+
+/* 内部文字を中央揃え（iPhone / Safari 対策） */
+#matchDate::-webkit-datetime-edit,
+#edit-date::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* 日付入力欄の value 中央揃え（iPhone / Safari 対策） */
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: center !important;
+  width: 100% !important;
+}
