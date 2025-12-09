@@ -553,10 +553,23 @@ input[type="date"]::-webkit-datetime-edit-text {
   height: 44px !important; /* 高さ合わせ */
 }
 
-#editModal .modal-content.section-card {
-  background: #ffffff !important;
-  border: 3px solid #b8e8a0 !important;
-  border-radius: 18px !important;
-  padding: 20px !important;
-  box-shadow: 0 0 8px rgba(0,0,0,0.08) !important;
+#matchDate {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  font-size: 16px !important;
+}
+
+#edit-date {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  font-size: 16px !important;
+}
+
+.row.vertical {
+  flex-direction: column !important;
+  align-items: flex-start !important;
 }
