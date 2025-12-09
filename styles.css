@@ -573,3 +573,32 @@ input[type="date"]::-webkit-datetime-edit-text {
   flex-direction: column !important;
   align-items: flex-start !important;
 }
+
+/* ▼ 試合日の入力欄を必ず統一する */
+#matchDate,
+#edit-date {
+  width: 100% !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  box-sizing: border-box !important;
+  font-size: 16px !important;
+  padding: 0 10px !important;
+}
+
+#matchDate::-webkit-datetime-edit,
+#edit-date::-webkit-datetime-edit {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+#matchDate::-webkit-datetime-edit-year-field,
+#matchDate::-webkit-datetime-edit-month-field,
+#matchDate::-webkit-datetime-edit-day-field,
+#matchDate::-webkit-datetime-edit-text,
+#edit-date::-webkit-datetime-edit-year-field,
+#edit-date::-webkit-datetime-edit-month-field,
+#edit-date::-webkit-datetime-edit-day-field,
+#edit-date::-webkit-datetime-edit-text {
+  text-align: center !important;
+}
