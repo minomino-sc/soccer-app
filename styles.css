@@ -560,3 +560,11 @@ input[type="date"]::-webkit-datetime-edit-text {
   padding: 18px !important;
   box-shadow: 0 3px 6px rgba(0,0,0,0.04) !important;
 }
+
+/* 🔥 試合編集モーダルに確実に枠を出す */
+#editModal .modal-content.section-card {
+  border: 2px solid #d1ead1 !important;
+  border-radius: 16px !important;
+  padding: 18px !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.04) !important;
+}
