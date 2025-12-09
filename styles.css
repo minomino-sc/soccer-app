@@ -566,3 +566,42 @@ input[type="date"]::-webkit-date-and-time-value {
   text-align: center !important;
   width: 100% !important;
 }
+
+/* ==============================
+   日付入力プレースホルダー対応
+   （iOS / Safari対応）
+============================== */
+
+/* ラッパーで相対位置 */
+.date-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* プレースホルダー */
+.placeholder-text {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #888;
+  pointer-events: none; /* 入力可能にする */
+  font-size: 16px;
+}
+
+/* 入力済み or フォーカス時は非表示 */
+.date-input-wrapper input:valid + .placeholder-text,
+.date-input-wrapper input:focus + .placeholder-text {
+  display: none;
+}
+
+/* 入力欄 */
+.date-input-wrapper input {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  font-size: 16px;
+  border: 1px solid #777;
+  border-radius: 8px;
+}
