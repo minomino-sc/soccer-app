@@ -143,10 +143,14 @@ async function createMatch() {
     place,
     myScore: myScore === "" ? null : Number(myScore),
     opponentScore: opponentScore === "" ? null : Number(opponentScore),
-    videoId,
-    highlights: [],
-    createdAt: new Date().toISOString()
-  };
+
+  pkA: document.getElementById("pkA")?.value === "" ? null : Number(document.getElementById("pkA")?.value),
+  pkB: document.getElementById("pkB")?.value === "" ? null : Number(document.getElementById("pkB")?.value),
+
+  videoId,
+  highlights: [],
+  createdAt: new Date().toISOString()
+};
 
   /* Firestore 保存 */
   try {
@@ -370,7 +374,18 @@ if (collapsedMonths.includes(key)) {
         `</div>`+
         `<div class="type-badge ${typeClass}">${it.matchType || "未設定"}</div>`+
         `<div class="sub match-venue">${it.place || ""}</div>`+
-        `<div class="sub">得点: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>`;
+
+<div class="sub">
+  得点: 
+  ${
+    (it.myScore ?? "-") + " - " + (it.opponentScore ?? "-") +
+    (
+      (it.pkA != null && it.pkB != null)
+        ? `（PK ${it.pkA}-${it.pkB}）`
+        : ""
+    )
+  }
+</div>
 
       card.appendChild(meta);
 
@@ -630,6 +645,9 @@ await window._firebaseFns.updateDoc(ref, {
   opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
   highlights,
   videoId   // ⭐ 追加!!
+
+  pkA: document.getElementById("edit-pkA")?.value === "" ? null : Number(document.getElementById("edit-pkA")?.value),
+  pkB: document.getElementById("edit-pkB")?.value === "" ? null : Number(document.getElementById("edit-pkB")?.value),
 });
 
    alert("Firestore に保存しました！");
