@@ -1,9 +1,7 @@
-/* main.js — チーム管理＆保護者ログイン対応版（安全版）
-   元機能：検索 / ハイライト / 秒数クリック再生 / 編集 / 削除 / 種別表示
-*/
+/* main.js — チーム管理＆保護者ログイン対応版（安全版） */
 
 let scores = []; // Firestoreから読み込む
-let videos = [];
+let videos = JSON.parse(localStorage.getItem("videos") || "[]");
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 window.currentEditIndex = undefined;
 let currentSearchQuery = "";
@@ -102,61 +100,67 @@ async function addYouTubeVideo(url){
 /* ------------------------------
    チーム参加 / 作成
 ------------------------------ */
-async function joinTeam(){
-  console.log("joinTeam called"); // ← 確認用
-  const name = (document.getElementById("teamNameInput")?.value||"").trim();
-  const code = (document.getElementById("inviteCodeInput")?.value||"").trim().toUpperCase();
+async function joinTeam(teamName, inviteCode){
+  const name = (teamName||"").trim();
+  const code = (inviteCode||"").trim().toUpperCase();
   if(!name) return alert("チーム名を入力してください");
   if(!code) return alert("招待コードを入力してください");
 
-  const db = window._firebaseDB;
-  const { collection, addDoc, getDocs, query, where, doc, setDoc } = window._firebaseFns;
+  try {
+    const db = window._firebaseDB;
+    const { collection, getDocs, query, where, doc, setDoc } = window._firebaseFns;
 
-  // Firestoreのteamsコレクションを確認
-  const q = query(collection(db,"teams"),where("inviteCode","==",code));
-  const snap = await getDocs(q);
+    const q = query(collection(db,"teams"), where("inviteCode","==",code));
+    const snap = await getDocs(q);
 
-  let teamData = null;
-  if(snap.empty){
-    // 作成：管理者
-    const newDocRef = doc(collection(db,"teams"));
-    teamData = {
-      teamName:name,
-      inviteCode:code,
-      isAdmin:true,
-      createdAt:new Date().toISOString()
-    };
-    await setDoc(newDocRef,teamData);
-  } else {
-    // 既存チーム：保護者
-    const docSnap = snap.docs[0];
-    teamData = { id:docSnap.id, ...docSnap.data(), isAdmin:false };
+    let teamData = null;
+    if(snap.empty){
+      const newDocRef = doc(collection(db,"teams"));
+      teamData = {
+        teamName: name,
+        inviteCode: code,
+        isAdmin: true,
+        createdAt: new Date().toISOString()
+      };
+      await setDoc(newDocRef, teamData);
+    } else {
+      const docSnap = snap.docs[0];
+      teamData = { id: docSnap.id, ...docSnap.data(), isAdmin: false };
+    }
+
+    saveLocalTeam(teamData);
+
+    document.getElementById("teamSection").style.display = "none";
+    document.getElementById("scoresSection").style.display = "block";
+    if(isAdmin()){
+      document.getElementById("addVideoSection").style.display = "block";
+      document.getElementById("createMatchSection").style.display = "block";
+    } else {
+      document.getElementById("addVideoSection").style.display = "none";
+      document.getElementById("createMatchSection").style.display = "none";
+    }
+
+    alert(`チーム参加しました！ チーム名: ${teamData.teamName}`);
+    showBackButton();
+    await loadScores();
+  } catch(err){
+    console.error(err);
+    alert("チーム参加に失敗しました");
   }
-
-  saveLocalTeam(teamData);
-
-  document.getElementById("teamSection").style.display="none";
-  document.getElementById("scoresSection").style.display="block";
-  if(isAdmin()){
-    document.getElementById("addVideoSection").style.display="block";
-    document.getElementById("createMatchSection").style.display="block";
-  }else{
-    document.getElementById("addVideoSection").style.display="none";
-    document.getElementById("createMatchSection").style.display="none";
-  }
-
-  alert(`チーム参加しました！ チーム名: ${teamData.teamName}`);
-  showBackButton();
-  await loadScores();
 }
 
 /* ------------------------------
    DOMContentLoadedでボタン登録
 ------------------------------ */
 document.addEventListener("DOMContentLoaded",()=>{
-  // 🔹 ここで必ずボタン登録
   const btnJoin = document.getElementById("btnJoin");
-  if(btnJoin) btnJoin.addEventListener("click",joinTeam);
+  if(btnJoin){
+    btnJoin.addEventListener("click",()=>{
+      const teamName = document.getElementById("teamNameInput")?.value || "";
+      const inviteCode = document.getElementById("inviteCodeInput")?.value || "";
+      joinTeam(teamName, inviteCode);
+    });
+  }
 
   const btnAddYouTube = document.getElementById("btnAddYouTube");
   if(btnAddYouTube){
@@ -178,20 +182,24 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 
 /* ------------------------------
-   スコア読み込み / 描画
+   スコア読み込み
 ------------------------------ */
 async function loadScores(){
   const db = window._firebaseDB;
-  const { collection, getDocs, doc, getDoc, updateDoc, deleteDoc } = window._firebaseFns;
+  const { collection, getDocs } = window._firebaseFns;
 
   const team = getLocalTeam();
   if(!team) return;
 
-  const scoresCol = collection(db,"scores"); // 従来の scores コレクションを使用
-  const snap = await getDocs(scoresCol);
-  scores = snap.docs.map(d=>({id:d.id,...d.data()}));
-
-  renderScores();
+  try {
+    const scoresCol = collection(db,"scores"); // 従来の scores コレクション
+    const snap = await getDocs(scoresCol);
+    scores = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderScores();
+  } catch(err){
+    console.error(err);
+    alert("スコア読み込みに失敗しました");
+  }
 }
 
 /* ------------------------------
@@ -207,7 +215,6 @@ function renderScores(){
     return (s.opponent||"").toLowerCase().includes(currentSearchQuery.toLowerCase());
   });
 
-  // 月ごとにまとめる
   const grouped = {};
   filtered.forEach(s=>{
     const month = s.date?.slice(0,7) || "不明";
@@ -287,7 +294,6 @@ function renderHLList(seconds){
   });
 }
 
-/* ハイライトアイテム生成 */
 function createHlItemElement(sec){
   const div = document.createElement("div");
   div.className="hl-item";
@@ -307,9 +313,7 @@ function createHlItemElement(sec){
 
   const delBtn = document.createElement("button");
   delBtn.textContent="✖️";
-  delBtn.addEventListener("click",()=>{
-    div.remove();
-  });
+  delBtn.addEventListener("click",()=>div.remove());
   div.appendChild(delBtn);
 
   return div;
@@ -403,3 +407,10 @@ document.getElementById("btnBackLogin")?.addEventListener("click",()=>{
   localStorage.removeItem("teamInfo");
   location.reload();
 });
+
+/* ------------------------------
+   バックボタン表示
+------------------------------ */
+function showBackButton(){
+  document.getElementById("btnBackLogin").style.display="block";
+}
