@@ -759,6 +759,60 @@ if (isAdmin()) {
 
   showBackButton();  // ← ← これ！
 
+async function saveVideoToServer(video) {
+  try {
+    const res = await fetch("/api/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(video),
+    });
+    if (!res.ok) throw new Error("サーバ保存失敗");
+    console.log("サーバに保存完了:", video);
+  } catch (err) {
+    console.error("サーバ保存エラー:", err);
+    alert("サーバ保存に失敗しました");
+  }
+}
+
+async function loadVideosFromServer() {
+  try {
+    const res = await fetch("/api/videos");
+    if (!res.ok) throw new Error("動画取得失敗");
+    const serverVideos = await res.json();
+    videos = serverVideos;
+    saveAll();           // localStorageにも保存
+    renderVideoSelects();
+  } catch (err) {
+    console.error("サーバ動画読み込みエラー:", err);
+  }
+}
+
+async function addYouTubeVideo(url) {
+  const id = extractYouTubeId(url);
+  if (!id) return alert("YouTube のURLが正しくありません。");
+  if (videos.find(v => v.id === id)) return alert("この動画は既に追加済みです。");
+
+  let title = url;
+  try {
+    const res = await fetch(`https://www.youtube.com/oembed?url=https://youtu.be/${id}&format=json`);
+    if (res.ok) {
+      const data = await res.json();
+      title = data.title;
+    }
+  } catch (err) {
+    console.warn("タイトル取得に失敗", err);
+  }
+
+  const video = { id, url, title };
+  videos.push(video);
+  saveAll();
+  renderVideoSelects();
+  await saveVideoToServer(video);  // サーバにも保存
+  alert("YouTube 動画を追加しました！");
+}      
+
+loadVideosFromServer();          
+
   await loadScores(); // 🔥ここで await が問題だった
 });
 });
