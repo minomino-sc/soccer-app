@@ -97,6 +97,15 @@
       <input id="scoreB" type="number" min="0" placeholder="相手チーム得点" />
     </div>
   </div>
+    <!-- PK（あれば入力） -->
+  <div class="row vertical">
+    <label class="lbl">PK（任意）</label>
+    <div class="row">
+      <input id="pkA" type="number" min="0" placeholder="自チームPK得点" />
+      <input id="pkB" type="number" min="0" placeholder="相手PK得点" />
+    </div>
+    <p class="muted small">同点時のみ入力（入力があれば PK 決着扱い）</p>
+  </div>
 
   <!-- 紐付け動画 -->
 <div class="row vertical">
@@ -161,7 +170,15 @@
 <div class="row vertical"><label class="lbl">相手チーム得点</label>
 <input type="number" id="edit-opponent-score">
 </div>
-
+    
+<div class="row vertical">
+  <label class="lbl">PK結果（任意）</label>
+  <div class="row">
+    <input type="number" id="edit-pkA" placeholder="自チームPK" />
+    <input type="number" id="edit-pkB" placeholder="相手PK" />
+  </div>
+</div>
+    
 <div class="row vertical">
   <label class="lbl">紐づけ動画</label>
   <select id="edit-video-select"></select>
