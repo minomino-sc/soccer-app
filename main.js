@@ -636,6 +636,8 @@ await window._firebaseFns.updateDoc(ref, {
   place,
   myScore: myScoreVal === "" ? null : Number(myScoreVal),
   opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
+  pkA: pkAVal === "" ? null : Number(pkAVal), // ← ここ追加
+  pkB: pkBVal === "" ? null : Number(pkBVal), // ← ここ追加
   highlights,
   videoId   // ⭐ 追加!!
 });
