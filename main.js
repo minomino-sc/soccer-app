@@ -3,13 +3,13 @@
 */
 
 let scores = []; // Firestoreから読み込む
-let videos = [];
+let videos = JSON.parse(localStorage.getItem("videos")||"[]");
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 window.currentEditIndex = undefined;
 let currentSearchQuery = "";
 
 // 現在ログイン中のチーム情報
-let currentTeam = null;
+let currentTeam = getLocalTeam();
 
 /* ------------------------------
    ユーティリティ関数
@@ -134,40 +134,26 @@ async function joinTeam(){
 
   saveLocalTeam(teamData);
 
-  document.getElementById("teamSection").style.display="none";
-  document.getElementById("scoresSection").style.display="block";
-  if(isAdmin()){
-    document.getElementById("addVideoSection").style.display="block";
-    document.getElementById("createMatchSection").style.display="block";
-  }else{
-    document.getElementById("addVideoSection").style.display="none";
-    document.getElementById("createMatchSection").style.display="none";
-  }
+  // 表示切替
+  const teamSection = document.getElementById("teamSection");
+  const scoresSection = document.getElementById("scoresSection");
+  const addVideoSection = document.getElementById("addVideoSection");
+  const createMatchSection = document.getElementById("createMatchSection");
+  if(teamSection) teamSection.style.display="none";
+  if(scoresSection) scoresSection.style.display="block";
+  if(addVideoSection) addVideoSection.style.display=isAdmin()?"block":"none";
+  if(createMatchSection) createMatchSection.style.display=isAdmin()?"block":"none";
 
-  alert(`チーム参加しました！ チーム名: ${teamData.teamName}`);
   showBackButton();
+  alert(`チーム参加しました！ チーム名: ${teamData.teamName}`);
   await loadScores();
 }
 
-// ▼ DOMContentLoadedでボタン登録
-document.addEventListener("DOMContentLoaded",()=>{
-  renderVideoSelects();
-  loadScores();
-
-  document.getElementById("btnBackLogin").style.display="none";
-  document.getElementById("addVideoSection").style.display="none";
-  document.getElementById("createMatchSection").style.display="none";
-  document.getElementById("scoresSection").style.display="none";
-
-  document.getElementById("btnAddYouTube")?.addEventListener("click",()=>{
-    const url=(document.getElementById("youtubeUrl")?.value||"").trim();
-    if(!url)return alert("URLを入力してください");
-    addYouTubeVideo(url);
-    document.getElementById("youtubeUrl").value="";
-  });
-
-  document.getElementById("btnJoin")?.addEventListener("click",joinTeam);
-});
+/* 戻るボタン表示 */
+function showBackButton(){
+  const btnBack = document.getElementById("btnBackLogin");
+  if(btnBack) btnBack.style.display="block";
+}
 
 /* ------------------------------
    試合作成（Firestore対応）
@@ -213,6 +199,7 @@ async function createMatch(){
     alert("Firestore 保存でエラーが発生しました");
   }
 
+  // 入力欄クリア
   dateEl.value="";
   if(typeEl) typeEl.value="";
   oppEl.value="";
@@ -342,7 +329,7 @@ async function loadScores(){
     const body=document.createElement("div"); body.className="month-body";
     if(collapsedMonths.includes(key)){ body.classList.add("hidden"); header.classList.add("closed"); }else{ header.classList.add("open"); }
 
-    groups[key].items.forEach(({it,idx})=>{
+       groups[key].items.forEach(({it,idx})=>{
       const card=document.createElement("div"); card.className="score-card";
       if(typeof it.myScore==="number"&&typeof it.opponentScore==="number"){
         if(it.myScore>it.opponentScore) card.classList.add("win");
@@ -493,8 +480,6 @@ async function saveEditGeneric(){
   }catch(err){ console.error("Firestore 更新エラー:",err); alert("Firestore の更新に失敗しました"); }
 }
 
-function deleteCurrentMatch(){ /* 編集モーダル内の削除処理を呼ぶ */ }
-
 /* ハイライト追加 */
 function addHighlightTop(){
   const inp=document.getElementById("hlSeconds");
@@ -512,4 +497,44 @@ function logoutTeam(){
 }
 
 /* ユーティリティ */
-function getLocalTeam(){ return JSON.parse(localStorage.getItem("teamInfo")||"{}"); }                              
+function getLocalTeam(){ return JSON.parse(localStorage.getItem("teamInfo")||"{}"); }
+
+/* --------------------------------------------------
+   DOMContentLoaded でボタンイベント登録
+-------------------------------------------------- */
+document.addEventListener("DOMContentLoaded",()=>{
+  renderVideoSelects();
+  loadScores();
+
+  document.getElementById("btnBackLogin").style.display="none";
+  document.getElementById("addVideoSection").style.display="none";
+  document.getElementById("createMatchSection").style.display="none";
+  document.getElementById("scoresSection").style.display="none";
+
+  document.getElementById("btnAddYouTube")?.addEventListener("click",()=>{
+    const url=(document.getElementById("youtubeUrl")?.value||"").trim();
+    if(!url)return alert("URLを入力してください");
+    addYouTubeVideo(url);
+    document.getElementById("youtubeUrl").value="";
+  });
+
+  document.getElementById("btnJoin")?.addEventListener("click",joinTeam);
+  document.getElementById("btnCreateMatch")?.addEventListener("click",createMatch);
+
+  document.getElementById("saveEdit")?.addEventListener("click",saveEditGeneric);
+  document.getElementById("modalClose")?.addEventListener("click",closeEditModal);
+  document.getElementById("btnMarkGoal")?.addEventListener("click",addHighlightTop);
+  document.getElementById("deleteMatch")?.addEventListener("click",async()=>{
+    if(window.currentEditIndex===undefined){ alert("対象がありません"); return; }
+    const current=scores[window.currentEditIndex];
+    if(!current?.id){ alert("Firestore ID がありません"); return; }
+    if(!confirm("この試合を削除しますか？")) return;
+    try{
+      const ref=window._firebaseFns.doc(window._firebaseDB,"scores",current.id);
+      await window._firebaseFns.deleteDoc(ref);
+      alert("Firestore から削除しました");
+      closeEditModal();
+      await loadScores();
+    }catch(err){ console.error(err); alert("Firestore 削除に失敗しました"); }
+  });
+});                                                           
