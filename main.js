@@ -82,36 +82,6 @@ function renderVideoSelects(selectedForEdit) {
   }
 }
 
-/* YouTube 追加 */
-async function addYouTubeVideo(url) {
-  const id = extractYouTubeId(url);
-  if (!id) return alert("YouTube のURLが正しくありません。");
-
-  // 🔍 既登録チェック
-  if (videos.find(v => v.id === id)) return alert("この動画は既に追加済みです。");
-
-  // 👇 タイトル取得（APIキー不要）
-  let title = url;
-  try {
-    const res = await fetch(
-      `https://www.youtube.com/oembed?url=https://youtu.be/${id}&format=json`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      title = data.title;
-    }
-  } catch (err) {
-    console.warn("タイトル取得に失敗", err);
-  }
-
-  videos.push({ id, url, title });
-
-  saveAll();
-  renderVideoSelects();
-
-  alert("YouTube 動画を追加しました！");
-}
-
 /* ------------------------------
    試合作成（Firestore 対応版）
 ------------------------------ */
