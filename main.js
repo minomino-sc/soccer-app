@@ -540,6 +540,12 @@ function openEditModal(index, date, matchType, opponent, place, myScore, opponen
   const elOp = document.getElementById("edit-opponent-score");
   if (elOp) elOp.value = opponentScore ?? "";
 
+const elPkA = document.getElementById("edit-pkA");
+const elPkB = document.getElementById("edit-pkB");
+
+if (elPkA) elPkA.value = pkA ?? "";
+if (elPkB) elPkB.value = pkB ?? "";
+
   const hlList = document.getElementById("hlList");
   if (hlList) {
     hlList.innerHTML = "";
