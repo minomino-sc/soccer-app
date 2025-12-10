@@ -757,11 +757,32 @@ async function loadVideosFromServer() {
   }
 }
 
+/* ------------------------------
+   YouTube 追加ボタンイベント
+------------------------------ */
+document.getElementById("btnAddYouTube")?.addEventListener("click", async () => {
+  const url = (document.getElementById("youtubeUrl")?.value || "").trim();
+  if (!url) return alert("URLを入力してください");
+
+  // サーバ保存も含めた YouTube 追加
+  await addYouTubeVideo(url);
+
+  // 入力欄クリア
+  const el = document.getElementById("youtubeUrl");
+  if (el) el.value = "";
+});
+
+/* ------------------------------
+   YouTube動画追加処理（サーバ保存対応）
+------------------------------ */
 async function addYouTubeVideo(url) {
   const id = extractYouTubeId(url);
   if (!id) return alert("YouTube のURLが正しくありません。");
+
+  // 既登録チェック
   if (videos.find(v => v.id === id)) return alert("この動画は既に追加済みです。");
 
+  // タイトル取得
   let title = url;
   try {
     const res = await fetch(`https://www.youtube.com/oembed?url=https://youtu.be/${id}&format=json`);
@@ -775,13 +796,53 @@ async function addYouTubeVideo(url) {
 
   const video = { id, url, title };
   videos.push(video);
+
+  // localStorage に保存＆描画更新
   saveAll();
   renderVideoSelects();
-  await saveVideoToServer(video);  // サーバにも保存
-  alert("YouTube 動画を追加しました！");
-}      
 
-loadVideosFromServer();          
+  // サーバにも保存
+  await saveVideoToServer(video);
+
+  alert("YouTube 動画を追加しました！");
+}
+
+/* ------------------------------
+   サーバ保存処理
+------------------------------ */
+async function saveVideoToServer(video) {
+  try {
+    const res = await fetch("/api/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(video),
+    });
+    if (!res.ok) throw new Error("サーバ保存失敗");
+    console.log("サーバに保存完了:", video);
+  } catch (err) {
+    console.error("サーバ保存エラー:", err);
+    alert("サーバ保存に失敗しました");
+  }
+}
+
+/* ------------------------------
+   ページロード時にサーバ動画を読み込む
+------------------------------ */
+async function loadVideosFromServer() {
+  try {
+    const res = await fetch("/api/videos");
+    if (!res.ok) throw new Error("動画取得失敗");
+    const serverVideos = await res.json();
+    videos = serverVideos;
+    saveAll();           // localStorageにも保存
+    renderVideoSelects();
+  } catch (err) {
+    console.error("サーバ動画読み込みエラー:", err);
+  }
+}
+
+// ページロード時に読み込み
+loadVideosFromServer();
 
   await loadScores(); // 🔥ここで await が問題だった
 });
