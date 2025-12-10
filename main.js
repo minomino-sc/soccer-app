@@ -787,40 +787,6 @@ try {
   alert("YouTube 動画を追加しました！");
 }
 
-/* ------------------------------
-   サーバ保存処理
------------------------------- */
-async function saveVideoToServer(video) {
-  try {
-    const res = await fetch("/api/videos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(video),
-    });
-    if (!res.ok) throw new Error("サーバ保存失敗");
-    console.log("サーバに保存完了:", video);
-  } catch (err) {
-    console.error("サーバ保存エラー:", err);
-    alert("サーバ保存に失敗しました");
-  }
-}
-
-/* ------------------------------
-   ページロード時にサーバ動画を読み込む
------------------------------- */
-async function loadVideosFromServer() {
-  try {
-    const res = await fetch("/api/videos");
-    if (!res.ok) throw new Error("動画取得失敗");
-    const serverVideos = await res.json();
-    videos = serverVideos;
-    saveAll();           // localStorageにも保存
-    renderVideoSelects();
-  } catch (err) {
-    console.error("サーバ動画読み込みエラー:", err);
-  }
-}
-
 // ページロード時に読み込み
 loadVideosFromFirestore();
       
