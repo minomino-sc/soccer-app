@@ -525,7 +525,7 @@ if (!isAdmin()) {
 /* ==========================================================
    編集モーダル関連
 ========================================================== */
-function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights) {
+function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, pkA, pkB, highlights)
   window.currentEditIndex = index;
   const elDate = document.getElementById("edit-date");
   if (elDate) elDate.value = date || "";
