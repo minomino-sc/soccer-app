@@ -97,15 +97,6 @@
       <input id="scoreB" type="number" min="0" placeholder="相手チーム得点" />
     </div>
   </div>
-    <!-- PK（あれば入力） -->
-  <div class="row vertical">
-    <label class="lbl">PK（任意）</label>
-    <div class="row">
-      <input id="pkA" type="number" min="0" placeholder="自チームPK得点" />
-      <input id="pkB" type="number" min="0" placeholder="相手PK得点" />
-    </div>
-    <p class="muted small">同点時のみ入力（入力があれば PK 決着扱い）</p>
-  </div>
 
   <!-- 紐付け動画 -->
 <div class="row vertical">
@@ -123,16 +114,15 @@
 <section class="section-card" id="scoresSection" style="display:none;">       
         <h2>試合結果一覧</h2>
         <div id="scoreGroups"></div>
+      </section>
 
     <!-- ▼ ログイン画面に戻る（単独配置）-->
     <div style="margin-top:18px; text-align:center;">
       <button id="btnBackLogin" class="btn" style="background:#888; width:90%;">
         ログイン画面に戻る
       </button>
-    </div>
-  
-      </section>
-    
+    </div>    
+
     <footer class="card small muted">
       © 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）
     </footer>
@@ -171,15 +161,7 @@
 <div class="row vertical"><label class="lbl">相手チーム得点</label>
 <input type="number" id="edit-opponent-score">
 </div>
-    
-<div class="row vertical">
-  <label class="lbl">PK結果（任意）</label>
-  <div class="row">
-    <input type="number" id="edit-pkA" placeholder="自チームPK" />
-    <input type="number" id="edit-pkB" placeholder="相手PK" />
-  </div>
-</div>
-    
+
 <div class="row vertical">
   <label class="lbl">紐づけ動画</label>
   <select id="edit-video-select"></select>

@@ -136,21 +136,17 @@ async function createMatch() {
 
   if (!date || !opponent) return alert("日付と対戦相手は必須です");
 
-const match = {
-  date,
-  matchType,
-  opponent,
-  place,
-  myScore: myScore === "" ? null : Number(myScore),
-  opponentScore: opponentScore === "" ? null : Number(opponentScore),
-
-  pkA: document.getElementById("pkA")?.value === "" ? null : Number(document.getElementById("pkA")?.value),
-  pkB: document.getElementById("pkB")?.value === "" ? null : Number(document.getElementById("pkB")?.value),
-
-  videoId,
-  highlights: [],
-  createdAt: new Date().toISOString()
-}; 
+  const match = {
+    date,
+    matchType,
+    opponent,
+    place,
+    myScore: myScore === "" ? null : Number(myScore),
+    opponentScore: opponentScore === "" ? null : Number(opponentScore),
+    videoId,
+    highlights: [],
+    createdAt: new Date().toISOString()
+  };
 
   /* Firestore 保存 */
   try {
@@ -367,23 +363,14 @@ if (collapsedMonths.includes(key)) {
       const icon = TYPE_ICON[it.matchType || ""] || "🏳️";
       const typeClass = typeClassName(it.matchType || "");
 
-
-
-
-       
       meta.innerHTML =
         `<div class="title">`+
         `<span class="type-icon ${typeClass}">${icon}</span> `+
         `${it.date} — ${it.opponent}`+
-        `</div>`;
+        `</div>`+
         `<div class="type-badge ${typeClass}">${it.matchType || "未設定"}</div>`+
         `<div class="sub match-venue">${it.place || ""}</div>`+
-
-const scoreHtml =
-  `得点: ${(it.myScore ?? "-")} - ${(it.opponentScore ?? "-")}` +
-  ((it.pkA != null && it.pkB != null) ? `（PK ${it.pkA}-${it.pkB}）` : "");
-
-meta.innerHTML += `<div class="sub">${scoreHtml}</div>`;
+        `<div class="sub">得点: ${it.myScore ?? "-"} - ${it.opponentScore ?? "-"}</div>`;
 
       card.appendChild(meta);
 
@@ -438,19 +425,16 @@ editBtn.addEventListener("click", (e) => {
     return;
   }
 
-openEditModal(
-  idx,
-  it.date,
-  it.matchType || "",
-  it.opponent,
-  it.place,
-  it.myScore,
-  it.opponentScore,
-  it.highlights || [],
-  it.pkA,
-  it.pkB,
-  it.videoId
-);
+  openEditModal(
+    idx,
+    it.date,
+    it.matchType || "",
+    it.opponent,
+    it.place,
+    it.myScore,
+    it.opponentScore,
+    it.highlights || []
+  );
 });
 actionRow.appendChild(editBtn);
        
@@ -539,33 +523,31 @@ if (!isAdmin()) {
 /* ==========================================================
    編集モーダル関連
 ========================================================== */
-function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights, pkA, pkB, videoId) {
+function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights) {
   window.currentEditIndex = index;
+  const elDate = document.getElementById("edit-date");
+  if (elDate) elDate.value = date || "";
+  const mtEl = document.getElementById("matchType");
+  if (mtEl) mtEl.value = matchType || "";
+  const elOpp = document.getElementById("edit-opponent");
+  if (elOpp) elOpp.value = opponent || "";
+  const elPlace = document.getElementById("edit-place");
+  if (elPlace) elPlace.value = place || "";
+  const elMy = document.getElementById("edit-my-score");
+  if (elMy) elMy.value = myScore ?? "";
+  const elOp = document.getElementById("edit-opponent-score");
+  if (elOp) elOp.value = opponentScore ?? "";
 
-  document.getElementById("edit-date").value = date ?? "";
-  document.getElementById("matchType").value = matchType ?? "";
-  document.getElementById("edit-opponent").value = opponent ?? "";
-  document.getElementById("edit-place").value = place ?? "";
-  document.getElementById("edit-my-score").value = myScore ?? "";
-  document.getElementById("edit-opponent-score").value = opponentScore ?? "";
-
-  // ⭐ PK反映
-  document.getElementById("edit-pkA").value = pkA ?? "";
-  document.getElementById("edit-pkB").value = pkB ?? "";
-
-  // ⭐ 動画反映
-  const sel = document.getElementById("edit-video-select");
-  if (sel)
-    sel.value = videoId || "";
-
-  // ⭐ ハイライト反映
   const hlList = document.getElementById("hlList");
-  hlList.innerHTML = "";
-  (Array.isArray(highlights) ? highlights : []).forEach(sec => {
-    hlList.appendChild(createHlItemElement(sec));
-  });
+  if (hlList) {
+    hlList.innerHTML = "";
+    (Array.isArray(highlights) ? highlights : []).forEach(sec => {
+      hlList.appendChild(createHlItemElement(sec));
+    });
+  }
 
-  document.getElementById("editModal").classList.remove("hidden");
+  const modal = document.getElementById("editModal");
+  if (modal) modal.classList.remove("hidden");
 }
 
 /* ハイライト要素作成 */
@@ -615,7 +597,7 @@ async function saveEditGeneric() {
   const date = (document.getElementById("edit-date")?.value || "").trim();
   const matchType = (document.getElementById("matchType")?.value || "").trim();
   const opponent = (document.getElementById("edit-opponent")?.value || "").trim();
-  const place = (document.getElementById("edit-place")?.value || "").trim();   
+  const place = (document.getElementById("edit-place")?.value || "").trim();
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
    // ⭐追加！
@@ -647,10 +629,7 @@ await window._firebaseFns.updateDoc(ref, {
   myScore: myScoreVal === "" ? null : Number(myScoreVal),
   opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
   highlights,
-  videoId,  // ⭐ 追加!!
-
-  pkA: document.getElementById("edit-pkA")?.value === "" ? null : Number(document.getElementById("edit-pkA")?.value),
-  pkB: document.getElementById("edit-pkB")?.value === "" ? null : Number(document.getElementById("edit-pkB")?.value),
+  videoId   // ⭐ 追加!!
 });
 
    alert("Firestore に保存しました！");
@@ -713,25 +692,18 @@ function showBackButton() {
   btn.style.display = "block";
 }
 
-/* DOMContentLoaded: イベント登録（修正版） */
+/* DOMContentLoaded: イベント登録 */
 document.addEventListener("DOMContentLoaded", () => {
-  // まずはセレクト描画（ローカルストレージベース）と
-  // ボタン等のイベントを確実に登録しておく（loadScores が落ちても UI は操作可能にする）
   renderVideoSelects();
+  loadScores();
 
   // ▼ ログイン画面に戻るボタンは最初は非表示
-  const btnBack = document.getElementById("btnBackLogin");
-  if (btnBack) btnBack.style.display = "none";
+  document.getElementById("btnBackLogin").style.display = "none";
 
-  // 画面ブロック初期化（元のまま）
-  const addVideoSection = document.getElementById("addVideoSection");
-  const createMatchSection = document.getElementById("createMatchSection");
-  const scoresSection = document.getElementById("scoresSection");
-  if (addVideoSection) addVideoSection.style.display = "none";
-  if (createMatchSection) createMatchSection.style.display = "none";
-  if (scoresSection) scoresSection.style.display = "none";
+  document.getElementById("addVideoSection").style.display = "none";
+  document.getElementById("createMatchSection").style.display = "none";
+  document.getElementById("scoresSection").style.display = "none";
 
-  // --- イベント登録（先に行う） ---
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
@@ -742,94 +714,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
 
-  document.getElementById("btnBackLogin")?.addEventListener("click", () => {
+   document.getElementById("btnBackLogin")?.addEventListener("click", () => {
     const team = document.getElementById("teamSection"); if (team) team.style.display = "block";
-    if (addVideoSection) addVideoSection.style.display = "none";
-    if (createMatchSection) createMatchSection.style.display = "none";
-    if (scoresSection) scoresSection.style.display = "none";
+    const addVideo = document.getElementById("addVideoSection"); if (addVideo) addVideo.style.display = "none";
+    const create = document.getElementById("createMatchSection"); if (create) create.style.display = "none";
+    const scoresSec = document.getElementById("scoresSection"); if (scoresSec) scoresSec.style.display = "none";
     const t = document.getElementById("teamNameInput"); if (t) t.value = "";
     const c = document.getElementById("inviteCodeInput"); if (c) c.value = "";
-    if (btnBack) btnBack.style.display = "none";
-  });
+
+    // 👇⭐️戻る時は必ず非表示にする
+    document.getElementById("btnBackLogin").style.display = "none";
+   });
 
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
+   
+   document.getElementById("btnJoin")?.addEventListener("click", async () => {
+  const name = (document.getElementById("teamNameInput")?.value || "").trim();
+  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+  if (!name) return alert("チーム名を入力してください");
+  const team = { teamName: name, inviteCode: code || null };
+  localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  // btnJoin ハンドラ（既存の処理をそのまま）
-  document.getElementById("btnJoin")?.addEventListener("click", async () => {
-    const name = (document.getElementById("teamNameInput")?.value || "").trim();
-    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-    if (!name) return alert("チーム名を入力してください");
-    const team = { teamName: name, inviteCode: code || null };
-    localStorage.setItem("teamInfo", JSON.stringify(team));
+  document.getElementById("teamSection").style.display = "none";
 
-    // ログイン画面を消す
-    document.getElementById("teamSection").style.display = "none";
+// 試合一覧は常に見せる
+document.getElementById("scoresSection").style.display = "block";
 
-    // 試合一覧は表示
-    if (scoresSection) scoresSection.style.display = "block";
+// 管理者のみ操作可能
+if (isAdmin()) {
+  document.getElementById("addVideoSection").style.display = "block";
+  document.getElementById("createMatchSection").style.display = "block";
+} else {
+  document.getElementById("addVideoSection").style.display = "none";
+  document.getElementById("createMatchSection").style.display = "none";
+}      
+   
+  const tn = document.getElementById("currentTeamName");
+  if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
-    // 管理者の場合だけ編集機能表示
-    if (isAdmin()) {
-      if (addVideoSection) addVideoSection.style.display = "block";
-      if (createMatchSection) createMatchSection.style.display = "block";
-    } else {
-      if (addVideoSection) addVideoSection.style.display = "none";
-      if (createMatchSection) createMatchSection.style.display = "none";
-    }
+  alert("チーム参加しました！");
 
-    // ログイン後は表示
-    if (btnBack) btnBack.style.display = "block";
+  showBackButton();  // ← ← これ！
 
-    const tn = document.getElementById("currentTeamName");
-    if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
-
-    alert("チーム参加しました！");
-
-    // Firestore からの読み込みは（例外で止めない）ように try/catch で実行
-    try {
-      await loadScores();
-    } catch (e) {
-      console.error("loadScores failed after join:", e);
-      // ここでは UI は維持し、エラーメッセージだけ出す
-      alert("データ読み込みに失敗しました（ネットワーク/Firestore）。");
-    }
-  });
-
-  // --- 最後に loadScores を呼ぶ（最初の読み込み） ---
-  // しかし Firebase が未初期化の可能性があるため例外を捕まえる
-  try {
-    loadScores();
-  } catch (e) {
-    console.warn("初期 loadScores で例外が発生（まだ Firebase 未初期化の可能性）:", e);
-    // ここで待つ / 再試行する等のロジックを入れても良いが、最低限イベント登録を止めない
-  }
+  await loadScores(); // 🔥ここで await が問題だった
 });
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btnBackLogin = document.getElementById("btnBackLogin");
-
-  // 初期表示では隠す
-  if (btnBackLogin) {
-    btnBackLogin.style.display = "none";
-  }
-
-  // ログイン完了時の処理フック
-  window._afterLogin = () => {
-    // ログイン画面を消す
-    const teamSection = document.getElementById("teamSection");
-    if (teamSection) teamSection.style.display = "none";
-
-    // 戻るボタンを表示
-    if (btnBackLogin) btnBackLogin.style.display = "block";
-  };
-
-  // 戻る押したらリロード
-  if (btnBackLogin) {
-    btnBackLogin.addEventListener("click", () => {
-      location.reload();
-    });
-  }
 });
