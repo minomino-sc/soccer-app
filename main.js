@@ -1,4 +1,4 @@
-/* main.js — 完全版（既存機能保持＆チーム参加正常化） */
+/* main.js — 種別アイコン & 色 & 月集計対応版（完全版修正版） */
 
 let scores = JSON.parse(localStorage.getItem("scores")) || [];
 let videos = JSON.parse(localStorage.getItem("videos")) || [];
@@ -230,7 +230,6 @@ async function loadScores() {
       ...doc.data(),
     }));
 
-    // 重複排除
     const seenIds = new Set();
     scores = scores.filter(s => {
       if (!s.id) return false;
@@ -259,6 +258,15 @@ async function loadScores() {
     container.innerHTML = `<p class="muted small">まだ試合がありません。</p>`;
     return;
   }
+
+  // 🔽 描画部分は Part 2 に続きます
+}
+
+//-------------------------------------------------
+// 🔽描画部分（スコアカード・月集計・折りたたみ対応）
+function renderScoreCards() {
+  const container = document.getElementById("scoreGroups");
+  if (!container) return;
 
   const filteredMap = {};
   scores.forEach((s, idx) => {
@@ -344,7 +352,7 @@ async function loadScores() {
 
       card.appendChild(meta);
 
-       // ハイライトボタン
+      // ハイライトボタン
       if (Array.isArray(it.highlights) && it.highlights.length) {
         const hlWrap = document.createElement("div");
         hlWrap.className = "hl-wrap";
@@ -455,9 +463,8 @@ async function loadScores() {
   }
 }
 
-/* ==========================================================
-   編集モーダル関連
-========================================================== */
+// ==========================================================
+// 編集モーダル関連（open, close, save, delete, highlight追加）
 function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights) {
   window.currentEditIndex = index;
   const elDate = document.getElementById("edit-date"); if (elDate) elDate.value = date || "";
@@ -601,12 +608,15 @@ function addHighlightTop() {
   inp.value = "";
 }
 
-/* DOMContentLoaded: イベント登録 */
+// ==========================================================
+// DOMContentLoaded: イベント登録 + ログイン/ログアウト制御
 document.addEventListener("DOMContentLoaded", () => {
   renderVideoSelects();
   loadScores();
 
-  document.getElementById("btnBackLogin").style.display = "none";
+  const btnBack = document.getElementById("btnBackLogin");
+  if (btnBack) btnBack.style.display = "none";
+
   document.getElementById("addVideoSection").style.display = "none";
   document.getElementById("createMatchSection").style.display = "none";
 
@@ -636,14 +646,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
 
-  document.getElementById("btnBackLogin")?.addEventListener("click", () => {
+  btnBack?.addEventListener("click", () => {
     document.getElementById("teamSection").style.display = "block";
     document.getElementById("addVideoSection").style.display = "none";
     document.getElementById("createMatchSection").style.display = "none";
     document.getElementById("scoresSection").style.display = "none";
     document.getElementById("teamNameInput").value = "";
     document.getElementById("inviteCodeInput").value = "";
-    document.getElementById("btnBackLogin").style.display = "none";
+    btnBack.style.display = "none";
   });
 
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
@@ -672,9 +682,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const tn = document.getElementById("currentTeamName");
     if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
-    alert("チーム参加しました！");
-    showBackButton();
+    // 🔹 ログイン後に「ログイン画面に戻る」ボタンを必ず表示
+    btnBack.style.display = "block";
 
+    alert("チーム参加しました！");
     await loadScores();
   });
-});                             
+});
