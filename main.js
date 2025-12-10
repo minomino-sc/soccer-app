@@ -755,26 +755,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const team = { teamName: name, inviteCode: code || null };
   localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  document.getElementById("teamSection").style.display = "none";
 
-// 試合一覧は常に見せる
+
+// ログイン画面を消す
+document.getElementById("teamSection").style.display = "none";
+
+// 試合一覧は表示
 document.getElementById("scoresSection").style.display = "block";
 
-// 管理者のみ操作可能
+// 管理者の場合だけ編集機能表示
 if (isAdmin()) {
   document.getElementById("addVideoSection").style.display = "block";
   document.getElementById("createMatchSection").style.display = "block";
 } else {
   document.getElementById("addVideoSection").style.display = "none";
   document.getElementById("createMatchSection").style.display = "none";
-}      
+}
+
+// 戻るボタンは表示しない（ログイン画面へ戻す機能は不要）
+document.getElementById("btnBackLogin").style.display = "none";  
    
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
   alert("チーム参加しました！");
-
-  showBackButton();  // ← ← これ！
 
   await loadScores(); // 🔥ここで await が問題だった
 });
