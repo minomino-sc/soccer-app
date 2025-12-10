@@ -136,13 +136,13 @@ async function createMatch() {
 
   if (!date || !opponent) return alert("日付と対戦相手は必須です");
 
-  const match = {
-    date,
-    matchType,
-    opponent,
-    place,
-    myScore: myScore === "" ? null : Number(myScore),
-    opponentScore: opponentScore === "" ? null : Number(opponentScore),
+const match = {
+  date,
+  matchType,
+  opponent,
+  place,
+  myScore: myScore === "" ? null : Number(myScore),
+  opponentScore: opponentScore === "" ? null : Number(opponentScore),
 
   pkA: document.getElementById("pkA")?.value === "" ? null : Number(document.getElementById("pkA")?.value),
   pkB: document.getElementById("pkB")?.value === "" ? null : Number(document.getElementById("pkB")?.value),
@@ -150,7 +150,7 @@ async function createMatch() {
   videoId,
   highlights: [],
   createdAt: new Date().toISOString()
-};
+}; 
 
   /* Firestore 保存 */
   try {
@@ -375,17 +375,11 @@ if (collapsedMonths.includes(key)) {
         `<div class="type-badge ${typeClass}">${it.matchType || "未設定"}</div>`+
         `<div class="sub match-venue">${it.place || ""}</div>`+
 
-<div class="sub">
-  得点: 
-  ${
-    (it.myScore ?? "-") + " - " + (it.opponentScore ?? "-") +
-    (
-      (it.pkA != null && it.pkB != null)
-        ? `（PK ${it.pkA}-${it.pkB}）`
-        : ""
-    )
-  }
-</div>
+const scoreHtml =
+  `得点: ${(it.myScore ?? "-")} - ${(it.opponentScore ?? "-")}` +
+  ((it.pkA != null && it.pkB != null) ? `（PK ${it.pkA}-${it.pkB}）` : "");
+
+meta.innerHTML += `<div class="sub">${scoreHtml}</div>`;
 
       card.appendChild(meta);
 
@@ -440,16 +434,19 @@ editBtn.addEventListener("click", (e) => {
     return;
   }
 
-  openEditModal(
-    idx,
-    it.date,
-    it.matchType || "",
-    it.opponent,
-    it.place,
-    it.myScore,
-    it.opponentScore,
-    it.highlights || []
-  );
+openEditModal(
+  idx,
+  it.date,
+  it.matchType || "",
+  it.opponent,
+  it.place,
+  it.myScore,
+  it.opponentScore,
+  it.highlights || [],
+  it.pkA,
+  it.pkB,
+  it.videoId
+);
 });
 actionRow.appendChild(editBtn);
        
@@ -538,31 +535,33 @@ if (!isAdmin()) {
 /* ==========================================================
    編集モーダル関連
 ========================================================== */
-function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights) {
+function openEditModal(index, date, matchType, opponent, place, myScore, opponentScore, highlights, pkA, pkB, videoId) {
   window.currentEditIndex = index;
-  const elDate = document.getElementById("edit-date");
-  if (elDate) elDate.value = date || "";
-  const mtEl = document.getElementById("matchType");
-  if (mtEl) mtEl.value = matchType || "";
-  const elOpp = document.getElementById("edit-opponent");
-  if (elOpp) elOpp.value = opponent || "";
-  const elPlace = document.getElementById("edit-place");
-  if (elPlace) elPlace.value = place || "";
-  const elMy = document.getElementById("edit-my-score");
-  if (elMy) elMy.value = myScore ?? "";
-  const elOp = document.getElementById("edit-opponent-score");
-  if (elOp) elOp.value = opponentScore ?? "";
 
+  document.getElementById("edit-date").value = date ?? "";
+  document.getElementById("matchType").value = matchType ?? "";
+  document.getElementById("edit-opponent").value = opponent ?? "";
+  document.getElementById("edit-place").value = place ?? "";
+  document.getElementById("edit-my-score").value = myScore ?? "";
+  document.getElementById("edit-opponent-score").value = opponentScore ?? "";
+
+  // ⭐ PK反映
+  document.getElementById("edit-pkA").value = pkA ?? "";
+  document.getElementById("edit-pkB").value = pkB ?? "";
+
+  // ⭐ 動画反映
+  const sel = document.getElementById("edit-video-select");
+  if (sel)
+    sel.value = videoId || "";
+
+  // ⭐ ハイライト反映
   const hlList = document.getElementById("hlList");
-  if (hlList) {
-    hlList.innerHTML = "";
-    (Array.isArray(highlights) ? highlights : []).forEach(sec => {
-      hlList.appendChild(createHlItemElement(sec));
-    });
-  }
+  hlList.innerHTML = "";
+  (Array.isArray(highlights) ? highlights : []).forEach(sec => {
+    hlList.appendChild(createHlItemElement(sec));
+  });
 
-  const modal = document.getElementById("editModal");
-  if (modal) modal.classList.remove("hidden");
+  document.getElementById("editModal").classList.remove("hidden");
 }
 
 /* ハイライト要素作成 */
@@ -612,7 +611,7 @@ async function saveEditGeneric() {
   const date = (document.getElementById("edit-date")?.value || "").trim();
   const matchType = (document.getElementById("matchType")?.value || "").trim();
   const opponent = (document.getElementById("edit-opponent")?.value || "").trim();
-  const place = (document.getElementById("edit-place")?.value || "").trim();
+  const place = (document.getElementById("edit-place")?.value || "").trim();   
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
    // ⭐追加！
@@ -644,7 +643,7 @@ await window._firebaseFns.updateDoc(ref, {
   myScore: myScoreVal === "" ? null : Number(myScoreVal),
   opponentScore: opScoreVal === "" ? null : Number(opScoreVal),
   highlights,
-  videoId   // ⭐ 追加!!
+  videoId,  // ⭐ 追加!!
 
   pkA: document.getElementById("edit-pkA")?.value === "" ? null : Number(document.getElementById("edit-pkA")?.value),
   pkB: document.getElementById("edit-pkB")?.value === "" ? null : Number(document.getElementById("edit-pkB")?.value),
