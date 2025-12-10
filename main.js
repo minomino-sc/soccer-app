@@ -807,3 +807,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // ここで待つ / 再試行する等のロジックを入れても良いが、最低限イベント登録を止めない
   }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnBackLogin = document.getElementById("btnBackLogin");
+
+  // 初期表示では隠す
+  if (btnBackLogin) {
+    btnBackLogin.style.display = "none";
+  }
+
+  // ログイン完了時の処理フック
+  window._afterLogin = () => {
+    // ログイン画面を消す
+    const teamSection = document.getElementById("teamSection");
+    if (teamSection) teamSection.style.display = "none";
+
+    // 戻るボタンを表示
+    if (btnBackLogin) btnBackLogin.style.display = "block";
+  };
+
+  // 戻る押したらリロード
+  if (btnBackLogin) {
+    btnBackLogin.addEventListener("click", () => {
+      location.reload();
+    });
+  }
+});
