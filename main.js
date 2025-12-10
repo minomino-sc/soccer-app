@@ -709,18 +709,25 @@ function showBackButton() {
   btn.style.display = "block";
 }
 
-/* DOMContentLoaded: イベント登録 */
+/* DOMContentLoaded: イベント登録（修正版） */
 document.addEventListener("DOMContentLoaded", () => {
+  // まずはセレクト描画（ローカルストレージベース）と
+  // ボタン等のイベントを確実に登録しておく（loadScores が落ちても UI は操作可能にする）
   renderVideoSelects();
-  loadScores();
 
   // ▼ ログイン画面に戻るボタンは最初は非表示
-  document.getElementById("btnBackLogin").style.display = "none";
+  const btnBack = document.getElementById("btnBackLogin");
+  if (btnBack) btnBack.style.display = "none";
 
-  document.getElementById("addVideoSection").style.display = "none";
-  document.getElementById("createMatchSection").style.display = "none";
-  document.getElementById("scoresSection").style.display = "none";
+  // 画面ブロック初期化（元のまま）
+  const addVideoSection = document.getElementById("addVideoSection");
+  const createMatchSection = document.getElementById("createMatchSection");
+  const scoresSection = document.getElementById("scoresSection");
+  if (addVideoSection) addVideoSection.style.display = "none";
+  if (createMatchSection) createMatchSection.style.display = "none";
+  if (scoresSection) scoresSection.style.display = "none";
 
+  // --- イベント登録（先に行う） ---
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
@@ -731,55 +738,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
 
-   document.getElementById("btnBackLogin")?.addEventListener("click", () => {
+  document.getElementById("btnBackLogin")?.addEventListener("click", () => {
     const team = document.getElementById("teamSection"); if (team) team.style.display = "block";
-    const addVideo = document.getElementById("addVideoSection"); if (addVideo) addVideo.style.display = "none";
-    const create = document.getElementById("createMatchSection"); if (create) create.style.display = "none";
-    const scoresSec = document.getElementById("scoresSection"); if (scoresSec) scoresSec.style.display = "none";
+    if (addVideoSection) addVideoSection.style.display = "none";
+    if (createMatchSection) createMatchSection.style.display = "none";
+    if (scoresSection) scoresSection.style.display = "none";
     const t = document.getElementById("teamNameInput"); if (t) t.value = "";
     const c = document.getElementById("inviteCodeInput"); if (c) c.value = "";
-
-    // 👇⭐️戻る時は必ず非表示にする
-    document.getElementById("btnBackLogin").style.display = "none";
-   });
+    if (btnBack) btnBack.style.display = "none";
+  });
 
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
-   
-   document.getElementById("btnJoin")?.addEventListener("click", async () => {
-  const name = (document.getElementById("teamNameInput")?.value || "").trim();
-  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-  if (!name) return alert("チーム名を入力してください");
-  const team = { teamName: name, inviteCode: code || null };
-  localStorage.setItem("teamInfo", JSON.stringify(team));
 
+  // btnJoin ハンドラ（既存の処理をそのまま）
+  document.getElementById("btnJoin")?.addEventListener("click", async () => {
+    const name = (document.getElementById("teamNameInput")?.value || "").trim();
+    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+    if (!name) return alert("チーム名を入力してください");
+    const team = { teamName: name, inviteCode: code || null };
+    localStorage.setItem("teamInfo", JSON.stringify(team));
 
+    // ログイン画面を消す
+    document.getElementById("teamSection").style.display = "none";
 
-// ログイン画面を消す
-document.getElementById("teamSection").style.display = "none";
+    // 試合一覧は表示
+    if (scoresSection) scoresSection.style.display = "block";
 
-// 試合一覧は表示
-document.getElementById("scoresSection").style.display = "block";
+    // 管理者の場合だけ編集機能表示
+    if (isAdmin()) {
+      if (addVideoSection) addVideoSection.style.display = "block";
+      if (createMatchSection) createMatchSection.style.display = "block";
+    } else {
+      if (addVideoSection) addVideoSection.style.display = "none";
+      if (createMatchSection) createMatchSection.style.display = "none";
+    }
 
-// 管理者の場合だけ編集機能表示
-if (isAdmin()) {
-  document.getElementById("addVideoSection").style.display = "block";
-  document.getElementById("createMatchSection").style.display = "block";
-} else {
-  document.getElementById("addVideoSection").style.display = "none";
-  document.getElementById("createMatchSection").style.display = "none";
-}
+    // ログイン後は表示
+    if (btnBack) btnBack.style.display = "block";
 
-// 🔥ログイン後は表示
-document.getElementById("btnBackLogin").style.display = "block"; 
-   
-  const tn = document.getElementById("currentTeamName");
-  if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+    const tn = document.getElementById("currentTeamName");
+    if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
 
-  alert("チーム参加しました！");
+    alert("チーム参加しました！");
 
-  await loadScores(); // 🔥ここで await が問題だった
-});
+    // Firestore からの読み込みは（例外で止めない）ように try/catch で実行
+    try {
+      await loadScores();
+    } catch (e) {
+      console.error("loadScores failed after join:", e);
+      // ここでは UI は維持し、エラーメッセージだけ出す
+      alert("データ読み込みに失敗しました（ネットワーク/Firestore）。");
+    }
+  });
+
+  // --- 最後に loadScores を呼ぶ（最初の読み込み） ---
+  // しかし Firebase が未初期化の可能性があるため例外を捕まえる
+  try {
+    loadScores();
+  } catch (e) {
+    console.warn("初期 loadScores で例外が発生（まだ Firebase 未初期化の可能性）:", e);
+    // ここで待つ / 再試行する等のロジックを入れても良いが、最低限イベント登録を止めない
+  }
 });
