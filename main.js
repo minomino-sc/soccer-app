@@ -663,24 +663,48 @@ function showBackButton() {
 }
 
 /* DOMContentLoaded: イベント登録 */
-document.addEventListener("DOMContentLoaded", () => {
-  renderVideoSelects();
-  loadScores();
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    // ここから新コード
+    await loadVideosFromFirestore();
+    await loadScores();
 
-  // ▼ ログイン画面に戻るボタンは最初は非表示
-  document.getElementById("btnBackLogin").style.display = "none";
+    const btnBack = document.getElementById("btnBackLogin");
+    if (btnBack) btnBack.style.display = "none";
 
-  document.getElementById("addVideoSection").style.display = "none";
-  document.getElementById("createMatchSection").style.display = "none";
-  document.getElementById("scoresSection").style.display = "none";
+    document.getElementById("addVideoSection").style.display = "none";
+    document.getElementById("createMatchSection").style.display = "none";
+    document.getElementById("scoresSection").style.display = "none";
 
-  document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
-    const url = (document.getElementById("youtubeUrl")?.value || "").trim();
-    if (!url) return alert("URLを入力してください");
-    addYouTubeVideo(url);
-    const el = document.getElementById("youtubeUrl");
-    if (el) el.value = "";
-  });
+    document.getElementById("btnAddYouTube")?.addEventListener("click", async () => {
+      const url = (document.getElementById("youtubeUrl")?.value || "").trim();
+      if (!url) return alert("URLを入力してください");
+      await addYouTubeVideo(url);
+      document.getElementById("youtubeUrl").value = "";
+    });
+
+    document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
+
+    document.getElementById("btnBackLogin")?.addEventListener("click", () => {
+      document.getElementById("teamSection").style.display = "block";
+      document.getElementById("addVideoSection").style.display = "none";
+      document.getElementById("createMatchSection").style.display = "none";
+      document.getElementById("scoresSection").style.display = "none";
+      document.getElementById("teamNameInput").value = "";
+      document.getElementById("inviteCodeInput").value = "";
+      btnBack.style.display = "none";
+    });
+
+    document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
+    document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
+    document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
+    document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
+    // ここまで新コード
+  } catch (err) {
+    console.error("初期ロードエラー:", err);
+    alert("初期データの読み込みに失敗しました");
+  }
+});
 
   document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
 
@@ -786,10 +810,4 @@ try {
 
   alert("YouTube 動画を追加しました！");
 }
-
-// ページロード時に読み込み
-loadVideosFromFirestore();
-      
-  await loadScores(); // 🔥ここで await が問題だった
-});
 });
