@@ -702,18 +702,21 @@ function showBackButton() {
   btn.style.display = "block";
 }
 
-/* DOMContentLoaded: イベント登録 */
 document.addEventListener("DOMContentLoaded", () => {
+  // 初期描画
   renderVideoSelects();
   loadScores();
 
-  // ▼ ログイン画面に戻るボタンは最初は非表示
-  document.getElementById("btnBackLogin").style.display = "none";
+  // 戻るボタンは初期非表示
+  const btnBack = document.getElementById("btnBackLogin");
+  if (btnBack) btnBack.style.display = "none";
 
+  // 各セクション初期状態
   document.getElementById("addVideoSection").style.display = "none";
   document.getElementById("createMatchSection").style.display = "none";
   document.getElementById("scoresSection").style.display = "none";
 
+  // YouTube動画追加
   document.getElementById("btnAddYouTube")?.addEventListener("click", () => {
     const url = (document.getElementById("youtubeUrl")?.value || "").trim();
     if (!url) return alert("URLを入力してください");
@@ -722,53 +725,67 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el) el.value = "";
   });
 
+  // 試合作成
   document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
 
-   document.getElementById("btnBackLogin")?.addEventListener("click", () => {
-    const team = document.getElementById("teamSection"); if (team) team.style.display = "block";
-    const addVideo = document.getElementById("addVideoSection"); if (addVideo) addVideo.style.display = "none";
-    const create = document.getElementById("createMatchSection"); if (create) create.style.display = "none";
-    const scoresSec = document.getElementById("scoresSection"); if (scoresSec) scoresSec.style.display = "none";
+  // ログイン画面に戻る
+  btnBack?.addEventListener("click", () => {
+    // ログイン画面を表示
+    const teamSection = document.getElementById("teamSection");
+    if (teamSection) teamSection.style.display = "block";
+
+    // 管理者用画面・試合一覧を非表示
+    document.getElementById("addVideoSection").style.display = "none";
+    document.getElementById("createMatchSection").style.display = "none";
+    document.getElementById("scoresSection").style.display = "none";
+
+    // 入力欄をリセット
     const t = document.getElementById("teamNameInput"); if (t) t.value = "";
     const c = document.getElementById("inviteCodeInput"); if (c) c.value = "";
 
-    // 👇⭐️戻る時は必ず非表示にする
-    document.getElementById("btnBackLogin").style.display = "none";
-   });
+    // 戻るボタン非表示
+    btnBack.style.display = "none";
+  });
 
+  // 編集モーダル関連
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
-   
-   document.getElementById("btnJoin")?.addEventListener("click", async () => {
-  const name = (document.getElementById("teamNameInput")?.value || "").trim();
-  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-  if (!name) return alert("チーム名を入力してください");
-  const team = { teamName: name, inviteCode: code || null };
-  localStorage.setItem("teamInfo", JSON.stringify(team));
 
-  document.getElementById("teamSection").style.display = "none";
+  // チーム参加ボタン
+  document.getElementById("btnJoin")?.addEventListener("click", async () => {
+    const name = (document.getElementById("teamNameInput")?.value || "").trim();
+    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+    if (!name) return alert("チーム名を入力してください");
 
-// 試合一覧は常に見せる
-document.getElementById("scoresSection").style.display = "block";
+    const team = { teamName: name, inviteCode: code || null };
+    localStorage.setItem("teamInfo", JSON.stringify(team));
 
-// 管理者のみ操作可能
-if (isAdmin()) {
-  document.getElementById("addVideoSection").style.display = "block";
-  document.getElementById("createMatchSection").style.display = "block";
-} else {
-  document.getElementById("addVideoSection").style.display = "none";
-  document.getElementById("createMatchSection").style.display = "none";
-}      
-   
-  const tn = document.getElementById("currentTeamName");
-  if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+    // ログイン画面を非表示
+    document.getElementById("teamSection").style.display = "none";
 
-  alert("チーム参加しました！");
+    // 試合一覧は常に表示
+    document.getElementById("scoresSection").style.display = "block";
 
-  showBackButton();  // ← ← これ！
+    // 管理者のみ操作可能
+    if (isAdmin()) {
+      document.getElementById("addVideoSection").style.display = "block";
+      document.getElementById("createMatchSection").style.display = "block";
+    } else {
+      document.getElementById("addVideoSection").style.display = "none";
+      document.getElementById("createMatchSection").style.display = "none";
+    }
 
-  await loadScores(); // 🔥ここで await が問題だった
-});
+    const tn = document.getElementById("currentTeamName");
+    if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
+
+    // 戻るボタンを表示
+    if (btnBack) btnBack.style.display = "block";
+
+    alert("チーム参加しました！");
+
+    // Firestoreデータを再読み込み
+    await loadScores();
+  });
 });
