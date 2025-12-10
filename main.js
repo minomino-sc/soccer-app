@@ -367,11 +367,15 @@ if (collapsedMonths.includes(key)) {
       const icon = TYPE_ICON[it.matchType || ""] || "🏳️";
       const typeClass = typeClassName(it.matchType || "");
 
+
+
+
+       
       meta.innerHTML =
         `<div class="title">`+
         `<span class="type-icon ${typeClass}">${icon}</span> `+
         `${it.date} — ${it.opponent}`+
-        `</div>`+
+        `</div>`;
         `<div class="type-badge ${typeClass}">${it.matchType || "未設定"}</div>`+
         `<div class="sub match-venue">${it.place || ""}</div>`+
 
