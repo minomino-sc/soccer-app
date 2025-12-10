@@ -772,8 +772,8 @@ if (isAdmin()) {
   document.getElementById("createMatchSection").style.display = "none";
 }
 
-// 戻るボタンは表示しない（ログイン画面へ戻す機能は不要）
-document.getElementById("btnBackLogin").style.display = "none";  
+// 🔥ログイン後は表示
+document.getElementById("btnBackLogin").style.display = "block"; 
    
   const tn = document.getElementById("currentTeamName");
   if (tn) tn.textContent = `${team.teamName}（招待コード: ${team.inviteCode || "-"})`;
