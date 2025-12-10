@@ -103,6 +103,7 @@ async function addYouTubeVideo(url){
    チーム参加 / 作成
 ------------------------------ */
 async function joinTeam(){
+  console.log("joinTeam called");
   const name = (document.getElementById("teamNameInput")?.value||"").trim();
   const code = (document.getElementById("inviteCodeInput")?.value||"").trim().toUpperCase();
   if(!name) return alert("チーム名を入力してください");
