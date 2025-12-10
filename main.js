@@ -1,26 +1,3 @@
-// ─── 安全確認用 joinTeam イベント登録 ───
-document.addEventListener('DOMContentLoaded', () => {
-  const btnJoin = document.getElementById('btnJoin');
-  if (btnJoin) {
-    btnJoin.addEventListener('click', () => {
-      const teamName = document.getElementById('teamNameInput').value.trim();
-      const inviteCode = document.getElementById('inviteCodeInput').value.trim();
-
-      if (!teamName || !inviteCode) {
-        alert('チーム名と招待コードを入力してください');
-        return;
-      }
-
-      console.log('joinTeam called:', teamName, inviteCode);
-
-      // 🔹ここに既存の Firebase チーム参加処理を呼び出す
-      // joinTeam(teamName, inviteCode);
-    });
-  } else {
-    console.error('btnJoin ボタンが見つかりません');
-  }
-});
-
 /* main.js — チーム管理＆保護者ログイン対応版（安全版）
    元機能：検索 / ハイライト / 秒数クリック再生 / 編集 / 削除 / 種別表示
 */
