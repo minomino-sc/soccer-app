@@ -729,34 +729,6 @@ if (isAdmin()) {
 
   showBackButton();  // ← ← これ！
 
-async function saveVideoToServer(video) {
-  try {
-    const res = await fetch("/api/videos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(video),
-    });
-    if (!res.ok) throw new Error("サーバ保存失敗");
-    console.log("サーバに保存完了:", video);
-  } catch (err) {
-    console.error("サーバ保存エラー:", err);
-    alert("サーバ保存に失敗しました");
-  }
-}
-
-async function loadVideosFromServer() {
-  try {
-    const res = await fetch("/api/videos");
-    if (!res.ok) throw new Error("動画取得失敗");
-    const serverVideos = await res.json();
-    videos = serverVideos;
-    saveAll();           // localStorageにも保存
-    renderVideoSelects();
-  } catch (err) {
-    console.error("サーバ動画読み込みエラー:", err);
-  }
-}
-
 /* ------------------------------
    YouTube 追加ボタンイベント
 ------------------------------ */
@@ -794,15 +766,23 @@ async function addYouTubeVideo(url) {
     console.warn("タイトル取得に失敗", err);
   }
 
-  const video = { id, url, title };
-  videos.push(video);
+const video = { id, url, title, createdAt: new Date().toISOString() };
 
-  // localStorage に保存＆描画更新
-  saveAll();
-  renderVideoSelects();
+// Firestore に保存
+try {
+  const col = window._firebaseFns.collection(window._firebaseDB, "videos");
+  await window._firebaseFns.addDoc(col, video);
 
-  // サーバにも保存
-  await saveVideoToServer(video);
+  console.log("Firestoreに動画保存完了:", video);
+  alert("YouTube動画を追加しました！");
+
+  // Firestoreから再取得して描画
+  await loadVideosFromFirestore();
+
+} catch (err) {
+  console.error("Firestore保存エラー:", err);
+  alert("Firestoreへの保存に失敗しました");
+}
 
   alert("YouTube 動画を追加しました！");
 }
@@ -842,8 +822,8 @@ async function loadVideosFromServer() {
 }
 
 // ページロード時に読み込み
-loadVideosFromServer();
-
+loadVideosFromFirestore();
+      
   await loadScores(); // 🔥ここで await が問題だった
 });
 });
