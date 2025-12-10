@@ -143,10 +143,12 @@ async function createMatch() {
     place,
     myScore: myScore === "" ? null : Number(myScore),
     opponentScore: opponentScore === "" ? null : Number(opponentScore),
-    videoId,
-    highlights: [],
-    createdAt: new Date().toISOString()
-  };
+  pkA: pkAEl.value === "" ? null : Number(pkAEl.value),
+  pkB: pkBEl.value === "" ? null : Number(pkBEl.value),
+  videoId,
+  highlights: [],
+  createdAt: new Date().toISOString()
+};
 
   /* Firestore 保存 */
   try {
