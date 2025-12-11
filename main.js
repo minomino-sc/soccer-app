@@ -1,7 +1,7 @@
 /* main.js — Firebase 初期化後に安全に動く完全版 */
 
 let scores = [];
-let videos = [];
+let videos = JSON.parse(localStorage.getItem("videos")||"[]");
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 window.currentEditIndex = undefined;
 let currentSearchQuery = "";
@@ -28,6 +28,7 @@ function isAdmin() {
   return t?.isAdmin === true;
 }
 
+/* YouTube ID 抽出 */
 function extractYouTubeId(url) {
   try {
     const u = new URL(url);
@@ -39,6 +40,7 @@ function extractYouTubeId(url) {
   }
 }
 
+/* 種別アイコン・CSSマッピング */
 const TYPE_ICON = { "公式戦":"🏆", "カップ戦":"🎖️", "交流戦":"🤝", "":"🏳️" };
 function typeClassName(matchType){
   if(!matchType) return "type-friendly";
@@ -112,7 +114,7 @@ async function joinTeam(){
     return;
   }
 
-  const { collection, addDoc, getDocs, query, where, doc, setDoc } = fns;
+  const { collection, getDocs, query, where, doc, setDoc } = fns;
 
   try {
     const teamsCol = collection(db,"teams");
@@ -400,6 +402,9 @@ document.getElementById("btnBackLogin")?.addEventListener("click",()=>{
   location.reload();
 });
 
+/* ------------------------------
+   戻るボタン表示補助
+------------------------------ */
 function showBackButton() {
   const btn = document.getElementById("btnBackLogin");
   if(btn) btn.style.display="block";
