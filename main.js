@@ -208,12 +208,12 @@ async function loadScores(){
 }
 
 /* ------------------------------
-   スコア描画
+   スコア描画（以前のこだわり版）
 ------------------------------ */
 function renderScores(){
   const container = document.getElementById("scoreGroups");
   if(!container) return;
-  container.innerHTML="";
+  container.innerHTML = "";
 
   const filtered = scores.filter(s=>{
     if(!currentSearchQuery) return true;
@@ -223,22 +223,22 @@ function renderScores(){
   const grouped = {};
   filtered.forEach(s=>{
     const month = s.date?.slice(0,7) || "不明";
-    if(!grouped[month]) grouped[month]=[];
+    if(!grouped[month]) grouped[month] = [];
     grouped[month].push(s);
   });
 
   Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).forEach(month=>{
-    const monthDiv=document.createElement("div");
-    monthDiv.className="month-group";
+    const monthDiv = document.createElement("div");
+    monthDiv.className = "month-group";
 
-    const header=document.createElement("h3");
-    header.textContent=month;
-    header.style.cursor="pointer";
+    const header = document.createElement("h3");
+    header.textContent = month;
+    header.style.cursor = "pointer";
     header.addEventListener("click",()=>{
-      collapsedMonths.includes(month)?
-        collapsedMonths.splice(collapsedMonths.indexOf(month),1):
-        collapsedMonths.push(month);
-      localStorage.setItem("collapsedMonths",JSON.stringify(collapsedMonths));
+      const idx = collapsedMonths.indexOf(month);
+      if(idx>=0) collapsedMonths.splice(idx,1);
+      else collapsedMonths.push(month);
+      localStorage.setItem("collapsedMonths", JSON.stringify(collapsedMonths));
       renderScores();
     });
     monthDiv.appendChild(header);
@@ -246,11 +246,10 @@ function renderScores(){
     if(!collapsedMonths.includes(month)){
       grouped[month].forEach(s=>{
         const row = document.createElement("div");
-        row.className="score-row "+typeClassName(s.matchType||"");
-        const typeIcon = TYPE_ICON[s.matchType||""]||"";
-        row.innerHTML=`
+        row.className = "score-row "+typeClassName(s.matchType||"");
+        row.innerHTML = `
           <span class="score-date">${s.date||""}</span>
-          <span class="score-type">${typeIcon}</span>
+          <span class="score-type">${TYPE_ICON[s.matchType||""]||""}</span>
           <span class="score-opponent">${s.opponent||""}</span>
           <span class="score-result">${s.scoreA||0} - ${s.scoreB||0}</span>
         `;
@@ -258,6 +257,7 @@ function renderScores(){
         monthDiv.appendChild(row);
       });
     }
+
     container.appendChild(monthDiv);
   });
 }
