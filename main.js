@@ -4,6 +4,15 @@
    - 試合作成（scores に teamName/inviteCode を保存）
    - 共通ユーティリティ / 描画ヘルパー
 */
+/* --------- 追加：ベースチーム名抽出関数 --------- */
+function makeBaseTeamName(name){
+  if(!name) return "";
+  const up = name.toUpperCase();
+  if(up.endsWith("_ADMIN")){
+    return name.slice(0, -6);   // "_ADMIN" を除去
+  }
+  return name; // 一般ユーザーはそのまま
+}
 
 let scores = [];
 let videos = [];
@@ -600,7 +609,15 @@ document.getElementById("btnJoin")?.addEventListener("click", async ()=>{
     }
 
     // ローカル保存
-    setTeam({ teamName: name, inviteCode: code });
+// 追加：baseTeamName を作成
+const baseName = makeBaseTeamName(name);
+
+// ローカル保存（baseTeamName を含む）
+setTeam({ 
+  teamName: name, 
+  inviteCode: code,
+  baseTeamName: baseName
+});
 
     await loadVideosFromFirestore();
     await loadScores();
