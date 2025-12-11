@@ -1,7 +1,7 @@
 /* main.js — チーム管理＆保護者ログイン対応版（安全版） */
 
 let scores = []; // Firestoreから読み込む
-let videos = JSON.parse(localStorage.getItem("videos") || "[]");
+let videos = [];
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 window.currentEditIndex = undefined;
 let currentSearchQuery = "";
@@ -100,21 +100,31 @@ async function addYouTubeVideo(url){
 /* ------------------------------
    チーム参加 / 作成
 ------------------------------ */
-async function joinTeam(teamName, inviteCode){
-  const name = (teamName||"").trim();
-  const code = (inviteCode||"").trim().toUpperCase();
+async function joinTeam(){
+  const name = (document.getElementById("teamNameInput")?.value||"").trim();
+  const code = (document.getElementById("inviteCodeInput")?.value||"").trim().toUpperCase();
+
   if(!name) return alert("チーム名を入力してください");
   if(!code) return alert("招待コードを入力してください");
 
-  try {
-    const db = window._firebaseDB;
-    const { collection, getDocs, query, where, doc, setDoc } = window._firebaseFns;
+  const db = window._firebaseDB;
+  const fns = window._firebaseFns;
 
+  if(!db || !fns) {
+    alert("Firebaseが初期化されていません");
+    return;
+  }
+
+  const { collection, addDoc, getDocs, query, where, doc, setDoc } = fns;
+
+  try {
+    // 既存チームを検索
     const q = query(collection(db,"teams"), where("inviteCode","==",code));
     const snap = await getDocs(q);
 
     let teamData = null;
     if(snap.empty){
+      // 新規チーム作成（管理者）
       const newDocRef = doc(collection(db,"teams"));
       teamData = {
         teamName: name,
@@ -124,28 +134,33 @@ async function joinTeam(teamName, inviteCode){
       };
       await setDoc(newDocRef, teamData);
     } else {
+      // 既存チームに参加（保護者）
       const docSnap = snap.docs[0];
       teamData = { id: docSnap.id, ...docSnap.data(), isAdmin: false };
     }
 
-    saveLocalTeam(teamData);
+    // ローカル保存
+    localStorage.setItem("teamInfo", JSON.stringify(teamData));
+    window.currentTeam = teamData;
 
-    document.getElementById("teamSection").style.display = "none";
-    document.getElementById("scoresSection").style.display = "block";
-    if(isAdmin()){
-      document.getElementById("addVideoSection").style.display = "block";
-      document.getElementById("createMatchSection").style.display = "block";
+    // UI切替
+    document.getElementById("teamSection").style.display="none";
+    document.getElementById("scoresSection").style.display="block";
+    if(teamData.isAdmin){
+      document.getElementById("addVideoSection").style.display="block";
+      document.getElementById("createMatchSection").style.display="block";
     } else {
-      document.getElementById("addVideoSection").style.display = "none";
-      document.getElementById("createMatchSection").style.display = "none";
+      document.getElementById("addVideoSection").style.display="none";
+      document.getElementById("createMatchSection").style.display="none";
     }
 
     alert(`チーム参加しました！ チーム名: ${teamData.teamName}`);
     showBackButton();
     await loadScores();
-  } catch(err){
+
+  } catch(err) {
     console.error(err);
-    alert("チーム参加に失敗しました");
+    alert("チーム参加に失敗しました\n" + (err.message || err));
   }
 }
 
@@ -153,20 +168,16 @@ async function joinTeam(teamName, inviteCode){
    DOMContentLoadedでボタン登録
 ------------------------------ */
 document.addEventListener("DOMContentLoaded",()=>{
+  // チーム参加ボタン
   const btnJoin = document.getElementById("btnJoin");
-  if(btnJoin){
-    btnJoin.addEventListener("click",()=>{
-      const teamName = document.getElementById("teamNameInput")?.value || "";
-      const inviteCode = document.getElementById("inviteCodeInput")?.value || "";
-      joinTeam(teamName, inviteCode);
-    });
-  }
+  if(btnJoin) btnJoin.addEventListener("click",joinTeam);
 
+  // YouTube追加ボタン
   const btnAddYouTube = document.getElementById("btnAddYouTube");
   if(btnAddYouTube){
     btnAddYouTube.addEventListener("click",()=>{
-      const url=(document.getElementById("youtubeUrl")?.value||"").trim();
-      if(!url)return alert("URLを入力してください");
+      const url = (document.getElementById("youtubeUrl")?.value || "").trim();
+      if(!url) return alert("URLを入力してください");
       addYouTubeVideo(url);
       document.getElementById("youtubeUrl").value="";
     });
@@ -175,6 +186,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   renderVideoSelects();
   loadScores();
 
+  // 初期表示制御
   document.getElementById("btnBackLogin").style.display="none";
   document.getElementById("addVideoSection").style.display="none";
   document.getElementById("createMatchSection").style.display="none";
@@ -182,23 +194,26 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 
 /* ------------------------------
-   スコア読み込み
+   スコア読み込み / 描画
 ------------------------------ */
 async function loadScores(){
   const db = window._firebaseDB;
-  const { collection, getDocs } = window._firebaseFns;
+  const fns = window._firebaseFns;
+  if(!db || !fns) return;
+
+  const { collection, getDocs } = fns;
 
   const team = getLocalTeam();
   if(!team) return;
 
   try {
-    const scoresCol = collection(db,"scores"); // 従来の scores コレクション
+    const scoresCol = collection(db,"scores"); // 従来の scores コレクションを使用
     const snap = await getDocs(scoresCol);
     scores = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderScores();
   } catch(err){
     console.error(err);
-    alert("スコア読み込みに失敗しました");
+    alert("スコアの読み込みに失敗しました\n" + (err.message || err));
   }
 }
 
@@ -215,6 +230,7 @@ function renderScores(){
     return (s.opponent||"").toLowerCase().includes(currentSearchQuery.toLowerCase());
   });
 
+  // 月ごとにまとめる
   const grouped = {};
   filtered.forEach(s=>{
     const month = s.date?.slice(0,7) || "不明";
@@ -294,6 +310,7 @@ function renderHLList(seconds){
   });
 }
 
+/* ハイライトアイテム生成 */
 function createHlItemElement(sec){
   const div = document.createElement("div");
   div.className="hl-item";
@@ -313,7 +330,7 @@ function createHlItemElement(sec){
 
   const delBtn = document.createElement("button");
   delBtn.textContent="✖️";
-  delBtn.addEventListener("click",()=>div.remove());
+  delBtn.addEventListener("click",()=> div.remove());
   div.appendChild(delBtn);
 
   return div;
@@ -330,18 +347,18 @@ document.getElementById("btnMarkGoal")?.addEventListener("click",()=>{
 /* ------------------------------
    編集モーダル保存
 ------------------------------ */
-document.getElementById("saveEdit")?.addEventListener("click",async ()=>{
-  if(window.currentEditIndex===undefined) return alert("編集中の試合がありません");
-  const current = scores.find(s=>s.id===window.currentEditIndex);
-  if(!current) return alert("試合が見つかりません");
+document.getElementById("saveEdit")?.addEventListener("click", async () => {
+  if (window.currentEditIndex === undefined) return alert("編集中の試合がありません");
+  const current = scores.find(s => s.id === window.currentEditIndex);
+  if (!current) return alert("試合が見つかりません");
 
   const db = window._firebaseDB;
   const { doc, updateDoc } = window._firebaseFns;
 
   const hlList = document.getElementById("hlList");
-  const hlSeconds = Array.from(hlList.children).map(c=>{
+  const hlSeconds = Array.from(hlList.children).map(c => {
     const span = c.querySelector("span");
-    return Number(span?.dataset.second||0);
+    return Number(span?.dataset.second || 0);
   });
 
   const data = {
@@ -349,21 +366,21 @@ document.getElementById("saveEdit")?.addEventListener("click",async ()=>{
     date: document.getElementById("edit-date").value,
     opponent: document.getElementById("edit-opponent").value,
     place: document.getElementById("edit-place").value,
-    scoreA: Number(document.getElementById("edit-my-score").value)||0,
-    scoreB: Number(document.getElementById("edit-opponent-score").value)||0,
-    pkA: Number(document.getElementById("edit-pkA").value)||0,
-    pkB: Number(document.getElementById("edit-pkB").value)||0,
+    scoreA: Number(document.getElementById("edit-my-score").value) || 0,
+    scoreB: Number(document.getElementById("edit-opponent-score").value) || 0,
+    pkA: Number(document.getElementById("edit-pkA").value) || 0,
+    pkB: Number(document.getElementById("edit-pkB").value) || 0,
     videoId: document.getElementById("edit-video-select").value || null,
     hlSeconds
   };
 
-  try{
-    const ref = doc(db,"scores",current.id);
-    await updateDoc(ref,data);
+  try {
+    const ref = doc(db, "scores", current.id);
+    await updateDoc(ref, data);
     alert("保存しました");
     document.getElementById("editModal").classList.add("hidden");
     await loadScores();
-  }catch(err){
+  } catch (err) {
     console.error(err);
     alert("保存に失敗しました");
   }
@@ -372,21 +389,21 @@ document.getElementById("saveEdit")?.addEventListener("click",async ()=>{
 /* ------------------------------
    編集モーダル削除
 ------------------------------ */
-document.getElementById("deleteMatch")?.addEventListener("click",async ()=>{
-  if(window.currentEditIndex===undefined) return alert("編集中の試合がありません");
-  if(!confirm("この試合を削除しますか？")) return;
+document.getElementById("deleteMatch")?.addEventListener("click", async () => {
+  if (window.currentEditIndex === undefined) return alert("編集中の試合がありません");
+  if (!confirm("この試合を削除しますか？")) return;
 
-  const current = scores.find(s=>s.id===window.currentEditIndex);
-  if(!current) return alert("試合が見つかりません");
+  const current = scores.find(s => s.id === window.currentEditIndex);
+  if (!current) return alert("試合が見つかりません");
 
-  try{
+  try {
     const { doc, deleteDoc } = window._firebaseFns;
-    const ref = doc(window._firebaseDB,"scores",current.id);
+    const ref = doc(window._firebaseDB, "scores", current.id);
     await deleteDoc(ref);
     alert("削除しました");
     document.getElementById("editModal").classList.add("hidden");
     await loadScores();
-  }catch(err){
+  } catch (err) {
     console.error(err);
     alert("削除に失敗しました");
   }
@@ -395,7 +412,7 @@ document.getElementById("deleteMatch")?.addEventListener("click",async ()=>{
 /* ------------------------------
    モーダル閉じる
 ------------------------------ */
-document.getElementById("modalClose")?.addEventListener("click",()=>{
+document.getElementById("modalClose")?.addEventListener("click", () => {
   document.getElementById("editModal").classList.add("hidden");
   window.currentEditIndex = undefined;
 });
@@ -403,14 +420,15 @@ document.getElementById("modalClose")?.addEventListener("click",()=>{
 /* ------------------------------
    ログアウト
 ------------------------------ */
-document.getElementById("btnBackLogin")?.addEventListener("click",()=>{
+document.getElementById("btnBackLogin")?.addEventListener("click", () => {
   localStorage.removeItem("teamInfo");
   location.reload();
 });
 
 /* ------------------------------
-   バックボタン表示
+   戻るボタン表示補助
 ------------------------------ */
-function showBackButton(){
-  document.getElementById("btnBackLogin").style.display="block";
+function showBackButton() {
+  const btn = document.getElementById("btnBackLogin");
+  if (btn) btn.style.display = "block";
 }
