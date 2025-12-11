@@ -38,6 +38,67 @@ function isAdmin(){
   return t.teamName.toUpperCase().endsWith("_ADMIN");
 }
 
+/* ---------- Firestore バックアップ / 復元 ---------- */
+async function backupAllFirestore(){
+  if(!isAdmin()) return alert("管理者のみ実行可能です");
+  try{
+    const db = window._firebaseDB;
+    const { collection, getDocs } = window._firebaseFns;
+    const teamsSnap = await getDocs(collection(db,"teams"));
+    const scoresSnap = await getDocs(collection(db,"scores"));
+    const videosSnap = await getDocs(collection(db,"videos"));
+    const data = {
+      teams: teamsSnap.docs.map(d=>({ id:d.id, ...d.data() })),
+      scores: scoresSnap.docs.map(d=>({ id:d.id, ...d.data() })),
+      videos: videosSnap.docs.map(d=>({ id:d.id, ...d.data() })),
+      createdAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `minotani_backup_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert("バックアップをダウンロードしました");
+  }catch(err){ console.error(err); alert("バックアップに失敗しました"); }
+}
+
+async function restoreBackupFile(file){
+  if(!isAdmin()) return alert("管理者のみ実行可能です");
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const db = window._firebaseDB;
+    const { doc, setDoc } = window._firebaseFns;
+
+    // teams
+    if(Array.isArray(data.teams)){
+      for(const t of data.teams){
+        if(!t.id) continue;
+        await setDoc(doc(db,"teams",t.id), t);
+      }
+    }
+    // scores
+    if(Array.isArray(data.scores)){
+      for(const s of data.scores){
+        if(!s.id) continue;
+        await setDoc(doc(db,"scores",s.id), s);
+      }
+    }
+    // videos
+    if(Array.isArray(data.videos)){
+      for(const v of data.videos){
+        if(!v.id) continue;
+        await setDoc(doc(db,"videos",v.id), v);
+      }
+    }
+
+    alert("バックアップを Firestore に復元しました");
+    await loadVideosFromFirestore();
+    await loadScores();
+  }catch(err){ console.error(err); alert("復元に失敗しました"); }
+}
+
 /* YouTube ID 抽出（安全） */
 function extractYouTubeId(url){
   try{
