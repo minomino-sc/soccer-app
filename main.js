@@ -191,6 +191,7 @@ async function createMatch(){
   const payload = {
     teamName: team.teamName,
     inviteCode: team.inviteCode,
+  baseTeamName: team.baseTeamName,    // ★ 追加 
     date,
     matchType,
     opponent,
@@ -286,8 +287,9 @@ async function loadScores(){
     const { collection, query, where, getDocs } = window._firebaseFns;
     const scoresCol = collection(db,"scores");
 const q = query(scoresCol, 
-  where("teamName","==",team.teamName)
-);    
+  where("baseTeamName","==",team.baseTeamName)
+);
+
     const snap = await getDocs(q);
     scores = snap.docs.map(d=>({ id:d.id, ...d.data() }));
 
