@@ -554,57 +554,74 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   });
 
   /* チーム参加/作成: Firestore に team を登録（完全一致チェック） */
-  document.getElementById("btnJoin")?.addEventListener("click", async ()=>{
-    const name = (document.getElementById("teamNameInput")?.value || "").trim();
-    const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-    if(!name) return alert("チーム名を入力してください");
-    if(!code) return alert("招待コードを入力してください");
+document.getElementById("btnJoin")?.addEventListener("click", async ()=>{
+  const name = (document.getElementById("teamNameInput")?.value || "").trim();
+  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
+  if(!name) return alert("チーム名を入力してください");
+  if(!code) return alert("招待コードを入力してください");
 
-    const db = window._firebaseDB;
-    const { collection, getDocs, addDoc } = window._firebaseFns;
-    const teamsCol = collection(db,"teams");
+  const db = window._firebaseDB;
+  const { collection, getDocs, addDoc } = window._firebaseFns;
+  const teamsCol = collection(db,"teams");
 
-    try{
-      const snap = await getDocs(teamsCol);
-      let matched = null;
-      let conflict = false;
+  try{
+    const snap = await getDocs(teamsCol);
+    let matched = null;
+    let inviteConflict = false;
 
-      snap.docs.forEach(d=>{
-        const data = d.data();
-        if(data.teamName === name && data.inviteCode === code) matched = { id:d.id, ...data };
-        else if(data.teamName === name || data.inviteCode === code) conflict = true;
-      });
+    snap.docs.forEach(d=>{
+      const data = d.data();
 
-      if(matched){
-        alert(`チーム "${matched.teamName}" にログインしました`);
-      } else if(conflict){
-        return alert("既に使用されています（チーム名または招待コードが重複しています）。別の組み合わせを指定してください。");
-      } else {
-        await addDoc(teamsCol, { teamName: name, inviteCode: code, createdAt: new Date().toISOString() });
-        alert(`チーム "${name}" を新規登録しました`);
+      // ① 完全一致 → ログイン
+      if(data.teamName === name && data.inviteCode === code){
+        matched = { id:d.id, ...data };
       }
-
-      // local 保存 & 再読み込み
-      setTeam({ teamName: name, inviteCode: code });
-      await loadVideosFromFirestore();
-      await loadScores();
-
-      // UI 切替
-      document.getElementById("teamSection").style.display="none";
-      document.getElementById("scoresSection").style.display="block";
-      if(isAdmin()){
-        document.getElementById("addVideoSection").style.display="block";
-        document.getElementById("createMatchSection").style.display="block";
-      } else {
-        document.getElementById("addVideoSection").style.display="none";
-        document.getElementById("createMatchSection").style.display="none";
+      // ④ 招待コードは完全一致以外の重複を禁止
+      else if(data.inviteCode === code){
+        inviteConflict = true;
       }
-      showBackButton();
+      // ③ チーム名の重複は OK（ここでは何もしない）
+    });
 
-    }catch(err){
-      console.error("team create/login error", err);
-      alert("チーム登録/ログインでエラーが発生しました");
+    if(inviteConflict && !matched){
+      return alert("この招待コードは既に使用されています。別の招待コードを指定してください。");
     }
-  });
+
+    if(matched){
+      alert(`チーム "${matched.teamName}" にログインしました`);
+    } else {
+      // ② 一致するチームがない → 新規登録
+      await addDoc(teamsCol, { 
+        teamName: name, 
+        inviteCode: code, 
+        createdAt: new Date().toISOString() 
+      });
+      alert(`チーム "${name}" を新規登録しました`);
+    }
+
+    // ローカル保存
+    setTeam({ teamName: name, inviteCode: code });
+
+    await loadVideosFromFirestore();
+    await loadScores();
+
+    // UI 反映
+    document.getElementById("teamSection").style.display="none";
+    document.getElementById("scoresSection").style.display="block";
+
+    if(isAdmin()){
+      document.getElementById("addVideoSection").style.display="block";
+      document.getElementById("createMatchSection").style.display="block";
+    } else {
+      document.getElementById("addVideoSection").style.display="none";
+      document.getElementById("createMatchSection").style.display="none";
+    }
+    showBackButton();
+
+  }catch(err){
+    console.error("team create/login error", err);
+    alert("チーム登録/ログインでエラーが発生しました");
+  }
+});
 
 }); // DOMContentLoaded end
