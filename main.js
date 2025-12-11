@@ -692,10 +692,33 @@ setTeam({
     if(isAdmin()){
       document.getElementById("addVideoSection").style.display="block";
       document.getElementById("createMatchSection").style.display="block";
-    } else {
-      document.getElementById("addVideoSection").style.display="none";
-      document.getElementById("createMatchSection").style.display="none";
-    }
+
+  // ← ここにバックアップボタン関連の表示切替を移動
+  const backupSection = document.getElementById("backupSection");
+  if(backupSection) backupSection.style.display = "block";
+
+  const backupAllBtn = document.getElementById("btnBackupAllFirestore");
+  if(backupAllBtn) backupAllBtn.addEventListener("click", backupAllFirestore);
+
+  const restoreBtn = document.getElementById("btnRestoreBackup");
+  const uploadInput = document.getElementById("uploadBackupFile");
+  if(restoreBtn && uploadInput){
+    restoreBtn.addEventListener("click", ()=>uploadInput.click());
+    uploadInput.addEventListener("change", async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      if(!confirm(`"${file.name}" を Firestore に復元します。既存データは上書きされます。よろしいですか？`)) return;
+      await restoreBackupFile(file);
+      uploadInput.value=""; // クリア
+    });
+  }
+
+} else {
+  document.getElementById("addVideoSection").style.display="none";
+  document.getElementById("createMatchSection").style.display="none";
+  document.getElementById("backupSection").style.display="none"; // 管理者でない場合は非表示
+}
+
     showBackButton();
 
   }catch(err){
@@ -703,25 +726,5 @@ setTeam({
     alert("チーム登録/ログインでエラーが発生しました");
   }
 });
-
-const backupAllBtn = document.getElementById("btnBackupAllFirestore");
-if(backupAllBtn){
-  backupAllBtn.addEventListener("click", backupAllFirestore);
-  backupAllBtn.style.display = isAdmin() ? "block" : "none";
-}
-
-const restoreBtn = document.getElementById("btnRestoreBackup");
-const uploadInput = document.getElementById("uploadBackupFile");
-if(restoreBtn && uploadInput){
-  restoreBtn.style.display = isAdmin() ? "block" : "none";
-  restoreBtn.addEventListener("click", ()=>uploadInput.click());
-  uploadInput.addEventListener("change", async (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    if(!confirm(`"${file.name}" を Firestore に復元します。既存データは上書きされます。よろしいですか？`)) return;
-    await restoreBackupFile(file);
-    uploadInput.value=""; // クリア
-  });
-}
   
 }); // DOMContentLoaded end
