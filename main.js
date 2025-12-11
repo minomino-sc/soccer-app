@@ -59,6 +59,11 @@ async function backupAllFirestore(){
     a.href = url; a.download = `minotani_backup_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+     
+    // ★ バックアップ日時を UI に反映
+    const tsEl = document.getElementById("backupTimestamp");
+    if(tsEl) tsEl.textContent = "最終バックアップ日時: " + new Date().toLocaleString(); 
+     
     alert("バックアップをダウンロードしました");
   }catch(err){ console.error(err); alert("バックアップに失敗しました"); }
 }
