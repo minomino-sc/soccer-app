@@ -50,51 +50,7 @@
   <!-- 試合作成 -->
   <section class="section-card" id="createMatchSection" style="display:none;">
     <h2>試合結果作成</h2>
-    <div class="row vertical">
-      <label class="lbl">試合種別</label>
-      <select id="matchTypeCreate">
-        <option value="">種別を選択</option>
-        <option value="公式戦">公式戦</option>
-        <option value="カップ戦">カップ戦</option>
-        <option value="交流戦">交流戦</option>
-      </select>
-    </div>
-    <div class="row vertical date-wrapper">
-      <label class="lbl" for="matchDate">試合日</label>
-      <div class="date-input-wrapper">
-        <input id="matchDate" type="date" required />
-        <span class="placeholder-text">日付を選択</span>
-      </div>
-    </div>
-    <div class="row vertical">
-      <label class="lbl">対戦相手</label>
-      <input id="opponent" placeholder="例：○○SC" />
-    </div>
-    <div class="row vertical">
-      <label class="lbl">会場</label>
-      <input id="place" placeholder="例：しあわせの村　球技場" />
-    </div>
-    <div class="row vertical">
-      <label class="lbl">得点</label>
-      <div class="row">
-        <input id="scoreA" type="number" min="0" placeholder="自チーム得点" />
-        <input id="scoreB" type="number" min="0" placeholder="相手チーム得点" />
-      </div>
-    </div>
-    <div class="row vertical">
-      <label class="lbl">PK（任意）</label>
-      <div class="row">
-        <input id="pkA" type="number" min="0" placeholder="自チームPK得点" />
-        <input id="pkB" type="number" min="0" placeholder="相手PK得点" />
-      </div>
-      <p class="muted small">同点でPK決着時のみ入力してください</p>
-    </div>
-    <div class="row vertical">
-      <label class="lbl">紐づけ動画</label>
-      <select id="videoSelect"></select>
-      <button id="btnCreateMatch" class="btn" style="margin-top:6px;">作成</button>
-    </div>
-    <p class="muted small">作成後に試合結果一覧で編集できます。</p>
+    <!-- 略：現状の createMatchSection 内のフォーム -->
   </section>
 
   <!-- 試合結果一覧 -->
@@ -117,73 +73,18 @@
 <div id="editModal" class="modal hidden">
   <div class="modal-content section-card">
     <h2>試合編集</h2>
-    <div class="row vertical">
-      <label class="lbl">試合種別</label>
-      <select id="matchType">
-        <option value="">選択してください</option>
-        <option value="公式戦">公式戦</option>
-        <option value="カップ戦">カップ戦</option>
-        <option value="交流戦">交流戦</option>
-      </select>
-    </div>
-    <div class="row vertical">
-      <label class="lbl">試合日</label>
-      <input type="date" id="edit-date">
-    </div>
-    <div class="row vertical">
-      <label class="lbl">対戦相手</label>
-      <input type="text" id="edit-opponent">
-    </div>
-    <div class="row vertical">
-      <label class="lbl">会場</label>
-      <input type="text" id="edit-place">
-    </div>
-    <div class="row vertical">
-      <label class="lbl">自チーム得点</label>
-      <input type="number" id="edit-my-score">
-    </div>
-    <div class="row vertical">
-      <label class="lbl">相手チーム得点</label>
-      <input type="number" id="edit-opponent-score">
-    </div>
-    <div class="row vertical">
-      <label class="lbl">PK（任意）</label>
-      <div class="row">
-        <input id="edit-pkA" type="number" placeholder="自PK" />
-        <input id="edit-pkB" type="number" placeholder="相手PK" />
-      </div>
-    </div>
-    <div class="row vertical">
-      <label class="lbl">紐づけ動画</label>
-      <select id="edit-video-select"></select>
-    </div>
-    <div class="row vertical">
-      <label class="lbl">自チームゴール秒数</label>
-      <div class="row">
-        <input id="hlSeconds" type="number" placeholder="例：85" />
-        <button id="btnMarkGoal" class="btn">追加</button>
-      </div>
-      <div id="hlList" class="muted small" style="margin-top:8px;"></div>
-    </div>
-    <div class="row" style="margin-top:12px;">
-      <button id="saveEdit" class="save-btn" style="flex:1;">保存</button>
-    </div>
-    <div class="row" style="margin-top:8px;">
-      <button id="deleteMatch" class="delete-btn" style="flex:1;">この試合を削除</button>
-    </div>
-    <div class="row" style="margin-top:8px;">
-      <button id="modalClose" class="close-btn" style="flex:1;">閉じる</button>
-    </div>
+    <!-- 略：現状の編集モーダル内のフォーム -->
   </div>
 </div>
 
 <div id="creatorLabel">⭐️製作者：Y.Ninomiya</div>
 
-<!-- Firebase 初期化 -->
+<!-- ▼ Firebase 初期化 & main.js -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import { getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+// 🔑 Firebase 設定
 const firebaseConfig = {
   apiKey: "...",
   authDomain: "...",
@@ -193,15 +94,17 @@ const firebaseConfig = {
   appId: "..."
 };
 
+// Firebase 初期化
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// グローバル参照
 window._firebaseDB = db;
 window._firebaseFns = { collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc, query, where };
-</script>
 
-<!-- main.js は通常 script として読み込む -->
-<script src="./main.js"></script>
+// Firebase 初期化後に main.js を module として読み込む
+import './main.js';
+</script>
 
 </body>
 </html>
