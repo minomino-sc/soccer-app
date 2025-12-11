@@ -275,7 +275,9 @@ async function loadScores(){
     const db = window._firebaseDB;
     const { collection, query, where, getDocs } = window._firebaseFns;
     const scoresCol = collection(db,"scores");
-    const q = query(scoresCol, where("teamName","==",team.teamName), where("inviteCode","==",team.inviteCode));
+const q = query(scoresCol, 
+  where("teamName","==",team.teamName)
+);    
     const snap = await getDocs(q);
     scores = snap.docs.map(d=>({ id:d.id, ...d.data() }));
 
