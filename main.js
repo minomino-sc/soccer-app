@@ -704,4 +704,24 @@ setTeam({
   }
 });
 
+const backupAllBtn = document.getElementById("btnBackupAllFirestore");
+if(backupAllBtn){
+  backupAllBtn.addEventListener("click", backupAllFirestore);
+  backupAllBtn.style.display = isAdmin() ? "block" : "none";
+}
+
+const restoreBtn = document.getElementById("btnRestoreBackup");
+const uploadInput = document.getElementById("uploadBackupFile");
+if(restoreBtn && uploadInput){
+  restoreBtn.style.display = isAdmin() ? "block" : "none";
+  restoreBtn.addEventListener("click", ()=>uploadInput.click());
+  uploadInput.addEventListener("change", async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(!confirm(`"${file.name}" を Firestore に復元します。既存データは上書きされます。よろしいですか？`)) return;
+    await restoreBackupFile(file);
+    uploadInput.value=""; // クリア
+  });
+}
+  
 }); // DOMContentLoaded end
