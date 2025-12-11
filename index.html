@@ -104,11 +104,17 @@
     <p class="muted small">作成後に試合結果一覧で編集できます。</p>
   </section>
 
-<!-- ▼ Firestore 一括バックアップ（管理者用） -->
 <section class="section-card" id="backupSection" style="display:none; margin-top:12px;">
-  <h2>Firestore 一括バックアップ</h2>
+  <h2>Firestore 一括バックアップ / 復元</h2>
+
+  <!-- ダウンロードボタン -->
   <button id="btnBackupAllFirestore" class="btn primary">Firestore データを一括バックアップ</button>
   <p class="muted small">管理者専用。クリックすると JSON 形式で全データをダウンロードします。</p>
+
+  <!-- アップロードボタン -->
+  <input type="file" id="uploadBackupFile" style="display:none" accept=".json">
+  <button id="btnRestoreBackup" class="btn danger">バックアップ JSON を Firestore に復元</button>
+  <p class="muted small">管理者専用。JSON ファイルを選択すると Firestore に一括復元します。</p>
 </section>
   
   <!-- ▼ 試合結果一覧 -->
