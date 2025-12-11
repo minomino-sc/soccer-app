@@ -194,10 +194,12 @@
   </div>
 </div>
 
-<!-- ▼ Firebase 初期化 -->
+<div id="creatorLabel">⭐️製作者：Y.Ninomiya</div>
+
+<!-- ▼ Firebase 初期化 & main.js -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDMJfAd5BffteapT51ZUO06VP-XDReFSwY",
@@ -212,14 +214,11 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window._firebaseDB = db;
-window._firebaseFns = { 
-  collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc,
-  query, where
-};
- 
+window._firebaseFns = { collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc, query, where };
+
+// Firebase 初期化後に main.js を module として読み込む
+import './main.js';
 </script>
 
-<div id="creatorLabel">⭐️製作者：Y.Ninomiya</div>
-<script src="main.js"></script>
 </body>
 </html>
