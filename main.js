@@ -25,7 +25,8 @@ function setTeam(team){
 
 function isAdmin(){
   const t = getTeam();
-  return !!(t && t.inviteCode === "MINO-ADMIN");
+  if(!t) return false;
+  return t.teamName.toUpperCase().endsWith("_ADMIN");
 }
 
 /* YouTube ID 抽出（安全） */
