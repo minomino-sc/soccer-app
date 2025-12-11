@@ -535,12 +535,15 @@ document.addEventListener("DOMContentLoaded",()=>{
   });
 
   document.getElementById("btnJoin")?.addEventListener("click",async()=>{
-    const name=(document.getElementById("teamNameInput")?.value||"").trim();
-    const code=(document.getElementById("inviteCodeInput")?.value||"").trim().toUpperCase();
-    if(!name) return alert("チーム名を入力してください");
-    const team={teamName:name,inviteCode:code||null};
-    localStorage.setItem("teamInfo",JSON.stringify(team));
+const name = (document.getElementById("teamNameInput")?.value || "").trim();
+const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
 
+if (!name) return alert("チーム名を入力してください");
+if (!code) return alert("招待コードを入力してください"); // ←必須
+
+const team = { teamName: name, inviteCode: code };
+localStorage.setItem("teamInfo", JSON.stringify(team));
+     
     document.getElementById("teamSection").style.display="none";
     document.getElementById("scoresSection").style.display="block";
 
