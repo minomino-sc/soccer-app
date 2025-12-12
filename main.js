@@ -1,3 +1,24 @@
+/**********************************************
+ *  ストレージ バージョン管理（誤管理者対策）
+ **********************************************/
+const APP_STORAGE_VERSION = "2025-01-15-v1";
+
+function checkStorageVersion(){
+  const v = localStorage.getItem("storageVersion");
+
+  // ▼バージョンが変わった → 全データ消去 → 新バージョン登録
+  if(v !== APP_STORAGE_VERSION){
+    console.warn("⚠️ 古いストレージを検出 → 初期化します");
+    localStorage.clear();
+    localStorage.setItem("storageVersion", APP_STORAGE_VERSION);
+    return true;  // クリア済み
+  }
+  return false;
+}
+
+// ★ アプリ起動時に必ず実行
+checkStorageVersion();
+
 /* main.js — Firestore 完全版（part 1/2）
    - チーム参加/作成（Firestore 上で重複チェック: チーム名 + 招待コード）
    - YouTube 動画追加（Firestore videos コレクション）
