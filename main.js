@@ -432,10 +432,16 @@ const q = query(scoresCol,
       meta.className = "meta";
       const icon = TYPE_ICON[it.matchType||""]||"🏳️";
       const typeClass = typeClassName(it.matchType||"");
-      meta.innerHTML = `<div class="title"><span class="type-icon ${typeClass}">${icon}</span> ${it.date} — ${it.opponent}</div>
-                        <div class="type-badge ${typeClass}">${it.matchType||"未設定"}</div>
-                        <div class="sub match-venue">${it.place||""}</div>
-                        <div class="sub">得点: ${it.scoreA ?? "-"} - ${it.scoreB ?? "-"}</div>`;
+
+let scoreText = `${it.scoreA ?? "-"} - ${it.scoreB ?? "-"}`;
+if(it.pkA != null && it.pkB != null){
+  scoreText += ` （PK ${it.pkA} - ${it.pkB}）`;
+}
+
+meta.innerHTML = `<div class="title"><span class="type-icon ${typeClass}">${icon}</span> ${it.date} — ${it.opponent}</div>
+                  <div class="type-badge ${typeClass}">${it.matchType||"未設定"}</div>
+                  <div class="sub match-venue">${it.place||""}</div>
+                  <div class="sub">得点: ${scoreText}</div>`;     
 
       // highlights
       if(Array.isArray(it.hlSeconds) && it.hlSeconds.length){
