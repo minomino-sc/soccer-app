@@ -553,6 +553,8 @@ async function saveEditGeneric(){
   const place = (document.getElementById("edit-place")?.value||"").trim();
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
+const pkScoreAVal = document.getElementById("edit-pk-scoreA")?.value;
+const pkScoreBVal = document.getElementById("edit-pk-scoreB")?.value;   
   const videoSelect = document.getElementById("edit-video-select");
   const videoId = videoSelect?.value || null;
 
@@ -570,6 +572,8 @@ async function saveEditGeneric(){
       date, matchType, opponent, place,
       scoreA: myScoreVal===""?null:Number(myScoreVal),
       scoreB: opScoreVal===""?null:Number(opScoreVal),
+  pkScoreA: pkScoreAVal==="" ? null : Number(pkScoreAVal),
+  pkScoreB: pkScoreBVal==="" ? null : Number(pkScoreBVal),
       hlSeconds, videoId
     });
     alert("Firestore に保存しました！");
