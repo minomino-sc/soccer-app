@@ -686,10 +686,10 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
 
   try {
     const snap = await getDocs(teamsCol);
-    let matched = null;           // 完全一致
-    let nameMatch = null;         // チーム名だけ一致
-    let codeMatch = null;         // 招待コードだけ一致
-    let codeConflict = false;     // 招待コード重複（完全一致以外）
+
+    let matched = null;     // ① チーム名＋招待コードの完全一致
+    let nameMatch = false;  // ② チーム名だけ一致
+    let codeMatch = false;  // ③ 招待コードだけ一致（招待コード被り）
 
     snap.docs.forEach(d => {
       const data = d.data();
@@ -700,38 +700,54 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
       }
       // ② チーム名だけ一致
       else if (data.teamName === name) {
-        nameMatch = data;
+        nameMatch = true;
       }
-      // ③ 招待コードだけ一致
+      // ③ コードだけ一致（招待コードの重複は禁止）
       else if (data.inviteCode === code) {
-        codeMatch = data;
-        codeConflict = true;
+        codeMatch = true;
       }
     });
 
-    // ④ 招待コードが他のチームで使われていたらアウト
-    if (codeConflict && !matched) {
-      return alert("この招待コードは既に使用されています。他の招待コードを指定してください。");
+    // ③ 招待コード重複 → 使用不可
+    if (codeMatch && !matched) {
+      return alert("この招待コードは既に使用されています。別の招待コードを指定してください。");
     }
 
-    // ⑤ 片方だけ一致した場合の警告
-    if (!matched) {
+    // ② 片方だけ一致している場合
+    if (!matched && (nameMatch || codeMatch)) {
       if (nameMatch && !codeMatch) {
-        return alert("チーム名は一致していますが、招待コードが違います。正しいコードを入力してください。");
+        return alert("そのチーム名は既に存在しますが、招待コードが一致しません。");
       }
       if (!nameMatch && codeMatch) {
-        return alert("招待コードは一致していますが、チーム名が違います。正しいチーム名を入力してください。");
+        return alert("その招待コードは既に使用されていますが、チーム名が一致しません。");
       }
     }
 
-    // ⑥ 完全一致 → ログイン成功
+    // ① 完全一致 → ログイン処理
     if (matched) {
       alert(`チーム "${matched.teamName}" にログインしました`);
-      showBackButton();          // ← 復活！
+
+      // ★ ログイン状態として保存
+      setTeam({
+        teamName: matched.teamName,
+        inviteCode: matched.inviteCode,
+        baseTeamName: makeBaseTeamName(matched.teamName)
+      });
+
+      // ★ UI切り替え
+      document.getElementById("teamSection").style.display = "none";
+      document.getElementById("addVideoSection").style.display = "block";
+      document.getElementById("createMatchSection").style.display = "block";
+      document.getElementById("scoresSection").style.display = "block";
+
+      await loadVideosFromFirestore();
+      await loadScores();
+
+      showBackButton();
       return;
     }
 
-    // ⑦ 完全新規作成
+    // ④ 完全に新規の場合 → 確認ダイアログ
     if (!matched && !nameMatch && !codeMatch) {
       const ok = confirm(`チーム "${name}" を新しく作成します。よろしいですか？`);
       if (!ok) return;
@@ -743,13 +759,30 @@ document.getElementById("btnJoin")?.addEventListener("click", async () => {
       });
 
       alert(`チーム "${name}" を新規登録しました`);
-      showBackButton();          // ← 新規作成時も呼ぶ！
+
+      // ★ ログイン状態として保存
+      setTeam({
+        teamName: name,
+        inviteCode: code,
+        baseTeamName: makeBaseTeamName(name)
+      });
+
+      // ★ UI切り替え
+      document.getElementById("teamSection").style.display = "none";
+      document.getElementById("addVideoSection").style.display = "block";
+      document.getElementById("createMatchSection").style.display = "block";
+      document.getElementById("scoresSection").style.display = "block";
+
+      await loadVideosFromFirestore();
+      await loadScores();
+
+      showBackButton();
       return;
     }
 
   } catch (e) {
     console.error(e);
-    alert("エラーが発生しました");
+    alert("チーム検索でエラーが発生しました");
   }
 });
   
