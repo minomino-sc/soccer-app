@@ -610,6 +610,19 @@ btnBack?.addEventListener("click", ()=>{
   document.getElementById("teamNameInput").value = "";
   document.getElementById("inviteCodeInput").value = "";
   if(btnBack) btnBack.style.display = "none";
+
+btnBack?.addEventListener("click", ()=>{
+  document.getElementById("teamSection").style.display="block";
+  document.getElementById("addVideoSection").style.display="none";
+  document.getElementById("createMatchSection").style.display="none";
+  document.getElementById("scoresSection").style.display="none";
+  document.getElementById("teamNameInput").value = "";
+  document.getElementById("inviteCodeInput").value = "";
+  if(btnBack) btnBack.style.display = "none";
+
+  // ← ここを追加
+  const backupSection = document.getElementById("backupSection");
+  if(backupSection) backupSection.style.display = "none";
 });
 
   // ★ 管理者バックアップセクションも非表示
