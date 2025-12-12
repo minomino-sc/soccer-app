@@ -615,7 +615,6 @@ btnBack?.addEventListener("click", ()=>{
   // ★ 管理者バックアップセクションも非表示
   const backupSection = document.getElementById("backupSection");
   if(backupSection) backupSection.style.display = "none";
-});
 
   const addVideoSection = document.getElementById("addVideoSection");
   if(addVideoSection) addVideoSection.style.display = "none";
