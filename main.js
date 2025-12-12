@@ -247,8 +247,9 @@ async function createMatch(){
   const place = (placeEl?.value||"").trim();
   const scoreA = myScoreEl?.value;
   const scoreB = opScoreEl?.value;
-const pkScoreAEl = document.getElementById("scorePkA");
-const pkScoreBEl = document.getElementById("scorePkB");
+
+const pkScoreAEl = document.getElementById("pkA");
+const pkScoreBEl = document.getElementById("pkB");
  
   const videoId = videoSelect?.value || null;
 
@@ -559,8 +560,9 @@ async function saveEditGeneric(){
   const place = (document.getElementById("edit-place")?.value||"").trim();
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
-const pkScoreAVal = document.getElementById("edit-pk-scoreA")?.value;
-const pkScoreBVal = document.getElementById("edit-pk-scoreB")?.value;  
+  
+const pkScoreAVal = document.getElementById("edit-pkA")?.value;
+const pkScoreBVal = document.getElementById("edit-pkB")?.value;
 
   const videoSelect = document.getElementById("edit-video-select");
   const videoId = videoSelect?.value || null;
