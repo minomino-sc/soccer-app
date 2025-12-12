@@ -1,17 +1,28 @@
 /**********************************************
- *  ストレージ バージョン管理（誤管理者対策）
+ *  ストレージ バージョン管理（安全版）
  **********************************************/
 const APP_STORAGE_VERSION = "2025-01-15-v1";
 
 function checkStorageVersion(){
   const v = localStorage.getItem("storageVersion");
 
-  // ▼バージョンが変わった → 全データ消去 → 新バージョン登録
   if(v !== APP_STORAGE_VERSION){
-    console.warn("⚠️ 古いストレージを検出 → 初期化します");
-    localStorage.clear();
+    console.warn("⚠️ 古いストレージを検出 → キャッシュのみ初期化します");
+
+    // 保存しておきたいデータを一時退避
+    const teamInfo = localStorage.getItem("teamInfo");
+
+    // 消すのはキャッシュ系のみ
+    localStorage.removeItem("videos");
+    localStorage.removeItem("collapsedMonths");
+
+    // バージョン更新
     localStorage.setItem("storageVersion", APP_STORAGE_VERSION);
-    return true;  // クリア済み
+
+    // チーム情報を復元
+    if(teamInfo) localStorage.setItem("teamInfo", teamInfo);
+
+    return true;  // キャッシュリセット済み
   }
   return false;
 }
