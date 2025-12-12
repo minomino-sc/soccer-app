@@ -38,7 +38,8 @@ function isAdmin(){
   return t.teamName.toUpperCase().endsWith("_ADMIN");
 }
 
-async function applyTeamUI(){
+/* ---------- ログイン後 UI 反映（メインメニュー or 管理者UI） ---------- */
+async function applyTeamUI(showMainMenu = false){  // ← 引数追加
   const admin = isAdmin();
 
   const teamSection = document.getElementById("teamSection");
@@ -47,15 +48,25 @@ async function applyTeamUI(){
   const scoresSection = document.getElementById("scoresSection");
   const backupSection = document.getElementById("backupSection");
 
-  if(teamSection) teamSection.style.display = "none";
-  if(scoresSection) scoresSection.style.display = "block";
+  if(showMainMenu){
+    // メインメニュー表示
+    if(teamSection) teamSection.style.display = "block";
+    if(addVideoSection) addVideoSection.style.display = "none";
+    if(createMatchSection) createMatchSection.style.display = "none";
+    if(scoresSection) scoresSection.style.display = "none";
+    if(backupSection) backupSection.style.display = "none";
+  } else {
+    // 管理者UI表示（動画追加・試合作成・スコア一覧など）
+    if(teamSection) teamSection.style.display = "none";
+    if(scoresSection) scoresSection.style.display = "block";
 
-  if(addVideoSection) addVideoSection.style.display = admin ? "block" : "none";
-  if(createMatchSection) createMatchSection.style.display = admin ? "block" : "none";
-  if(backupSection) backupSection.style.display = admin ? "block" : "none";
+    if(addVideoSection) addVideoSection.style.display = admin ? "block" : "none";
+    if(createMatchSection) createMatchSection.style.display = admin ? "block" : "none";
+    if(backupSection) backupSection.style.display = admin ? "block" : "none";
 
-  await loadVideosFromFirestore();
-  await loadScores();
+    await loadVideosFromFirestore();
+    await loadScores();
+  }
 
   showBackButton();
 }
