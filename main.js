@@ -39,7 +39,7 @@ function isAdmin(){
 }
 
 /* ---------- ログイン後 UI 反映（メインメニュー or 管理者UI） ---------- */
-async function applyTeamUI(showMainMenu = false){  // ← 引数追加
+async function applyTeamUI(showMainMenu = false){
   const admin = isAdmin();
 
   const teamSection = document.getElementById("teamSection");
@@ -55,6 +55,11 @@ async function applyTeamUI(showMainMenu = false){  // ← 引数追加
     if(createMatchSection) createMatchSection.style.display = "none";
     if(scoresSection) scoresSection.style.display = "none";
     if(backupSection) backupSection.style.display = "none";
+
+    // メインメニューでは BackButton 非表示
+    const btn = document.getElementById("btnBackLogin");
+    if(btn) btn.style.display = "none";
+
   } else {
     // 管理者UI表示（動画追加・試合作成・スコア一覧など）
     if(teamSection) teamSection.style.display = "none";
@@ -66,9 +71,10 @@ async function applyTeamUI(showMainMenu = false){  // ← 引数追加
 
     await loadVideosFromFirestore();
     await loadScores();
-  }
 
-  showBackButton();
+    // 管理者UIでは BackButton を表示
+    showBackButton();
+  }
 }
 
 /* ---------- Firestore バックアップ / 復元 ---------- */
