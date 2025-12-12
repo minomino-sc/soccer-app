@@ -268,12 +268,14 @@ async function createMatch(){
     place,
     scoreA: scoreA === "" ? null : Number(scoreA),
     scoreB: scoreB === "" ? null : Number(scoreB),
-    pkA: pkA === "" ? null : Number(pkA),   // 追加
-    pkB: pkB === "" ? null : Number(pkB),   // 追加
-    videoId,
-    hlSeconds: [],
-    createdAt: new Date().toISOString()
-  };
+
+  // ★ PK も数値で保存
+  pkA: pkAVal === "" ? null : Number(pkAVal),
+  pkB: pkBVal === "" ? null : Number(pkBVal),
+  videoId,
+  hlSeconds: [],
+  createdAt: new Date().toISOString()
+};
 
   try{
     const db = window._firebaseDB;
