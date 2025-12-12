@@ -634,38 +634,9 @@ function showBackButton(){ const btn=document.getElementById("btnBackLogin"); if
 
 document.addEventListener("DOMContentLoaded", async ()=>{
 
-  if (getTeam()) {
-    await applyTeamUI();   // ← ココ！
-  }
-  
-  // 初期 local videos を復元してから Firestore を試し読み
-  loadVideosLocal();
-  await loadVideosFromFirestore();
-  await loadScores();
-
-// 初期 UI
-const btnBack = document.getElementById("btnBackLogin");
-
-// ★ 追加：初期表示は非表示にする
-if(btnBack) btnBack.style.display = "none";
-
-btnBack?.addEventListener("click", ()=>{
-  document.getElementById("teamSection").style.display="block";
-  document.getElementById("addVideoSection").style.display="none";
-  document.getElementById("createMatchSection").style.display="none";
-  document.getElementById("scoresSection").style.display="none";
-  document.getElementById("teamNameInput").value = "";
-  document.getElementById("inviteCodeInput").value = "";
+  // --- 初期 UI はすべて非表示 ---
+  const btnBack = document.getElementById("btnBackLogin");
   if(btnBack) btnBack.style.display = "none";
-
-  // ← ここを追加
-  const backupSection = document.getElementById("backupSection");
-  if(backupSection) backupSection.style.display = "none";
-});
-
-  // ★ 管理者バックアップセクションも非表示
-  const backupSection = document.getElementById("backupSection");
-  if(backupSection) backupSection.style.display = "none";
 
   const addVideoSection = document.getElementById("addVideoSection");
   if(addVideoSection) addVideoSection.style.display = "none";
@@ -673,24 +644,50 @@ btnBack?.addEventListener("click", ()=>{
   if(createMatchSection) createMatchSection.style.display = "none";
   const scoresSection = document.getElementById("scoresSection");
   if(scoresSection) scoresSection.style.display = "none";
+  const backupSection = document.getElementById("backupSection");
+  if(backupSection) backupSection.style.display = "none";
 
-  // ボタン登録（null-safe）
-  // Firestore バックアップ・復元ボタン
+  // --- local videos を復元しておく ---
+  loadVideosLocal();
+  await loadVideosFromFirestore();
+  await loadScores();
+
+  // --- チームがログイン済みなら UI を反映 ---
+  const team = getTeam();
+  if (team) {
+    await applyTeamUI();
+  } else {
+    // 未ログインならチーム入力欄を表示
+    const teamSection = document.getElementById("teamSection");
+    if(teamSection) teamSection.style.display = "block";
+  }
+
+  // --- btnBack イベント登録 ---
+  btnBack?.addEventListener("click", ()=>{
+    document.getElementById("teamSection").style.display = "block";
+    document.getElementById("addVideoSection").style.display = "none";
+    document.getElementById("createMatchSection").style.display = "none";
+    document.getElementById("scoresSection").style.display = "none";
+    const backupSection = document.getElementById("backupSection");
+    if(backupSection) backupSection.style.display = "none";
+
+    document.getElementById("teamNameInput").value = "";
+    document.getElementById("inviteCodeInput").value = "";
+    if(btnBack) btnBack.style.display = "none";
+  });
+
+  // --- 他のボタン登録 ---
   document.getElementById("btnBackupAllFirestore")?.addEventListener("click", backupAllFirestore);
-
   document.getElementById("btnRestoreBackup")?.addEventListener("click", () => {
     document.getElementById("uploadBackupFile")?.click();
   });
-
   document.getElementById("uploadBackupFile")?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (!confirm(`"${file.name}" を Firestore に復元しますか？`)) {
       e.target.value = "";
       return;
     }
-
     await restoreBackupFile(file);
     e.target.value = "";
   });
@@ -708,95 +705,54 @@ btnBack?.addEventListener("click", ()=>{
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-  document.getElementById("btnBackLogin")?.addEventListener("click", ()=>{
-    document.getElementById("teamSection").style.display="block";
-    document.getElementById("addVideoSection").style.display="none";
-    document.getElementById("createMatchSection").style.display="none";
-    document.getElementById("scoresSection").style.display="none";
-    document.getElementById("teamNameInput").value = "";
-    document.getElementById("inviteCodeInput").value = "";
-    if(btnBack) btnBack.style.display = "none";
-  });
+  // --- チーム参加/作成 ---
+  document.getElementById("btnJoin")?.addEventListener("click", async () => {
+    const nameEl = document.getElementById("teamNameInput");
+    const codeEl = document.getElementById("inviteCodeInput");
+    const name = (nameEl?.value || "").trim();
+    const code = (codeEl?.value || "").trim().toUpperCase();
+    if (!name) return alert("チーム名を入力してください");
+    if (!code) return alert("招待コードを入力してください");
 
-  /* チーム参加/作成: Firestore に team を登録（完全一致チェック） */
-// チーム参加/作成ボタンのクリック処理（完全版）
-document.getElementById("btnJoin")?.addEventListener("click", async () => {
-  const nameEl = document.getElementById("teamNameInput");
-  const codeEl = document.getElementById("inviteCodeInput");
+    const db = window._firebaseDB;
+    const { collection, getDocs, addDoc } = window._firebaseFns;
+    const teamsCol = collection(db, "teams");
 
-  const name = (nameEl?.value || "").trim();
-  const code = (codeEl?.value || "").trim().toUpperCase();
+    try {
+      const snap = await getDocs(teamsCol);
+      let matched = null;
+      let nameMatch = false;
+      let codeMatch = false;
 
-  if (!name) return alert("チーム名を入力してください");
-  if (!code) return alert("招待コードを入力してください");
-
-  const db = window._firebaseDB;
-  const { collection, getDocs, addDoc } = window._firebaseFns;
-  const teamsCol = collection(db, "teams");
-
-  try {
-    const snap = await getDocs(teamsCol);
-
-    let matched = null;     // 完全一致
-    let nameMatch = false;  // チーム名だけ一致
-    let codeMatch = false;  // 招待コードだけ一致
-
-    snap.docs.forEach(d => {
-      const data = d.data();
-
-      if (data.teamName === name && data.inviteCode === code) {
-        matched = { id: d.id, ...data };
-      } else {
-        if (data.teamName === name) nameMatch = true;
-        if (data.inviteCode === code) codeMatch = true;
-      }
-    });
-
-    // ① 片方だけ一致 → 警告して終了
-    if (!matched && nameMatch && !codeMatch) {
-      return alert("チーム名は一致していますが招待コードが違います。正しい招待コードを入力してください。");
-    }
-    if (!matched && !nameMatch && codeMatch) {
-      return alert("招待コードは一致していますがチーム名が違います。正しいチーム名を入力してください。");
-    }
-
-    // ② 完全一致 → ログイン
-    if (matched) {
-      setTeam({
-        teamName: matched.teamName,
-        inviteCode: matched.inviteCode,
-        baseTeamName: makeBaseTeamName(matched.teamName)
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if (data.teamName === name && data.inviteCode === code) matched = { id: d.id, ...data };
+        else { if (data.teamName === name) nameMatch = true; if (data.inviteCode === code) codeMatch = true; }
       });
 
-      alert(`チーム "${matched.teamName}" にログインしました`);
+      if (!matched && nameMatch && !codeMatch) return alert("チーム名は一致していますが招待コードが違います。正しい招待コードを入力してください。");
+      if (!matched && !nameMatch && codeMatch) return alert("招待コードは一致していますがチーム名が違います。正しいチーム名を入力してください。");
+
+      if (matched) {
+        setTeam({
+          teamName: matched.teamName,
+          inviteCode: matched.inviteCode,
+          baseTeamName: makeBaseTeamName(matched.teamName)
+        });
+        alert(`チーム "${matched.teamName}" にログインしました`);
+        await applyTeamUI();
+        return;
+      }
+
+      const ok = confirm(`チーム "${name}" は存在しません。\n新規作成しますか？`);
+      if (!ok) return alert("チーム作成をキャンセルしました。");
+
+      const newRef = await addDoc(teamsCol, { teamName: name, inviteCode: code, createdAt: new Date().toISOString() });
+      setTeam({ teamName: name, inviteCode: code, baseTeamName: makeBaseTeamName(name) });
+      alert(`チーム "${name}" を新規登録しました`);
       await applyTeamUI();
-      return;
     }
+    catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
+  });
 
-    // ③ どちらも一致なし → 新規作成確認
-    const ok = confirm(`チーム "${name}" は存在しません。\n新規作成しますか？`);
-    if (!ok) return alert("チーム作成をキャンセルしました。");
-
-    const newRef = await addDoc(teamsCol, {
-      teamName: name,
-      inviteCode: code,
-      createdAt: new Date().toISOString()
-    });
-
-    // ローカル保存
-    setTeam({
-      teamName: name,
-      inviteCode: code,
-      baseTeamName: makeBaseTeamName(name)
-    });
-
-    alert(`チーム "${name}" を新規登録しました`);
-    await applyTeamUI();
-  }
-  catch (err) {
-    console.error("team create/login error", err);
-    alert("チーム登録/ログインでエラーが発生しました");
-  }
 });
-  
-}); // DOMContentLoaded end
