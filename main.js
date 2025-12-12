@@ -247,6 +247,9 @@ async function createMatch(){
   const place = (placeEl?.value||"").trim();
   const scoreA = myScoreEl?.value;
   const scoreB = opScoreEl?.value;
+const pkScoreAEl = document.getElementById("scorePkA");
+const pkScoreBEl = document.getElementById("scorePkB");
+ 
   const videoId = videoSelect?.value || null;
 
   if(!date || !opponent) return alert("日付と対戦相手は必須です");
@@ -264,6 +267,8 @@ async function createMatch(){
     place,
     scoreA: scoreA === "" ? null : Number(scoreA),
     scoreB: scoreB === "" ? null : Number(scoreB),
+  pkScoreA: pkScoreAEl?.value === "" ? null : Number(pkScoreAEl.value),
+  pkScoreB: pkScoreBEl?.value === "" ? null : Number(pkScoreBEl.value),     
     videoId,
     hlSeconds: [],
     createdAt: new Date().toISOString()
