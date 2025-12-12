@@ -596,8 +596,12 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   await loadVideosFromFirestore();
   await loadScores();
 
-  // 初期 UI
-  const btnBack = document.getElementById("btnBackLogin");
+// 初期 UI
+const btnBack = document.getElementById("btnBackLogin");
+
+// ★ 追加：初期表示は非表示にする
+if(btnBack) btnBack.style.display = "none";
+
 btnBack?.addEventListener("click", ()=>{
   document.getElementById("teamSection").style.display="block";
   document.getElementById("addVideoSection").style.display="none";
@@ -606,6 +610,7 @@ btnBack?.addEventListener("click", ()=>{
   document.getElementById("teamNameInput").value = "";
   document.getElementById("inviteCodeInput").value = "";
   if(btnBack) btnBack.style.display = "none";
+});
 
   // ★ 管理者バックアップセクションも非表示
   const backupSection = document.getElementById("backupSection");
