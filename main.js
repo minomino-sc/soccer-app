@@ -675,18 +675,11 @@ if (team) {
 }
 
   // --- btnBack イベント登録 ---
-  btnBack?.addEventListener("click", ()=>{
-    document.getElementById("teamSection").style.display = "block";
-    document.getElementById("addVideoSection").style.display = "none";
-    document.getElementById("createMatchSection").style.display = "none";
-    document.getElementById("scoresSection").style.display = "none";
-    const backupSection = document.getElementById("backupSection");
-    if(backupSection) backupSection.style.display = "none";
-
-    document.getElementById("teamNameInput").value = "";
-    document.getElementById("inviteCodeInput").value = "";
-    if(btnBack) btnBack.style.display = "none";
-  });
+btnBack?.addEventListener("click", ()=>{
+  applyTeamUI(true);  // メインメニュー表示に変更
+  document.getElementById("teamNameInput").value = "";
+  document.getElementById("inviteCodeInput").value = "";
+});
 
   // --- 他のボタン登録 ---
   document.getElementById("btnBackupAllFirestore")?.addEventListener("click", backupAllFirestore);
