@@ -249,9 +249,9 @@ async function createMatch(){
   const place = (placeEl?.value||"").trim();
   const scoreA = myScoreEl?.value;
   const scoreB = opScoreEl?.value;
-  const pkA = pkMyEl?.value;      // 追加
-  const pkB = pkOpEl?.value;      // 追加
-  const videoId = videoSelect?.value || null;
+const pkAVal = pkMyEl?.value;
+const pkBVal = pkOpEl?.value;
+const videoId = videoSelect?.value || null;
 
   if(!date || !opponent) return alert("日付と対戦相手は必須です");
 
