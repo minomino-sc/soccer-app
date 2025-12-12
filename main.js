@@ -673,51 +673,71 @@ btnBack?.addEventListener("click", ()=>{
   });
 
   /* チーム参加/作成: Firestore に team を登録（完全一致チェック） */
-document.getElementById("btnJoin")?.addEventListener("click", async ()=>{
-  const name = (document.getElementById("teamNameInput")?.value || "").trim();
-  const code = (document.getElementById("inviteCodeInput")?.value || "").trim().toUpperCase();
-  if(!name) return alert("チーム名を入力してください");
-  if(!code) return alert("招待コードを入力してください");
+document.getElementById("btnJoin").addEventListener("click", async () => {
+  const name = document.getElementById("teamNameInput").value.trim();
+  const code = document.getElementById("inviteCodeInput").value.trim().toUpperCase();
+
+  if (!name) return alert("チーム名を入力してください");
+  if (!code) return alert("招待コードを入力してください");
 
   const db = window._firebaseDB;
   const { collection, getDocs, addDoc } = window._firebaseFns;
-  const teamsCol = collection(db,"teams");
 
-  try{
-    const snap = await getDocs(teamsCol);
-    let matched = null;
-    let inviteConflict = false;
+  const teamsCol = collection(db, "teams");
+  const snap = await getDocs(teamsCol);
 
-    snap.docs.forEach(d=>{
-      const data = d.data();
+  let exactMatch = null;          // ① 両方一致
+  let nameOnly = null;            // ② 名前だけ一致
+  let codeOnly = null;            // ② コードだけ一致
 
-      // ① 完全一致 → ログイン
-      if(data.teamName === name && data.inviteCode === code){
-        matched = { id:d.id, ...data };
-      }
-      // ④ 招待コードは完全一致以外の重複を禁止
-      else if(data.inviteCode === code){
-        inviteConflict = true;
-      }
-      // ③ チーム名の重複は OK（ここでは何もしない）
-    });
+  snap.docs.forEach(doc => {
+    const data = doc.data();
 
-    if(inviteConflict && !matched){
-      return alert("この招待コードは既に使用されています。別の招待コードを指定してください。");
+    const nameMatch = data.teamName === name;
+    const codeMatch = data.inviteCode === code;
+
+    if (nameMatch && codeMatch) {
+      exactMatch = { id: doc.id, ...data };
+    } else if (nameMatch) {
+      nameOnly = data;
+    } else if (codeMatch) {
+      codeOnly = data;
     }
+  });
 
-    if(matched){
-      alert(`チーム "${matched.teamName}" にログインしました`);
-    } else {
-      // ② 一致するチームがない → 新規登録
-      await addDoc(teamsCol, { 
-        teamName: name, 
-        inviteCode: code, 
-        createdAt: new Date().toISOString() 
-      });
-      alert(`チーム "${name}" を新規登録しました`);
-    }
+  // ① 両方一致 → ログイン
+  if (exactMatch) {
+    alert(`チーム "${name}" にログインします。`);
+    await joinTeam(exactMatch.id);
+    return;
+  }
 
+  // ② 片方だけ一致
+  if (nameOnly && !codeOnly) {
+    return alert("チーム名は一致していますが、招待コードが違います。");
+  }
+  if (!nameOnly && codeOnly) {
+    return alert("招待コードは一致していますが、チーム名が違います。");
+  }
+
+  // ③ どちらも一致しない → 新規作成確認
+  const ok = confirm(`チーム "${name}" は存在しません。\n新規作成しますか？`);
+  if (!ok) {
+    alert("チーム作成をキャンセルしました。");
+    return;
+  }
+
+  // 新規作成
+  const newTeamRef = await addDoc(teamsCol, {
+    teamName: name,
+    inviteCode: code,
+    createdAt: new Date().toISOString()
+  });
+
+  alert(`チーム "${name}" を新規作成しました。`);
+  await joinTeam(newTeamRef.id);
+});
+  
     // ローカル保存
 // 追加：baseTeamName を作成
 const baseName = makeBaseTeamName(name);
