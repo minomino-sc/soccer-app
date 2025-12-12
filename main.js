@@ -565,6 +565,7 @@ async function saveEditGeneric(){
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
   const pkMyVal = document.getElementById("edit-pk-my")?.value;      // 追加
   const pkOpVal = document.getElementById("edit-pk-op")?.value;      // 追加
+   
   const videoSelect = document.getElementById("edit-video-select");
   const videoId = videoSelect?.value || null;
 
@@ -576,20 +577,29 @@ async function saveEditGeneric(){
     if(!isNaN(n)) hlSeconds.push(n);
   });
 
-  try{
-    const ref = window._firebaseFns.doc(window._firebaseDB,"scores", current.id);
-    await window._firebaseFns.updateDoc(ref, {
-      date, matchType, opponent, place,
-      scoreA: myScoreVal===""?null:Number(myScoreVal),
-      scoreB: opScoreVal===""?null:Number(opScoreVal),
-      pkA: pkMyVal===""?null:Number(pkMyVal),    // 追加
-      pkB: pkOpVal===""?null:Number(pkOpVal),    // 追加
-      hlSeconds, videoId
-    });
-    alert("Firestore に保存しました！");
-    closeEditModal();
-    await loadScores();
-  }catch(err){ console.error("saveEditGeneric err", err); alert("Firestore の更新に失敗しました"); }
+
+
+try {
+  const ref = window._firebaseFns.doc(window._firebaseDB,"scores", current.id);
+  await window._firebaseFns.updateDoc(ref, {
+    date,
+    matchType,
+    opponent,
+    place,
+    scoreA: myScoreVal === "" ? null : Number(myScoreVal),
+    scoreB: opScoreVal === "" ? null : Number(opScoreVal),
+    // PKも数値で更新
+    pkA: pkMyVal === "" ? null : Number(pkMyVal),
+    pkB: pkOpVal === "" ? null : Number(pkOpVal),
+    hlSeconds,
+    videoId
+  });
+  alert("Firestore に保存しました！");
+  closeEditModal();
+  await loadScores();
+} catch(err) {
+  console.error("saveEditGeneric err", err);
+  alert("Firestore の更新に失敗しました");
 }
 
 async function deleteCurrentMatch(){
