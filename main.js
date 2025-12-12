@@ -675,10 +675,11 @@ if (team) {
 }
 
   // --- btnBack イベント登録 ---
+
 btnBack?.addEventListener("click", ()=>{
-  applyTeamUI(true);  // メインメニュー表示に変更
   document.getElementById("teamNameInput").value = "";
   document.getElementById("inviteCodeInput").value = "";
+  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
 });
 
   // --- 他のボタン登録 ---
