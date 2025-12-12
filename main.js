@@ -292,6 +292,8 @@ const pkScoreBEl = document.getElementById("pkB");
     if(placeEl) placeEl.value = "";
     if(myScoreEl) myScoreEl.value = "";
     if(opScoreEl) opScoreEl.value = "";
+if(pkScoreAEl) pkScoreAEl.value = "";
+if(pkScoreBEl) pkScoreBEl.value = "";
     if(videoSelect) videoSelect.value = "";
   }
 }
