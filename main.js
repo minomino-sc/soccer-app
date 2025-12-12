@@ -655,6 +655,10 @@ function showBackButton(){ const btn=document.getElementById("btnBackLogin"); if
 
 document.addEventListener("DOMContentLoaded", async ()=>{
 
+  if (getTeam()) {
+    await applyTeamUI();   // ← ココ！
+  }
+  
   // 初期 local videos を復元してから Firestore を試し読み
   loadVideosLocal();
   await loadVideosFromFirestore();
