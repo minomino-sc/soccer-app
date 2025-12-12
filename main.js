@@ -696,6 +696,26 @@ btnBack?.addEventListener("click", ()=>{
   if(scoresSection) scoresSection.style.display = "none";
 
   // ボタン登録（null-safe）
+  // Firestore バックアップ・復元ボタン
+  document.getElementById("btnBackupAllFirestore")?.addEventListener("click", backupAllFirestore);
+
+  document.getElementById("btnRestoreBackup")?.addEventListener("click", () => {
+    document.getElementById("uploadBackupFile")?.click();
+  });
+
+  document.getElementById("uploadBackupFile")?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm(`"${file.name}" を Firestore に復元しますか？`)) {
+      e.target.value = "";
+      return;
+    }
+
+    await restoreBackupFile(file);
+    e.target.value = "";
+  });
+
   document.getElementById("btnAddYouTube")?.addEventListener("click", ()=>{
     const url = (document.getElementById("youtubeUrl")?.value||"").trim();
     if(!url) return alert("URLを入力してください");
