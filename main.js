@@ -237,6 +237,8 @@ async function createMatch(){
   const placeEl = document.getElementById("place");
   const myScoreEl = document.getElementById("scoreA");
   const opScoreEl = document.getElementById("scoreB");
+  const pkMyEl = document.getElementById("pkScoreA");       // 追加
+  const pkOpEl = document.getElementById("pkScoreB");       // 追加
   const videoSelect = document.getElementById("videoSelect");
 
   if(!dateEl || !oppEl) return;
@@ -247,6 +249,8 @@ async function createMatch(){
   const place = (placeEl?.value||"").trim();
   const scoreA = myScoreEl?.value;
   const scoreB = opScoreEl?.value;
+  const pkA = pkMyEl?.value;      // 追加
+  const pkB = pkOpEl?.value;      // 追加
   const videoId = videoSelect?.value || null;
 
   if(!date || !opponent) return alert("日付と対戦相手は必須です");
@@ -257,13 +261,15 @@ async function createMatch(){
   const payload = {
     teamName: team.teamName,
     inviteCode: team.inviteCode,
-  baseTeamName: team.baseTeamName,    // ★ 追加 
+    baseTeamName: team.baseTeamName,
     date,
     matchType,
     opponent,
     place,
     scoreA: scoreA === "" ? null : Number(scoreA),
     scoreB: scoreB === "" ? null : Number(scoreB),
+    pkA: pkA === "" ? null : Number(pkA),   // 追加
+    pkB: pkB === "" ? null : Number(pkB),   // 追加
     videoId,
     hlSeconds: [],
     createdAt: new Date().toISOString()
@@ -286,6 +292,8 @@ async function createMatch(){
     if(placeEl) placeEl.value = "";
     if(myScoreEl) myScoreEl.value = "";
     if(opScoreEl) opScoreEl.value = "";
+    if(pkMyEl) pkMyEl.value = "";      // 追加
+    if(pkOpEl) pkOpEl.value = "";      // 追加
     if(videoSelect) videoSelect.value = "";
   }
 }
@@ -548,6 +556,8 @@ async function saveEditGeneric(){
   const place = (document.getElementById("edit-place")?.value||"").trim();
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
+  const pkMyVal = document.getElementById("edit-pk-my")?.value;      // 追加
+  const pkOpVal = document.getElementById("edit-pk-op")?.value;      // 追加
   const videoSelect = document.getElementById("edit-video-select");
   const videoId = videoSelect?.value || null;
 
@@ -565,6 +575,8 @@ async function saveEditGeneric(){
       date, matchType, opponent, place,
       scoreA: myScoreVal===""?null:Number(myScoreVal),
       scoreB: opScoreVal===""?null:Number(opScoreVal),
+      pkA: pkMyVal===""?null:Number(pkMyVal),    // 追加
+      pkB: pkOpVal===""?null:Number(pkOpVal),    // 追加
       hlSeconds, videoId
     });
     alert("Firestore に保存しました！");
