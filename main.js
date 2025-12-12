@@ -434,8 +434,8 @@ const q = query(scoresCol,
       const typeClass = typeClassName(it.matchType||"");
 
 let scoreText = `${it.scoreA ?? "-"} - ${it.scoreB ?? "-"}`;
-if(it.pkA != null && it.pkB != null){
-  scoreText += ` （PK ${it.pkA} - ${it.pkB}）`;
+if(it.pkScoreA != null && it.pkScoreB != null){
+  scoreText += ` （PK ${it.pkScoreA} - ${it.pkScoreB}）`;
 }
 
 meta.innerHTML = `<div class="title"><span class="type-icon ${typeClass}">${icon}</span> ${it.date} — ${it.opponent}</div>
@@ -560,7 +560,8 @@ async function saveEditGeneric(){
   const myScoreVal = document.getElementById("edit-my-score")?.value;
   const opScoreVal = document.getElementById("edit-opponent-score")?.value;
 const pkScoreAVal = document.getElementById("edit-pk-scoreA")?.value;
-const pkScoreBVal = document.getElementById("edit-pk-scoreB")?.value;   
+const pkScoreBVal = document.getElementById("edit-pk-scoreB")?.value;  
+
   const videoSelect = document.getElementById("edit-video-select");
   const videoId = videoSelect?.value || null;
 
@@ -578,6 +579,7 @@ const pkScoreBVal = document.getElementById("edit-pk-scoreB")?.value;
       date, matchType, opponent, place,
       scoreA: myScoreVal===""?null:Number(myScoreVal),
       scoreB: opScoreVal===""?null:Number(opScoreVal),
+       
   pkScoreA: pkScoreAVal==="" ? null : Number(pkScoreAVal),
   pkScoreB: pkScoreBVal==="" ? null : Number(pkScoreBVal),
       hlSeconds, videoId
