@@ -167,6 +167,7 @@ function loadVideosLocal(){ try{ videos = JSON.parse(localStorage.getItem("video
 /* チームに紐づく videos を読み込む */
 async function loadVideosFromFirestore(){
   videos = [];
+
   const team = getTeam();
   if(!team){
     // 未ログイン時はローカル復元（あれば）
@@ -664,14 +665,14 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   await loadScores();
 
   // --- チームがログイン済みなら UI を反映 ---
-  const team = getTeam();
-  if (team) {
-    await applyTeamUI();
-  } else {
-    // 未ログインならチーム入力欄を表示
-    const teamSection = document.getElementById("teamSection");
-    if(teamSection) teamSection.style.display = "block";
-  }
+const team = getTeam();
+if (team) {
+  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
+} else {
+// 未ログインならチーム入力欄を表示
+  const teamSection = document.getElementById("teamSection");
+  if(teamSection) teamSection.style.display = "block";
+}
 
   // --- btnBack イベント登録 ---
   btnBack?.addEventListener("click", ()=>{
