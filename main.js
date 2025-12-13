@@ -203,21 +203,15 @@ async function loadVideosFromFirestore(){
 /* 動画セレクトを create / edit 用に描画 */
 
 /* ---------- 動画セレクト（年月折りたたみ版） ---------- */
+/* ---------- 動画セレクト（<select> + optgroup版） ---------- */
 function renderVideoSelects(selectedForEdit){
   const containerIds = ["videoSelect", "edit-video-select"];
   containerIds.forEach(id => {
     const el = document.getElementById(id);
     if(!el) return;
 
-    // 元の select は非表示にしてツリーを作る
-    el.style.display = "none";
-    let treeContainer = el.nextElementSibling;
-    if(!treeContainer || !treeContainer.classList.contains("video-tree")) {
-      treeContainer = document.createElement("div");
-      treeContainer.className = "video-tree";
-      el.parentNode.insertBefore(treeContainer, el.nextSibling);
-    }
-    treeContainer.innerHTML = "";
+    // 既存 options をクリア
+    el.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
 
     // 年・月でグループ化
     const grouped = {};
@@ -225,59 +219,29 @@ function renderVideoSelects(selectedForEdit){
       const d = new Date(v.createdAt || Date.now());
       const year = d.getFullYear();
       const month = String(d.getMonth()+1).padStart(2,"0");
-      if(!grouped[year]) grouped[year] = {};
-      if(!grouped[year][month]) grouped[year][month] = [];
-      grouped[year][month].push(v);
+      const key = `${year}-${month}`;
+      if(!grouped[key]) grouped[key] = [];
+      grouped[key].push(v);
     });
 
-    Object.keys(grouped).sort((a,b)=>b-a).forEach(year => {
-      const yearDiv = document.createElement("div");
-      yearDiv.className = "video-year";
-      yearDiv.textContent = year;
-      treeContainer.appendChild(yearDiv);
+    // 年月順に追加（新しい順）
+    Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).forEach(key => {
+      const [year, month] = key.split("-");
+      const optGroup = document.createElement("optgroup");
+      optGroup.label = `${year}年 ${month}月`;
 
-      const monthsDiv = document.createElement("div");
-      monthsDiv.className = "video-months hidden";
-
-      Object.keys(grouped[year]).sort((a,b)=>b-a).forEach(month => {
-        const monthDiv = document.createElement("div");
-        monthDiv.className = "video-month";
-        monthDiv.textContent = `${month}月`;
-        monthsDiv.appendChild(monthDiv);
-
-        const videosDiv = document.createElement("div");
-        videosDiv.className = "video-items hidden";
-
-        grouped[year][month].forEach(v => {
-          const videoDiv = document.createElement("div");
-          videoDiv.className = "video-item";
-          videoDiv.textContent = v.title || v.url || v.id;
-          videoDiv.dataset.videoId = v.id;
-
-          videoDiv.onclick = () => {
-            el.value = v.id;
-            if(selectedForEdit !== undefined) el.value = selectedForEdit;
-            // 選択状態を視覚的に反映
-            videosDiv.querySelectorAll(".video-item").forEach(vi=>vi.classList.remove("selected"));
-            videoDiv.classList.add("selected");
-          };
-
-          videosDiv.appendChild(videoDiv);
-        });
-
-        monthDiv.onclick = () => videosDiv.classList.toggle("hidden");
-        monthsDiv.appendChild(videosDiv);
+      grouped[key].forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v.id;
+        opt.textContent = v.title || v.url || v.id;
+        optGroup.appendChild(opt);
       });
 
-      yearDiv.onclick = () => monthsDiv.classList.toggle("hidden");
-      treeContainer.appendChild(monthsDiv);
+      el.appendChild(optGroup);
     });
 
-    // 初期選択反映
-    if(selectedForEdit){
-      const selDiv = treeContainer.querySelector(`.video-item[data-video-id="${selectedForEdit}"]`);
-      if(selDiv) selDiv.classList.add("selected");
-    }
+    // 編集用に選択反映
+    if(selectedForEdit) el.value = selectedForEdit;
   });
 }
 
