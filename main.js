@@ -201,21 +201,84 @@ async function loadVideosFromFirestore(){
 }
 
 /* 動画セレクトを create / edit 用に描画 */
+
+/* ---------- 動画セレクト（年月折りたたみ版） ---------- */
 function renderVideoSelects(selectedForEdit){
-  const render = (id, selectedVal) => {
+  const containerIds = ["videoSelect", "edit-video-select"];
+  containerIds.forEach(id => {
     const el = document.getElementById(id);
     if(!el) return;
-    el.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
-    videos.forEach(v=>{
-      const opt = document.createElement("option");
-      opt.value = v.id;
-      opt.textContent = v.title || v.url || v.id;
-      el.appendChild(opt);
+
+    // 元の select は非表示にしてツリーを作る
+    el.style.display = "none";
+    let treeContainer = el.nextElementSibling;
+    if(!treeContainer || !treeContainer.classList.contains("video-tree")) {
+      treeContainer = document.createElement("div");
+      treeContainer.className = "video-tree";
+      el.parentNode.insertBefore(treeContainer, el.nextSibling);
+    }
+    treeContainer.innerHTML = "";
+
+    // 年・月でグループ化
+    const grouped = {};
+    videos.forEach(v => {
+      const d = new Date(v.createdAt || Date.now());
+      const year = d.getFullYear();
+      const month = String(d.getMonth()+1).padStart(2,"0");
+      if(!grouped[year]) grouped[year] = {};
+      if(!grouped[year][month]) grouped[year][month] = [];
+      grouped[year][month].push(v);
     });
-    if(selectedVal) el.value = selectedVal;
-  };
-  render("videoSelect", selectedForEdit);
-  render("edit-video-select", selectedForEdit);
+
+    Object.keys(grouped).sort((a,b)=>b-a).forEach(year => {
+      const yearDiv = document.createElement("div");
+      yearDiv.className = "video-year";
+      yearDiv.textContent = year;
+      treeContainer.appendChild(yearDiv);
+
+      const monthsDiv = document.createElement("div");
+      monthsDiv.className = "video-months hidden";
+
+      Object.keys(grouped[year]).sort((a,b)=>b-a).forEach(month => {
+        const monthDiv = document.createElement("div");
+        monthDiv.className = "video-month";
+        monthDiv.textContent = `${month}月`;
+        monthsDiv.appendChild(monthDiv);
+
+        const videosDiv = document.createElement("div");
+        videosDiv.className = "video-items hidden";
+
+        grouped[year][month].forEach(v => {
+          const videoDiv = document.createElement("div");
+          videoDiv.className = "video-item";
+          videoDiv.textContent = v.title || v.url || v.id;
+          videoDiv.dataset.videoId = v.id;
+
+          videoDiv.onclick = () => {
+            el.value = v.id;
+            if(selectedForEdit !== undefined) el.value = selectedForEdit;
+            // 選択状態を視覚的に反映
+            videosDiv.querySelectorAll(".video-item").forEach(vi=>vi.classList.remove("selected"));
+            videoDiv.classList.add("selected");
+          };
+
+          videosDiv.appendChild(videoDiv);
+        });
+
+        monthDiv.onclick = () => videosDiv.classList.toggle("hidden");
+        monthsDiv.appendChild(videosDiv);
+      });
+
+      yearDiv.onclick = () => monthsDiv.classList.toggle("hidden");
+      treeContainer.appendChild(monthsDiv);
+    });
+
+    // 初期選択反映
+    if(selectedForEdit){
+      const selDiv = treeContainer.querySelector(`.video-item[data-video-id="${selectedForEdit}"]`);
+      if(selDiv) selDiv.classList.add("selected");
+    }
+  });
 }
 
 /* ---------- YouTube 動画追加（Firestore 保存） ---------- */
