@@ -683,7 +683,8 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSecon
   const hlList = document.getElementById("hlList");
   if(hlList){ hlList.innerHTML = ""; (Array.isArray(hlSeconds)?hlSeconds:[]).forEach(sec=> hlList.appendChild(createHlItemElement(sec))); }
 
-  renderVideoSelects(videoId);
+// 編集モーダルで選択反映
+renderVideoSelects(videoId); // videoId がある場合は自動で選択
   document.getElementById("editModal").classList.remove("hidden");
 }
 function closeEditModal(){ const m=document.getElementById("editModal"); if(m && !m.classList.contains("hidden")) m.classList.add("hidden"); window.currentEditIndex = undefined; }
