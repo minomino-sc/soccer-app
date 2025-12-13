@@ -605,3 +605,20 @@ input[type="date"]::-webkit-date-and-time-value {
   border: 1px solid #777;
   border-radius: 8px;
 }
+
+.video-tree { font-family: sans-serif; }
+.video-year, .video-month {
+  cursor: pointer;
+  font-weight: bold;
+  margin: 4px 0;
+}
+.video-months, .video-items {
+  margin-left: 20px;
+}
+.video-item {
+  margin-left: 20px;
+  cursor: pointer;
+}
+.video-item:hover { text-decoration: underline; }
+.video-item.selected { background-color: #d0f0ff; }
+.hidden { display: none; }
