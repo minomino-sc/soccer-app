@@ -202,16 +202,33 @@ async function loadVideosFromFirestore(){
 
 /* 動画セレクトを create / edit 用に描画 */
 
-/* ---------- 動画セレクト（年月折りたたみ版） ---------- */
-/* ---------- 動画セレクト（<select> + optgroup版） ---------- */
+/* ---------- カスタムプルダウン風動画セレクト ---------- */
 function renderVideoSelects(selectedForEdit){
   const containerIds = ["videoSelect", "edit-video-select"];
   containerIds.forEach(id => {
     const el = document.getElementById(id);
     if(!el) return;
 
-    // 既存 options をクリア
-    el.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+    // 元の select は非表示にするが、値は保持
+    el.style.display = "none";
+    let wrapper = el.nextElementSibling;
+    if(!wrapper || !wrapper.classList.contains("custom-video-select")){
+      wrapper = document.createElement("div");
+      wrapper.className = "custom-video-select";
+      el.parentNode.insertBefore(wrapper, el.nextSibling);
+    }
+    wrapper.innerHTML = "";
+
+    // 選択中表示ボタン
+    const displayBtn = document.createElement("button");
+    displayBtn.type = "button";
+    displayBtn.className = "custom-video-display";
+    displayBtn.textContent = el.value ? videos.find(v=>v.id===el.value)?.title || el.value : "— 紐づけ動画なし —";
+    wrapper.appendChild(displayBtn);
+
+    // ドロップダウンリスト
+    const listDiv = document.createElement("div");
+    listDiv.className = "custom-video-list hidden";
 
     // 年・月でグループ化
     const grouped = {};
@@ -219,29 +236,84 @@ function renderVideoSelects(selectedForEdit){
       const d = new Date(v.createdAt || Date.now());
       const year = d.getFullYear();
       const month = String(d.getMonth()+1).padStart(2,"0");
-      const key = `${year}-${month}`;
-      if(!grouped[key]) grouped[key] = [];
-      grouped[key].push(v);
+      if(!grouped[year]) grouped[year] = {};
+      if(!grouped[year][month]) grouped[year][month] = [];
+      grouped[year][month].push(v);
     });
 
-    // 年月順に追加（新しい順）
-    Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).forEach(key => {
-      const [year, month] = key.split("-");
-      const optGroup = document.createElement("optgroup");
-      optGroup.label = `${year}年 ${month}月`;
+    Object.keys(grouped).sort((a,b)=>b-a).forEach(year=>{
+      const yearDiv = document.createElement("div");
+      yearDiv.className = "video-year";
+      yearDiv.textContent = year + "年";
+      listDiv.appendChild(yearDiv);
 
-      grouped[key].forEach(v => {
-        const opt = document.createElement("option");
-        opt.value = v.id;
-        opt.textContent = v.title || v.url || v.id;
-        optGroup.appendChild(opt);
+      const monthsDiv = document.createElement("div");
+      monthsDiv.className = "video-months hidden";
+
+      Object.keys(grouped[year]).sort((a,b)=>b-a).forEach(month=>{
+        const monthDiv = document.createElement("div");
+        monthDiv.className = "video-month";
+        monthDiv.textContent = `${month}月`;
+        monthsDiv.appendChild(monthDiv);
+
+        const videosDiv = document.createElement("div");
+        videosDiv.className = "video-items hidden";
+
+        grouped[year][month].forEach(v=>{
+          const videoDiv = document.createElement("div");
+          videoDiv.className = "video-item";
+          videoDiv.textContent = v.title || v.url || v.id;
+          videoDiv.dataset.videoId = v.id;
+
+          videoDiv.onclick = (e)=>{
+            e.stopPropagation();
+            el.value = v.id;
+            displayBtn.textContent = v.title || v.url || v.id;
+
+            // 選択状態
+            videosDiv.querySelectorAll(".video-item").forEach(vi=>vi.classList.remove("selected"));
+            videoDiv.classList.add("selected");
+
+            listDiv.classList.add("hidden");
+          };
+
+          videosDiv.appendChild(videoDiv);
+        });
+
+        monthDiv.onclick = (e)=>{
+          e.stopPropagation();
+          videosDiv.classList.toggle("hidden");
+        };
+
+        monthsDiv.appendChild(videosDiv);
       });
 
-      el.appendChild(optGroup);
+      yearDiv.onclick = (e)=>{
+        e.stopPropagation();
+        monthsDiv.classList.toggle("hidden");
+      };
+
+      listDiv.appendChild(monthsDiv);
     });
 
-    // 編集用に選択反映
-    if(selectedForEdit) el.value = selectedForEdit;
+    wrapper.appendChild(listDiv);
+
+    displayBtn.onclick = (e)=>{
+      e.stopPropagation();
+      listDiv.classList.toggle("hidden");
+    };
+
+    // 初期選択状態の反映
+    if(selectedForEdit){
+      const selDiv = listDiv.querySelector(`.video-item[data-video-id="${selectedForEdit}"]`);
+      if(selDiv){
+        selDiv.classList.add("selected");
+        displayBtn.textContent = selDiv.textContent;
+      }
+    }
+
+    // クリック外で閉じる
+    document.addEventListener("click", ()=>{ listDiv.classList.add("hidden"); });
   });
 }
 
