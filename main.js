@@ -433,7 +433,14 @@ const pkScoreBEl = document.getElementById("pkB");
     if(opScoreEl) opScoreEl.value = "";
 if(pkScoreAEl) pkScoreAEl.value = "";
 if(pkScoreBEl) pkScoreBEl.value = "";
-    if(videoSelect) videoSelect.value = "";
+// 作成後に動画選択をリセット
+if(videoSelect){
+  videoSelect.value = "";
+  const wrapper = videoSelect.nextElementSibling;
+  if(wrapper?.classList.contains("custom-video-select")){
+    const displayBtn = wrapper.querySelector(".custom-video-display");
+    if(displayBtn) displayBtn.textContent = "— 紐づけ動画なし —";
+    wrapper.querySelectorAll(".video-item.selected").forEach(el=>el.classList.remove("selected"));
   }
 }
 
