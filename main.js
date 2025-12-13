@@ -209,7 +209,7 @@ function renderVideoSelects(selectedForEdit){
     const el = document.getElementById(id);
     if(!el) return;
 
-    // 元の select は非表示にするが、値は保持
+    // 元の select は非表示にする
     el.style.display = "none";
     let wrapper = el.nextElementSibling;
     if(!wrapper || !wrapper.classList.contains("custom-video-select")){
