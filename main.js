@@ -311,10 +311,13 @@ function renderVideoSelects(selectedForEdit){
         displayBtn.textContent = selDiv.textContent;
       }
     }
-
-    // クリック外で閉じる
-    document.addEventListener("click", ()=>{ listDiv.classList.add("hidden"); });
+     
+   // クリック外で閉じる（既に登録済みかを確認）
+if (!document._customVideoClickRegistered) {
+  document.addEventListener("click", (e) => {
+    document.querySelectorAll(".custom-video-list").forEach(list => list.classList.add("hidden"));
   });
+  document._customVideoClickRegistered = true;
 }
 
 /* ---------- YouTube 動画追加（Firestore 保存） ---------- */
