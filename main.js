@@ -352,18 +352,6 @@ async function addYouTubeVideo(url){
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 async function addYouTubeVideo(url){
   const id = extractYouTubeId(url);
   if(!id) return alert("YouTube のURLが正しくありません。");
@@ -414,7 +402,7 @@ async function addYouTubeVideo(url){
    - UI イベント登録
 */
 
-/* ---------- 試合作成（Firestore） ---------- */
+/* ---------- 試合作成（Firestore 保存） ---------- */
 async function createMatch(){
   const dateEl = document.getElementById("matchDate");
   const typeEl = document.getElementById("matchTypeCreate");
@@ -425,17 +413,14 @@ async function createMatch(){
   const videoSelect = document.getElementById("videoSelect");
 
   if(!dateEl || !oppEl) return;
-
   const date = (dateEl.value||"").trim();
   const matchType = (typeEl?.value||"").trim();
   const opponent = (oppEl.value||"").trim();
   const place = (placeEl?.value||"").trim();
   const scoreA = myScoreEl?.value;
   const scoreB = opScoreEl?.value;
-
-const pkScoreAEl = document.getElementById("pkA");
-const pkScoreBEl = document.getElementById("pkB");
- 
+  const pkScoreAEl = document.getElementById("pkA");
+  const pkScoreBEl = document.getElementById("pkB");
   const videoId = videoSelect?.value || null;
 
   if(!date || !opponent) return alert("日付と対戦相手は必須です");
@@ -446,15 +431,12 @@ const pkScoreBEl = document.getElementById("pkB");
   const payload = {
     teamName: team.teamName,
     inviteCode: team.inviteCode,
-  baseTeamName: team.baseTeamName,    // ★ 追加 
-    date,
-    matchType,
-    opponent,
-    place,
-    scoreA: scoreA === "" ? null : Number(scoreA),
-    scoreB: scoreB === "" ? null : Number(scoreB),
-  pkScoreA: pkScoreAEl?.value === "" ? null : Number(pkScoreAEl.value),
-  pkScoreB: pkScoreBEl?.value === "" ? null : Number(pkScoreBEl.value),     
+    baseTeamName: team.baseTeamName,
+    date, matchType, opponent, place,
+    scoreA: scoreA===""?null:Number(scoreA),
+    scoreB: scoreB===""?null:Number(scoreB),
+    pkScoreA: pkScoreAEl?.value===""?null:Number(pkScoreAEl.value),
+    pkScoreB: pkScoreBEl?.value===""?null:Number(pkScoreBEl.value),
     videoId,
     hlSeconds: [],
     createdAt: new Date().toISOString()
@@ -469,34 +451,6 @@ const pkScoreBEl = document.getElementById("pkB");
   }catch(err){
     console.error("createMatch error", err);
     alert("試合作成に失敗しました");
-  } finally {
-    // clear inputs
-    dateEl.value = "";
-    if(typeEl) typeEl.value = "";
-    oppEl.value = "";
-    if(placeEl) placeEl.value = "";
-    if(myScoreEl) myScoreEl.value = "";
-    if(opScoreEl) opScoreEl.value = "";
-    if(pkScoreAEl) pkScoreAEl.value = "";
-    if(pkScoreBEl) pkScoreBEl.value = "";
-
-    // ★ 動画セレクト完全リセット（ここが重要）
-    const yearSel  = document.getElementById("videoYear");
-    const monthSel = document.getElementById("videoMonth");
-
-    if(yearSel) yearSel.value = "";
-
-    if(monthSel){
-      monthSel.value = "";
-      monthSel.innerHTML = `<option value="">月を選択</option>`;
-      monthSel.disabled = true;
-    }
-
-    if(videoSelect){
-      videoSelect.value = "";
-      videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
-      videoSelect.disabled = true;
-    }
   }
 }
 
