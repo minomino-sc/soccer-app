@@ -428,19 +428,8 @@ const pkScoreBEl = document.getElementById("pkB");
     if(opScoreEl) opScoreEl.value = "";
 if(pkScoreAEl) pkScoreAEl.value = "";
 if(pkScoreBEl) pkScoreBEl.value = "";
-
-document.getElementById("videoYear").value = "";
-
-const monthSel = document.getElementById("videoMonth");
-monthSel.value = "";
-monthSel.innerHTML = `<option value="">月を選択</option>`;
-monthSel.disabled = true;
-
-if(videoSelect){
-  videoSelect.value = "";
-  videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
-  videoSelect.disabled = true;
-}
+    if(videoSelect) videoSelect.value = "";
+  }
 }
 
 /* ---------- 検索/描画ヘルパー ---------- */
@@ -770,24 +759,27 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   const backupSection = document.getElementById("backupSection");
   if(backupSection) backupSection.style.display = "none";
 
+  // --- local videos を復元しておく ---
+  loadVideosLocal();
+  await loadVideosFromFirestore();
+  await loadScores();
+
   // --- チームがログイン済みなら UI を反映 ---
 const team = getTeam();
-
 if (team) {
-  await applyTeamUI(false); // or simply applyTeamUI();
-
+  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
 } else {
-  await applyTeamUI(true); // ★ 未ログインUIは必ずこれ
+// 未ログインならチーム入力欄を表示
+  const teamSection = document.getElementById("teamSection");
+  if(teamSection) teamSection.style.display = "block";
 }
 
   // --- btnBack イベント登録 ---
-btnBack?.addEventListener("click", ()=>{
-  setTeam(null); // ★ これを必ず入れる
 
+btnBack?.addEventListener("click", ()=>{
   document.getElementById("teamNameInput").value = "";
   document.getElementById("inviteCodeInput").value = "";
-
-  applyTeamUI(true); // 未ログイン画面へ
+  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
 });
 
   // --- 他のボタン登録 ---
