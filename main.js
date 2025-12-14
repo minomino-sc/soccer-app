@@ -171,151 +171,51 @@ function loadVideosLocal(){ try{ videos = JSON.parse(localStorage.getItem("video
 
 /* ---------- 動画（Firestore）読み込み / 描画 ---------- */
 /* チームに紐づく videos を読み込む */
-
 async function loadVideosFromFirestore(){
   videos = [];
 
   const team = getTeam();
-  if(!team) return;
+  if(!team){
+    // 未ログイン時はローカル復元（あれば）
+    loadVideosLocal();
+    renderVideoSelects();
+    return;
+  }
 
   try{
     const db = window._firebaseDB;
     const { collection, query, where, getDocs } = window._firebaseFns;
     const videosCol = collection(db,"videos");
-    const q = query(
-      videosCol,
-      where("teamName","==",team.teamName),
-      where("inviteCode","==",team.inviteCode)
-    );
+    const q = query(videosCol, where("teamName","==",team.teamName), where("inviteCode","==",team.inviteCode));
     const snap = await getDocs(q);
     videos = snap.docs.map(d=>({ id:d.id, ...d.data() }));
     saveVideosLocal();
+    log("loadVideosFromFirestore:", videos.length, "videos");
   }catch(err){
     console.error("loadVideosFromFirestore error", err);
+    // フェールオーバーでローカル読み込み
     loadVideosLocal();
-  }finally{
+  } finally {
     renderVideoSelects();
   }
 }
 
 /* 動画セレクトを create / edit 用に描画 */
-
-/* ---------- カスタムプルダウン風動画セレクト ---------- */
 function renderVideoSelects(selectedForEdit){
-  const containerIds = ["videoSelect", "edit-video-select"];
-  containerIds.forEach(id => {
+  const render = (id, selectedVal) => {
     const el = document.getElementById(id);
     if(!el) return;
-
-    // 元の select は非表示にする
-    el.style.display = "none";
-    let wrapper = el.nextElementSibling;
-    if(!wrapper || !wrapper.classList.contains("custom-video-select")){
-      wrapper = document.createElement("div");
-      wrapper.className = "custom-video-select";
-      el.parentNode.insertBefore(wrapper, el.nextSibling);
-    }
-    wrapper.innerHTML = "";
-
-    // 選択中表示ボタン
-    const displayBtn = document.createElement("button");
-    displayBtn.type = "button";
-    displayBtn.className = "custom-video-display";
-    displayBtn.textContent = el.value ? videos.find(v=>v.id===el.value)?.title || el.value : "— 紐づけ動画なし —";
-    wrapper.appendChild(displayBtn);
-
-    // ドロップダウンリスト
-    const listDiv = document.createElement("div");
-    listDiv.className = "custom-video-list hidden";
-
-    // 年・月でグループ化
-    const grouped = {};
-    videos.forEach(v => {
-      const d = new Date(v.createdAt || Date.now());
-      const year = d.getFullYear();
-      const month = String(d.getMonth()+1).padStart(2,"0");
-      if(!grouped[year]) grouped[year] = {};
-      if(!grouped[year][month]) grouped[year][month] = [];
-      grouped[year][month].push(v);
+    el.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+    videos.forEach(v=>{
+      const opt = document.createElement("option");
+      opt.value = v.id;
+      opt.textContent = v.title || v.url || v.id;
+      el.appendChild(opt);
     });
-
-    Object.keys(grouped).sort((a,b)=>b-a).forEach(year=>{
-      const yearDiv = document.createElement("div");
-      yearDiv.className = "video-year";
-      yearDiv.textContent = year + "年";
-      listDiv.appendChild(yearDiv);
-
-      const monthsDiv = document.createElement("div");
-      monthsDiv.className = "video-months hidden";
-
-      Object.keys(grouped[year]).sort((a,b)=>b-a).forEach(month=>{
-        const monthDiv = document.createElement("div");
-        monthDiv.className = "video-month";
-        monthDiv.textContent = `${month}月`;
-        monthsDiv.appendChild(monthDiv);
-
-        const videosDiv = document.createElement("div");
-        videosDiv.className = "video-items hidden";
-
-        grouped[year][month].forEach(v=>{
-          const videoDiv = document.createElement("div");
-          videoDiv.className = "video-item";
-          videoDiv.textContent = v.title || v.url || v.id;
-          videoDiv.dataset.videoId = v.id;
-
-          videoDiv.onclick = (e)=>{
-            e.stopPropagation();
-            el.value = v.id;
-            displayBtn.textContent = v.title || v.url || v.id;
-
-            // 選択状態
-            videosDiv.querySelectorAll(".video-item").forEach(vi=>vi.classList.remove("selected"));
-            videoDiv.classList.add("selected");
-
-            listDiv.classList.add("hidden");
-          };
-
-          videosDiv.appendChild(videoDiv);
-        });
-
-        monthDiv.onclick = (e)=>{
-          e.stopPropagation();
-          videosDiv.classList.toggle("hidden");
-        };
-
-        monthsDiv.appendChild(videosDiv);
-      });
-
-      yearDiv.onclick = (e)=>{
-        e.stopPropagation();
-        monthsDiv.classList.toggle("hidden");
-      };
-
-      listDiv.appendChild(monthsDiv);
-    });
-
-    wrapper.appendChild(listDiv);
-
-    displayBtn.onclick = (e)=>{
-      e.stopPropagation();
-      listDiv.classList.toggle("hidden");
-    };
-
-    // 初期選択状態の反映
-    if(selectedForEdit){
-      const selDiv = listDiv.querySelector(`.video-item[data-video-id="${selectedForEdit}"]`);
-      if(selDiv){
-        selDiv.classList.add("selected");
-        displayBtn.textContent = selDiv.textContent;
-      }
-    }
-     
-   // クリック外で閉じる（既に登録済みかを確認）
-if (!document._customVideoClickRegistered) {
-  document.addEventListener("click", (e) => {
-    document.querySelectorAll(".custom-video-list").forEach(list => list.classList.add("hidden"));
-  });
-  document._customVideoClickRegistered = true;
+    if(selectedVal) el.value = selectedVal;
+  };
+  render("videoSelect", selectedForEdit);
+  render("edit-video-select", selectedForEdit);
 }
 
 /* ---------- YouTube 動画追加（Firestore 保存） ---------- */
@@ -434,14 +334,7 @@ const pkScoreBEl = document.getElementById("pkB");
     if(opScoreEl) opScoreEl.value = "";
 if(pkScoreAEl) pkScoreAEl.value = "";
 if(pkScoreBEl) pkScoreBEl.value = "";
-// 作成後に動画選択をリセット
-if(videoSelect){
-  videoSelect.value = "";
-  const wrapper = videoSelect.nextElementSibling;
-  if(wrapper?.classList.contains("custom-video-select")){
-    const displayBtn = wrapper.querySelector(".custom-video-display");
-    if(displayBtn) displayBtn.textContent = "— 紐づけ動画なし —";
-    wrapper.querySelectorAll(".video-item.selected").forEach(el=>el.classList.remove("selected"));
+    if(videoSelect) videoSelect.value = "";
   }
 }
 
@@ -684,8 +577,7 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSecon
   const hlList = document.getElementById("hlList");
   if(hlList){ hlList.innerHTML = ""; (Array.isArray(hlSeconds)?hlSeconds:[]).forEach(sec=> hlList.appendChild(createHlItemElement(sec))); }
 
-// 編集モーダルで選択反映
-renderVideoSelects(videoId); // videoId がある場合は自動で選択
+  renderVideoSelects(videoId);
   document.getElementById("editModal").classList.remove("hidden");
 }
 function closeEditModal(){ const m=document.getElementById("editModal"); if(m && !m.classList.contains("hidden")) m.classList.add("hidden"); window.currentEditIndex = undefined; }
@@ -773,12 +665,17 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   const backupSection = document.getElementById("backupSection");
   if(backupSection) backupSection.style.display = "none";
 
+  // --- local videos を復元しておく ---
+  loadVideosLocal();
+  await loadVideosFromFirestore();
+  await loadScores();
+
   // --- チームがログイン済みなら UI を反映 ---
 const team = getTeam();
-
 if (team) {
-  await applyTeamUI(false); // 管理者UI
+  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
 } else {
+// 未ログインならチーム入力欄を表示
   const teamSection = document.getElementById("teamSection");
   if(teamSection) teamSection.style.display = "block";
 }
