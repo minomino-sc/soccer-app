@@ -441,6 +441,7 @@ if(videoSelect){
   videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
   videoSelect.disabled = true;
 }
+}
 
 /* ---------- 検索/描画ヘルパー ---------- */
 function ensureSearchBar(){
