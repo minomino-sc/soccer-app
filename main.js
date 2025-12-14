@@ -174,13 +174,16 @@ function loadVideosLocal(){ try{ videos = JSON.parse(localStorage.getItem("video
 async function loadVideosFromFirestore(){
   videos = [];
 
-  const team = getTeam();
-  if(!team){
-    // 未ログイン時はローカル復元（あれば）
-    loadVideosLocal();
-    renderVideoSelects();
-    return;
-  }
+const team = getTeam();
+
+if (team) {
+  // ✅ ログイン済み → 管理者UIを表示
+  await applyTeamUI(false);   // ← 引数なしでもOK
+} else {
+  // 未ログイン → チーム入力画面
+  const teamSection = document.getElementById("teamSection");
+  if (teamSection) teamSection.style.display = "block";
+}
 
   try{
     const db = window._firebaseDB;
