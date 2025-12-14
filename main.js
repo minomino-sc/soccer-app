@@ -171,34 +171,29 @@ function loadVideosLocal(){ try{ videos = JSON.parse(localStorage.getItem("video
 
 /* ---------- 動画（Firestore）読み込み / 描画 ---------- */
 /* チームに紐づく videos を読み込む */
+
 async function loadVideosFromFirestore(){
   videos = [];
 
-const team = getTeam();
-
-if (team) {
-  // ✅ ログイン済み → 管理者UIを表示
-  await applyTeamUI(false);   // ← 引数なしでもOK
-} else {
-  // 未ログイン → チーム入力画面
-  const teamSection = document.getElementById("teamSection");
-  if (teamSection) teamSection.style.display = "block";
-}
+  const team = getTeam();
+  if(!team) return;
 
   try{
     const db = window._firebaseDB;
     const { collection, query, where, getDocs } = window._firebaseFns;
     const videosCol = collection(db,"videos");
-    const q = query(videosCol, where("teamName","==",team.teamName), where("inviteCode","==",team.inviteCode));
+    const q = query(
+      videosCol,
+      where("teamName","==",team.teamName),
+      where("inviteCode","==",team.inviteCode)
+    );
     const snap = await getDocs(q);
     videos = snap.docs.map(d=>({ id:d.id, ...d.data() }));
     saveVideosLocal();
-    log("loadVideosFromFirestore:", videos.length, "videos");
   }catch(err){
     console.error("loadVideosFromFirestore error", err);
-    // フェールオーバーでローカル読み込み
     loadVideosLocal();
-  } finally {
+  }finally{
     renderVideoSelects();
   }
 }
