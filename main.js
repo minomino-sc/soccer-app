@@ -777,8 +777,10 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
   // --- チームがログイン済みなら UI を反映 ---
 const team = getTeam();
+
 if (team) {
-  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
+  await applyTeamUI(false); // or simply applyTeamUI();
+
 } else {
 // 未ログインならチーム入力欄を表示
   const teamSection = document.getElementById("teamSection");
@@ -786,11 +788,13 @@ if (team) {
 }
 
   // --- btnBack イベント登録 ---
-
 btnBack?.addEventListener("click", ()=>{
+  setTeam(null); // ★ これを必ず入れる
+
   document.getElementById("teamNameInput").value = "";
   document.getElementById("inviteCodeInput").value = "";
-  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
+
+  applyTeamUI(true); // 未ログイン画面へ
 });
 
   // --- 他のボタン登録 ---
