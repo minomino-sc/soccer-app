@@ -215,10 +215,15 @@ function groupVideosByYearMonth(videos){
 }
 
 /* 動画セレクトを create / edit 用に描画 */
-function renderVideoSelects(selectedVideoId){
-  const yearSel  = document.getElementById("videoYear");
-  const monthSel = document.getElementById("videoMonth");
-  const videoSel = document.getElementById("videoSelect");
+function renderVideoSelectGroup(
+  yearId,
+  monthId,
+  videoId,
+  selectedVideoId
+){
+  const yearSel  = document.getElementById(yearId);
+  const monthSel = document.getElementById(monthId);
+  const videoSel = document.getElementById(videoId);
 
   if(!yearSel || !monthSel || !videoSel) return;
 
@@ -274,6 +279,37 @@ function renderVideoSelects(selectedVideoId){
       videoSel.value = selectedVideoId;
     }
   };
+
+  // --- 編集時：既存選択を復元 ---
+  if(selectedVideoId){
+    const v = videos.find(v=>v.id === selectedVideoId);
+    if(v?.createdAt){
+      const d = new Date(v.createdAt);
+      if(!isNaN(d)){
+        yearSel.value = d.getFullYear();
+        yearSel.dispatchEvent(new Event("change"));
+        monthSel.value = d.getMonth() + 1;
+        monthSel.dispatchEvent(new Event("change"));
+        videoSel.value = selectedVideoId;
+      }
+    }
+  }
+}
+
+function renderVideoSelects(selectedVideoId){
+  renderVideoSelectGroup(
+    "videoYear",
+    "videoMonth",
+    "videoSelect",
+    selectedVideoId
+  );
+
+  renderVideoSelectGroup(
+    "editVideoYear",
+    "editVideoMonth",
+    "edit-video-select",
+    selectedVideoId
+  );
 }
 
 /* ---------- YouTube 動画追加（Firestore 保存） ---------- */
