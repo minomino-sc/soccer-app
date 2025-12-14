@@ -39,7 +39,7 @@ function isAdmin(){
 }
 
 /* ---------- ログイン後 UI 反映（メインメニュー or 管理者UI） ---------- */
-async function applyTeamUI(mode = "menu") {
+async function applyTeamUI(showMainMenu = false){
   const admin = isAdmin();
 
   const teamSection = document.getElementById("teamSection");
@@ -47,36 +47,33 @@ async function applyTeamUI(mode = "menu") {
   const createMatchSection = document.getElementById("createMatchSection");
   const scoresSection = document.getElementById("scoresSection");
   const backupSection = document.getElementById("backupSection");
-  const btnBack = document.getElementById("btnBackLogin");
 
-  // 全部一旦隠す
-  [teamSection, addVideoSection, createMatchSection, scoresSection, backupSection]
-    .forEach(el => el && (el.style.display = "none"));
-  if(btnBack) btnBack.style.display = "none";
-
-  if (mode === "login") {
-    // ログイン画面
+  if(showMainMenu){
+    // メインメニュー表示
     if(teamSection) teamSection.style.display = "block";
-    return;
-  }
+    if(addVideoSection) addVideoSection.style.display = "none";
+    if(createMatchSection) createMatchSection.style.display = "none";
+    if(scoresSection) scoresSection.style.display = "none";
+    if(backupSection) backupSection.style.display = "none";
 
-  if (mode === "menu") {
-    // メインメニュー
-    if(btnBack) btnBack.style.display = "block";
-    if(scoresSection) scoresSection.style.display = "block";
-    await loadScores();
-    return;
-  }
+    // メインメニューでは BackButton 非表示
+    const btn = document.getElementById("btnBackLogin");
+    if(btn) btn.style.display = "none";
 
-  if (mode === "admin") {
-    // 管理画面
-    if(btnBack) btnBack.style.display = "block";
+  } else {
+    // 管理者UI表示（動画追加・試合作成・スコア一覧など）
+    if(teamSection) teamSection.style.display = "none";
     if(scoresSection) scoresSection.style.display = "block";
+
     if(addVideoSection) addVideoSection.style.display = admin ? "block" : "none";
     if(createMatchSection) createMatchSection.style.display = admin ? "block" : "none";
     if(backupSection) backupSection.style.display = admin ? "block" : "none";
+
     await loadVideosFromFirestore();
     await loadScores();
+
+    // 管理者UIでは BackButton を表示
+    showBackButton();
   }
 }
 
@@ -429,29 +426,12 @@ const pkScoreBEl = document.getElementById("pkB");
     if(placeEl) placeEl.value = "";
     if(myScoreEl) myScoreEl.value = "";
     if(opScoreEl) opScoreEl.value = "";
-    if(pkScoreAEl) pkScoreAEl.value = "";
-    if(pkScoreBEl) pkScoreBEl.value = "";
-
-    // ★ 動画セレクト完全リセット（ここが重要）
-    const yearSel  = document.getElementById("videoYear");
-    const monthSel = document.getElementById("videoMonth");
-
-    if(yearSel) yearSel.value = "";
-
-    if(monthSel){
-      monthSel.value = "";
-      monthSel.innerHTML = `<option value="">月を選択</option>`;
-      monthSel.disabled = true;
-    }
-
-    if(videoSelect){
-      videoSelect.value = "";
-      videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
-      videoSelect.disabled = true;
-    }
+if(pkScoreAEl) pkScoreAEl.value = "";
+if(pkScoreBEl) pkScoreBEl.value = "";
+    if(videoSelect) videoSelect.value = "";
   }
-} // ← ★ これが必要
-   
+}
+
 /* ---------- 検索/描画ヘルパー ---------- */
 function ensureSearchBar(){
   const sec = document.getElementById("scoresSection");
@@ -787,17 +767,19 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   // --- チームがログイン済みなら UI を反映 ---
 const team = getTeam();
 if (team) {
-  await applyTeamUI("menu");
+  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
 } else {
-  await applyTeamUI("login");
+// 未ログインならチーム入力欄を表示
+  const teamSection = document.getElementById("teamSection");
+  if(teamSection) teamSection.style.display = "block";
 }
 
   // --- btnBack イベント登録 ---
+
 btnBack?.addEventListener("click", ()=>{
-  setTeam(null); // ← これ重要
   document.getElementById("teamNameInput").value = "";
   document.getElementById("inviteCodeInput").value = "";
-  applyTeamUI("login");
+  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
 });
 
   // --- 他のボタン登録 ---
