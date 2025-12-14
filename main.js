@@ -426,9 +426,26 @@ const pkScoreBEl = document.getElementById("pkB");
     if(placeEl) placeEl.value = "";
     if(myScoreEl) myScoreEl.value = "";
     if(opScoreEl) opScoreEl.value = "";
-if(pkScoreAEl) pkScoreAEl.value = "";
-if(pkScoreBEl) pkScoreBEl.value = "";
-    if(videoSelect) videoSelect.value = "";
+    if(pkScoreAEl) pkScoreAEl.value = "";
+    if(pkScoreBEl) pkScoreBEl.value = "";
+
+    // ★ 動画セレクト完全リセット（ここが重要）
+    const yearSel  = document.getElementById("videoYear");
+    const monthSel = document.getElementById("videoMonth");
+
+    if(yearSel) yearSel.value = "";
+
+    if(monthSel){
+      monthSel.value = "";
+      monthSel.innerHTML = `<option value="">月を選択</option>`;
+      monthSel.disabled = true;
+    }
+
+    if(videoSelect){
+      videoSelect.value = "";
+      videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+      videoSelect.disabled = true;
+    }
   }
 }
 
