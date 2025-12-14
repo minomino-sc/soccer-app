@@ -200,6 +200,20 @@ async function loadVideosFromFirestore(){
   }
 }
 
+function groupVideosByYearMonth(videos){
+  const map = {};
+  videos.forEach(v=>{
+    const d = new Date(v.createdAt || 0);
+    if (isNaN(d)) return;
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    map[y] ??= {};
+    map[y][m] ??= [];
+    map[y][m].push(v);
+  });
+  return map;
+}
+
 /* 動画セレクトを create / edit 用に描画 */
 function renderVideoSelects(selectedVideoId){
   const yearSel  = document.getElementById("videoYear");
