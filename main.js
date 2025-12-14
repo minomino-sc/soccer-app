@@ -870,13 +870,12 @@ btnBack?.addEventListener("click", ()=>{
       const ok = confirm(`チーム "${name}" は存在しません。\n新規作成しますか？`);
       if (!ok) return alert("チーム作成をキャンセルしました。");
 
-const teamId = `${name}_${code}`;
+      const newRef = await addDoc(teamsCol, { teamName: name, inviteCode: code, createdAt: new Date().toISOString() });
+      setTeam({ teamName: name, inviteCode: code, baseTeamName: makeBaseTeamName(name) });
+      alert(`チーム "${name}" を新規登録しました`);
+      await applyTeamUI();
+    }
+    catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
+  });
 
-await setDoc(doc(db, "teams", teamId), {
-  teamName: name,
-  inviteCode: code,
-  baseTeamName: makeBaseTeamName(name),
-  createdAt: new Date().toISOString()
 });
-
-})
