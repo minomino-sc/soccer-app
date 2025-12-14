@@ -770,11 +770,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   const backupSection = document.getElementById("backupSection");
   if(backupSection) backupSection.style.display = "none";
 
-  // --- local videos を復元しておく ---
-  loadVideosLocal();
-  await loadVideosFromFirestore();
-  await loadScores();
-
   // --- チームがログイン済みなら UI を反映 ---
 const team = getTeam();
 
