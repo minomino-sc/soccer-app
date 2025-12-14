@@ -777,9 +777,7 @@ if (team) {
   await applyTeamUI(false); // or simply applyTeamUI();
 
 } else {
-// 未ログインならチーム入力欄を表示
-  const teamSection = document.getElementById("teamSection");
-  if(teamSection) teamSection.style.display = "block";
+  await applyTeamUI(true); // ★ 未ログインUIは必ずこれ
 }
 
   // --- btnBack イベント登録 ---
