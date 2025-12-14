@@ -201,21 +201,65 @@ async function loadVideosFromFirestore(){
 }
 
 /* 動画セレクトを create / edit 用に描画 */
-function renderVideoSelects(selectedForEdit){
-  const render = (id, selectedVal) => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
-    videos.forEach(v=>{
+function renderVideoSelects(selectedVideoId){
+  const yearSel  = document.getElementById("videoYear");
+  const monthSel = document.getElementById("videoMonth");
+  const videoSel = document.getElementById("videoSelect");
+
+  if(!yearSel || !monthSel || !videoSel) return;
+
+  const grouped = groupVideosByYearMonth(videos);
+
+  // --- 年 ---
+  yearSel.innerHTML = `<option value="">年を選択</option>`;
+  Object.keys(grouped).sort((a,b)=>b-a).forEach(y=>{
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y + "年";
+    yearSel.appendChild(opt);
+  });
+
+  monthSel.innerHTML = `<option value="">月を選択</option>`;
+  videoSel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+  monthSel.disabled = true;
+  videoSel.disabled = true;
+
+  yearSel.onchange = ()=>{
+    const y = yearSel.value;
+    monthSel.innerHTML = `<option value="">月を選択</option>`;
+    videoSel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+    videoSel.disabled = true;
+
+    if(!y) return (monthSel.disabled = true);
+
+    Object.keys(grouped[y]).sort((a,b)=>b-a).forEach(m=>{
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = m + "月";
+      monthSel.appendChild(opt);
+    });
+    monthSel.disabled = false;
+  };
+
+  monthSel.onchange = ()=>{
+    const y = yearSel.value;
+    const m = monthSel.value;
+    videoSel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+
+    if(!y || !m) return (videoSel.disabled = true);
+
+    grouped[y][m].forEach(v=>{
       const opt = document.createElement("option");
       opt.value = v.id;
       opt.textContent = v.title || v.url || v.id;
-      el.appendChild(opt);
+      videoSel.appendChild(opt);
     });
-    if(selectedVal) el.value = selectedVal;
+    videoSel.disabled = false;
+
+    if(selectedVideoId){
+      videoSel.value = selectedVideoId;
+    }
   };
-  render("videoSelect", selectedForEdit);
-  render("edit-video-select", selectedForEdit);
 }
 
 /* ---------- YouTube 動画追加（Firestore 保存） ---------- */
