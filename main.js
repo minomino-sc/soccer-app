@@ -428,8 +428,18 @@ const pkScoreBEl = document.getElementById("pkB");
     if(opScoreEl) opScoreEl.value = "";
 if(pkScoreAEl) pkScoreAEl.value = "";
 if(pkScoreBEl) pkScoreBEl.value = "";
-    if(videoSelect) videoSelect.value = "";
-  }
+
+document.getElementById("videoYear").value = "";
+
+const monthSel = document.getElementById("videoMonth");
+monthSel.value = "";
+monthSel.innerHTML = `<option value="">月を選択</option>`;
+monthSel.disabled = true;
+
+if(videoSelect){
+  videoSelect.value = "";
+  videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+  videoSelect.disabled = true;
 }
 
 /* ---------- 検索/描画ヘルパー ---------- */
