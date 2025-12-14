@@ -780,10 +780,10 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
   // --- チームがログイン済みなら UI を反映 ---
 const team = getTeam();
+
 if (team) {
-  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
+  await applyTeamUI(false); // 管理者UI
 } else {
-// 未ログインならチーム入力欄を表示
   const teamSection = document.getElementById("teamSection");
   if(teamSection) teamSection.style.display = "block";
 }
