@@ -4,7 +4,7 @@ import {
   addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase設定（差し替え） */
+/* Firebase設定 */
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
   authDomain: "YOUR_DOMAIN",
@@ -15,23 +15,23 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const table = document.getElementById("table");
-let currentTeam = "A";
 
-document.getElementById("btnA").onclick = () => switchTeam("A");
-document.getElementById("btnB").onclick = () => switchTeam("B");
+// チーム切替ボタンは見た目だけ
+document.getElementById("btnA").onclick = () => {
+  document.getElementById("btnA").classList.add("active");
+  document.getElementById("btnB").classList.remove("active");
+};
+document.getElementById("btnB").onclick = () => {
+  document.getElementById("btnB").classList.add("active");
+  document.getElementById("btnA").classList.remove("active");
+};
 
 await render();
 
-async function switchTeam(team){
-  currentTeam = team;
-  document.getElementById("btnA").classList.toggle("active", team==="A");
-  document.getElementById("btnB").classList.toggle("active", team==="B");
-  await render();
-}
-
-async function render(){
+async function render() {
   table.innerHTML = "";
 
+  // データ取得
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap = await getDocs(
     query(collection(db,"events_attendance"), orderBy("date","asc"))
@@ -39,11 +39,9 @@ async function render(){
   const logsSnap = await getDocs(collection(db,"attendance_logs"));
 
   const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
-  const events = eventsSnap.docs
-    .map(d=>({id:d.id,...d.data()}))
-    .filter(e => e.team === currentTeam || e.team === "ALL");
+  const events = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
 
-  // 最新の出欠状況をキーで保持
+  // 最新ログをキーで保持
   const latest = {};
   logsSnap.forEach(l=>{
     const d = l.data();
@@ -53,9 +51,13 @@ async function render(){
   // ヘッダ
   const trH = document.createElement("tr");
   trH.innerHTML = `<th>名前</th>` +
-    events.map(e=>`<th class="${e.type==="match"?"match":""}">
-      ${e.date.slice(5)}
-    </th>`).join("");
+    events.map(e=>{
+      const teamLabel = e.team || "ALL";
+      const typeLabel = e.type==="match"?"試合":"練習";
+      const cls = e.type==="match"?"match":"practice";
+      const teamClass = e.team==="A"?"teamA": e.team==="B"?"teamB":"teamALL";
+      return `<th class="${cls} ${teamClass}">${e.date.slice(5)}<br>${teamLabel} ${typeLabel}</th>`;
+    }).join("");
   table.appendChild(trH);
 
   // 行
@@ -68,19 +70,22 @@ async function render(){
       const status = latest[key];
 
       const td = document.createElement("td");
-      if(e.type==="match") td.classList.add("match");
+      const typeClass = e.type==="match"?"match":"practice";
+      const teamClass = e.team==="A"?"teamA": e.team==="B"?"teamB":"teamALL";
+      td.classList.add(typeClass, teamClass);
+
       if(!status) td.classList.add("unset");
       if(status==="present") td.classList.add("present");
       if(status==="absent") td.classList.add("absent");
 
       td.textContent = status==="present"?"○":status==="absent"?"×":"";
 
-      // クリック時に最新の状態を取得して更新
-      td.onclick = async () => {
+      // クリックで出欠切り替え
+      td.onclick = async ()=>{
         const currentStatus = latest[key];
-        const nextStatus = currentStatus === "present" ? "absent" : "present";
+        const nextStatus = currentStatus==="present"?"absent":"present";
 
-        await addDoc(collection(db,"attendance_logs"), {
+        await addDoc(collection(db,"attendance_logs"),{
           eventId: e.id,
           playerId: p.id,
           status: nextStatus,
