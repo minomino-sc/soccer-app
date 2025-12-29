@@ -13,9 +13,7 @@ body{
   padding:16px;
 }
 
-h1,h2{
-  margin:8px 0;
-}
+h1,h2{margin:8px 0}
 
 table{
   width:100%;
@@ -51,14 +49,40 @@ th{
 .skip{background:#bbb;color:#333}
 .unset{background:#eee}
 
+/* 選択中セル */
+.selected{
+  outline:3px solid #2563eb;
+  outline-offset:-3px;
+}
+
 /* 月切替 */
 .monthNav{
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
   gap:16px;
-  font-size:18px;
   margin:12px 0;
+  font-size:18px;
+}
+
+/* 下バー */
+#actionBar{
+  display:none;
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid #ccc;
+  padding:12px;
+  display:flex;
+  gap:16px;
+  justify-content:center;
+}
+#actionBar button{
+  font-size:22px;
+  padding:12px 20px;
+  border-radius:10px;
 }
 </style>
 </head>
@@ -67,11 +91,9 @@ th{
 
 <h1>⚽ 出欠管理</h1>
 
-<!-- 出欠入力 -->
 <h2>出欠入力</h2>
 <table id="attendanceTable"></table>
 
-<!-- 月別集計 -->
 <h2>📊 月別出席率</h2>
 <div class="monthNav">
   <button id="prevMonth">◀</button>
@@ -89,20 +111,7 @@ th{
   <tbody id="statsBody"></tbody>
 </table>
 
-<!-- 出欠入力バー -->
-<div id="actionBar" style="
-  display:none;
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  border-top:1px solid #ccc;
-  padding:12px;
-  display:flex;
-  gap:12px;
-  justify-content:center;
-">
+<div id="actionBar">
   <button class="btn-present">○</button>
   <button class="btn-absent">×</button>
   <button class="btn-skip">－</button>
