@@ -8,78 +8,75 @@
 <style>
 body{
   font-family: system-ui;
-  background: #f5f7fb;
+  background:#f5f7fb;
   margin:0;
-  padding:16px;
+  padding-bottom:90px; /* 下バー分 */
+}
+
+h1{
+  padding:12px;
+  margin:0;
 }
 
 table{
   width:100%;
-  border-collapse: collapse;
-  background: #fff;
+  border-collapse:collapse;
+  background:#fff;
 }
 
-th, td{
-  border: 1px solid #ddd;
-  text-align: center;
-  padding: 6px;
-  font-size: 14px;
+th,td{
+  border:1px solid #ddd;
+  text-align:center;
+  padding:8px;
+  font-size:16px;
 }
 
 th{
-  background: #eee;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  background:#eee;
+  position:sticky;
+  top:0;
+  z-index:2;
 }
 
 .name{
-  position: sticky;
-  left: 0;
-  background: #fafafa;
-  z-index: 1;
+  position:sticky;
+  left:0;
+  background:#fafafa;
+  z-index:1;
 }
 
-/* イベント種別 */
-.match{background:#ffe0e0}        /* 試合 */
-.practice{background:#e0ffe0}     /* 練習 */
-
-/* チーム別（将来用） */
-.teamA{background-color: rgba(66,135,245,0.2)}
-.teamB{background-color: rgba(245,66,66,0.2)}
-.teamALL{background-color: rgba(200,200,200,0.2)}
-
-/* 出欠状態 */
+/* 状態表示 */
 .present{background:#4caf50;color:#fff}
 .absent{background:#f44336;color:#fff}
 .skip{background:#9e9e9e;color:#fff}
-.unset{background:#ccc;color:#333}
+.unset{background:#eee;color:#999}
 
-/* セル内ボタン（○ × －） */
-td button{
-  width:32px;
-  height:32px;
-  margin:2px;
-  font-size:18px;
+/* 下部選択バー */
+#actionBar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid #ccc;
+  display:none;
+  padding:10px;
+  box-shadow:0 -2px 8px rgba(0,0,0,.15);
+}
+
+#actionBar button{
+  width:30%;
+  margin:0 1%;
+  padding:14px 0;
+  font-size:20px;
   border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-td button[data-v="present"]{
-  background:#4caf50;
+  border-radius:10px;
   color:#fff;
 }
 
-td button[data-v="absent"]{
-  background:#f44336;
-  color:#fff;
-}
-
-td button[data-v="skip"]{
-  background:#9e9e9e;
-  color:#fff;
-}
+.btn-present{background:#4caf50}
+.btn-absent{background:#f44336}
+.btn-skip{background:#9e9e9e}
 </style>
 </head>
 
@@ -88,6 +85,13 @@ td button[data-v="skip"]{
 <h1>⚽ 出欠入力</h1>
 
 <table id="table"></table>
+
+<!-- 下部アクションバー -->
+<div id="actionBar">
+  <button class="btn-present">○ 出席</button>
+  <button class="btn-absent">× 欠席</button>
+  <button class="btn-skip">－ 応援</button>
+</div>
 
 <script type="module" src="main.js"></script>
 </body>
