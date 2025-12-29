@@ -16,16 +16,6 @@ const db = getFirestore(app);
 
 const table = document.getElementById("table");
 
-// チーム切替ボタンは見た目だけ
-document.getElementById("btnA").onclick = () => {
-  document.getElementById("btnA").classList.add("active");
-  document.getElementById("btnB").classList.remove("active");
-};
-document.getElementById("btnB").onclick = () => {
-  document.getElementById("btnB").classList.add("active");
-  document.getElementById("btnA").classList.remove("active");
-};
-
 await render();
 
 async function render() {
@@ -34,12 +24,12 @@ async function render() {
   // データ取得
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap = await getDocs(
-    query(collection(db,"events_attendance"), orderBy("date","asc"))
+    query(collection(db,"events_attendance"), orderBy("date"))
   );
   const logsSnap = await getDocs(collection(db,"attendance_logs"));
 
   const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
-  const events = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const eventsRaw = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
 
   // 最新ログをキーで保持
   const latest = {};
@@ -48,19 +38,26 @@ async function render() {
     latest[`${d.eventId}_${d.playerId}`] = d.status;
   });
 
-  // ヘッダ
+  // 日付＋チーム＋種別ごとに列を作る
+  const events = [];
+  eventsRaw.forEach(e=>{
+    const key = `${e.date}_${e.team || "ALL"}_${e.type}`;
+    events.push({...e, key});
+  });
+
+  // ヘッダ作成
   const trH = document.createElement("tr");
   trH.innerHTML = `<th>名前</th>` +
     events.map(e=>{
-      const teamLabel = e.team || "ALL";
       const typeLabel = e.type==="match"?"試合":"練習";
-      const cls = e.type==="match"?"match":"practice";
+      const teamLabel = e.team || "ALL";
+      const typeClass = e.type==="match"?"match":"practice";
       const teamClass = e.team==="A"?"teamA": e.team==="B"?"teamB":"teamALL";
-      return `<th class="${cls} ${teamClass}">${e.date.slice(5)}<br>${teamLabel} ${typeLabel}</th>`;
+      return `<th class="${typeClass} ${teamClass}">${e.date.slice(5)}<br>${teamLabel} ${typeLabel}</th>`;
     }).join("");
   table.appendChild(trH);
 
-  // 行
+  // 行作成
   players.forEach(p=>{
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="name">${p.name}</td>`;
@@ -80,7 +77,7 @@ async function render() {
 
       td.textContent = status==="present"?"○":status==="absent"?"×":"";
 
-      // クリックで出欠切り替え
+      // クリックで出欠切替
       td.onclick = async ()=>{
         const currentStatus = latest[key];
         const nextStatus = currentStatus==="present"?"absent":"present";
