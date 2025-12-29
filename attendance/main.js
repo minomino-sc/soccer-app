@@ -1,163 +1,24 @@
-/* ===============================
-   Firebase SDK（GitHub Pages対応）
-================================ */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  orderBy,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* ===============================
-   Firebase 設定
-   ※ 既存 箕谷システムと同じものに置換！
-================================ */
-const firebaseConfig = {
-  apiKey: "★★★★★ 既存の apiKey ★★★★★",
-  authDomain: "★★★★★ 既存の authDomain ★★★★★",
-  projectId: "minotani-sc-app",
-  storageBucket: "★★★★★",
-  messagingSenderId: "★★★★★",
-  appId: "★★★★★"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* ===============================
-   出欠入力画面（index.html）
-================================ */
 const eventList = document.getElementById("eventList");
 
 if (eventList) {
-  initAttendance();
+  debugInit();
 }
 
-async function initAttendance() {
-  const eventsSnap = await getDocs(
-    query(collection(db, "events_attendance"), orderBy("date", "asc"))
-  );
-  const playersSnap = await getDocs(
-    collection(db, "players_attendance")
-  );
+async function debugInit() {
+  try {
+    eventList.innerHTML = "<p>JS 起動 OK</p>";
 
-  if (eventsSnap.empty || playersSnap.empty) {
-    eventList.innerHTML = "<p>イベントまたは部員が登録されていません</p>";
-    return;
+    const eventsSnap = await getDocs(collection(db, "events_attendance"));
+    eventList.innerHTML += `<p>events_attendance: ${eventsSnap.size} 件</p>`;
+
+    const playersSnap = await getDocs(collection(db, "players_attendance"));
+    eventList.innerHTML += `<p>players_attendance: ${playersSnap.size} 件</p>`;
+
+  } catch (e) {
+    eventList.innerHTML = `
+      <p style="color:red">
+        エラー発生:<br>${e.message}
+      </p>
+    `;
   }
-
-  eventsSnap.forEach(evDoc => {
-    const ev = evDoc.data();
-
-    const box = document.createElement("div");
-    box.className = "event";
-    box.innerHTML = `
-      <strong>${ev.date} ${ev.title}（${ev.type === "practice" ? "練習" : "試合"}）</strong>
-    `;
-
-    playersSnap.forEach(plDoc => {
-      const pl = plDoc.data();
-
-      const wrap = document.createElement("div");
-      wrap.className = "player";
-
-      wrap.innerHTML = `
-        <div class="row">
-          <span>${pl.name}</span>
-          <span>
-            <button class="present">出席</button>
-            <button class="absent">欠席</button>
-          </span>
-        </div>
-        <textarea placeholder="欠席理由（任意）" style="display:none"></textarea>
-      `;
-
-      const reason = wrap.querySelector("textarea");
-
-      wrap.querySelector(".present").onclick = async () => {
-        await saveAttendance(evDoc.id, plDoc.id, "present", "");
-        alert("出席で保存しました");
-      };
-
-      wrap.querySelector(".absent").onclick = async () => {
-        reason.style.display = "block";
-        await saveAttendance(evDoc.id, plDoc.id, "absent", reason.value);
-        alert("欠席で保存しました");
-      };
-
-      box.appendChild(wrap);
-    });
-
-    eventList.appendChild(box);
-  });
-}
-
-async function saveAttendance(eventId, playerId, status, reason) {
-  await addDoc(collection(db, "attendance_logs"), {
-    eventId,
-    playerId,
-    status,
-    reason,
-    createdAt: serverTimestamp()
-  });
-}
-
-/* ===============================
-   出席率画面（stats.html）
-================================ */
-const table = document.getElementById("statsTable");
-
-if (table) {
-  initStats();
-}
-
-async function initStats() {
-  const players = await getDocs(collection(db, "players_attendance"));
-  const events = await getDocs(collection(db, "events_attendance"));
-  const logs = await getDocs(
-    query(collection(db, "attendance_logs"), orderBy("createdAt", "asc"))
-  );
-
-  // 最新ログだけを保持
-  const latest = {};
-  logs.forEach(l => {
-    const d = l.data();
-    latest[`${d.eventId}_${d.playerId}`] = d;
-  });
-
-  players.forEach(p => {
-    let pHit = 0, pTotal = 0;
-    let mHit = 0, mTotal = 0;
-
-    events.forEach(e => {
-      const ev = e.data();
-      const key = `${e.id}_${p.id}`;
-      const hit = latest[key]?.status === "present";
-
-      if (ev.type === "practice") {
-        pTotal++;
-        if (hit) pHit++;
-      }
-      if (ev.type === "match") {
-        mTotal++;
-        if (hit) mHit++;
-      }
-    });
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.data().name}</td>
-      <td>${pTotal ? Math.round(pHit / pTotal * 100) : 0}%</td>
-      <td>${mTotal ? Math.round(mHit / mTotal * 100) : 0}%</td>
-      <td>${(pTotal + mTotal)
-        ? Math.round((pHit + mHit) / (pTotal + mTotal) * 100)
-        : 0}%</td>
-    `;
-
-    table.appendChild(tr);
-  });
 }
