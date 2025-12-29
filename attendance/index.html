@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 出欠入力</title>
+
 <style>
 body{
   font-family: system-ui;
@@ -40,24 +41,54 @@ th{
 }
 
 /* イベント種別 */
-.match{background:#ffe0e0}       /* 試合赤系 */
-.practice{background:#e0ffe0}     /* 練習緑系 */
+.match{background:#ffe0e0}        /* 試合 */
+.practice{background:#e0ffe0}     /* 練習 */
 
-/* チーム別背景（薄色） */
-.teamA{background-color: rgba(66, 135, 245, 0.2);}  /* Aチーム薄青 */
-.teamB{background-color: rgba(245, 66, 66, 0.2);}   /* Bチーム薄赤 */
-.teamALL{background-color: rgba(200, 200, 200, 0.2);}/* ALL薄グレー */
+/* チーム別（将来用） */
+.teamA{background-color: rgba(66,135,245,0.2)}
+.teamB{background-color: rgba(245,66,66,0.2)}
+.teamALL{background-color: rgba(200,200,200,0.2)}
 
 /* 出欠状態 */
-.present{background:#4caf50;color:#fff}  /* 出席濃緑 */
-.absent{background:#f44336;color:#fff}   /* 欠席濃赤 */
-.unset{background:#ccc;color:#333}       /* 未入力 */
+.present{background:#4caf50;color:#fff}
+.absent{background:#f44336;color:#fff}
+.skip{background:#9e9e9e;color:#fff}
+.unset{background:#ccc;color:#333}
+
+/* セル内ボタン（○ × －） */
+td button{
+  width:32px;
+  height:32px;
+  margin:2px;
+  font-size:18px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+td button[data-v="present"]{
+  background:#4caf50;
+  color:#fff;
+}
+
+td button[data-v="absent"]{
+  background:#f44336;
+  color:#fff;
+}
+
+td button[data-v="skip"]{
+  background:#9e9e9e;
+  color:#fff;
+}
 </style>
 </head>
 
 <body>
+
 <h1>⚽ 出欠入力</h1>
+
 <table id="table"></table>
+
 <script type="module" src="main.js"></script>
 </body>
 </html>
