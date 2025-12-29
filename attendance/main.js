@@ -4,7 +4,7 @@ import {
   addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase設定（admin.js と完全一致） */
+/* Firebase設定（admin.jsと完全一致） */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -13,7 +13,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 const table = document.getElementById("table");
+const bar   = document.getElementById("actionBar");
+
+let currentCell = null;
+let currentInfo = null;
 
 await render();
 
@@ -21,10 +26,10 @@ async function render(){
   table.innerHTML = "";
 
   const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap = await getDocs(
+  const eventsSnap  = await getDocs(
     query(collection(db,"events_attendance"), orderBy("date"))
   );
-  const logsSnap = await getDocs(collection(db,"attendance_logs"));
+  const logsSnap    = await getDocs(collection(db,"attendance_logs"));
 
   const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
   const events  = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
@@ -45,7 +50,7 @@ async function render(){
     }).join("");
   table.appendChild(trH);
 
-  /* 本体 */
+  /* 行 */
   players.forEach(p=>{
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="name">${p.name}</td>`;
@@ -55,28 +60,14 @@ async function render(){
       const status = latest[key] || "";
 
       const td = document.createElement("td");
-      applyClass(td, status);
+      setState(td, status);
 
-      const select = document.createElement("select");
-      select.innerHTML = `
-        <option value=""> </option>
-        <option value="present">○</option>
-        <option value="absent">×</option>
-        <option value="skip">－</option>
-      `;
-      select.value = status;
-
-      select.onchange = async ()=>{
-        await addDoc(collection(db,"attendance_logs"),{
-          eventId: e.id,
-          playerId: p.id,
-          status: select.value,
-          createdAt: serverTimestamp()
-        });
-        await render();
+      td.onclick = ()=>{
+        currentCell = td;
+        currentInfo = { eventId:e.id, playerId:p.id };
+        bar.style.display="block";
       };
 
-      td.appendChild(select);
       tr.appendChild(td);
     });
 
@@ -84,11 +75,30 @@ async function render(){
   });
 }
 
-/* 状態に応じて色を付ける */
-function applyClass(td, status){
-  td.className = "";
-  if(status==="present") td.classList.add("present");
-  else if(status==="absent") td.classList.add("absent");
-  else if(status==="skip") td.classList.add("skip");
-  else td.classList.add("unset");
+/* 状態表示 */
+function setState(td, status){
+  td.className="";
+  if(status==="present"){ td.textContent="○"; td.classList.add("present"); }
+  else if(status==="absent"){ td.textContent="×"; td.classList.add("absent"); }
+  else if(status==="skip"){ td.textContent="－"; td.classList.add("skip"); }
+  else{ td.textContent=""; td.classList.add("unset"); }
+}
+
+/* ボタン処理 */
+bar.querySelector(".btn-present").onclick = ()=>save("present");
+bar.querySelector(".btn-absent").onclick  = ()=>save("absent");
+bar.querySelector(".btn-skip").onclick    = ()=>save("skip");
+
+async function save(status){
+  if(!currentInfo) return;
+
+  await addDoc(collection(db,"attendance_logs"),{
+    eventId: currentInfo.eventId,
+    playerId: currentInfo.playerId,
+    status,
+    createdAt: serverTimestamp()
+  });
+
+  bar.style.display="none";
+  await render();
 }
