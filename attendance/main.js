@@ -1,133 +1,90 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, getDocs, addDoc,
-  query, orderBy, serverTimestamp
+  getFirestore, collection, getDocs,
+  addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase設定（既存と同じ） */
+/* Firebase設定（差し替え） */
 const firebaseConfig = {
-  apiKey: "★★★★★",
-  authDomain: "★★★★★",
-  projectId: "minotani-sc-app",
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* 状態 */
-let current = new Date();
-let filterType = "all";
+const table = document.getElementById("table");
+let currentTeam = "A";
 
-/* DOM */
-const table = document.getElementById("attendanceTable");
-const label = document.getElementById("currentMonth");
+document.getElementById("btnA").onclick = () => switchTeam("A");
+document.getElementById("btnB").onclick = () => switchTeam("B");
 
-if (table) init();
+await render();
 
-async function init() {
-  document.getElementById("prevMonth").onclick = () => {
-    current.setMonth(current.getMonth() - 1);
-    render();
-  };
-  document.getElementById("nextMonth").onclick = () => {
-    current.setMonth(current.getMonth() + 1);
-    render();
-  };
-
-  document.querySelectorAll("#controls button[data-type]").forEach(btn => {
-    btn.onclick = () => {
-      filterType = btn.dataset.type;
-      render();
-    };
-  });
-
-  render();
+async function switchTeam(team){
+  currentTeam = team;
+  document.getElementById("btnA").classList.toggle("active", team==="A");
+  document.getElementById("btnB").classList.toggle("active", team==="B");
+  await render();
 }
 
-async function render() {
-  label.textContent = `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
+async function render(){
+  table.innerHTML = "";
 
-  const playersSnap = await getDocs(
-    query(collection(db, "players_attendance"), orderBy("name"))
-  );
+  const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap = await getDocs(
-    query(collection(db, "events_attendance"), orderBy("date"))
+    query(collection(db,"events_attendance"), orderBy("date","asc"))
   );
-  const logsSnap = await getDocs(
-    query(collection(db, "attendance_logs"), orderBy("createdAt"))
-  );
+  const logsSnap = await getDocs(collection(db,"attendance_logs"));
 
-  /* 最新出欠 */
+  const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const events = eventsSnap.docs
+    .map(d=>({id:d.id,...d.data()}))
+    .filter(e => e.team === currentTeam || e.team === "ALL");
+
   const latest = {};
-  logsSnap.forEach(l => {
+  logsSnap.forEach(l=>{
     const d = l.data();
-    latest[`${d.playerId}_${d.eventId}`] = d;
+    latest[`${d.eventId}_${d.playerId}`] = d.status;
   });
 
-  /* 今月＋種別 */
-  const events = [];
-  eventsSnap.forEach(e => {
-    const ev = e.data();
-    const d = new Date(ev.date);
-    if (
-      d.getFullYear() === current.getFullYear() &&
-      d.getMonth() === current.getMonth() &&
-      (filterType === "all" || ev.type === filterType)
-    ) {
-      events.push({ id: e.id, ...ev });
-    }
-  });
+  // ヘッダ
+  const trH = document.createElement("tr");
+  trH.innerHTML = `<th>名前</th>` +
+    events.map(e=>`<th class="${e.type==="match"?"match":""}">
+      ${e.date.slice(5)}
+    </th>`).join("");
+  table.appendChild(trH);
 
-  /* 表ヘッダ */
-  let html = "<tr><th>部員</th>";
-  events.forEach(e => {
-    const bg = e.type === "match" ? "#ffe4e6" : "#eef2ff";
-    html += `<th style="background:${bg}">${e.date}</th>`;
-  });
-  html += "</tr>";
+  // 行
+  players.forEach(p=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="name">${p.name}</td>`;
 
-  /* 表本体 */
-  playersSnap.forEach(p => {
-    html += `<tr><td>${p.data().name}</td>`;
-    events.forEach(e => {
-      const key = `${p.id}_${e.id}`;
-      const s = latest[key]?.status;
-      let mark = "－";
-      let bg = "#f3f4f6"; // 未入力グレー
+    events.forEach(e=>{
+      const key = `${e.id}_${p.id}`;
+      const status = latest[key];
 
-      if (s === "present") {
-        mark = "○";
-        bg = "#dcfce7";
-      }
-      if (s === "absent") {
-        mark = "×";
-        bg = "#fee2e2";
-      }
+      const td = document.createElement("td");
+      if(e.type==="match") td.classList.add("match");
+      if(!status) td.classList.add("unset");
+      if(status==="present") td.classList.add("present");
+      if(status==="absent") td.classList.add("absent");
 
-      html += `
-        <td style="background:${bg}"
-            data-p="${p.id}" data-e="${e.id}">
-          ${mark}
-        </td>`;
+      td.textContent = status==="present"?"○":status==="absent"?"×":"";
+      td.onclick = async ()=>{
+        const next = status==="present"?"absent":"present";
+        await addDoc(collection(db,"attendance_logs"),{
+          eventId:e.id,
+          playerId:p.id,
+          status:next,
+          createdAt:serverTimestamp()
+        });
+        await render();
+      };
+      tr.appendChild(td);
     });
-    html += "</tr>";
-  });
-
-  table.innerHTML = html;
-
-  /* タップで切替 */
-  table.querySelectorAll("td[data-p]").forEach(td => {
-    td.onclick = async () => {
-      const next = td.textContent === "○" ? "×" : "○";
-      td.textContent = next;
-      td.style.background = next === "○" ? "#dcfce7" : "#fee2e2";
-
-      await addDoc(collection(db, "attendance_logs"), {
-        playerId: td.dataset.p,
-        eventId: td.dataset.e,
-        status: next === "○" ? "present" : "absent",
-        createdAt: serverTimestamp()
-      });
-    };
+    table.appendChild(tr);
   });
 }
