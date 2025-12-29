@@ -57,12 +57,14 @@ async function render() {
     query(collection(db, "attendance_logs"), orderBy("createdAt"))
   );
 
+  /* 最新出欠 */
   const latest = {};
   logsSnap.forEach(l => {
     const d = l.data();
     latest[`${d.playerId}_${d.eventId}`] = d;
   });
 
+  /* 今月＋種別 */
   const events = [];
   eventsSnap.forEach(e => {
     const ev = e.data();
@@ -76,19 +78,34 @@ async function render() {
     }
   });
 
-  /* 表描画 */
+  /* 表ヘッダ */
   let html = "<tr><th>部員</th>";
-  events.forEach(e => html += `<th>${e.date}</th>`);
+  events.forEach(e => {
+    const bg = e.type === "match" ? "#ffe4e6" : "#eef2ff";
+    html += `<th style="background:${bg}">${e.date}</th>`;
+  });
   html += "</tr>";
 
+  /* 表本体 */
   playersSnap.forEach(p => {
     html += `<tr><td>${p.data().name}</td>`;
     events.forEach(e => {
       const key = `${p.id}_${e.id}`;
       const s = latest[key]?.status;
-      const mark = s === "present" ? "○" : s === "absent" ? "×" : "－";
+      let mark = "－";
+      let bg = "#f3f4f6"; // 未入力グレー
+
+      if (s === "present") {
+        mark = "○";
+        bg = "#dcfce7";
+      }
+      if (s === "absent") {
+        mark = "×";
+        bg = "#fee2e2";
+      }
+
       html += `
-        <td style="text-align:center;font-size:20px"
+        <td style="background:${bg}"
             data-p="${p.id}" data-e="${e.id}">
           ${mark}
         </td>`;
@@ -98,11 +115,12 @@ async function render() {
 
   table.innerHTML = html;
 
-  /* クリック保存 */
+  /* タップで切替 */
   table.querySelectorAll("td[data-p]").forEach(td => {
     td.onclick = async () => {
       const next = td.textContent === "○" ? "×" : "○";
       td.textContent = next;
+      td.style.background = next === "○" ? "#dcfce7" : "#fee2e2";
 
       await addDoc(collection(db, "attendance_logs"), {
         playerId: td.dataset.p,
