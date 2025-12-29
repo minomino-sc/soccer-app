@@ -3,20 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>出席率</title>
+<title>月別出席率</title>
 <style>
 body{font-family:system-ui;background:#f5f7fb;padding:16px}
-table{width:100%;background:#fff;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
+table{border-collapse:collapse;width:100%;background:#fff}
+th,td{border:1px solid #ddd;padding:8px;text-align:center}
+th{background:#eef2ff}
 </style>
 </head>
 <body>
 
-<h1>📊 出席率（最新回答）</h1>
-<table id="statsTable">
-<tr><th>名前</th><th>練習</th><th>試合</th><th>累計</th></tr>
+<h1>📊 月別出席率</h1>
+
+<div>
+  <button id="prevMonth">◀</button>
+  <span id="monthLabel"></span>
+  <button id="nextMonth">▶</button>
+</div>
+
+<table>
+  <tr>
+    <th>部員</th>
+    <th>練習</th>
+    <th>試合</th>
+    <th>合計</th>
+  </tr>
+  <tbody id="statsBody"></tbody>
 </table>
 
-<script type="module" src="main.js"></script>
+<script type="module" src="stats.js"></script>
 </body>
 </html>
