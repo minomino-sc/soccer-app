@@ -9,109 +9,107 @@ const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
   projectId: "minotani-sc-app",
-  storageBucket: "★★★★★",
-  messagingSenderId: "★★★★★",
-  appId: "★★★★★"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ---------- 出欠入力 ---------- */
-const eventList = document.getElementById("eventList");
-let selectedType = "practice"; // 初期：練習
+/* 状態 */
+let current = new Date();
+let filterType = "all";
 
-if (eventList) init();
+/* DOM */
+const table = document.getElementById("attendanceTable");
+const label = document.getElementById("currentMonth");
+
+if (table) init();
 
 async function init() {
-  const events = await getDocs(query(
-    collection(db, "events_attendance"),
-    orderBy("date", "desc")
-  ));
-  const players = await getDocs(
+  document.getElementById("prevMonth").onclick = () => {
+    current.setMonth(current.getMonth() - 1);
+    render();
+  };
+  document.getElementById("nextMonth").onclick = () => {
+    current.setMonth(current.getMonth() + 1);
+    render();
+  };
+
+  document.querySelectorAll("#controls button[data-type]").forEach(btn => {
+    btn.onclick = () => {
+      filterType = btn.dataset.type;
+      render();
+    };
+  });
+
+  render();
+}
+
+async function render() {
+  label.textContent = `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
+
+  const playersSnap = await getDocs(
     query(collection(db, "players_attendance"), orderBy("name"))
   );
+  const eventsSnap = await getDocs(
+    query(collection(db, "events_attendance"), orderBy("date"))
+  );
+  const logsSnap = await getDocs(
+    query(collection(db, "attendance_logs"), orderBy("createdAt"))
+  );
 
-  // 種別切替UI
-  const switcher = document.createElement("div");
-  switcher.innerHTML = `
-    <button id="btnPractice">練習</button>
-    <button id="btnMatch">試合</button>
-    <hr>
-  `;
-  eventList.appendChild(switcher);
-
-  document.getElementById("btnPractice").onclick = () => {
-    selectedType = "practice";
-    render(events, players);
-  };
-  document.getElementById("btnMatch").onclick = () => {
-    selectedType = "match";
-    render(events, players);
-  };
-
-  render(events, players);
-}
-
-function render(events, players) {
-  // 既存表示削除
-  document.querySelectorAll(".event").forEach(e => e.remove());
-
-  events.forEach(evDoc => {
-    const ev = evDoc.data();
-    if (ev.type !== selectedType) return;
-
-    const box = document.createElement("div");
-    box.className = "event";
-    box.innerHTML = `<strong>${ev.date} ${ev.title}</strong>`;
-
-    players.forEach(plDoc => {
-      const pl = plDoc.data();
-      const row = document.createElement("div");
-      row.className = "player";
-
-      row.innerHTML = `
-        <div class="row">
-          <span>${pl.name}</span>
-          <span>
-            <button class="present">出席</button>
-            <button class="absent">欠席</button>
-          </span>
-        </div>
-        <textarea placeholder="欠席理由" style="display:none"></textarea>
-      `;
-
-      const presentBtn = row.querySelector(".present");
-      const absentBtn = row.querySelector(".absent");
-      const reason = row.querySelector("textarea");
-
-      presentBtn.onclick = async () => {
-        presentBtn.style.opacity = "1";
-        absentBtn.style.opacity = "0.3";
-        reason.style.display = "none";
-        await save(evDoc.id, plDoc.id, "present", "");
-      };
-
-      absentBtn.onclick = async () => {
-        absentBtn.style.opacity = "1";
-        presentBtn.style.opacity = "0.3";
-        reason.style.display = "block";
-        await save(evDoc.id, plDoc.id, "absent", reason.value);
-      };
-
-      box.appendChild(row);
-    });
-
-    eventList.appendChild(box);
+  const latest = {};
+  logsSnap.forEach(l => {
+    const d = l.data();
+    latest[`${d.playerId}_${d.eventId}`] = d;
   });
-}
 
-async function save(eventId, playerId, status, reason) {
-  await addDoc(collection(db, "attendance_logs"), {
-    eventId,
-    playerId,
-    status,
-    reason,
-    createdAt: serverTimestamp()
+  const events = [];
+  eventsSnap.forEach(e => {
+    const ev = e.data();
+    const d = new Date(ev.date);
+    if (
+      d.getFullYear() === current.getFullYear() &&
+      d.getMonth() === current.getMonth() &&
+      (filterType === "all" || ev.type === filterType)
+    ) {
+      events.push({ id: e.id, ...ev });
+    }
+  });
+
+  /* 表描画 */
+  let html = "<tr><th>部員</th>";
+  events.forEach(e => html += `<th>${e.date}</th>`);
+  html += "</tr>";
+
+  playersSnap.forEach(p => {
+    html += `<tr><td>${p.data().name}</td>`;
+    events.forEach(e => {
+      const key = `${p.id}_${e.id}`;
+      const s = latest[key]?.status;
+      const mark = s === "present" ? "○" : s === "absent" ? "×" : "－";
+      html += `
+        <td style="text-align:center;font-size:20px"
+            data-p="${p.id}" data-e="${e.id}">
+          ${mark}
+        </td>`;
+    });
+    html += "</tr>";
+  });
+
+  table.innerHTML = html;
+
+  /* クリック保存 */
+  table.querySelectorAll("td[data-p]").forEach(td => {
+    td.onclick = async () => {
+      const next = td.textContent === "○" ? "×" : "○";
+      td.textContent = next;
+
+      await addDoc(collection(db, "attendance_logs"), {
+        playerId: td.dataset.p,
+        eventId: td.dataset.e,
+        status: next === "○" ? "present" : "absent",
+        createdAt: serverTimestamp()
+      });
+    };
   });
 }
