@@ -43,6 +43,7 @@ async function render(){
     .map(d=>({id:d.id,...d.data()}))
     .filter(e => e.team === currentTeam || e.team === "ALL");
 
+  // 最新の出欠状況をキーで保持
   const latest = {};
   logsSnap.forEach(l=>{
     const d = l.data();
@@ -73,18 +74,25 @@ async function render(){
       if(status==="absent") td.classList.add("absent");
 
       td.textContent = status==="present"?"○":status==="absent"?"×":"";
-      td.onclick = async ()=>{
-        const next = status==="present"?"absent":"present";
-        await addDoc(collection(db,"attendance_logs"),{
-          eventId:e.id,
-          playerId:p.id,
-          status:next,
-          createdAt:serverTimestamp()
+
+      // クリック時に最新の状態を取得して更新
+      td.onclick = async () => {
+        const currentStatus = latest[key];
+        const nextStatus = currentStatus === "present" ? "absent" : "present";
+
+        await addDoc(collection(db,"attendance_logs"), {
+          eventId: e.id,
+          playerId: p.id,
+          status: nextStatus,
+          createdAt: serverTimestamp()
         });
+
         await render();
       };
+
       tr.appendChild(td);
     });
+
     table.appendChild(tr);
   });
 }
