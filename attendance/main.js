@@ -14,100 +14,145 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const table = document.getElementById("table");
-const bar   = document.getElementById("actionBar");
+/* DOM */
+const attTable = document.getElementById("attendanceTable");
+const statsBody = document.getElementById("statsBody");
+const label = document.getElementById("monthLabel");
+const bar = document.getElementById("actionBar");
 
-let selected = null; // {eventId, playerId}
+let selected = null;
+let current = new Date();
 
-await render();
+/* 月切替 */
+document.getElementById("prevMonth").onclick = ()=>{
+  current.setMonth(current.getMonth()-1);
+  renderStats();
+};
+document.getElementById("nextMonth").onclick = ()=>{
+  current.setMonth(current.getMonth()+1);
+  renderStats();
+};
 
-async function render(){
-  table.innerHTML = "";
+await renderAttendance();
+await renderStats();
+
+/* ---------- 出欠入力 ---------- */
+async function renderAttendance(){
+  attTable.innerHTML="";
 
   const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap  = await getDocs(
+  const eventsSnap = await getDocs(
     query(collection(db,"events_attendance"), orderBy("date"))
   );
-  const logsSnap    = await getDocs(
+  const logsSnap = await getDocs(
     query(collection(db,"attendance_logs"), orderBy("createdAt"))
   );
+
+  const latest = {};
+  logsSnap.forEach(l=>{
+    const d=l.data();
+    latest[`${d.eventId}_${d.playerId}`]=d.status;
+  });
 
   const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
   const events  = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
 
-  /* 最新状態だけ保持 */
-  const latest = {};
-  logsSnap.forEach(l=>{
-    const d = l.data();
-    latest[`${d.eventId}_${d.playerId}`] = d.status;
-  });
+  const trH=document.createElement("tr");
+  trH.innerHTML=`<th>名前</th>`+
+    events.map(e=>`<th>${e.date.slice(5)}</th>`).join("");
+  attTable.appendChild(trH);
 
-  /* ヘッダ */
-  const trH = document.createElement("tr");
-  trH.innerHTML =
-    `<th>名前</th>` +
-    events.map(e=>{
-      const t = e.type==="match" ? "試合" : "練習";
-      return `<th>${e.date.slice(5)}<br>${t}</th>`;
-    }).join("");
-  table.appendChild(trH);
-
-  /* 本体 */
   players.forEach(p=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="name">${p.name}</td>`;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td class="name">${p.name}</td>`;
 
     events.forEach(e=>{
-      const td = document.createElement("td");
-      const key = `${e.id}_${p.id}`;
-      setState(td, latest[key]);
+      const td=document.createElement("td");
+      setState(td, latest[`${e.id}_${p.id}`]);
 
-      td.onclick = ()=>{
-        selected = { eventId:e.id, playerId:p.id };
-        bar.style.display="block";
+      td.onclick=()=>{
+        selected={eventId:e.id,playerId:p.id};
+        bar.style.display="flex";
       };
 
       tr.appendChild(td);
     });
-
-    table.appendChild(tr);
+    attTable.appendChild(tr);
   });
 }
 
-/* 表示専用 */
-function setState(td, status){
-  td.className = "";
-  if(status==="present"){
-    td.textContent="○";
-    td.classList.add("present");
-  }else if(status==="absent"){
-    td.textContent="×";
-    td.classList.add("absent");
-  }else if(status==="skip"){
-    td.textContent="－";
-    td.classList.add("skip");
-  }else{
-    td.textContent="";
-    td.classList.add("unset");
-  }
+/* ---------- 月別集計 ---------- */
+async function renderStats(){
+  label.textContent=`${current.getFullYear()}年 ${current.getMonth()+1}月`;
+  statsBody.innerHTML="";
+
+  const playersSnap = await getDocs(collection(db,"players_attendance"));
+  const eventsSnap  = await getDocs(collection(db,"events_attendance"));
+  const logsSnap    = await getDocs(
+    query(collection(db,"attendance_logs"), orderBy("createdAt"))
+  );
+
+  const latest={};
+  logsSnap.forEach(l=>{
+    const d=l.data();
+    latest[`${d.eventId}_${d.playerId}`]=d.status;
+  });
+
+  playersSnap.forEach(p=>{
+    let prHit=0,prTot=0,maHit=0,maTot=0;
+
+    eventsSnap.forEach(e=>{
+      const ev=e.data();
+      const d=new Date(ev.date+"T00:00:00");
+      if(d.getFullYear()!==current.getFullYear()||
+         d.getMonth()!==current.getMonth()) return;
+
+      const s=latest[`${e.id}_${p.id}`];
+      if(s!=="present"&&s!=="absent") return;
+
+      if(ev.type==="practice"){
+        prTot++; if(s==="present") prHit++;
+      }
+      if(ev.type==="match"){
+        maTot++; if(s==="present") maHit++;
+      }
+    });
+
+    const tot=prTot+maTot;
+    const hit=prHit+maHit;
+
+    statsBody.innerHTML+=`
+      <tr>
+        <td>${p.data().name}</td>
+        <td>${prTot?Math.round(prHit/prTot*100):"-"}%</td>
+        <td>${maTot?Math.round(maHit/maTot*100):"-"}%</td>
+        <td>${tot?Math.round(hit/tot*100):"-"}%</td>
+      </tr>`;
+  });
 }
 
-/* 下バー処理：常に上書き */
-bar.querySelector(".btn-present").onclick = ()=>save("present");
-bar.querySelector(".btn-absent").onclick  = ()=>save("absent");
-bar.querySelector(".btn-skip").onclick    = ()=>save("skip");
+/* ---------- 保存 ---------- */
+function setState(td,status){
+  td.className="";
+  if(status==="present"){td.textContent="○";td.classList.add("present")}
+  else if(status==="absent"){td.textContent="×";td.classList.add("absent")}
+  else if(status==="skip"){td.textContent="－";td.classList.add("skip")}
+  else{td.textContent="";td.classList.add("unset")}
+}
+
+bar.querySelector(".btn-present").onclick=()=>save("present");
+bar.querySelector(".btn-absent").onclick =()=>save("absent");
+bar.querySelector(".btn-skip").onclick   =()=>save("skip");
 
 async function save(status){
   if(!selected) return;
-
   await addDoc(collection(db,"attendance_logs"),{
-    eventId: selected.eventId,
-    playerId: selected.playerId,
+    ...selected,
     status,
-    createdAt: serverTimestamp()
+    createdAt:serverTimestamp()
   });
-
   bar.style.display="none";
-  selected = null;
-  await render();
+  selected=null;
+  await renderAttendance();
+  await renderStats();
 }
