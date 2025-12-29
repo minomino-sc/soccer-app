@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>イベント登録</title>
+<style>
+body{
+  font-family:system-ui;
+  background:#f5f7fb;
+  padding:16px;
+}
+h1{font-size:20px}
+label{display:block;margin-top:12px}
+input,select,button{
+  width:100%;
+  padding:8px;
+  margin-top:4px;
+  font-size:16px;
+}
+button{
+  margin-top:20px;
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+}
+</style>
+</head>
+<body>
+
+<h1>📅 イベント登録</h1>
+
+<label>
+  日付
+  <input type="date" id="date">
+</label>
+
+<label>
+  種別
+  <select id="type">
+    <option value="practice">練習</option>
+    <option value="match">試合</option>
+    <option value="holiday">休祝日</option>
+  </select>
+</label>
+
+<label>
+  タイトル
+  <input type="text" id="title" placeholder="例：通常練習 / リーグ戦第3節 / 祝日">
+</label>
+
+<button id="save">登録する</button>
+
+<p id="msg"></p>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
