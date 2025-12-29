@@ -4,6 +4,7 @@ import {
   addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* Firebase設定（admin.jsと完全一致させる） */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -12,7 +13,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 const table = document.getElementById("table");
 
 await render();
@@ -29,12 +29,6 @@ async function render(){
   const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
   const events  = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
 
-  // 🔴 イベントが0件なら原因が即わかる
-  if(events.length === 0){
-    table.innerHTML = "<tr><td>イベントがありません</td></tr>";
-    return;
-  }
-
   const latest = {};
   logsSnap.forEach(l=>{
     const d = l.data();
@@ -46,8 +40,8 @@ async function render(){
   trH.innerHTML =
     `<th>名前</th>` +
     events.map(e=>{
-      const typeLabel = e.type==="match" ? "試合" : "練習";
-      return `<th>${e.date.slice(5)}<br>${typeLabel}</th>`;
+      const label = e.type==="match" ? "試合" : "練習";
+      return `<th>${e.date.slice(5)}<br>${label}</th>`;
     }).join("");
   table.appendChild(trH);
 
@@ -61,26 +55,47 @@ async function render(){
       const status = latest[key];
 
       const td = document.createElement("td");
-      if(!status) td.className="unset";
-      if(status==="present") td.className="present";
-      if(status==="absent") td.className="absent";
+      td.classList.add("unset");
 
-      td.textContent = status==="present"?"○":status==="absent"?"×":"";
+      if(status==="present"){
+        td.textContent="○";
+        td.className="present";
+      }
+      if(status==="absent"){
+        td.textContent="×";
+        td.className="absent";
+      }
+      if(status==="skip"){
+        td.textContent="－";
+        td.className="skip";
+      }
 
-      td.onclick = async ()=>{
-        const next = status==="present" ? "absent" : "present";
-        await addDoc(collection(db,"attendance_logs"),{
-          eventId: e.id,
-          playerId: p.id,
-          status: next,
-          createdAt: serverTimestamp()
-        });
-        await render();
-      };
+      td.onclick = ()=>showSelector(td, e.id, p.id);
 
       tr.appendChild(td);
     });
 
     table.appendChild(tr);
+  });
+}
+
+/* 選択UI */
+function showSelector(td, eventId, playerId){
+  td.innerHTML = `
+    <button data-v="present">○</button>
+    <button data-v="absent">×</button>
+    <button data-v="skip">－</button>
+  `;
+  td.querySelectorAll("button").forEach(btn=>{
+    btn.onclick = async (e)=>{
+      e.stopPropagation();
+      await addDoc(collection(db,"attendance_logs"),{
+        eventId,
+        playerId,
+        status: btn.dataset.v,
+        createdAt: serverTimestamp()
+      });
+      await render();
+    };
   });
 }
