@@ -13,7 +13,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let current = new Date();
-const body = document.getElementById("statsBody");
+const body  = document.getElementById("statsBody");
 const label = document.getElementById("monthLabel");
 
 document.getElementById("prevMonth").onclick = () => {
@@ -31,37 +31,46 @@ async function render() {
   label.textContent = `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
   body.innerHTML = "";
 
-  const players = await getDocs(collection(db, "players_attendance"));
-  const events = await getDocs(collection(db, "events_attendance"));
-  const logs = await getDocs(
+  const playersSnap = await getDocs(collection(db, "players_attendance"));
+  const eventsSnap  = await getDocs(collection(db, "events_attendance"));
+  const logsSnap    = await getDocs(
     query(collection(db, "attendance_logs"), orderBy("createdAt"))
   );
 
+  /* 最新状態のみ */
   const latest = {};
-  logs.forEach(l => {
+  logsSnap.forEach(l => {
     const d = l.data();
-    latest[`${d.playerId}_${d.eventId}`] = d;
+    latest[`${d.playerId}_${d.eventId}`] = d.status;
   });
 
-  players.forEach(p => {
-    let prHit=0, prTot=0, maHit=0, maTot=0;
+  playersSnap.forEach(p => {
+    let prHit=0, prTot=0;
+    let maHit=0, maTot=0;
 
-    events.forEach(e => {
+    eventsSnap.forEach(e => {
       const ev = e.data();
-      const d = new Date(ev.date);
+      const d  = new Date(ev.date);
+
       if (
         d.getFullYear() !== current.getFullYear() ||
-        d.getMonth() !== current.getMonth()
+        d.getMonth()    !== current.getMonth()
       ) return;
 
-      const s = latest[`${p.id}_${e.id}`]?.status;
+      const s = latest[`${p.id}_${e.id}`];
+
       if (ev.type === "practice") {
-        prTot++;
-        if (s === "present") prHit++;
+        if (s === "present" || s === "absent") {
+          prTot++;
+          if (s === "present") prHit++;
+        }
       }
+
       if (ev.type === "match") {
-        maTot++;
-        if (s === "present") maHit++;
+        if (s === "present" || s === "absent") {
+          maTot++;
+          if (s === "present") maHit++;
+        }
       }
     });
 
