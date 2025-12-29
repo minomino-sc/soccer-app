@@ -37,11 +37,11 @@ async function render() {
     query(collection(db, "attendance_logs"), orderBy("createdAt"))
   );
 
-  /* 最新状態のみ */
+  /* 最新状態 */
   const latest = {};
   logsSnap.forEach(l => {
     const d = l.data();
-    latest[`${d.playerId}_${d.eventId}`] = d.status;
+    latest[`${d.eventId}_${d.playerId}`] = d.status;
   });
 
   playersSnap.forEach(p => {
@@ -50,14 +50,17 @@ async function render() {
 
     eventsSnap.forEach(e => {
       const ev = e.data();
-      const d  = new Date(ev.date);
+      if (!ev.date || !ev.type) return;
+
+      /* ★ 日付パース修正 */
+      const d = new Date(ev.date + "T00:00:00");
 
       if (
         d.getFullYear() !== current.getFullYear() ||
         d.getMonth()    !== current.getMonth()
       ) return;
 
-      const s = latest[`${p.id}_${e.id}`];
+      const s = latest[`${e.id}_${p.id}`];
 
       if (ev.type === "practice") {
         if (s === "present" || s === "absent") {
@@ -80,9 +83,9 @@ async function render() {
     body.innerHTML += `
       <tr>
         <td>${p.data().name}</td>
-        <td>${prTot ? Math.round(prHit/prTot*100) : 0}%</td>
-        <td>${maTot ? Math.round(maHit/maTot*100) : 0}%</td>
-        <td>${totalTot ? Math.round(totalHit/totalTot*100) : 0}%</td>
+        <td>${prTot ? Math.round(prHit/prTot*100) : "-"}</td>
+        <td>${maTot ? Math.round(maHit/maTot*100) : "-"}</td>
+        <td>${totalTot ? Math.round(totalHit/totalTot*100) : "-"}</td>
       </tr>
     `;
   });
