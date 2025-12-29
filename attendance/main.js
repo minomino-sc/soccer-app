@@ -4,7 +4,7 @@ import {
   addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase設定（admin.jsと完全一致させる） */
+/* Firebase設定（admin.js と完全一致） */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -52,26 +52,31 @@ async function render(){
 
     events.forEach(e=>{
       const key = `${e.id}_${p.id}`;
-      const status = latest[key];
+      const status = latest[key] || "";
 
       const td = document.createElement("td");
-      td.classList.add("unset");
+      applyClass(td, status);
 
-      if(status==="present"){
-        td.textContent="○";
-        td.className="present";
-      }
-      if(status==="absent"){
-        td.textContent="×";
-        td.className="absent";
-      }
-      if(status==="skip"){
-        td.textContent="－";
-        td.className="skip";
-      }
+      const select = document.createElement("select");
+      select.innerHTML = `
+        <option value=""> </option>
+        <option value="present">○</option>
+        <option value="absent">×</option>
+        <option value="skip">－</option>
+      `;
+      select.value = status;
 
-      td.onclick = ()=>showSelector(td, e.id, p.id);
+      select.onchange = async ()=>{
+        await addDoc(collection(db,"attendance_logs"),{
+          eventId: e.id,
+          playerId: p.id,
+          status: select.value,
+          createdAt: serverTimestamp()
+        });
+        await render();
+      };
 
+      td.appendChild(select);
       tr.appendChild(td);
     });
 
@@ -79,23 +84,11 @@ async function render(){
   });
 }
 
-/* 選択UI */
-function showSelector(td, eventId, playerId){
-  td.innerHTML = `
-    <button data-v="present">○</button>
-    <button data-v="absent">×</button>
-    <button data-v="skip">－</button>
-  `;
-  td.querySelectorAll("button").forEach(btn=>{
-    btn.onclick = async (e)=>{
-      e.stopPropagation();
-      await addDoc(collection(db,"attendance_logs"),{
-        eventId,
-        playerId,
-        status: btn.dataset.v,
-        createdAt: serverTimestamp()
-      });
-      await render();
-    };
-  });
+/* 状態に応じて色を付ける */
+function applyClass(td, status){
+  td.className = "";
+  if(status==="present") td.classList.add("present");
+  else if(status==="absent") td.classList.add("absent");
+  else if(status==="skip") td.classList.add("skip");
+  else td.classList.add("unset");
 }
