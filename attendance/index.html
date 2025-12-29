@@ -2,23 +2,106 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>出欠入力</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>⚽ 出欠表</title>
+
 <style>
-body{font-family:system-ui;background:#f5f7fb;margin:0;padding:16px}
-.event{background:#fff;border-radius:8px;padding:12px;margin-bottom:12px}
-.player{display:flex;flex-direction:column;margin:8px 0}
-.row{display:flex;justify-content:space-between;align-items:center}
-button{padding:6px 12px;border-radius:6px;border:none}
-.present{background:#4caf50;color:#fff}
-.absent{background:#f44336;color:#fff}
-textarea{width:100%;margin-top:6px}
+body{
+  margin:0;
+  padding:12px;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  background:#f5f7fb;
+}
+
+h1{
+  margin:8px 0 12px;
+  font-size:20px;
+  text-align:center;
+}
+
+/* 操作バー */
+#controls{
+  text-align:center;
+  margin-bottom:10px;
+}
+#controls button{
+  padding:6px 10px;
+  margin:2px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  background:#fff;
+  font-size:14px;
+}
+#controls span{
+  font-weight:bold;
+  margin:0 8px;
+}
+
+/* 表 */
+.table-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+table{
+  border-collapse:collapse;
+  min-width:600px;
+  background:#fff;
+}
+
+th, td{
+  border:1px solid #ddd;
+  padding:6px;
+}
+
+th{
+  background:#eef2ff;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+td{
+  text-align:center;
+  font-size:18px;
+}
+
+td:first-child{
+  text-align:left;
+  font-size:14px;
+  white-space:nowrap;
+  background:#fafafa;
+  position:sticky;
+  left:0;
+  z-index:1;
+}
+
+/* ○ ×  */
+td[data-p]{
+  cursor:pointer;
+}
+td[data-p]:active{
+  background:#dbeafe;
+}
 </style>
 </head>
+
 <body>
 
-<h1>⚽ 出欠入力</h1>
-<div id="eventList"></div>
+<h1>⚽ 出欠入力表</h1>
+
+<div id="controls">
+  <button id="prevMonth">◀</button>
+  <span id="currentMonth"></span>
+  <button id="nextMonth">▶</button>
+  <br><br>
+  <button data-type="all">すべて</button>
+  <button data-type="practice">練習</button>
+  <button data-type="match">試合</button>
+</div>
+
+<div class="table-wrap">
+  <table id="attendanceTable"></table>
+</div>
 
 <script type="module" src="main.js"></script>
 </body>
