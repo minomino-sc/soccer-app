@@ -4,19 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 出欠入力</title>
-
 <style>
 body{
-  font-family:system-ui;
-  background:#f5f7fb;
+  font-family: system-ui;
+  background: #f5f7fb;
   margin:0;
-  padding:8px;
+  padding:16px;
 }
+
 header{
   display:flex;
   gap:8px;
   margin-bottom:8px;
 }
+
 header button{
   flex:1;
   padding:10px;
@@ -24,34 +25,49 @@ header button{
   border:none;
   border-radius:8px;
 }
+
 .active{background:#1976d2;color:#fff}
+
 table{
   width:100%;
-  border-collapse:collapse;
-  background:#fff;
+  border-collapse: collapse;
+  background: #fff;
 }
-th,td{
-  border:1px solid #ddd;
-  text-align:center;
-  padding:6px;
-  font-size:14px;
+
+th, td{
+  border: 1px solid #ddd;
+  text-align: center;
+  padding: 6px;
+  font-size: 14px;
 }
+
 th{
-  background:#eee;
-  position:sticky;
-  top:0;
-  z-index:2;
+  background: #eee;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
+
 .name{
-  position:sticky;
-  left:0;
-  background:#fafafa;
-  z-index:1;
+  position: sticky;
+  left: 0;
+  background: #fafafa;
+  z-index: 1;
 }
-.match{background:#ffe0e0}
-.unset{background:#ccc}
-.present{background:#4caf50;color:#fff}
-.absent{background:#f44336;color:#fff}
+
+/* イベント種別 */
+.match{background:#ffe0e0}       /* 試合赤系 */
+.practice{background:#e0ffe0}     /* 練習緑系 */
+
+/* チーム別背景（薄色） */
+.teamA{background-color: rgba(66, 135, 245, 0.2);}  /* Aチーム薄青 */
+.teamB{background-color: rgba(245, 66, 66, 0.2);}   /* Bチーム薄赤 */
+.teamALL{background-color: rgba(200, 200, 200, 0.2);}/* ALL薄グレー */
+
+/* 出欠状態 */
+.present{background:#4caf50;color:#fff}  /* 出席濃緑 */
+.absent{background:#f44336;color:#fff}   /* 欠席濃赤 */
+.unset{background:#ccc;color:#333}       /* 未入力 */
 </style>
 </head>
 
