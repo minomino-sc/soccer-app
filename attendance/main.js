@@ -1,23 +1,13 @@
-/* ===============================
-   Firebase SDK（GitHub Pages対応）
-================================ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  orderBy,
-  serverTimestamp
+  getFirestore, collection, getDocs, addDoc,
+  query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ===============================
-   Firebase 設定（既存 箕谷システムと同じ）
-================================ */
+/* Firebase設定（既存と同じ） */
 const firebaseConfig = {
-  apiKey: "★★★★★ 既存の値 ★★★★★",
-  authDomain: "★★★★★ 既存の値 ★★★★★",
+  apiKey: "★★★★★",
+  authDomain: "★★★★★",
   projectId: "minotani-sc-app",
   storageBucket: "★★★★★",
   messagingSenderId: "★★★★★",
@@ -27,51 +17,60 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ===============================
-   出欠入力画面（attendance/index.html）
-================================ */
+/* ---------- 出欠入力 ---------- */
 const eventList = document.getElementById("eventList");
+let selectedType = "practice"; // 初期：練習
 
-if (eventList) {
-  initAttendance();
+if (eventList) init();
+
+async function init() {
+  const events = await getDocs(query(
+    collection(db, "events_attendance"),
+    orderBy("date", "desc")
+  ));
+  const players = await getDocs(
+    query(collection(db, "players_attendance"), orderBy("name"))
+  );
+
+  // 種別切替UI
+  const switcher = document.createElement("div");
+  switcher.innerHTML = `
+    <button id="btnPractice">練習</button>
+    <button id="btnMatch">試合</button>
+    <hr>
+  `;
+  eventList.appendChild(switcher);
+
+  document.getElementById("btnPractice").onclick = () => {
+    selectedType = "practice";
+    render(events, players);
+  };
+  document.getElementById("btnMatch").onclick = () => {
+    selectedType = "match";
+    render(events, players);
+  };
+
+  render(events, players);
 }
 
-async function initAttendance() {
-  eventList.innerHTML = "<p>読み込み中...</p>";
+function render(events, players) {
+  // 既存表示削除
+  document.querySelectorAll(".event").forEach(e => e.remove());
 
-  const eventsSnap = await getDocs(
-    query(collection(db, "events_attendance"), orderBy("date", "asc"))
-  );
-  const playersSnap = await getDocs(
-    query(collection(db, "players_attendance"), orderBy("name", "asc"))
-  );
-
-  eventList.innerHTML = "";
-
-  if (eventsSnap.empty || playersSnap.empty) {
-    eventList.innerHTML = "<p>イベントまたは部員が登録されていません</p>";
-    return;
-  }
-
-  eventsSnap.forEach(evDoc => {
+  events.forEach(evDoc => {
     const ev = evDoc.data();
+    if (ev.type !== selectedType) return;
 
     const box = document.createElement("div");
     box.className = "event";
-    box.innerHTML = `
-      <strong>
-        ${ev.date} ${ev.title}
-        （${ev.type === "practice" ? "練習" : "試合"}）
-      </strong>
-    `;
+    box.innerHTML = `<strong>${ev.date} ${ev.title}</strong>`;
 
-    playersSnap.forEach(plDoc => {
+    players.forEach(plDoc => {
       const pl = plDoc.data();
+      const row = document.createElement("div");
+      row.className = "player";
 
-      const wrap = document.createElement("div");
-      wrap.className = "player";
-
-      wrap.innerHTML = `
+      row.innerHTML = `
         <div class="row">
           <span>${pl.name}</span>
           <span>
@@ -79,95 +78,40 @@ async function initAttendance() {
             <button class="absent">欠席</button>
           </span>
         </div>
-        <textarea
-          placeholder="欠席理由（任意）"
-          style="display:none"
-        ></textarea>
+        <textarea placeholder="欠席理由" style="display:none"></textarea>
       `;
 
-      const reason = wrap.querySelector("textarea");
+      const presentBtn = row.querySelector(".present");
+      const absentBtn = row.querySelector(".absent");
+      const reason = row.querySelector("textarea");
 
-      wrap.querySelector(".present").onclick = async () => {
-        await saveAttendance(evDoc.id, plDoc.id, "present", "");
-        alert(`${pl.name}：出席で保存しました`);
+      presentBtn.onclick = async () => {
+        presentBtn.style.opacity = "1";
+        absentBtn.style.opacity = "0.3";
+        reason.style.display = "none";
+        await save(evDoc.id, plDoc.id, "present", "");
       };
 
-      wrap.querySelector(".absent").onclick = async () => {
+      absentBtn.onclick = async () => {
+        absentBtn.style.opacity = "1";
+        presentBtn.style.opacity = "0.3";
         reason.style.display = "block";
-        await saveAttendance(evDoc.id, plDoc.id, "absent", reason.value);
-        alert(`${pl.name}：欠席で保存しました`);
+        await save(evDoc.id, plDoc.id, "absent", reason.value);
       };
 
-      box.appendChild(wrap);
+      box.appendChild(row);
     });
 
     eventList.appendChild(box);
   });
 }
 
-async function saveAttendance(eventId, playerId, status, reason) {
+async function save(eventId, playerId, status, reason) {
   await addDoc(collection(db, "attendance_logs"), {
     eventId,
     playerId,
     status,
     reason,
     createdAt: serverTimestamp()
-  });
-}
-
-/* ===============================
-   出席率表示（attendance/stats.html）
-================================ */
-const table = document.getElementById("statsTable");
-
-if (table) {
-  initStats();
-}
-
-async function initStats() {
-  const players = await getDocs(
-    query(collection(db, "players_attendance"), orderBy("name", "asc"))
-  );
-  const events = await getDocs(collection(db, "events_attendance"));
-  const logs = await getDocs(
-    query(collection(db, "attendance_logs"), orderBy("createdAt", "asc"))
-  );
-
-  // 最新の出欠だけを保持
-  const latest = {};
-  logs.forEach(l => {
-    const d = l.data();
-    latest[`${d.eventId}_${d.playerId}`] = d;
-  });
-
-  players.forEach(p => {
-    let pHit = 0, pTotal = 0;
-    let mHit = 0, mTotal = 0;
-
-    events.forEach(e => {
-      const ev = e.data();
-      const key = `${e.id}_${p.id}`;
-      const hit = latest[key]?.status === "present";
-
-      if (ev.type === "practice") {
-        pTotal++;
-        if (hit) pHit++;
-      }
-      if (ev.type === "match") {
-        mTotal++;
-        if (hit) mHit++;
-      }
-    });
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.data().name}</td>
-      <td>${pTotal ? Math.round(pHit / pTotal * 100) : 0}%</td>
-      <td>${mTotal ? Math.round(mHit / mTotal * 100) : 0}%</td>
-      <td>${(pTotal + mTotal)
-        ? Math.round((pHit + mHit) / (pTotal + mTotal) * 100)
-        : 0}%</td>
-    `;
-    table.appendChild(tr);
   });
 }
