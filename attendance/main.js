@@ -1,3 +1,25 @@
+/* ===== Firebase SDK ===== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ===== Firebase設定（既存と同じに）===== */
+const firebaseConfig = {
+  apiKey: "★★★★★既存のもの★★★★★",
+  authDomain: "★★★★★既存のもの★★★★★",
+  projectId: "minotani-sc-app",
+  storageBucket: "★★★★★",
+  messagingSenderId: "★★★★★",
+  appId: "★★★★★"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ===== 強制デバッグ ===== */
 const eventList = document.getElementById("eventList");
 
 if (eventList) {
