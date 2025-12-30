@@ -4,7 +4,6 @@ import {
   addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase設定 */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -14,7 +13,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* DOM */
 const attTable  = document.getElementById("attendanceTable");
 const statsBody = document.getElementById("statsBody");
 const label     = document.getElementById("monthLabel");
@@ -24,20 +22,24 @@ let current = new Date();
 let selected = null;
 let selectedCell = null;
 
-/* 月切替 */
 document.getElementById("prevMonth").onclick = ()=>{
   current.setMonth(current.getMonth()-1);
-  renderStats();
+  renderAll();
 };
 document.getElementById("nextMonth").onclick = ()=>{
   current.setMonth(current.getMonth()+1);
-  renderStats();
+  renderAll();
 };
 
-await renderAttendance();
-await renderStats();
+await renderAll();
 
-/* ---------- 出欠入力 ---------- */
+async function renderAll(){
+  label.textContent = `${current.getFullYear()}年 ${current.getMonth()+1}月`;
+  await renderAttendance();
+  await renderStats();
+}
+
+/* ---------- 出欠入力（月フィルタ） ---------- */
 async function renderAttendance(){
   attTable.innerHTML="";
 
@@ -56,34 +58,39 @@ async function renderAttendance(){
   });
 
   const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
-  const events  = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const events  = eventsSnap.docs
+    .map(d=>({id:d.id,...d.data()}))
+    .filter(e=>{
+      const d=new Date(e.date+"T00:00:00");
+      return d.getFullYear()===current.getFullYear()
+          && d.getMonth()===current.getMonth();
+    });
 
-  /* ヘッダ */
   const trH=document.createElement("tr");
   trH.innerHTML=`<th>名前</th>`+
     events.map(e=>{
-      const label = e.type==="match" ? "試合" : "練習";
-      return `<th>${e.date.slice(5)}<br><small>${label}</small></th>`;
+      const d=new Date(e.date+"T00:00:00");
+      return `<th>${d.getMonth()+1}/${d.getDate()}</th>`;
     }).join("");
   attTable.appendChild(trH);
 
-  /* 本体 */
   players.forEach(p=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`<td class="name">${p.name}</td>`;
 
     events.forEach(e=>{
       const td=document.createElement("td");
+      td.classList.add(e.type); // 試合/練習の色
+
       setState(td, latest[`${e.id}_${p.id}`]);
 
       td.onclick=()=>{
         if(selectedCell) selectedCell.classList.remove("selected");
         td.classList.add("selected");
-        selectedCell = td;
-        selected = { eventId:e.id, playerId:p.id };
+        selectedCell=td;
+        selected={eventId:e.id,playerId:p.id};
         bar.style.display="flex";
       };
-
       tr.appendChild(td);
     });
     attTable.appendChild(tr);
@@ -92,7 +99,6 @@ async function renderAttendance(){
 
 /* ---------- 月別集計 ---------- */
 async function renderStats(){
-  label.textContent = `${current.getFullYear()}年 ${current.getMonth()+1}月`;
   statsBody.innerHTML="";
 
   const playersSnap = await getDocs(collection(db,"players_attendance"));
@@ -113,8 +119,8 @@ async function renderStats(){
     eventsSnap.forEach(e=>{
       const ev=e.data();
       const d=new Date(ev.date+"T00:00:00");
-      if(d.getFullYear()!==current.getFullYear()||
-         d.getMonth()!==current.getMonth()) return;
+      if(d.getFullYear()!==current.getFullYear()
+      || d.getMonth()!==current.getMonth()) return;
 
       const s=latest[`${e.id}_${p.id}`];
       if(s!=="present"&&s!=="absent") return;
@@ -136,16 +142,15 @@ async function renderStats(){
   });
 }
 
-/* ---------- 状態表示 ---------- */
+/* ---------- 共通 ---------- */
 function setState(td,status){
-  td.className="";
+  td.className += " ";
   if(status==="present"){td.textContent="○";td.classList.add("present")}
   else if(status==="absent"){td.textContent="×";td.classList.add("absent")}
   else if(status==="skip"){td.textContent="－";td.classList.add("skip")}
   else{td.textContent="";td.classList.add("unset")}
 }
 
-/* ---------- 保存 ---------- */
 bar.querySelector(".btn-present").onclick=()=>save("present");
 bar.querySelector(".btn-absent").onclick =()=>save("absent");
 bar.querySelector(".btn-skip").onclick   =()=>save("skip");
@@ -164,6 +169,5 @@ async function save(status){
   selected=null;
   bar.style.display="none";
 
-  await renderAttendance();
-  await renderStats();
+  await renderAll();
 }
