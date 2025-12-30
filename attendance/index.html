@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ja">
 <head>
@@ -6,41 +7,106 @@
 <title>⚽ 出欠管理</title>
 
 <style>
-body{font-family:system-ui;background:#f5f7fb;margin:0;padding:16px}
-h1,h2{margin:8px 0}
+body{
+  font-family:system-ui;
+  background:#f5f7fb;
+  margin:0;
+  padding:12px;
+}
 
-table{width:100%;border-collapse:collapse;background:#fff;margin-bottom:24px}
-th,td{border:1px solid #ddd;text-align:center;padding:6px;font-size:14px}
-th{background:#eee;position:sticky;top:0;z-index:2}
+h1{margin:4px 0}
 
-.name{position:sticky;left:0;background:#fafafa;z-index:1}
+.monthBar{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:16px;
+  margin-bottom:12px;
+  font-size:18px;
+}
 
-/* 種別 */
-.match{background:#ffe0e0}
-.practice{background:#e0ffe0}
+.monthBar button{
+  font-size:20px;
+  background:none;
+  border:none;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
+
+th,td{
+  border:1px solid #ddd;
+  text-align:center;
+  padding:6px;
+}
+
+th{
+  background:#eee;
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+
+.name{
+  position:sticky;
+  left:0;
+  background:#fafafa;
+  z-index:1;
+  font-weight:600;
+}
 
 /* 出欠 */
-.present{background:#4caf50;color:#fff}
-.absent{background:#f44336;color:#fff}
-.skip{background:#bbb}
-.unset{background:#eee}
+.present{background:#e8f5e9;color:#2e7d32;font-size:22px}
+.absent{background:#fdecea;color:#c62828;font-size:22px}
+.skip{background:#f3f4f6;color:#9ca3af;font-size:22px}
+.unset{background:#fff;color:#ccc}
 
-/* 選択中 */
-.selected{outline:3px solid #2563eb;outline-offset:-3px}
-
-/* 月切替 */
-.monthNav{
-  display:flex;justify-content:center;align-items:center;
-  gap:16px;margin:12px 0;font-size:18px
+.selected{
+  outline:3px solid #2563eb;
+  outline-offset:-3px;
 }
 
-/* 下バー */
+/* 操作バー */
 #actionBar{
-  display:none;position:fixed;bottom:0;left:0;right:0;
-  background:#fff;border-top:1px solid #ccc;
-  padding:12px;display:flex;gap:16px;justify-content:center
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid #ddd;
+  display:none;
+  justify-content:space-around;
+  padding:10px 0;
 }
-#actionBar button{font-size:22px;padding:12px 20px;border-radius:10px}
+
+#actionBar button{
+  font-size:28px;
+  width:64px;
+  height:64px;
+  border-radius:16px;
+  border:none;
+}
+
+/* 集計 */
+.stats{
+  margin-top:20px;
+}
+
+.statsCard{
+  background:#fff;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+.statsRow{
+  display:flex;
+  justify-content:space-between;
+  margin-top:6px;
+}
 </style>
 </head>
 
@@ -48,30 +114,21 @@ th{background:#eee;position:sticky;top:0;z-index:2}
 
 <h1>⚽ 出欠管理</h1>
 
-<div class="monthNav">
-  <button id="prevMonth">◀</button>
+<div class="monthBar">
+  <button id="prev">◀</button>
   <span id="monthLabel"></span>
-  <button id="nextMonth">▶</button>
+  <button id="next">▶</button>
 </div>
 
-<h2>出欠入力</h2>
-<table id="attendanceTable"></table>
+<table id="table"></table>
 
 <h2>📊 月別出席率</h2>
-<table>
-  <tr>
-    <th>部員</th>
-    <th>練習</th>
-    <th>試合</th>
-    <th>合計</th>
-  </tr>
-  <tbody id="statsBody"></tbody>
-</table>
+<div id="stats" class="stats"></div>
 
 <div id="actionBar">
-  <button class="btn-present">○</button>
-  <button class="btn-absent">×</button>
-  <button class="btn-skip">－</button>
+  <button onclick="saveStatus('present')">○</button>
+  <button onclick="saveStatus('absent')">×</button>
+  <button onclick="saveStatus('skip')">－</button>
 </div>
 
 <script type="module" src="main.js"></script>
