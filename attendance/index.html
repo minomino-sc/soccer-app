@@ -15,12 +15,13 @@ body{
 
 h1{margin:4px 0}
 
+/* ===== 月切替 ===== */
 .monthBar{
   display:flex;
   justify-content:center;
   align-items:center;
   gap:16px;
-  margin-bottom:12px;
+  margin-bottom:8px;
   font-size:18px;
 }
 .monthBar button{
@@ -28,6 +29,21 @@ h1{margin:4px 0}
   background:none;
   border:none;
 }
+
+/* ===== 凡例 ===== */
+.legend{
+  display:flex;
+  gap:12px;
+  font-size:13px;
+  margin-bottom:8px;
+}
+.legend span{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.legend .practice{color:#166534}
+.legend .match{color:#b91c1c}
 
 /* ===== テーブル ===== */
 table{
@@ -48,14 +64,14 @@ th{
   z-index:2;
 }
 
-/* ヘッダ種別 */
-th.match{
-  background:#ffe4e6;
-  color:#b91c1c;
-}
+/* ヘッダ色（ここだけ色を使う） */
 th.practice{
   background:#e8f5e9;
   color:#166534;
+}
+th.match{
+  background:#ffe4e6;
+  color:#b91c1c;
 }
 
 .name{
@@ -68,36 +84,17 @@ th.practice{
 
 /* ===== 出欠セル ===== */
 td{
-  min-width:56px;
-  height:56px;
+  min-width:52px;
+  height:52px;
   font-size:24px;
   font-weight:700;
+  background:#fff;
 }
 
-/* 出席 */
-.present{
-  background:#ecfdf5;
-  color:#047857;
-}
-
-/* 欠席 */
-.absent{
-  background:#fff7ed;
-  color:#c2410c;
-}
-
-/* 対象外 */
-.skip{
-  background:#f3f4f6;
-  color:#6b7280;
-  font-weight:400;
-}
-
-/* 未入力 */
-.unset{
-  background:#ffffff;
-  color:#d1d5db;
-}
+.unset{color:#ccc}
+.present{color:#047857}
+.absent{color:#b91c1c}
+.skip{color:#9ca3af;font-weight:400}
 
 .selected{
   outline:3px solid #2563eb;
@@ -118,11 +115,12 @@ td{
 }
 
 #actionBar button{
-  font-size:30px;
+  font-size:32px;
   width:64px;
   height:64px;
   border-radius:16px;
   border:none;
+  background:#f3f4f6;
 }
 
 /* ===== 集計 ===== */
@@ -154,15 +152,24 @@ td{
   <button id="next">▶</button>
 </div>
 
+<!-- 凡例 -->
+<div class="legend">
+  <span class="practice">🟢 練習</span>
+  <span class="match">🔴 試合</span>
+  <span>○ 出席</span>
+  <span>× 欠席</span>
+  <span>－ 対象外</span>
+</div>
+
 <table id="table"></table>
 
 <h2>📊 月別出席率</h2>
 <div id="stats" class="stats"></div>
 
 <div id="actionBar">
-  <button onclick="saveStatus('present')">○</button>
-  <button onclick="saveStatus('absent')">×</button>
-  <button onclick="saveStatus('skip')">－</button>
+  <button data-status="present">○</button>
+  <button data-status="absent">×</button>
+  <button data-status="skip">－</button>
 </div>
 
 <script type="module" src="main.js"></script>
