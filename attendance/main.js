@@ -1,7 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, getDocs,
-  addDoc, query, orderBy, serverTimestamp
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  orderBy,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase */
@@ -16,50 +21,59 @@ const db = getFirestore(app);
 
 /* DOM */
 const table = document.getElementById("table");
-const stats = document.getElementById("stats");
-const bar = document.getElementById("actionBar");
-const label = document.getElementById("monthLabel");
+const monthLabel = document.getElementById("monthLabel");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+const actionBar = document.getElementById("actionBar");
 
 /* 状態 */
 let current = new Date();
 let selected = null;
-let selectedCell = null;
-
-/* ★ ここが重要：最新状態を保持する */
-let latestStatus = {};
+let latest = {};
 
 /* 月切替 */
-document.getElementById("prev").onclick = () => {
+prevBtn.onclick = () => {
   current.setMonth(current.getMonth() - 1);
   render();
 };
-document.getElementById("next").onclick = () => {
+nextBtn.onclick = () => {
   current.setMonth(current.getMonth() + 1);
   render();
 };
 
 /* 操作バー */
-bar.querySelectorAll("button").forEach(btn=>{
-  btn.onclick = ()=>saveStatus(btn.dataset.status);
+actionBar.querySelectorAll("button").forEach(btn=>{
+  btn.onclick = ()=>save(btn.dataset.status);
 });
 
 render();
 
 async function render(){
-  label.textContent = `${current.getFullYear()}年 ${current.getMonth()+1}月`;
+  monthLabel.textContent =
+    `${current.getFullYear()}年 ${current.getMonth()+1}月`;
   table.innerHTML="";
-  stats.innerHTML="";
-  bar.style.display = selected ? "flex" : "none";
+  actionBar.style.display="none";
 
-  const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap = await getDocs(
-    query(collection(db,"events_attendance"),orderBy("date"))
+  /* ★ 背番号順で部員取得 */
+  const playersSnap = await getDocs(
+    query(
+      collection(db,"players_attendance"),
+      orderBy("number","asc")
+    )
   );
+
+  const eventsSnap = await getDocs(
+    query(collection(db,"events_attendanceattendance"),orderBy("date"))
+  );
+
   const logsSnap = await getDocs(
     query(collection(db,"attendance_logs"),orderBy("createdAt"))
   );
 
-  const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const players = playersSnap.docs.map(d=>({
+    id:d.id,
+    ...d.data()
+  }));
 
   const events = eventsSnap.docs
     .map(d=>({id:d.id,...d.data()}))
@@ -69,89 +83,64 @@ async function render(){
              d.getMonth()===current.getMonth();
     });
 
-  /* ★ 最新状態を再構築 */
-  latestStatus = {};
+  /* 最新状態 */
+  latest = {};
   logsSnap.forEach(l=>{
     const d=l.data();
-    latestStatus[`${d.eventId}_${d.playerId}`] = d.status;
+    latest[`${d.eventId}_${d.playerId}`]=d.status;
   });
 
   /* ヘッダ */
   const trH=document.createElement("tr");
-  trH.innerHTML="<th>名前</th>"+events.map(e=>{
-    const d=new Date(e.date);
-    const cls = e.type==="match" ? "match" : "practice";
-    return `<th class="${cls}">${d.getDate()}</th>`;
-  }).join("");
+  trH.innerHTML =
+    `<th>背</th><th>名前</th>` +
+    events.map(e=>{
+      const d=new Date(e.date);
+      const cls=e.type==="match"?"match":"practice";
+      return `<th class="${cls}">${d.getDate()}</th>`;
+    }).join("");
   table.appendChild(trH);
 
-  /* 本体 */
+  /* 行 */
   players.forEach(p=>{
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td class="name">${p.name}</td>`;
+    tr.innerHTML=
+      `<td>${p.number}</td><td class="name">${p.name}</td>`;
 
     events.forEach(e=>{
       const key=`${e.id}_${p.id}`;
-      const status=latestStatus[key] || "unset";
-      const td=document.createElement("td");
+      const status=latest[key]||"unset";
 
-      td.dataset.key = key;
-      td.className = status;
+      const td=document.createElement("td");
       td.textContent =
         status==="present"?"○":
         status==="absent"?"×":
         status==="skip"?"－":"";
 
       td.onclick=()=>{
-        if(selectedCell) selectedCell.classList.remove("selected");
-        td.classList.add("selected");
-        selectedCell = td;
-        selected = { eventId:e.id, playerId:p.id, key };
-        bar.style.display="flex";
+        selected={eventId:e.id,playerId:p.id,key};
+        actionBar.style.display="flex";
       };
 
       tr.appendChild(td);
     });
-    table.appendChild(tr);
-  });
 
-  /* 集計（－除外） */
-  players.forEach(p=>{
-    let hit=0, tot=0;
-    events.forEach(e=>{
-      const s=latestStatus[`${e.id}_${p.id}`];
-      if(!s || s==="skip") return;
-      tot++;
-      if(s==="present") hit++;
-    });
-    stats.innerHTML += `
-      <div class="statsCard">
-        <strong>${p.name}</strong>
-        <div class="statsRow">
-          <span>出席率</span>
-          <span>${tot?Math.round(hit/tot*100):0}%</span>
-        </div>
-      </div>`;
+    table.appendChild(tr);
   });
 }
 
-/* ★ 保存＋ローカル即更新 */
-async function saveStatus(status){
+async function save(status){
   if(!selected) return;
 
   await addDoc(collection(db,"attendance_logs"),{
-    eventId: selected.eventId,
-    playerId: selected.playerId,
+    eventId:selected.eventId,
+    playerId:selected.playerId,
     status,
     createdAt:serverTimestamp()
   });
 
-  /* ★ ここが肝：即反映 */
-  latestStatus[selected.key] = status;
-
-  selected = null;
-  selectedCell = null;
-  bar.style.display = "none";
-
+  latest[selected.key]=status;
+  selected=null;
+  actionBar.style.display="none";
   render();
 }
