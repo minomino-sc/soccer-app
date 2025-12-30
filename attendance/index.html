@@ -1,177 +1,99 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>⚽ 出欠管理</title>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore, collection, getDocs,
+  addDoc, query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<style>
-body{
-  font-family:system-ui;
-  background:#f5f7fb;
-  margin:0;
-  padding:12px;
+/* Firebase */
+const firebaseConfig = {
+  apiKey: "★★★★★",
+  authDomain: "★★★★★",
+  projectId: "minotani-sc-app",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const table = document.getElementById("table");
+let latestStatus = {};
+let current = new Date();
+
+render();
+
+async function render(){
+  table.innerHTML = "";
+
+  /* ★ 背番号順で取得 */
+  const playersSnap = await getDocs(
+    query(collection(db,"players_attendance"), orderBy("number","asc"))
+  );
+
+  const eventsSnap = await getDocs(
+    query(collection(db,"events_attendance"), orderBy("date","asc"))
+  );
+
+  const logsSnap = await getDocs(
+    query(collection(db,"attendance_logs"), orderBy("createdAt","asc"))
+  );
+
+  const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+  const events = eventsSnap.docs
+    .map(d=>({id:d.id,...d.data()}))
+    .filter(e=>{
+      const d = new Date(e.date);
+      return d.getFullYear()===current.getFullYear() &&
+             d.getMonth()===current.getMonth();
+    });
+
+  latestStatus = {};
+  logsSnap.forEach(l=>{
+    const d=l.data();
+    latestStatus[`${d.eventId}_${d.playerId}`] = d.status;
+  });
+
+  /* ヘッダ */
+  const trH = document.createElement("tr");
+  trH.innerHTML =
+    `<th>背番</th><th>名前</th>` +
+    events.map(e=>{
+      const d=new Date(e.date);
+      const cls=e.type==="match"?"match":"practice";
+      return `<th class="${cls}">${d.getDate()}</th>`;
+    }).join("");
+  table.appendChild(trH);
+
+  /* 行 */
+  players.forEach(p=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${p.number}</td><td class="name">${p.name}</td>`;
+
+    events.forEach(e=>{
+      const key=`${e.id}_${p.id}`;
+      const status=latestStatus[key] || "unset";
+
+      const td=document.createElement("td");
+      td.textContent =
+        status==="present"?"○":
+        status==="absent"?"×":
+        status==="skip"?"－":"";
+
+      td.onclick = async ()=>{
+        const next =
+          status==="present" ? "absent" :
+          status==="absent" ? "skip" :
+          "present";
+
+        await addDoc(collection(db,"attendance_logs"),{
+          eventId:e.id,
+          playerId:p.id,
+          status:next,
+          createdAt:serverTimestamp()
+        });
+        render();
+      };
+      tr.appendChild(td);
+    });
+
+    table.appendChild(tr);
+  });
 }
-
-h1{margin:4px 0}
-
-/* ===== 月切替 ===== */
-.monthBar{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:16px;
-  margin-bottom:8px;
-  font-size:18px;
-}
-.monthBar button{
-  font-size:22px;
-  background:none;
-  border:none;
-}
-
-/* ===== 凡例 ===== */
-.legend{
-  display:flex;
-  gap:12px;
-  font-size:13px;
-  margin-bottom:8px;
-}
-.legend span{
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
-.legend .practice{color:#166534}
-.legend .match{color:#b91c1c}
-
-/* ===== テーブル ===== */
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:#fff;
-}
-
-th,td{
-  border:1px solid #ddd;
-  text-align:center;
-  padding:6px;
-}
-
-th{
-  position:sticky;
-  top:0;
-  z-index:2;
-}
-
-/* ヘッダ色（ここだけ色を使う） */
-th.practice{
-  background:#e8f5e9;
-  color:#166534;
-}
-th.match{
-  background:#ffe4e6;
-  color:#b91c1c;
-}
-
-.name{
-  position:sticky;
-  left:0;
-  background:#fafafa;
-  z-index:1;
-  font-weight:600;
-}
-
-/* ===== 出欠セル ===== */
-td{
-  min-width:52px;
-  height:52px;
-  font-size:24px;
-  font-weight:700;
-  background:#fff;
-}
-
-.unset{color:#ccc}
-.present{color:#047857}
-.absent{color:#b91c1c}
-.skip{color:#9ca3af;font-weight:400}
-
-.selected{
-  outline:3px solid #2563eb;
-  outline-offset:-3px;
-}
-
-/* ===== 操作バー ===== */
-#actionBar{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  border-top:1px solid #ddd;
-  display:none;
-  justify-content:space-around;
-  padding:10px 0;
-}
-
-#actionBar button{
-  font-size:32px;
-  width:64px;
-  height:64px;
-  border-radius:16px;
-  border:none;
-  background:#f3f4f6;
-}
-
-/* ===== 集計 ===== */
-.stats{
-  margin-top:20px;
-}
-.statsCard{
-  background:#fff;
-  border-radius:12px;
-  padding:12px;
-  margin-bottom:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
-}
-.statsRow{
-  display:flex;
-  justify-content:space-between;
-  margin-top:6px;
-}
-</style>
-</head>
-
-<body>
-
-<h1>⚽ 出欠管理</h1>
-
-<div class="monthBar">
-  <button id="prev">◀</button>
-  <span id="monthLabel"></span>
-  <button id="next">▶</button>
-</div>
-
-<!-- 凡例 -->
-<div class="legend">
-  <span class="practice">🟢 練習</span>
-  <span class="match">🔴 試合</span>
-  <span>○ 出席</span>
-  <span>× 欠席</span>
-  <span>－ 対象外</span>
-</div>
-
-<table id="table"></table>
-
-<h2>📊 月別出席率</h2>
-<div id="stats" class="stats"></div>
-
-<div id="actionBar">
-  <button data-status="present">○</button>
-  <button data-status="absent">×</button>
-  <button data-status="skip">－</button>
-</div>
-
-<script type="module" src="main.js"></script>
-</body>
-</html>
