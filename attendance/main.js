@@ -4,6 +4,7 @@ import {
   addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* Firebase設定 */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -63,16 +64,18 @@ async function render(){
     latest[`${d.eventId}_${d.playerId}`]=d.status;
   });
 
-  // ヘッダ
+  /* ===== ヘッダ ===== */
   const trH=document.createElement("tr");
-  trH.innerHTML="<th>名前</th>"+
-    events.map(e=>{
-      const d=new Date(e.date);
-      return `<th><strong>${d.getDate()}</strong></th>`;
-    }).join("");
+  trH.innerHTML="<th>名前</th>"+events.map(e=>{
+    const d=new Date(e.date);
+    const cls = e.type==="match" ? "match" : "practice";
+    return `<th class="${cls}">
+      <strong>${d.getDate()}</strong>
+    </th>`;
+  }).join("");
   table.appendChild(trH);
 
-  // 本体
+  /* ===== 本体 ===== */
   players.forEach(p=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`<td class="name">${p.name}</td>`;
@@ -87,7 +90,10 @@ async function render(){
       else if(status==="skip") td.classList.add("skip");
       else td.classList.add("unset");
 
-      td.textContent = status==="present"?"○":status==="absent"?"×":status==="skip"?"－":"";
+      td.textContent =
+        status==="present"?"○":
+        status==="absent"?"×":
+        status==="skip"?"－":"";
 
       td.onclick=()=>{
         if(selectedCell) selectedCell.classList.remove("selected");
@@ -101,7 +107,7 @@ async function render(){
     table.appendChild(tr);
   });
 
-  // 集計
+  /* ===== 月別集計（ーは除外） ===== */
   players.forEach(p=>{
     let hit=0,tot=0;
     events.forEach(e=>{
@@ -113,11 +119,15 @@ async function render(){
     stats.innerHTML+=`
       <div class="statsCard">
         <strong>${p.name}</strong>
-        <div class="statsRow"><span>出席率</span><span>${tot?Math.round(hit/tot*100):0}%</span></div>
+        <div class="statsRow">
+          <span>出席率</span>
+          <span>${tot?Math.round(hit/tot*100):0}%</span>
+        </div>
       </div>`;
   });
 }
 
+/* ===== 保存 ===== */
 window.saveStatus = async function(status){
   if(!selected) return;
   await addDoc(collection(db,"attendance_logs"),{
