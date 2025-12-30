@@ -4,7 +4,7 @@ import {
   addDoc, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase設定 */
+/* Firebase */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -14,14 +14,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* DOM */
 const table = document.getElementById("table");
 const stats = document.getElementById("stats");
 const bar = document.getElementById("actionBar");
 const label = document.getElementById("monthLabel");
 
+/* 状態 */
 let current = new Date();
 let selected = null;
 let selectedCell = null;
+
+/* ★ ここが重要：最新状態を保持する */
+let latestStatus = {};
 
 /* 月切替 */
 document.getElementById("prev").onclick = () => {
@@ -50,7 +55,9 @@ async function render(){
   const eventsSnap = await getDocs(
     query(collection(db,"events_attendance"),orderBy("date"))
   );
-  const logsSnap = await getDocs(collection(db,"attendance_logs"));
+  const logsSnap = await getDocs(
+    query(collection(db,"attendance_logs"),orderBy("createdAt"))
+  );
 
   const players = playersSnap.docs.map(d=>({id:d.id,...d.data()}));
 
@@ -62,10 +69,11 @@ async function render(){
              d.getMonth()===current.getMonth();
     });
 
-  const latest={};
+  /* ★ 最新状態を再構築 */
+  latestStatus = {};
   logsSnap.forEach(l=>{
     const d=l.data();
-    latest[`${d.eventId}_${d.playerId}`]=d.status;
+    latestStatus[`${d.eventId}_${d.playerId}`] = d.status;
   });
 
   /* ヘッダ */
@@ -73,7 +81,7 @@ async function render(){
   trH.innerHTML="<th>名前</th>"+events.map(e=>{
     const d=new Date(e.date);
     const cls = e.type==="match" ? "match" : "practice";
-    return `<th class="${cls}"><strong>${d.getDate()}</strong></th>`;
+    return `<th class="${cls}">${d.getDate()}</th>`;
   }).join("");
   table.appendChild(trH);
 
@@ -84,27 +92,21 @@ async function render(){
 
     events.forEach(e=>{
       const key=`${e.id}_${p.id}`;
-      const status=latest[key] || "unset";
+      const status=latestStatus[key] || "unset";
       const td=document.createElement("td");
 
+      td.dataset.key = key;
       td.className = status;
       td.textContent =
         status==="present"?"○":
         status==="absent"?"×":
         status==="skip"?"－":"";
 
-      if(selected &&
-         selected.eventId===e.id &&
-         selected.playerId===p.id){
-        td.classList.add("selected");
-        selectedCell = td;
-      }
-
       td.onclick=()=>{
         if(selectedCell) selectedCell.classList.remove("selected");
         td.classList.add("selected");
         selectedCell = td;
-        selected = { eventId:e.id, playerId:p.id };
+        selected = { eventId:e.id, playerId:p.id, key };
         bar.style.display="flex";
       };
 
@@ -113,11 +115,11 @@ async function render(){
     table.appendChild(tr);
   });
 
-  /* 集計（－は除外） */
+  /* 集計（－除外） */
   players.forEach(p=>{
     let hit=0, tot=0;
     events.forEach(e=>{
-      const s=latest[`${e.id}_${p.id}`];
+      const s=latestStatus[`${e.id}_${p.id}`];
       if(!s || s==="skip") return;
       tot++;
       if(s==="present") hit++;
@@ -133,18 +135,23 @@ async function render(){
   });
 }
 
+/* ★ 保存＋ローカル即更新 */
 async function saveStatus(status){
   if(!selected) return;
 
   await addDoc(collection(db,"attendance_logs"),{
-    ...selected,
+    eventId: selected.eventId,
+    playerId: selected.playerId,
     status,
     createdAt:serverTimestamp()
   });
+
+  /* ★ ここが肝：即反映 */
+  latestStatus[selected.key] = status;
 
   selected = null;
   selectedCell = null;
   bar.style.display = "none";
 
-  await render();
+  render();
 }
