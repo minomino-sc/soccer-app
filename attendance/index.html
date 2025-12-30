@@ -6,84 +6,41 @@
 <title>⚽ 出欠管理</title>
 
 <style>
-body{
-  font-family: system-ui;
-  background:#f5f7fb;
-  margin:0;
-  padding:16px;
-}
-
+body{font-family:system-ui;background:#f5f7fb;margin:0;padding:16px}
 h1,h2{margin:8px 0}
 
-table{
-  width:100%;
-  border-collapse: collapse;
-  background:#fff;
-  margin-bottom:24px;
-}
+table{width:100%;border-collapse:collapse;background:#fff;margin-bottom:24px}
+th,td{border:1px solid #ddd;text-align:center;padding:6px;font-size:14px}
+th{background:#eee;position:sticky;top:0;z-index:2}
 
-th,td{
-  border:1px solid #ddd;
-  text-align:center;
-  padding:6px;
-  font-size:14px;
-}
+.name{position:sticky;left:0;background:#fafafa;z-index:1}
 
-th{
-  background:#eee;
-  position:sticky;
-  top:0;
-  z-index:2;
-}
+/* 種別 */
+.match{background:#ffe0e0}
+.practice{background:#e0ffe0}
 
-.name{
-  position:sticky;
-  left:0;
-  background:#fafafa;
-  z-index:1;
-}
-
-/* 出欠状態 */
+/* 出欠 */
 .present{background:#4caf50;color:#fff}
 .absent{background:#f44336;color:#fff}
-.skip{background:#bbb;color:#333}
+.skip{background:#bbb}
 .unset{background:#eee}
 
-/* 選択中セル */
-.selected{
-  outline:3px solid #2563eb;
-  outline-offset:-3px;
-}
+/* 選択中 */
+.selected{outline:3px solid #2563eb;outline-offset:-3px}
 
 /* 月切替 */
 .monthNav{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:16px;
-  margin:12px 0;
-  font-size:18px;
+  display:flex;justify-content:center;align-items:center;
+  gap:16px;margin:12px 0;font-size:18px
 }
 
 /* 下バー */
 #actionBar{
-  display:none;
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  border-top:1px solid #ccc;
-  padding:12px;
-  display:flex;
-  gap:16px;
-  justify-content:center;
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #ccc;
+  padding:12px;display:flex;gap:16px;justify-content:center
 }
-#actionBar button{
-  font-size:22px;
-  padding:12px 20px;
-  border-radius:10px;
-}
+#actionBar button{font-size:22px;padding:12px 20px;border-radius:10px}
 </style>
 </head>
 
@@ -91,16 +48,16 @@ th{
 
 <h1>⚽ 出欠管理</h1>
 
-<h2>出欠入力</h2>
-<table id="attendanceTable"></table>
-
-<h2>📊 月別出席率</h2>
 <div class="monthNav">
   <button id="prevMonth">◀</button>
   <span id="monthLabel"></span>
   <button id="nextMonth">▶</button>
 </div>
 
+<h2>出欠入力</h2>
+<table id="attendanceTable"></table>
+
+<h2>📊 月別出席率</h2>
 <table>
   <tr>
     <th>部員</th>
