@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, serverTimestamp
+  getFirestore, collection, addDoc, getDocs,
+  query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase */
@@ -13,54 +14,70 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ===== イベント登録 ===== */
+/* DOM */
+const evMsg = document.getElementById("evMsg");
+const plMsg = document.getElementById("plMsg");
+const list = document.getElementById("playerList");
+
+/* イベント登録 */
 document.getElementById("saveEvent").onclick = async () => {
-  const date  = document.getElementById("eventDate").value;
-  const type  = document.getElementById("eventType").value;
-  const title = document.getElementById("eventTitle").value;
-  const msg   = document.getElementById("eventMsg");
+  const date  = evDate.value;
+  const type  = evType.value;
+  const title = evTitle.value;
 
   if(!date){
-    msg.textContent = "日付は必須です";
+    evMsg.textContent = "日付は必須です";
     return;
   }
 
-  try{
-    await addDoc(collection(db,"events_attendance"),{
-      date,
-      type,
-      title: title || "",
-      createdAt: serverTimestamp()
-    });
-    msg.textContent = "イベントを登録しました";
-    document.getElementById("eventTitle").value = "";
-  }catch(e){
-    console.error(e);
-    msg.textContent = "登録に失敗しました";
-  }
+  await addDoc(collection(db,"events_attendance"),{
+    date, type, title: title || "",
+    createdAt: serverTimestamp()
+  });
+
+  evMsg.textContent = "イベントを登録しました";
+  evTitle.value = "";
 };
 
-/* ===== 部員登録 ===== */
+/* 部員登録 */
 document.getElementById("savePlayer").onclick = async () => {
-  const name = document.getElementById("playerName").value.trim();
-  const team = document.getElementById("playerTeam").value;
-  const msg  = document.getElementById("playerMsg");
+  const name = plName.value.trim();
+  const number = Number(plNumber.value);
 
-  if(!name){
-    msg.textContent = "名前を入力してください";
+  if(!name || !number){
+    plMsg.textContent = "背番号と名前を入力してください";
     return;
   }
 
-  try{
-    await addDoc(collection(db,"players_attendance"),{
-      name,
-      team,
-      createdAt: serverTimestamp()
-    });
-    msg.textContent = "部員を登録しました";
-    document.getElementById("playerName").value = "";
-  }catch(e){
-    console.error(e);
-    msg.textContent = "登録に失敗しました";
-  }
+  await addDoc(collection(db,"players_attendance"),{
+    name,
+    number,
+    createdAt: serverTimestamp()
+  });
+
+  plMsg.textContent = "部員を登録しました";
+  plName.value = "";
+  plNumber.value = "";
+
+  loadPlayers();
 };
+
+/* 部員一覧（背番号順） */
+async function loadPlayers(){
+  list.innerHTML = "";
+  const snap = await getDocs(
+    query(collection(db,"players_attendance"), orderBy("number","asc"))
+  );
+
+  snap.forEach(d=>{
+    const p = d.data();
+    list.innerHTML += `
+      <tr>
+        <td>${p.number}</td>
+        <td>${p.name}</td>
+      </tr>
+    `;
+  });
+}
+
+loadPlayers();
