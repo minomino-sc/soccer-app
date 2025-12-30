@@ -34,8 +34,9 @@ render();
 async function render() {
   table.innerHTML = "";
 
-  monthLabel.textContent =
-    `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
+  const year = current.getFullYear();
+  const month = String(current.getMonth() + 1).padStart(2, "0");
+  monthLabel.textContent = `${year}年 ${Number(month)}月`;
 
   /* データ取得 */
   const playersSnap = await getDocs(collection(db, "players_attendance"));
@@ -46,21 +47,15 @@ async function render() {
     query(collection(db, "attendance_logs"), orderBy("createdAt"))
   );
 
-  /* 部員：背番号順に並び替え */
+  /* 部員（背番号順） */
   const players = playersSnap.docs
     .map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
 
-  /* 月フィルタ */
+  /* ★ 月別イベント（文字列で比較） */
   const events = eventsSnap.docs
     .map(d => ({ id: d.id, ...d.data() }))
-    .filter(e => {
-      const d = new Date(e.date);
-      return (
-        d.getFullYear() === current.getFullYear() &&
-        d.getMonth() === current.getMonth()
-      );
-    });
+    .filter(e => e.date?.startsWith(`${year}-${month}`));
 
   /* 最新出欠 */
   latestStatus = {};
@@ -74,9 +69,9 @@ async function render() {
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
     events.map(e => {
-      const d = new Date(e.date);
+      const day = e.date.slice(8, 10);
       const type = e.type === "match" ? "試合" : "練習";
-      return `<th>${d.getDate()}<br>${type}</th>`;
+      return `<th>${day}<br>${type}</th>`;
     }).join("");
   table.appendChild(trH);
 
