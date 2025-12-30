@@ -23,14 +23,20 @@ let current = new Date();
 let selected = null;
 let selectedCell = null;
 
-document.getElementById("prev").onclick=()=>{
-  current.setMonth(current.getMonth()-1);
+/* 月切替 */
+document.getElementById("prev").onclick = () => {
+  current.setMonth(current.getMonth() - 1);
   render();
 };
-document.getElementById("next").onclick=()=>{
-  current.setMonth(current.getMonth()+1);
+document.getElementById("next").onclick = () => {
+  current.setMonth(current.getMonth() + 1);
   render();
 };
+
+/* 操作バー */
+bar.querySelectorAll("button").forEach(btn=>{
+  btn.onclick = ()=>saveStatus(btn.dataset.status);
+});
 
 render();
 
@@ -38,9 +44,7 @@ async function render(){
   label.textContent = `${current.getFullYear()}年 ${current.getMonth()+1}月`;
   table.innerHTML="";
   stats.innerHTML="";
-  bar.style.display="none";
-  selected=null;
-  selectedCell=null;
+  bar.style.display = selected ? "flex" : "none";
 
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap = await getDocs(
@@ -64,59 +68,61 @@ async function render(){
     latest[`${d.eventId}_${d.playerId}`]=d.status;
   });
 
-  /* ===== ヘッダ ===== */
+  /* ヘッダ */
   const trH=document.createElement("tr");
   trH.innerHTML="<th>名前</th>"+events.map(e=>{
     const d=new Date(e.date);
     const cls = e.type==="match" ? "match" : "practice";
-    return `<th class="${cls}">
-      <strong>${d.getDate()}</strong>
-    </th>`;
+    return `<th class="${cls}"><strong>${d.getDate()}</strong></th>`;
   }).join("");
   table.appendChild(trH);
 
-  /* ===== 本体 ===== */
+  /* 本体 */
   players.forEach(p=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`<td class="name">${p.name}</td>`;
 
     events.forEach(e=>{
       const key=`${e.id}_${p.id}`;
-      const status=latest[key];
+      const status=latest[key] || "unset";
       const td=document.createElement("td");
 
-      if(status==="present") td.classList.add("present");
-      else if(status==="absent") td.classList.add("absent");
-      else if(status==="skip") td.classList.add("skip");
-      else td.classList.add("unset");
-
+      td.className = status;
       td.textContent =
         status==="present"?"○":
         status==="absent"?"×":
         status==="skip"?"－":"";
 
+      if(selected &&
+         selected.eventId===e.id &&
+         selected.playerId===p.id){
+        td.classList.add("selected");
+        selectedCell = td;
+      }
+
       td.onclick=()=>{
         if(selectedCell) selectedCell.classList.remove("selected");
         td.classList.add("selected");
-        selectedCell=td;
-        selected={eventId:e.id,playerId:p.id};
+        selectedCell = td;
+        selected = { eventId:e.id, playerId:p.id };
         bar.style.display="flex";
       };
+
       tr.appendChild(td);
     });
     table.appendChild(tr);
   });
 
-  /* ===== 月別集計（ーは除外） ===== */
+  /* 集計（－は除外） */
   players.forEach(p=>{
-    let hit=0,tot=0;
+    let hit=0, tot=0;
     events.forEach(e=>{
       const s=latest[`${e.id}_${p.id}`];
       if(!s || s==="skip") return;
       tot++;
       if(s==="present") hit++;
     });
-    stats.innerHTML+=`
+    stats.innerHTML += `
       <div class="statsCard">
         <strong>${p.name}</strong>
         <div class="statsRow">
@@ -127,13 +133,18 @@ async function render(){
   });
 }
 
-/* ===== 保存 ===== */
-window.saveStatus = async function(status){
+async function saveStatus(status){
   if(!selected) return;
+
   await addDoc(collection(db,"attendance_logs"),{
     ...selected,
     status,
     createdAt:serverTimestamp()
   });
+
+  selected = null;
+  selectedCell = null;
+  bar.style.display = "none";
+
   await render();
-};
+}
