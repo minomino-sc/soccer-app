@@ -48,13 +48,13 @@ th{
   z-index:2;
 }
 
-/* ヘッダ種別（重要） */
+/* ヘッダ種別 */
 th.match{
-  background:#ffe4e6;     /* 試合：薄赤 */
+  background:#ffe4e6;
   color:#b91c1c;
 }
 th.practice{
-  background:#e8f5e9;     /* 練習：薄緑 */
+  background:#e8f5e9;
   color:#166534;
 }
 
@@ -66,30 +66,37 @@ th.practice{
   font-weight:600;
 }
 
-/* ===== 出欠表示 ===== */
+/* ===== 出欠セル ===== */
 td{
   min-width:56px;
   height:56px;
-  font-size:22px;
+  font-size:24px;
   font-weight:700;
 }
 
+/* 出席 */
 .present{
-  background:#e8f5e9;
-  color:#2e7d32;
+  background:#ecfdf5;
+  color:#047857;
 }
+
+/* 欠席 */
 .absent{
-  background:#fdecea;
-  color:#c62828;
+  background:#fff7ed;
+  color:#c2410c;
 }
+
+/* 対象外 */
 .skip{
   background:#f3f4f6;
-  color:#9ca3af;
+  color:#6b7280;
   font-weight:400;
 }
+
+/* 未入力 */
 .unset{
-  background:#fff;
-  color:#ccc;
+  background:#ffffff;
+  color:#d1d5db;
 }
 
 .selected{
@@ -111,7 +118,7 @@ td{
 }
 
 #actionBar button{
-  font-size:28px;
+  font-size:30px;
   width:64px;
   height:64px;
   border-radius:16px;
