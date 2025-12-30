@@ -3,9 +3,7 @@ import {
   getFirestore, collection, addDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-console.log("admin.js 起動 OK");
-
-/* Firebase設定（既存と同じ） */
+/* Firebase */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -15,30 +13,53 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const btn = document.getElementById("save");
-const msg = document.getElementById("msg");
+/* ===== イベント登録 ===== */
+document.getElementById("saveEvent").onclick = async () => {
+  const date  = document.getElementById("eventDate").value;
+  const type  = document.getElementById("eventType").value;
+  const title = document.getElementById("eventTitle").value;
+  const msg   = document.getElementById("eventMsg");
 
-btn.onclick = async () => {
-  const date  = document.getElementById("date").value;
-  const type  = document.getElementById("type").value;
-  const title = document.getElementById("title").value;
-
-  if (!date) {
+  if(!date){
     msg.textContent = "日付は必須です";
     return;
   }
 
-  try {
-    await addDoc(collection(db, "events_attendance"), {
-      date,                 // YYYY-MM-DD
-      type,                 // practice / match / holiday
-      title: title || "",   // 空OK
+  try{
+    await addDoc(collection(db,"events_attendance"),{
+      date,
+      type,
+      title: title || "",
       createdAt: serverTimestamp()
     });
+    msg.textContent = "イベントを登録しました";
+    document.getElementById("eventTitle").value = "";
+  }catch(e){
+    console.error(e);
+    msg.textContent = "登録に失敗しました";
+  }
+};
 
-    msg.textContent = "登録しました";
-    document.getElementById("title").value = "";
-  } catch (e) {
+/* ===== 部員登録 ===== */
+document.getElementById("savePlayer").onclick = async () => {
+  const name = document.getElementById("playerName").value.trim();
+  const team = document.getElementById("playerTeam").value;
+  const msg  = document.getElementById("playerMsg");
+
+  if(!name){
+    msg.textContent = "名前を入力してください";
+    return;
+  }
+
+  try{
+    await addDoc(collection(db,"players_attendance"),{
+      name,
+      team,
+      createdAt: serverTimestamp()
+    });
+    msg.textContent = "部員を登録しました";
+    document.getElementById("playerName").value = "";
+  }catch(e){
     console.error(e);
     msg.textContent = "登録に失敗しました";
   }
