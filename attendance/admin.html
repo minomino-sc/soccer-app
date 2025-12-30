@@ -11,7 +11,7 @@ body{
   background:#f5f7fb;
   padding:16px;
 }
-h1{font-size:20px;margin-top:24px}
+h2{margin-top:32px}
 label{display:block;margin-top:12px}
 input,select,button{
   width:100%;
@@ -20,73 +20,78 @@ input,select,button{
   font-size:16px;
 }
 button{
-  margin-top:12px;
+  margin-top:16px;
   background:#2563eb;
   color:#fff;
   border:none;
   border-radius:6px;
 }
-.card{
+table{
+  width:100%;
+  border-collapse:collapse;
   background:#fff;
-  padding:16px;
-  border-radius:8px;
-  margin-bottom:24px;
+  margin-top:12px;
 }
-.msg{margin-top:8px;color:#2563eb}
+th,td{
+  border:1px solid #ddd;
+  padding:6px;
+  text-align:center;
+}
+th{background:#eee}
+.msg{margin-top:8px}
 </style>
 </head>
-
 <body>
 
 <h1>🛠 管理画面</h1>
 
 <!-- イベント登録 -->
-<div class="card">
-  <h2>📅 イベント登録</h2>
+<h2>📅 イベント登録</h2>
 
-  <label>
-    日付
-    <input type="date" id="eventDate">
-  </label>
+<label>日付
+  <input type="date" id="evDate">
+</label>
 
-  <label>
-    種別
-    <select id="eventType">
-      <option value="practice">練習</option>
-      <option value="match">試合</option>
-      <option value="holiday">休祝日</option>
-    </select>
-  </label>
+<label>種別
+  <select id="evType">
+    <option value="practice">練習</option>
+    <option value="match">試合</option>
+    <option value="holiday">休祝日</option>
+  </select>
+</label>
 
-  <label>
-    タイトル
-    <input type="text" id="eventTitle" placeholder="例：通常練習 / リーグ戦">
-  </label>
+<label>タイトル
+  <input type="text" id="evTitle" placeholder="例：通常練習 / リーグ戦">
+</label>
 
-  <button id="saveEvent">イベント登録</button>
-  <div id="eventMsg" class="msg"></div>
-</div>
+<button id="saveEvent">イベント登録</button>
+<div class="msg" id="evMsg"></div>
 
 <!-- 部員登録 -->
-<div class="card">
-  <h2>👥 部員登録</h2>
+<h2>👥 部員登録</h2>
 
-  <label>
-    名前
-    <input type="text" id="playerName" placeholder="例：山田 太郎">
-  </label>
+<label>背番号
+  <input type="number" id="plNumber">
+</label>
 
-  <label>
-    チーム
-    <select id="playerTeam">
-      <option value="A">Aチーム</option>
-      <option value="B">Bチーム</option>
-    </select>
-  </label>
+<label>名前
+  <input type="text" id="plName">
+</label>
 
-  <button id="savePlayer">部員登録</button>
-  <div id="playerMsg" class="msg"></div>
-</div>
+<button id="savePlayer">部員登録</button>
+<div class="msg" id="plMsg"></div>
+
+<!-- 部員一覧 -->
+<h2>📋 登録済み部員（背番号順）</h2>
+<table>
+  <thead>
+    <tr>
+      <th>背番号</th>
+      <th>名前</th>
+    </tr>
+  </thead>
+  <tbody id="playerList"></tbody>
+</table>
 
 <script type="module" src="admin.js"></script>
 </body>
