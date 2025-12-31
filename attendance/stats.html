@@ -9,61 +9,56 @@
 body{
   font-family:system-ui;
   background:#f5f7fb;
+  margin:0;
   padding:16px;
 }
-
 h1{margin-bottom:8px}
 
 .controls{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:12px;
   margin-bottom:12px;
 }
-
 button{
   padding:6px 12px;
   font-size:14px;
 }
 
+.legend{
+  display:flex;
+  gap:16px;
+  margin:8px 0;
+}
+.legend span{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.box{
+  width:14px;
+  height:14px;
+  display:inline-block;
+}
+.practice{background:#4caf50}
+.match{background:#f44336}
+
 table{
   width:100%;
   border-collapse:collapse;
   background:#fff;
-  margin-bottom:24px;
+  margin-top:12px;
 }
-
 th,td{
   border:1px solid #ddd;
   padding:6px;
   text-align:center;
 }
-
 th{background:#eee}
 
-.graph{
-  margin-bottom:24px;
-}
-
-.bar{
-  height:18px;
-  margin:4px 0;
-  border-radius:4px;
-}
-
-.practice{background:#4caf50}
-.match{background:#f44336}
-.total{background:#2196f3}
-
-.legend span{
-  display:inline-block;
-  margin-right:12px;
-}
-.legend i{
-  display:inline-block;
-  width:12px;
-  height:12px;
-  margin-right:4px;
+canvas{
+  margin-top:20px;
+  background:#fff;
 }
 </style>
 </head>
@@ -73,21 +68,22 @@ th{background:#eee}
 <h1>📊 月別出席率</h1>
 
 <div class="controls">
-  <button id="prev">◀</button>
+  <button id="prevMonth">◀</button>
   <strong id="monthLabel"></strong>
-  <button id="next">▶</button>
-  <button id="csv">CSV書き出し</button>
+  <button id="nextMonth">▶</button>
+
+  <button id="csvBtn">CSV書き出し</button>
 </div>
 
 <div class="legend">
-  <span><i class="practice"></i>練習</span>
-  <span><i class="match"></i>試合</span>
-  <span><i class="total"></i>合計</span>
+  <span><i class="box practice"></i> 練習</span>
+  <span><i class="box match"></i> 試合</span>
 </div>
 
 <table>
   <thead>
     <tr>
+      <th>背</th>
       <th>名前</th>
       <th>練習</th>
       <th>試合</th>
@@ -97,8 +93,9 @@ th{background:#eee}
   <tbody id="statsBody"></tbody>
 </table>
 
-<div id="graphs"></div>
+<canvas id="chart" height="240"></canvas>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="module" src="./stats.js"></script>
 </body>
 </html>
