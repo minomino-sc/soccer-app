@@ -10,10 +10,18 @@ body{
   font-family:system-ui;
   background:#f5f7fb;
   margin:0;
-  padding:16px;
+  padding:12px;
 }
-h1{margin:0 0 8px}
-
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+button{
+  padding:6px 10px;
+  font-size:14px;
+}
 table{
   width:100%;
   border-collapse:collapse;
@@ -35,38 +43,58 @@ th{
   left:0;
   background:#fafafa;
 }
-
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
 
+/* 判例 */
+.legend{
+  display:flex;
+  gap:8px;
+  font-size:12px;
+  margin:8px 0;
+}
+.legend span{
+  padding:2px 6px;
+  border-radius:4px;
+  background:#eee;
+}
+
 /* 出席率 */
-#stats{
-  margin-top:24px;
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:8px;
+  margin-top:12px;
 }
 .statsCard{
   background:#fff;
-  border-radius:8px;
-  padding:12px;
-  margin-bottom:8px;
-}
-.statsRow{
-  display:flex;
-  justify-content:space-between;
-  margin-top:4px;
-  font-size:14px;
+  border:1px solid #ddd;
+  padding:6px;
+  font-size:13px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>⚽ 出欠管理</h1>
-<div id="monthLabel"></div>
+<header>
+  <button id="prev">◀</button>
+  <strong id="monthLabel"></strong>
+  <button id="next">▶</button>
+</header>
+
+<div class="legend">
+  <span class="practice">練習</span>
+  <span class="match">試合</span>
+  <span>○ 出席</span>
+  <span>× 欠席</span>
+  <span>－ 対象外</span>
+</div>
 
 <table id="table"></table>
 
-<h2>📊 出席率</h2>
-<div id="stats"></div>
+<h3>📊 出席率</h3>
+<div id="stats" class="stats"></div>
 
 <script type="module" src="./main.js"></script>
 </body>
