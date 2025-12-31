@@ -35,7 +35,7 @@ document.getElementById("nextMonth").onclick = () => {
 
 render();
 
-/* date → Date 変換 */
+/* date → Date */
 function toDate(v){
   if(!v) return null;
   if(typeof v === "string"){
@@ -83,8 +83,9 @@ async function render(){
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
     events.map(e=>{
-      const cls=e.type;
-      return `<th class="${cls}">${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}</th>`;
+      return `<th class="${e.type}">
+        ${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}
+      </th>`;
     }).join("");
   table.appendChild(trH);
 
@@ -120,7 +121,7 @@ async function render(){
     table.appendChild(tr);
   });
 
-  /* 出席率（－除外・試合/練習別） */
+  /* 出席率（％＋回数表示） */
   players.forEach(p=>{
     let prHit=0,prTot=0,maHit=0,maTot=0;
 
@@ -141,9 +142,10 @@ async function render(){
     stats.innerHTML+=`
       <div class="statsCard">
         <strong>${p.name}</strong><br>
-        練習：${prTot?Math.round(prHit/prTot*100):0}%<br>
-        試合：${maTot?Math.round(maHit/maTot*100):0}%<br>
-        合計：${tot?Math.round(hit/tot*100):0}%
-      </div>`;
+        練習：${prTot?Math.round(prHit/prTot*100):0}%（${prHit}回）<br>
+        試合：${maTot?Math.round(maHit/maTot*100):0}%（${maHit}回）<br>
+        合計：${tot?Math.round(hit/tot*100):0}%（${hit}回）
+      </div>
+    `;
   });
 }
