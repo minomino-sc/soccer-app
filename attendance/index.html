@@ -10,82 +10,65 @@ body{
   font-family:system-ui;
   background:#f5f7fb;
   margin:0;
-  padding:16px;
+  padding:12px;
 }
-
 h1{margin:0 0 8px}
 
-.controls{
+#topBar{
   display:flex;
   align-items:center;
   gap:8px;
   margin-bottom:8px;
 }
-
-.controls button{
+button{
   padding:6px 10px;
   font-size:14px;
 }
 
-.legend{
-  display:flex;
-  gap:12px;
-  font-size:13px;
-  margin-bottom:8px;
-}
-
-.legend span{
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
-
-.legend .match{background:#ffe0e0;padding:2px 6px;border-radius:4px}
-.legend .practice{background:#e0ffe0;padding:2px 6px;border-radius:4px}
-
 table{
-  width:100%;
   border-collapse:collapse;
   background:#fff;
+  width:max-content;
 }
-
 th,td{
   border:1px solid #ddd;
   padding:6px;
   text-align:center;
-  font-size:14px;
+  font-size:13px;
 }
-
 th{
   background:#eee;
   position:sticky;
   top:0;
   z-index:2;
 }
-
-.name{
+.event{
   position:sticky;
   left:0;
   background:#fafafa;
   z-index:1;
+  white-space:nowrap;
 }
 
+/* 判例 */
+.legend{
+  display:flex;
+  gap:12px;
+  margin:8px 0;
+  font-size:13px;
+}
+.legend span{
+  padding:2px 6px;
+  border-radius:4px;
+}
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
 
-.stats{
+/* グラフ */
+#chartWrap{
   margin-top:16px;
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-  gap:8px;
-}
-
-.statsCard{
   background:#fff;
-  border:1px solid #ddd;
-  border-radius:6px;
   padding:8px;
-  font-size:13px;
 }
 </style>
 </head>
@@ -94,24 +77,25 @@ th{
 
 <h1>⚽ 出欠管理</h1>
 
-<div class="controls">
-  <button id="prevMonth">◀</button>
-  <strong id="monthLabel"></strong>
-  <button id="nextMonth">▶</button>
+<div id="topBar">
+  <button id="prev">◀</button>
+  <div id="monthLabel"></div>
+  <button id="next">▶</button>
+  <button id="exportCSV">CSV出力</button>
 </div>
 
 <div class="legend">
-  <span><span class="match">　</span> 試合</span>
-  <span><span class="practice">　</span> 練習</span>
-  <span>○ 出席</span>
-  <span>× 欠席</span>
-  <span>－ 対象外</span>
+  <span class="practice">練習</span>
+  <span class="match">試合</span>
 </div>
 
-<table id="table"></table>
+<div style="overflow-x:auto">
+  <table id="table"></table>
+</div>
 
-<h2>📊 出席率</h2>
-<div id="stats" class="stats"></div>
+<div id="chartWrap">
+  <canvas id="chart" height="120"></canvas>
+</div>
 
 <script type="module" src="./main.js"></script>
 </body>
