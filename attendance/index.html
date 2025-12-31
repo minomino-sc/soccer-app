@@ -43,10 +43,11 @@ h1{margin:0 0 8px}
 .legend .match{background:#ffe0e0;padding:2px 6px;border-radius:4px}
 .legend .practice{background:#e0ffe0;padding:2px 6px;border-radius:4px}
 
+/* ★ テーブル */
 table{
-  width:100%;
   border-collapse:collapse;
   background:#fff;
+  width:max-content;
 }
 
 th,td{
@@ -54,6 +55,10 @@ th,td{
   padding:6px;
   text-align:center;
   font-size:14px;
+
+  /* ★ ここが重要 */
+  white-space: nowrap;
+  min-width:48px;
 }
 
 th{
@@ -68,6 +73,9 @@ th{
   left:0;
   background:#fafafa;
   z-index:1;
+
+  /* ★ 名前が縦にならない */
+  white-space: nowrap;
 }
 
 .match{background:#ffe0e0}
@@ -108,7 +116,9 @@ th{
   <span>－ 対象外</span>
 </div>
 
-<table id="table"></table>
+<div style="overflow-x:auto">
+  <table id="table"></table>
+</div>
 
 <h2>📊 出席率</h2>
 <div id="stats" class="stats"></div>
