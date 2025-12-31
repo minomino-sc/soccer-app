@@ -1,100 +1,149 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>⚽ 出欠管理</title>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore, collection, getDocs,
+  addDoc, query, orderBy, serverTimestamp, Timestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<style>
-body{
-  font-family:system-ui;
-  background:#f5f7fb;
-  margin:0;
-  padding:12px;
-}
-h1{margin:0 0 8px}
+/* Firebase */
+const firebaseConfig = {
+  apiKey: "★★★★★",
+  authDomain: "★★★★★",
+  projectId: "minotani-sc-app",
+};
 
-#topBar{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:8px;
-}
-button{
-  padding:6px 10px;
-  font-size:14px;
-}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-table{
-  border-collapse:collapse;
-  background:#fff;
-  width:max-content;
-}
-th,td{
-  border:1px solid #ddd;
-  padding:6px;
-  text-align:center;
-  font-size:13px;
-}
-th{
-  background:#eee;
-  position:sticky;
-  top:0;
-  z-index:2;
-}
-.event{
-  position:sticky;
-  left:0;
-  background:#fafafa;
-  z-index:1;
-  white-space:nowrap;
+/* DOM */
+const table = document.getElementById("table");
+const stats = document.getElementById("stats");
+const monthLabel = document.getElementById("monthLabel");
+
+/* 状態 */
+let current = new Date();
+let latest = {};
+
+/* 月切替 */
+document.getElementById("prevMonth").onclick = () => {
+  current.setMonth(current.getMonth() - 1);
+  render();
+};
+document.getElementById("nextMonth").onclick = () => {
+  current.setMonth(current.getMonth() + 1);
+  render();
+};
+
+render();
+
+/* date → Date 変換 */
+function toDate(v){
+  if(!v) return null;
+  if(typeof v === "string"){
+    const [y,m,d]=v.split("-").map(Number);
+    return new Date(y,m-1,d);
+  }
+  if(v instanceof Timestamp) return v.toDate();
+  return null;
 }
 
-.legend{
-  display:flex;
-  gap:12px;
-  margin:8px 0;
-  font-size:13px;
+async function render(){
+  table.innerHTML="";
+  stats.innerHTML="";
+  monthLabel.textContent =
+    `${current.getFullYear()}年 ${current.getMonth()+1}月`;
+
+  const playersSnap = await getDocs(collection(db,"players_attendance"));
+  const eventsSnap = await getDocs(
+    query(collection(db,"events_attendance"),orderBy("date"))
+  );
+  const logsSnap = await getDocs(
+    query(collection(db,"attendance_logs"),orderBy("createdAt"))
+  );
+
+  const players = playersSnap.docs
+    .map(d=>({id:d.id,...d.data()}))
+    .sort((a,b)=>(a.number??999)-(b.number??999));
+
+  const events = eventsSnap.docs
+    .map(d=>({id:d.id,...d.data(),_date:toDate(d.data().date)}))
+    .filter(e =>
+      e._date &&
+      e._date.getFullYear()===current.getFullYear() &&
+      e._date.getMonth()===current.getMonth()
+    );
+
+  latest={};
+  logsSnap.forEach(l=>{
+    const d=l.data();
+    latest[`${d.eventId}_${d.playerId}`]=d.status;
+  });
+
+  /* ヘッダ */
+  const trH=document.createElement("tr");
+  trH.innerHTML =
+    "<th>背</th><th>名前</th>" +
+    events.map(e=>{
+      const cls=e.type;
+      return `<th class="${cls}">${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}</th>`;
+    }).join("");
+  table.appendChild(trH);
+
+  /* 本体 */
+  players.forEach(p=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${p.number??""}</td><td class="name">${p.name}</td>`;
+
+    events.forEach(e=>{
+      const key=`${e.id}_${p.id}`;
+      const status=latest[key]||"skip";
+      const td=document.createElement("td");
+      td.classList.add(e.type);
+      td.textContent =
+        status==="present"?"○":
+        status==="absent"?"×":"－";
+
+      td.onclick=async()=>{
+        const next =
+          status==="skip"?"present":
+          status==="present"?"absent":"skip";
+
+        await addDoc(collection(db,"attendance_logs"),{
+          eventId:e.id,
+          playerId:p.id,
+          status:next,
+          createdAt:serverTimestamp()
+        });
+        render();
+      };
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+
+  /* 出席率（－除外・試合/練習別） */
+  players.forEach(p=>{
+    let prHit=0,prTot=0,maHit=0,maTot=0;
+
+    events.forEach(e=>{
+      const s=latest[`${e.id}_${p.id}`];
+      if(!s||s==="skip") return;
+      if(e.type==="practice"){
+        prTot++; if(s==="present") prHit++;
+      }
+      if(e.type==="match"){
+        maTot++; if(s==="present") maHit++;
+      }
+    });
+
+    const tot=prTot+maTot;
+    const hit=prHit+maHit;
+
+    stats.innerHTML+=`
+      <div class="statsCard">
+        <strong>${p.name}</strong><br>
+        練習：${prTot?Math.round(prHit/prTot*100):0}%<br>
+        試合：${maTot?Math.round(maHit/maTot*100):0}%<br>
+        合計：${tot?Math.round(hit/tot*100):0}%
+      </div>`;
+  });
 }
-.legend span{
-  padding:2px 6px;
-  border-radius:4px;
-}
-.match{background:#ffe0e0}
-.practice{background:#e0ffe0}
-
-#chartWrap{
-  margin-top:16px;
-  background:#fff;
-  padding:8px;
-}
-</style>
-</head>
-
-<body>
-
-<h1>⚽ 出欠管理</h1>
-
-<div id="topBar">
-  <button id="prev">◀</button>
-  <div id="monthLabel"></div>
-  <button id="next">▶</button>
-  <button id="exportCSV">CSV出力</button>
-</div>
-
-<div class="legend">
-  <span class="practice">練習</span>
-  <span class="match">試合</span>
-</div>
-
-<div style="overflow-x:auto">
-  <table id="table"></table>
-</div>
-
-<div id="chartWrap">
-  <canvas id="chart" height="140"></canvas>
-</div>
-
-<script type="module" src="./main.js"></script>
-</body>
-</html>

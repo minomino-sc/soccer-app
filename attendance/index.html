@@ -10,63 +10,82 @@ body{
   font-family:system-ui;
   background:#f5f7fb;
   margin:0;
-  padding:12px;
+  padding:16px;
 }
+
 h1{margin:0 0 8px}
 
-#topBar{
+.controls{
   display:flex;
   align-items:center;
   gap:8px;
   margin-bottom:8px;
 }
-button{
+
+.controls button{
   padding:6px 10px;
   font-size:14px;
 }
 
+.legend{
+  display:flex;
+  gap:12px;
+  font-size:13px;
+  margin-bottom:8px;
+}
+
+.legend span{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.legend .match{background:#ffe0e0;padding:2px 6px;border-radius:4px}
+.legend .practice{background:#e0ffe0;padding:2px 6px;border-radius:4px}
+
 table{
+  width:100%;
   border-collapse:collapse;
   background:#fff;
-  width:max-content;
 }
+
 th,td{
   border:1px solid #ddd;
   padding:6px;
   text-align:center;
-  font-size:13px;
+  font-size:14px;
 }
+
 th{
   background:#eee;
   position:sticky;
   top:0;
   z-index:2;
 }
-.event{
+
+.name{
   position:sticky;
   left:0;
   background:#fafafa;
   z-index:1;
-  white-space:nowrap;
 }
 
-.legend{
-  display:flex;
-  gap:12px;
-  margin:8px 0;
-  font-size:13px;
-}
-.legend span{
-  padding:2px 6px;
-  border-radius:4px;
-}
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
 
-#chartWrap{
+.stats{
   margin-top:16px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:8px;
+}
+
+.statsCard{
   background:#fff;
+  border:1px solid #ddd;
+  border-radius:6px;
   padding:8px;
+  font-size:13px;
 }
 </style>
 </head>
@@ -75,25 +94,24 @@ th{
 
 <h1>⚽ 出欠管理</h1>
 
-<div id="topBar">
-  <button id="prev">◀</button>
-  <div id="monthLabel"></div>
-  <button id="next">▶</button>
-  <button id="exportCSV">CSV出力</button>
+<div class="controls">
+  <button id="prevMonth">◀</button>
+  <strong id="monthLabel"></strong>
+  <button id="nextMonth">▶</button>
 </div>
 
 <div class="legend">
-  <span class="practice">練習</span>
-  <span class="match">試合</span>
+  <span><span class="match">　</span> 試合</span>
+  <span><span class="practice">　</span> 練習</span>
+  <span>○ 出席</span>
+  <span>× 欠席</span>
+  <span>－ 対象外</span>
 </div>
 
-<div style="overflow-x:auto">
-  <table id="table"></table>
-</div>
+<table id="table"></table>
 
-<div id="chartWrap">
-  <canvas id="chart" height="140"></canvas>
-</div>
+<h2>📊 出席率</h2>
+<div id="stats" class="stats"></div>
 
 <script type="module" src="./main.js"></script>
 </body>
