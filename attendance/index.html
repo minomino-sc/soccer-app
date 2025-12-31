@@ -22,11 +22,6 @@ h1{margin:0 0 8px}
   margin-bottom:8px;
 }
 
-.controls button{
-  padding:6px 10px;
-  font-size:14px;
-}
-
 .legend{
   display:flex;
   gap:12px;
@@ -43,22 +38,26 @@ h1{margin:0 0 8px}
 .legend .match{background:#ffe0e0;padding:2px 6px;border-radius:4px}
 .legend .practice{background:#e0ffe0;padding:2px 6px;border-radius:4px}
 
-/* ★ テーブル */
+/* ★ 横スクロール用 */
+.tableWrap{
+  overflow-x:auto;
+  border:1px solid #ddd;
+  background:#fff;
+}
+
+/* ★ テーブルは横に広がる */
 table{
   border-collapse:collapse;
-  background:#fff;
   width:max-content;
+  min-width:100%;
 }
 
 th,td{
   border:1px solid #ddd;
-  padding:6px;
+  padding:6px 10px;
   text-align:center;
   font-size:14px;
-
-  /* ★ ここが重要 */
-  white-space: nowrap;
-  min-width:48px;
+  white-space:nowrap;   /* ★ 文字を縦にしない */
 }
 
 th{
@@ -68,14 +67,13 @@ th{
   z-index:2;
 }
 
+/* ★ 名前列固定 */
 .name{
   position:sticky;
   left:0;
   background:#fafafa;
   z-index:1;
-
-  /* ★ 名前が縦にならない */
-  white-space: nowrap;
+  font-weight:600;
 }
 
 .match{background:#ffe0e0}
@@ -116,7 +114,7 @@ th{
   <span>－ 対象外</span>
 </div>
 
-<div style="overflow-x:auto">
+<div class="tableWrap">
   <table id="table"></table>
 </div>
 
