@@ -6,7 +6,8 @@ import {
   addDoc,
   query,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase */
@@ -30,14 +31,25 @@ let latestStatus = {};
 /* 初期描画 */
 render();
 
+/* 日付を必ず Date に変換 */
+function toDate(v) {
+  if (!v) return null;
+  if (typeof v === "string") {
+    const [y, m, d] = v.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  if (v instanceof Timestamp) {
+    return v.toDate();
+  }
+  return null;
+}
+
 /* メイン描画 */
 async function render() {
   table.innerHTML = "";
-
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
 
-  /* データ取得 */
   const playersSnap = await getDocs(collection(db, "players_attendance"));
   const eventsSnap = await getDocs(
     query(collection(db, "events_attendance"), orderBy("date"))
@@ -51,30 +63,13 @@ async function render() {
     .map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
 
-  /* ✅ 日付を「必ず Date に変換」する */
+  /* 月イベント抽出（完全対応） */
   const events = eventsSnap.docs
-    .map(d => {
-      const data = d.data();
-      let dateObj;
-
-      if (typeof data.date === "string") {
-        dateObj = new Date(data.date.replace(/-/g, "/"));
-      } else if (data.date?.toDate) {
-        dateObj = data.date.toDate();
-      } else {
-        return null;
-      }
-
-      return {
-        id: d.id,
-        ...data,
-        _dateObj: dateObj
-      };
-    })
+    .map(d => ({ id: d.id, ...d.data(), _date: toDate(d.data().date) }))
     .filter(e =>
-      e &&
-      e._dateObj.getFullYear() === current.getFullYear() &&
-      e._dateObj.getMonth() === current.getMonth()
+      e._date &&
+      e._date.getFullYear() === current.getFullYear() &&
+      e._date.getMonth() === current.getMonth()
     );
 
   /* 最新出欠 */
@@ -89,7 +84,7 @@ async function render() {
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
     events.map(e => {
-      const day = e._dateObj.getDate();
+      const day = e._date.getDate();
       const type = e.type === "match" ? "試合" : "練習";
       return `<th>${day}<br>${type}</th>`;
     }).join("");
