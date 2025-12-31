@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, getDocs,
-  addDoc, query, orderBy, serverTimestamp, Timestamp
+  addDoc, setDoc, doc,
+  query, orderBy, serverTimestamp, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase */
@@ -25,12 +26,12 @@ let latest = {};
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
-  current.setDate(1);                  // ★日を1日にリセット
+  current.setDate(1); // ★日を1日にリセット
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
-  current.setDate(1);                  // ★日を1日にリセット
+  current.setDate(1); // ★日を1日にリセット
   current.setMonth(current.getMonth() + 1);
   render();
 };
@@ -110,12 +111,21 @@ async function render(){
           status==="skip"?"present":
           status==="present"?"absent":"skip";
 
+        // attendance_logs に追加
         await addDoc(collection(db,"attendance_logs"),{
           eventId:e.id,
           playerId:p.id,
           status:next,
           createdAt:serverTimestamp()
         });
+
+        // attendance_summary にも反映
+        const monthId = `${current.getFullYear()}-${current.getMonth()+1}`;
+        const summaryRef = doc(db,"attendance_summary",monthId);
+        await setDoc(summaryRef,{
+          [`${e.id}_${p.id}`]: next
+        },{merge:true});
+
         render();
       };
       tr.appendChild(td);
