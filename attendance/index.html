@@ -13,27 +13,45 @@ body{
   padding:16px;
 }
 h1{margin:0 0 8px}
+
 table{
   width:100%;
   border-collapse:collapse;
   background:#fff;
 }
+
 th,td{
   border:1px solid #ddd;
   padding:6px;
   text-align:center;
   font-size:14px;
 }
+
 th{
   background:#eee;
   position:sticky;
   top:0;
+  z-index:3;
 }
-.name{
+
+/* ★ 背番号列 */
+.no{
   position:sticky;
   left:0;
   background:#fafafa;
+  z-index:2;
+  width:40px;
 }
+
+/* ★ 名前列（背番号分ずらす） */
+.name{
+  position:sticky;
+  left:40px;
+  background:#fafafa;
+  z-index:2;
+  min-width:80px;
+}
+
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
 </style>
@@ -46,7 +64,6 @@ th{
 
 <table id="table"></table>
 
-<!-- ★ ここが重要 -->
 <script type="module" src="./main.js"></script>
 </body>
 </html>
