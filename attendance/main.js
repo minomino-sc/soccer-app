@@ -6,7 +6,8 @@ import {
   addDoc,
   query,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase */
@@ -15,6 +16,7 @@ const firebaseConfig = {
   authDomain: "★★★★★",
   projectId: "minotani-sc-app",
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -38,15 +40,19 @@ nextBtn.onclick = () => {
   render();
 };
 
+/* 日付変換 */
+function toDate(v){
+  if(!v) return null;
+  if(typeof v === "string"){
+    const [y,m,d] = v.split("-").map(Number);
+    return new Date(y, m-1, d);
+  }
+  if(v instanceof Timestamp) return v.toDate();
+  return null;
+}
+
 /* 初期描画 */
 render();
-
-/* YYYY-MM-DD → Date */
-function toDate(str){
-  if(!str) return null;
-  const [y,m,d] = str.split("-").map(Number);
-  return new Date(y, m-1, d);
-}
 
 /* メイン描画 */
 async function render(){
@@ -55,7 +61,9 @@ async function render(){
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
   const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap = await getDocs(collection(db,"events_attendance"));
+  const eventsSnap = await getDocs(
+    query(collection(db,"events_attendance"), orderBy("date"))
+  );
   const logsSnap = await getDocs(
     query(collection(db,"attendance_logs"), orderBy("createdAt"))
   );
@@ -63,59 +71,52 @@ async function render(){
   /* 背番号順 */
   const players = playersSnap.docs
     .map(d=>({id:d.id,...d.data()}))
-    .sort((a,b)=>(a.number??999)-(b.number??999));
+    .sort((a,b)=>(a.number ?? 999)-(b.number ?? 999));
 
-  /* 今月イベント */
+  /* 月イベント */
   const events = eventsSnap.docs
-    .map(d=>{
-      const data = d.data();
-      return {
-        id:d.id,
-        ...data,
-        _date: toDate(data.date)
-      };
-    })
+    .map(d=>({id:d.id,...d.data(), _date:toDate(d.data().date)}))
     .filter(e =>
       e._date &&
-      e._date.getFullYear() === current.getFullYear() &&
-      e._date.getMonth() === current.getMonth()
-    )
-    .sort((a,b)=>a._date - b._date);
+      e._date.getFullYear()===current.getFullYear() &&
+      e._date.getMonth()===current.getMonth()
+    );
 
   /* 最新出欠 */
   latestStatus = {};
   logsSnap.forEach(l=>{
-    const d = l.data();
-    latestStatus[`${d.eventId}_${d.playerId}`] = d.status;
+    const d=l.data();
+    latestStatus[`${d.eventId}_${d.playerId}`]=d.status;
   });
 
   /* ヘッダ */
-  const trH = document.createElement("tr");
+  const trH=document.createElement("tr");
   trH.innerHTML =
-    `<th class="no">背</th><th class="name">名前</th>` +
+    "<th>背</th><th>名前</th>" +
     events.map(e=>{
-      const cls = e.type === "match" ? "match" : "practice";
-      return `<th class="${cls}">${e._date.getDate()}<br>${e.title}</th>`;
+      const day=e._date.getDate();
+      const cls=e.type==="match"?"match":"practice";
+      const label=e.type==="match"?"試合":"練習";
+      return `<th class="${cls}">${day}<br>${label}</th>`;
     }).join("");
   table.appendChild(trH);
 
   /* 本体 */
   players.forEach(p=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML =
-      `<td class="no">${p.number??""}</td>` +
-      `<td class="name">${p.name}</td>`;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${p.number??""}</td><td class="name">${p.name}</td>`;
 
     events.forEach(e=>{
-      const key = `${e.id}_${p.id}`;
-      const status = latestStatus[key] || "skip";
+      const key=`${e.id}_${p.id}`;
+      const status=latestStatus[key]||"skip";
 
-      const td = document.createElement("td");
+      const td=document.createElement("td");
+      td.className = e.type==="match"?"match":"practice";
       td.textContent =
         status==="present"?"○":
         status==="absent" ?"×":"－";
 
-      td.onclick = async ()=>{
+      td.onclick=async()=>{
         const next =
           status==="skip"?"present":
           status==="present"?"absent":"skip";
@@ -126,13 +127,11 @@ async function render(){
           status:next,
           createdAt:serverTimestamp()
         });
-
         latestStatus[key]=next;
         render();
       };
       tr.appendChild(td);
     });
-
     table.appendChild(tr);
   });
 }
