@@ -51,14 +51,31 @@ async function render() {
     .map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
 
-  /* Safari対策：文字列分解で日付生成 */
+  /* ✅ 日付を「必ず Date に変換」する */
   const events = eventsSnap.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .filter(e => {
-      if (!e.date) return false;
-      const [y, m] = e.date.split("-").map(Number);
-      return y === current.getFullYear() && (m - 1) === current.getMonth();
-    });
+    .map(d => {
+      const data = d.data();
+      let dateObj;
+
+      if (typeof data.date === "string") {
+        dateObj = new Date(data.date.replace(/-/g, "/"));
+      } else if (data.date?.toDate) {
+        dateObj = data.date.toDate();
+      } else {
+        return null;
+      }
+
+      return {
+        id: d.id,
+        ...data,
+        _dateObj: dateObj
+      };
+    })
+    .filter(e =>
+      e &&
+      e._dateObj.getFullYear() === current.getFullYear() &&
+      e._dateObj.getMonth() === current.getMonth()
+    );
 
   /* 最新出欠 */
   latestStatus = {};
@@ -72,7 +89,7 @@ async function render() {
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
     events.map(e => {
-      const day = e.date.split("-")[2];
+      const day = e._dateObj.getDate();
       const type = e.type === "match" ? "試合" : "練習";
       return `<th>${day}<br>${type}</th>`;
     }).join("");
