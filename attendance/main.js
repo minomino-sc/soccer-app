@@ -1,7 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, getDocs,
-  addDoc, serverTimestamp, Timestamp
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase */
@@ -37,7 +44,7 @@ document.getElementById("nextMonth").onclick = () => {
 
 render();
 
-/* date → Date（絶対に落ちない） */
+/* date → Date（安全版） */
 function toDate(v){
   if(!v) return null;
 
@@ -55,25 +62,36 @@ function toDate(v){
   return null;
 }
 
+/* YYYY-MM */
+function monthIdOf(date){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`;
+}
+
 async function render(){
   table.innerHTML = "";
   stats.innerHTML = "";
   monthLabel.textContent =
-    `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
+    `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  /* 🔒 安全取得（orderBy 不使用） */
+  const monthId = monthIdOf(current);
+
+  /* Firestore 読み取り（最小限） */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
-  const logsSnap    = await getDocs(collection(db,"attendance_logs"));
+
+  /* 🔥 月別 summary（1ドキュメントのみ） */
+  const summaryRef  = doc(db,"attendance_summary",monthId);
+  const summarySnap = await getDoc(summaryRef);
+  latest = summarySnap.exists() ? summarySnap.data() : {};
 
   /* 部員 */
   const players = playersSnap.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .sort((a,b) => (a.number ?? 999) - (b.number ?? 999));
+    .map(d => ({ id:d.id, ...d.data() }))
+    .sort((a,b)=>(a.number??999)-(b.number??999));
 
-  /* イベント（今月分だけ・日付順） */
+  /* イベント（今月・日付順） */
   const events = eventsSnap.docs
-    .map(d => {
+    .map(d=>{
       const data = d.data();
       return {
         id: d.id,
@@ -87,51 +105,57 @@ async function render(){
       e._date.getFullYear() === current.getFullYear() &&
       e._date.getMonth() === current.getMonth()
     )
-    // ★ 日付の若い順に並び替え
-    .sort((a,b) => a._date - b._date);
-
-  /* 最新出欠状態 */
-  latest = {};
-  logsSnap.forEach(l => {
-    const d = l.data();
-    latest[`${d.eventId}_${d.playerId}`] = d.status;
-  });
+    .sort((a,b)=>a._date - b._date);
 
   /* ヘッダ */
   const trH = document.createElement("tr");
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
-    events.map(e => `
+    events.map(e=>`
       <th class="${e.type}">
         ${e._date.getDate()}<br>
-        ${e.type === "match" ? "試合" : "練習"}
+        ${e.type==="match"?"試合":"練習"}
       </th>
     `).join("");
   table.appendChild(trH);
 
   /* 本体 */
-  players.forEach(p => {
+  players.forEach(p=>{
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${p.number ?? ""}</td>
       <td class="name">${p.name}</td>
     `;
 
-    events.forEach(e => {
+    events.forEach(e=>{
       const key = `${e.id}_${p.id}`;
       const status = latest[key] || "skip";
 
       const td = document.createElement("td");
       td.className = e.type;
       td.textContent =
-        status === "present" ? "○" :
-        status === "absent"  ? "×" : "－";
+        status==="present" ? "○" :
+        status==="absent"  ? "×" : "－";
 
-      td.onclick = async () => {
+      td.onclick = async()=>{
+        const currentStatus = latest[key] || "skip";
         const next =
-          status === "skip"    ? "present" :
-          status === "present" ? "absent"  : "skip";
+          currentStatus==="skip"    ? "present" :
+          currentStatus==="present" ? "absent"  : "skip";
 
+        td.onclick = null; // 二重クリック防止
+
+        /* 🔥 summary 更新（本体） */
+        await setDoc(
+          summaryRef,
+          {
+            [key]: next,
+            updatedAt: serverTimestamp()
+          },
+          { merge:true }
+        );
+
+        /* 🧾 履歴（任意） */
         await addDoc(collection(db,"attendance_logs"),{
           eventId: e.id,
           playerId: p.id,
@@ -139,7 +163,7 @@ async function render(){
           createdAt: serverTimestamp()
         });
 
-        render();
+        await render();
       };
 
       tr.appendChild(td);
@@ -149,18 +173,18 @@ async function render(){
   });
 
   /* 出席率 */
-  players.forEach(p => {
-    let prHit=0, prTot=0, maHit=0, maTot=0;
+  players.forEach(p=>{
+    let prHit=0,prTot=0,maHit=0,maTot=0;
 
-    events.forEach(e => {
+    events.forEach(e=>{
       const s = latest[`${e.id}_${p.id}`];
-      if(!s || s === "skip") return;
+      if(!s || s==="skip") return;
 
-      if(e.type === "practice"){
-        prTot++; if(s === "present") prHit++;
+      if(e.type==="practice"){
+        prTot++; if(s==="present") prHit++;
       }
-      if(e.type === "match"){
-        maTot++; if(s === "present") maHit++;
+      if(e.type==="match"){
+        maTot++; if(s==="present") maHit++;
       }
     });
 
@@ -170,9 +194,9 @@ async function render(){
     stats.innerHTML += `
       <div class="statsCard">
         <strong>${p.name}</strong><br>
-        練習：${prTot ? Math.round(prHit/prTot*100) : 0}%（${prHit}回）<br>
-        試合：${maTot ? Math.round(maHit/maTot*100) : 0}%（${maHit}回）<br>
-        合計：${tot ? Math.round(hit/tot*100) : 0}%（${hit}回）
+        練習：${prTot?Math.round(prHit/prTot*100):0}%（${prHit}回）<br>
+        試合：${maTot?Math.round(maHit/maTot*100):0}%（${maHit}回）<br>
+        合計：${tot?Math.round(hit/tot*100):0}%（${hit}回）
       </div>
     `;
   });
