@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, getDocs,
-  addDoc, setDoc, doc,
+  setDoc, doc, getDoc,
   query, orderBy, serverTimestamp, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -26,12 +26,12 @@ let latest = {};
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
-  current.setDate(1); // ★日を1日にリセット
+  current.setDate(1); // 日を1日にリセット
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
-  current.setDate(1); // ★日を1日にリセット
+  current.setDate(1); // 日を1日にリセット
   current.setMonth(current.getMonth() + 1);
   render();
 };
@@ -52,21 +52,21 @@ function toDate(v){
 async function render(){
   table.innerHTML="";
   stats.innerHTML="";
+
+  const monthId = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}`;
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
+  // players
   const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap = await getDocs(
-    query(collection(db,"events_attendance"),orderBy("date"))
-  );
-  const logsSnap = await getDocs(
-    query(collection(db,"attendance_logs"),orderBy("createdAt"))
-  );
-
   const players = playersSnap.docs
     .map(d=>({id:d.id,...d.data()}))
     .sort((a,b)=>(a.number??999)-(b.number??999));
 
+  // events
+  const eventsSnap = await getDocs(
+    query(collection(db,"events_attendance"),orderBy("date"))
+  );
   const events = eventsSnap.docs
     .map(d=>({id:d.id,...d.data(),_date:toDate(d.data().date)}))
     .filter(e =>
@@ -75,11 +75,10 @@ async function render(){
       e._date.getMonth()===current.getMonth()
     );
 
-  latest={};
-  logsSnap.forEach(l=>{
-    const d=l.data();
-    latest[`${d.eventId}_${d.playerId}`]=d.status;
-  });
+  // attendance_summary
+  const summaryRef = doc(db,"attendance_summary",monthId);
+  const summarySnap = await getDoc(summaryRef);
+  latest = summarySnap.exists() ? summarySnap.data() : {};
 
   /* ヘッダ */
   const trH=document.createElement("tr");
@@ -111,22 +110,12 @@ async function render(){
           status==="skip"?"present":
           status==="present"?"absent":"skip";
 
-        // attendance_logs に追加
-        await addDoc(collection(db,"attendance_logs"),{
-          eventId:e.id,
-          playerId:p.id,
-          status:next,
-          createdAt:serverTimestamp()
-        });
-
-        // attendance_summary にも反映
-        const monthId = `${current.getFullYear()}-${current.getMonth()+1}`;
-        const summaryRef = doc(db,"attendance_summary",monthId);
+        // attendance_summary に反映
         await setDoc(summaryRef,{
-          [`${e.id}_${p.id}`]: next
+          [`${key}`]: next
         },{merge:true});
 
-        render();
+        render(); // クリック後に即時更新
       };
       tr.appendChild(td);
     });
