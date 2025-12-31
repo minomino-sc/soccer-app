@@ -13,45 +13,46 @@ body{
   padding:16px;
 }
 h1{margin:0 0 8px}
-
+.controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:8px;
+}
+button{
+  padding:6px 10px;
+  font-size:14px;
+}
 table{
   width:100%;
   border-collapse:collapse;
   background:#fff;
 }
-
 th,td{
   border:1px solid #ddd;
   padding:6px;
   text-align:center;
   font-size:14px;
 }
-
 th{
   background:#eee;
   position:sticky;
   top:0;
-  z-index:3;
-}
-
-/* ★ 背番号列 */
-.no{
-  position:sticky;
-  left:0;
-  background:#fafafa;
   z-index:2;
-  width:40px;
 }
-
-/* ★ 名前列（背番号分ずらす） */
 .name{
   position:sticky;
   left:40px;
   background:#fafafa;
-  z-index:2;
-  min-width:80px;
+  z-index:1;
 }
-
+.no{
+  position:sticky;
+  left:0;
+  background:#fafafa;
+  z-index:1;
+  width:40px;
+}
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
 </style>
@@ -60,7 +61,12 @@ th{
 <body>
 
 <h1>⚽ 出欠管理</h1>
-<div id="monthLabel"></div>
+
+<div class="controls">
+  <button id="prev">◀</button>
+  <div id="monthLabel"></div>
+  <button id="next">▶</button>
+</div>
 
 <table id="table"></table>
 
