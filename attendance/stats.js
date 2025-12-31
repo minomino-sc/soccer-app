@@ -3,6 +3,7 @@ import {
   getFirestore, collection, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* Firebase */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -12,81 +13,102 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let current = new Date();
-const body  = document.getElementById("statsBody");
+/* DOM */
+const body = document.getElementById("statsBody");
+const graphs = document.getElementById("graphs");
 const label = document.getElementById("monthLabel");
 
-document.getElementById("prevMonth").onclick = () => {
-  current.setMonth(current.getMonth() - 1);
+/* 状態 */
+let current = new Date();
+let csvRows = [];
+
+/* 月切替 */
+document.getElementById("prev").onclick = ()=>{
+  current.setMonth(current.getMonth()-1);
   render();
 };
-document.getElementById("nextMonth").onclick = () => {
-  current.setMonth(current.getMonth() + 1);
+document.getElementById("next").onclick = ()=>{
+  current.setMonth(current.getMonth()+1);
   render();
+};
+
+/* CSV */
+document.getElementById("csv").onclick = ()=>{
+  const csv = csvRows.map(r=>r.join(",")).join("\n");
+  const blob = new Blob([csv],{type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${current.getFullYear()}-${current.getMonth()+1}_attendance.csv`;
+  a.click();
 };
 
 render();
 
-async function render() {
-  label.textContent = `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
-  body.innerHTML = "";
+async function render(){
+  body.innerHTML="";
+  graphs.innerHTML="";
+  csvRows = [["名前","練習","試合","合計"]];
 
-  const playersSnap = await getDocs(collection(db, "players_attendance"));
-  const eventsSnap  = await getDocs(collection(db, "events_attendance"));
-  const logsSnap    = await getDocs(
-    query(collection(db, "attendance_logs"), orderBy("createdAt"))
-  );
+  label.textContent = `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  /* 最新状態 */
+  const playersSnap = await getDocs(collection(db,"players_attendance"));
+  const eventsSnap = await getDocs(collection(db,"events_attendance"));
+  const logsSnap = await getDocs(query(collection(db,"attendance_logs"),orderBy("createdAt")));
+
+  const players = playersSnap.docs
+    .map(d=>({id:d.id,...d.data()}))
+    .sort((a,b)=>(a.number??999)-(b.number??999));
+
+  const events = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
+
   const latest = {};
-  logsSnap.forEach(l => {
-    const d = l.data();
-    latest[`${d.eventId}_${d.playerId}`] = d.status;
+  logsSnap.forEach(l=>{
+    const d=l.data();
+    latest[`${d.playerId}_${d.eventId}`]=d.status;
   });
 
-  playersSnap.forEach(p => {
-    let prHit=0, prTot=0;
-    let maHit=0, maTot=0;
+  players.forEach(p=>{
+    let prHit=0,prTot=0,maHit=0,maTot=0;
 
-    eventsSnap.forEach(e => {
-      const ev = e.data();
-      if (!ev.date || !ev.type) return;
+    events.forEach(e=>{
+      const [y,m] = e.date.split("-").map(Number);
+      if(y!==current.getFullYear() || m-1!==current.getMonth()) return;
 
-      /* ★ 日付パース修正 */
-      const d = new Date(ev.date + "T00:00:00");
+      const s = latest[`${p.id}_${e.id}`];
+      if(!s || s==="skip") return;
 
-      if (
-        d.getFullYear() !== current.getFullYear() ||
-        d.getMonth()    !== current.getMonth()
-      ) return;
-
-      const s = latest[`${e.id}_${p.id}`];
-
-      if (ev.type === "practice") {
-        if (s === "present" || s === "absent") {
-          prTot++;
-          if (s === "present") prHit++;
-        }
+      if(e.type==="practice"){
+        prTot++; if(s==="present") prHit++;
       }
-
-      if (ev.type === "match") {
-        if (s === "present" || s === "absent") {
-          maTot++;
-          if (s === "present") maHit++;
-        }
+      if(e.type==="match"){
+        maTot++; if(s==="present") maHit++;
       }
     });
 
-    const totalTot = prTot + maTot;
-    const totalHit = prHit + maHit;
+    const pr = prTot ? Math.round(prHit/prTot*100) : 0;
+    const ma = maTot ? Math.round(maHit/maTot*100) : 0;
+    const ttTot = prTot+maTot;
+    const ttHit = prHit+maHit;
+    const tt = ttTot ? Math.round(ttHit/ttTot*100) : 0;
 
     body.innerHTML += `
       <tr>
-        <td>${p.data().name}</td>
-        <td>${prTot ? Math.round(prHit/prTot*100) : "-"}</td>
-        <td>${maTot ? Math.round(maHit/maTot*100) : "-"}</td>
-        <td>${totalTot ? Math.round(totalHit/totalTot*100) : "-"}</td>
+        <td>${p.name}</td>
+        <td>${pr}%</td>
+        <td>${ma}%</td>
+        <td>${tt}%</td>
       </tr>
     `;
+
+    graphs.innerHTML += `
+      <div class="graph">
+        <strong>${p.name}</strong>
+        <div class="bar practice" style="width:${pr}%"></div>
+        <div class="bar match" style="width:${ma}%"></div>
+        <div class="bar total" style="width:${tt}%"></div>
+      </div>
+    `;
+
+    csvRows.push([p.name,pr,ma,tt]);
   });
 }
