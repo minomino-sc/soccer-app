@@ -13,16 +13,27 @@ body{
   padding:16px;
 }
 h1{margin:0 0 8px}
+
 .controls{
   display:flex;
-  gap:8px;
+  justify-content:space-between;
   align-items:center;
   margin-bottom:8px;
 }
+
 button{
   padding:6px 10px;
   font-size:14px;
 }
+
+.legend{
+  margin:8px 0;
+  font-size:13px;
+}
+.legend span{
+  margin-right:12px;
+}
+
 table{
   width:100%;
   border-collapse:collapse;
@@ -40,19 +51,14 @@ th{
   top:0;
   z-index:2;
 }
+
 .name{
-  position:sticky;
-  left:40px;
-  background:#fafafa;
-  z-index:1;
-}
-.no{
   position:sticky;
   left:0;
   background:#fafafa;
   z-index:1;
-  width:40px;
 }
+
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
 </style>
@@ -63,9 +69,17 @@ th{
 <h1>⚽ 出欠管理</h1>
 
 <div class="controls">
-  <button id="prev">◀</button>
+  <button id="prev">◀ 前月</button>
   <div id="monthLabel"></div>
-  <button id="next">▶</button>
+  <button id="next">次月 ▶</button>
+</div>
+
+<div class="legend">
+  <span>○ 出席</span>
+  <span>× 欠席</span>
+  <span>－ 未定</span>
+  <span style="background:#ffe0e0;padding:2px 6px">試合</span>
+  <span style="background:#e0ffe0;padding:2px 6px">練習</span>
 </div>
 
 <table id="table"></table>
