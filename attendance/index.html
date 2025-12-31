@@ -10,54 +10,59 @@ body{
   font-family:system-ui;
   background:#f5f7fb;
   margin:0;
-  padding:16px;
+  padding:12px;
 }
 
-h1{margin:0 0 8px}
+h1{
+  margin:0 0 6px;
+  font-size:16px;
+}
 
+/* 操作部 */
 .controls{
   display:flex;
   align-items:center;
-  gap:8px;
-  margin-bottom:8px;
+  gap:6px;
+  margin-bottom:6px;
+}
+.controls button{
+  padding:4px 8px;
+  font-size:12px;
 }
 
+/* 判例 */
 .legend{
   display:flex;
-  gap:12px;
-  font-size:13px;
-  margin-bottom:8px;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:11px;
+  margin-bottom:6px;
 }
-
 .legend span{
   display:flex;
   align-items:center;
   gap:4px;
 }
+.legend .match{background:#ffe0e0;padding:2px 5px;border-radius:4px}
+.legend .practice{background:#e0ffe0;padding:2px 5px;border-radius:4px}
 
-.legend .match{background:#ffe0e0;padding:2px 6px;border-radius:4px}
-.legend .practice{background:#e0ffe0;padding:2px 6px;border-radius:4px}
-
-/* ★ 横スクロール用 */
+/* テーブル */
 .tableWrap{
-  overflow-x:auto;
-  border:1px solid #ddd;
-  background:#fff;
+  overflow-x:auto;   /* 横スクロールOK */
 }
 
-/* ★ テーブルは横に広がる */
 table{
   border-collapse:collapse;
-  width:max-content;
-  min-width:100%;
+  background:#fff;
+  width:max-content; /* 横固定 */
+  font-size:11px;    /* ★ フォント小さく */
 }
 
 th,td{
   border:1px solid #ddd;
-  padding:6px 10px;
+  padding:3px 4px;   /* ★ 行を詰める */
   text-align:center;
-  font-size:14px;
-  white-space:nowrap;   /* ★ 文字を縦にしない */
+  line-height:1.2;   /* ★ 高さ圧縮 */
 }
 
 th{
@@ -67,31 +72,39 @@ th{
   z-index:2;
 }
 
-/* ★ 名前列固定 */
-.name{
+/* 左固定（背番号＋名前） */
+.no{
   position:sticky;
   left:0;
   background:#fafafa;
-  z-index:1;
-  font-weight:600;
+  z-index:3;
+  white-space:nowrap;
+}
+.name{
+  position:sticky;
+  left:34px;
+  background:#fafafa;
+  z-index:3;
+  white-space:nowrap;
 }
 
+/* イベント種別 */
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
 
+/* 出席率 */
 .stats{
-  margin-top:16px;
+  margin-top:10px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-  gap:8px;
+  grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:6px;
 }
-
 .statsCard{
   background:#fff;
   border:1px solid #ddd;
   border-radius:6px;
-  padding:8px;
-  font-size:13px;
+  padding:6px;
+  font-size:11px;
 }
 </style>
 </head>
@@ -118,7 +131,7 @@ th{
   <table id="table"></table>
 </div>
 
-<h2>📊 出席率</h2>
+<h2 style="font-size:14px;margin:10px 0 6px">📊 出席率</h2>
 <div id="stats" class="stats"></div>
 
 <script type="module" src="./main.js"></script>
