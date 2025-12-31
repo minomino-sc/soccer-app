@@ -29,14 +29,17 @@ const monthLabel = document.getElementById("monthLabel");
 /* 状態 */
 let current = new Date();
 let latest = {};
+let locked = false;
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
+  if(locked) return;
   current.setDate(1);
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
+  if(locked) return;
   current.setDate(1);
   current.setMonth(current.getMonth() + 1);
   render();
@@ -44,13 +47,13 @@ document.getElementById("nextMonth").onclick = () => {
 
 render();
 
-/* date → Date（絶対安全） */
+/* date → Date */
 function toDate(v){
   if(!v) return null;
   if(typeof v === "string"){
-    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if(!m) return null;
-    return new Date(+m[1], +m[2]-1, +m[3]);
+    return new Date(+m[1],+m[2]-1,+m[3]);
   }
   if(v instanceof Timestamp) return v.toDate();
   return null;
@@ -60,43 +63,40 @@ function monthIdOf(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
 }
 
+function symbol(s){
+  return s==="present"?"○":s==="absent"?"×":"－";
+}
+
 async function render(){
-  table.innerHTML = "";
-  stats.innerHTML = "";
+  locked = true;
+  table.innerHTML="";
+  stats.innerHTML="";
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  /* ① 必須データ（これで表示は保証） */
+  /* 必須データ */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
 
-  /* ② summary は失敗しても無視 */
+  /* summary */
   latest = {};
   try{
-    const summaryRef = doc(db,"attendance_summary", monthIdOf(current));
-    const summarySnap = await getDoc(summaryRef);
-    if(summarySnap.exists()){
-      latest = summarySnap.data();
-    }
-  }catch(e){
-    // 🔕 何もしない（表示優先）
-    latest = {};
-  }
+    const snap = await getDoc(
+      doc(db,"attendance_summary",monthIdOf(current))
+    );
+    if(snap.exists()) latest = snap.data();
+  }catch(e){}
 
-  /* 部員 */
+  /* players */
   const players = playersSnap.docs
     .map(d=>({id:d.id,...d.data()}))
     .sort((a,b)=>(a.number??999)-(b.number??999));
 
-  /* イベント（今月・日付順） */
+  /* events */
   const events = eventsSnap.docs
     .map(d=>{
       const data=d.data();
-      return {
-        id:d.id,
-        ...data,
-        _date:toDate(data.date)
-      };
+      return {id:d.id,...data,_date:toDate(data.date)};
     })
     .filter(e =>
       e.type!=="holiday" &&
@@ -106,18 +106,17 @@ async function render(){
     )
     .sort((a,b)=>a._date-b._date);
 
-  /* ヘッダ */
+  /* header */
   const trH=document.createElement("tr");
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
     events.map(e=>`
       <th class="${e.type}">
         ${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}
-      </th>
-    `).join("");
+      </th>`).join("");
   table.appendChild(trH);
 
-  /* 本体 */
+  /* body */
   players.forEach(p=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`<td>${p.number??""}</td><td class="name">${p.name}</td>`;
@@ -128,30 +127,29 @@ async function render(){
 
       const td=document.createElement("td");
       td.className=e.type;
-      td.textContent =
-        status==="present"?"○":
-        status==="absent"?"×":"－";
+      td.textContent=symbol(status);
 
       td.onclick=async()=>{
+        if(locked) return;
+        locked=true;
+
         const cur=latest[key]||"skip";
         const next=
           cur==="skip"?"present":
           cur==="present"?"absent":"skip";
 
-        td.onclick=null;
+        /* 即時反映 */
+        latest[key]=next;
+        td.textContent=symbol(next);
 
-        const monthId=monthIdOf(current);
+        const monthId=monthIdOf(e._date); // ★最重要
 
-        /* summary（あれば更新） */
-        try{
-          await setDoc(
-            doc(db,"attendance_summary",monthId),
-            { [key]:next, updatedAt:serverTimestamp() },
-            { merge:true }
-          );
-        }catch(e){}
+        await setDoc(
+          doc(db,"attendance_summary",monthId),
+          { [key]:next, updatedAt:serverTimestamp() },
+          { merge:true }
+        );
 
-        /* 履歴 */
         await addDoc(collection(db,"attendance_logs"),{
           eventId:e.id,
           playerId:p.id,
@@ -159,14 +157,14 @@ async function render(){
           createdAt:serverTimestamp()
         });
 
-        render();
+        await render();
       };
       tr.appendChild(td);
     });
     table.appendChild(tr);
   });
 
-  /* 出席率 */
+  /* stats */
   players.forEach(p=>{
     let prH=0,prT=0,maH=0,maT=0;
     events.forEach(e=>{
@@ -184,4 +182,6 @@ async function render(){
         合計：${tot?Math.round(hit/tot*100):0}%（${hit}回）
       </div>`;
   });
+
+  locked = false;
 }
