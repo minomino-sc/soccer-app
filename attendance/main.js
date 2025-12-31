@@ -4,8 +4,6 @@ import {
   collection,
   getDocs,
   addDoc,
-  query,
-  orderBy,
   serverTimestamp,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -28,95 +26,102 @@ const monthLabel = document.getElementById("monthLabel");
 let current = new Date();
 let latestStatus = {};
 
+/* 起動 */
 render();
 
-/* 日付変換 */
-function toDate(v){
-  if(!v) return null;
-  if(typeof v==="string"){
-    const [y,m,d]=v.split("-").map(Number);
-    return new Date(y,m-1,d);
+/* 日付正規化（超重要） */
+function toDate(v) {
+  if (!v) return null;
+  if (typeof v === "string") {
+    const [y, m, d] = v.split("-").map(Number);
+    return new Date(y, m - 1, d);
   }
-  if(v instanceof Timestamp) return v.toDate();
+  if (v instanceof Timestamp) {
+    return v.toDate();
+  }
   return null;
 }
 
-async function render(){
-  table.innerHTML="";
+/* メイン描画 */
+async function render() {
+  table.innerHTML = "";
   monthLabel.textContent =
-    `${current.getFullYear()}年 ${current.getMonth()+1}月`;
+    `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
 
-  const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap = await getDocs(
-    query(collection(db,"events_attendance"),orderBy("date"))
-  );
-  const logsSnap = await getDocs(
-    query(collection(db,"attendance_logs"),orderBy("createdAt"))
-  );
+  const playersSnap = await getDocs(collection(db, "players_attendance"));
+  const eventsSnap  = await getDocs(collection(db, "events_attendance"));
+  const logsSnap    = await getDocs(collection(db, "attendance_logs"));
 
-  /* 背番号順 */
+  /* 背番号順（完全OK） */
   const players = playersSnap.docs
-    .map(d=>({id:d.id,...d.data()}))
-    .sort((a,b)=>(a.number??999)-(b.number??999));
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
 
+  /* 月イベント抽出 → JSで日付ソート */
   const events = eventsSnap.docs
-    .map(d=>({id:d.id,...d.data(),_date:toDate(d.data().date)}))
+    .map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        _date: toDate(data.date)
+      };
+    })
     .filter(e =>
       e._date &&
-      e._date.getFullYear()===current.getFullYear() &&
-      e._date.getMonth()===current.getMonth()
-    );
+      e._date.getFullYear() === current.getFullYear() &&
+      e._date.getMonth() === current.getMonth()
+    )
+    .sort((a, b) => a._date - b._date);
 
   /* 最新出欠 */
-  latestStatus={};
-  logsSnap.forEach(l=>{
-    const d=l.data();
-    latestStatus[`${d.eventId}_${d.playerId}`]=d.status;
+  latestStatus = {};
+  logsSnap.forEach(l => {
+    const d = l.data();
+    latestStatus[`${d.eventId}_${d.playerId}`] = d.status;
   });
 
   /* ヘッダ */
-  const trH=document.createElement("tr");
+  const trH = document.createElement("tr");
   trH.innerHTML =
-    `<th class="no">背</th><th class="name">名前</th>` +
-    events.map(e=>{
-      const day=e._date.getDate();
-      const cls=e.type==="match"?"match":"practice";
-      const label=e.type==="match"?"試合":"練習";
-      return `<th class="${cls}">${day}<br>${label}</th>`;
+    "<th>背</th><th>名前</th>" +
+    events.map(e => {
+      const day = e._date.getDate();
+      const type = e.type === "match" ? "試合" : "練習";
+      return `<th>${day}<br>${type}</th>`;
     }).join("");
   table.appendChild(trH);
 
   /* 本体 */
-  players.forEach(p=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML =
-      `<td class="no">${p.number??""}</td>`+
-      `<td class="name">${p.name}</td>`;
+  players.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${p.number ?? ""}</td><td class="name">${p.name}</td>`;
 
-    events.forEach(e=>{
-      const key=`${e.id}_${p.id}`;
-      const status=latestStatus[key]||"skip";
+    events.forEach(e => {
+      const key = `${e.id}_${p.id}`;
+      const status = latestStatus[key] || "skip";
 
-      const td=document.createElement("td");
+      const td = document.createElement("td");
       td.textContent =
-        status==="present"?"○":
-        status==="absent"?"×":"－";
+        status === "present" ? "○" :
+        status === "absent"  ? "×" : "－";
 
-      td.onclick=async()=>{
+      td.onclick = async () => {
         const next =
-          status==="skip"?"present":
-          status==="present"?"absent":"skip";
+          status === "skip" ? "present" :
+          status === "present" ? "absent" : "skip";
 
-        await addDoc(collection(db,"attendance_logs"),{
-          eventId:e.id,
-          playerId:p.id,
-          status:next,
-          createdAt:serverTimestamp()
+        await addDoc(collection(db, "attendance_logs"), {
+          eventId: e.id,
+          playerId: p.id,
+          status: next,
+          createdAt: serverTimestamp()
         });
 
-        latestStatus[key]=next;
+        latestStatus[key] = next;
         render();
       };
+
       tr.appendChild(td);
     });
 
