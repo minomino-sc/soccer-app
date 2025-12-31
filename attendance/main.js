@@ -23,22 +23,11 @@ const db = getFirestore(app);
 /* DOM */
 const table = document.getElementById("table");
 const monthLabel = document.getElementById("monthLabel");
-const prevBtn = document.getElementById("prev");
-const nextBtn = document.getElementById("next");
+const stats = document.getElementById("stats");
 
 /* 状態 */
 let current = new Date();
 let latestStatus = {};
-
-/* 月切替 */
-prevBtn.onclick = () => {
-  current.setMonth(current.getMonth() - 1);
-  render();
-};
-nextBtn.onclick = () => {
-  current.setMonth(current.getMonth() + 1);
-  render();
-};
 
 /* 日付変換 */
 function toDate(v){
@@ -47,16 +36,17 @@ function toDate(v){
     const [y,m,d] = v.split("-").map(Number);
     return new Date(y, m-1, d);
   }
-  if(v instanceof Timestamp) return v.toDate();
+  if(v instanceof Timestamp){
+    return v.toDate();
+  }
   return null;
 }
 
-/* 初期描画 */
 render();
 
-/* メイン描画 */
 async function render(){
-  table.innerHTML = "";
+  table.innerHTML="";
+  stats.innerHTML="";
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
@@ -70,12 +60,15 @@ async function render(){
 
   /* 背番号順 */
   const players = playersSnap.docs
-    .map(d=>({id:d.id,...d.data()}))
+    .map(d=>({id:d.id, ...d.data()}))
     .sort((a,b)=>(a.number ?? 999)-(b.number ?? 999));
 
   /* 月イベント */
   const events = eventsSnap.docs
-    .map(d=>({id:d.id,...d.data(), _date:toDate(d.data().date)}))
+    .map(d=>{
+      const data = d.data();
+      return { id:d.id, ...data, _date:toDate(data.date) };
+    })
     .filter(e =>
       e._date &&
       e._date.getFullYear()===current.getFullYear() &&
@@ -94,27 +87,26 @@ async function render(){
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
     events.map(e=>{
-      const day=e._date.getDate();
-      const cls=e.type==="match"?"match":"practice";
-      const label=e.type==="match"?"試合":"練習";
-      return `<th class="${cls}">${day}<br>${label}</th>`;
+      const cls = e.type;
+      return `<th class="${cls}">
+        ${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}
+      </th>`;
     }).join("");
   table.appendChild(trH);
 
-  /* 本体 */
+  /* 行 */
   players.forEach(p=>{
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${p.number??""}</td><td class="name">${p.name}</td>`;
+    tr.innerHTML=`<td>${p.number ?? ""}</td><td class="name">${p.name}</td>`;
 
     events.forEach(e=>{
       const key=`${e.id}_${p.id}`;
-      const status=latestStatus[key]||"skip";
+      const status=latestStatus[key] || "skip";
 
       const td=document.createElement("td");
-      td.className = e.type==="match"?"match":"practice";
       td.textContent =
         status==="present"?"○":
-        status==="absent" ?"×":"－";
+        status==="absent"?"×":"－";
 
       td.onclick=async()=>{
         const next =
@@ -127,11 +119,43 @@ async function render(){
           status:next,
           createdAt:serverTimestamp()
         });
+
         latestStatus[key]=next;
         render();
       };
+
       tr.appendChild(td);
     });
+
     table.appendChild(tr);
+  });
+
+  /* 出席率（－除外・練習/試合別） */
+  players.forEach(p=>{
+    let prHit=0, prTot=0, maHit=0, maTot=0;
+
+    events.forEach(e=>{
+      const s = latestStatus[`${e.id}_${p.id}`];
+      if(!s || s==="skip") return;
+
+      if(e.type==="practice"){
+        prTot++; if(s==="present") prHit++;
+      }
+      if(e.type==="match"){
+        maTot++; if(s==="present") maHit++;
+      }
+    });
+
+    const totHit = prHit + maHit;
+    const totTot = prTot + maTot;
+
+    stats.innerHTML += `
+      <div class="statsCard">
+        <strong>${p.number ?? ""} ${p.name}</strong>
+        <div class="statsRow"><span>練習</span><span>${prTot?Math.round(prHit/prTot*100):0}%</span></div>
+        <div class="statsRow"><span>試合</span><span>${maTot?Math.round(maHit/maTot*100):0}%</span></div>
+        <div class="statsRow"><span>合計</span><span>${totTot?Math.round(totHit/totTot*100):0}%</span></div>
+      </div>
+    `;
   });
 }
