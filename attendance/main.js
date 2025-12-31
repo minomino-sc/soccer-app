@@ -26,12 +26,12 @@ let latest = {};
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
-  current.setDate(1); // 日を1日にリセット
+  current.setDate(1);
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
-  current.setDate(1); // 日を1日にリセット
+  current.setDate(1);
   current.setMonth(current.getMonth() + 1);
   render();
 };
@@ -54,8 +54,7 @@ async function render(){
   stats.innerHTML="";
 
   const monthId = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}`;
-  monthLabel.textContent =
-    `${current.getFullYear()}年 ${current.getMonth()+1}月`;
+  monthLabel.textContent = `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
   // players
   const playersSnap = await getDocs(collection(db,"players_attendance"));
@@ -115,14 +114,26 @@ async function render(){
           [`${key}`]: next
         },{merge:true});
 
-        render(); // クリック後に即時更新
+        // クリック後に最新データを反映して即時更新
+        latest[key] = next;
+        td.textContent =
+          next==="present"?"○":
+          next==="absent"?"×":"－";
+        
+        // 出席率も更新
+        updateStats(players, events);
       };
       tr.appendChild(td);
     });
     table.appendChild(tr);
   });
 
-  /* 出席率（％＋回数表示） */
+  // 出席率
+  updateStats(players, events);
+}
+
+function updateStats(players, events){
+  stats.innerHTML="";
   players.forEach(p=>{
     let prHit=0,prTot=0,maHit=0,maTot=0;
 
