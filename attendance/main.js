@@ -4,6 +4,8 @@ import {
   collection,
   getDocs,
   addDoc,
+  query,
+  orderBy,
   serverTimestamp,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -26,19 +28,27 @@ const monthLabel = document.getElementById("monthLabel");
 let current = new Date();
 let latestStatus = {};
 
-/* 起動 */
+/* 初期描画 */
 render();
 
-/* 日付正規化（超重要） */
+/* 🔥 日付を完全対応で Date 化 */
 function toDate(v) {
   if (!v) return null;
-  if (typeof v === "string") {
-    const [y, m, d] = v.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
+
+  // Firestore Timestamp
   if (v instanceof Timestamp) {
     return v.toDate();
   }
+
+  // "YYYY-MM-DD" or "YYYY/MM/DD"
+  if (typeof v === "string") {
+    const parts = v.includes("/") ? v.split("/") : v.split("-");
+    if (parts.length !== 3) return null;
+
+    const [y, m, d] = parts.map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   return null;
 }
 
@@ -49,15 +59,19 @@ async function render() {
     `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
 
   const playersSnap = await getDocs(collection(db, "players_attendance"));
-  const eventsSnap  = await getDocs(collection(db, "events_attendance"));
-  const logsSnap    = await getDocs(collection(db, "attendance_logs"));
+  const eventsSnap = await getDocs(
+    query(collection(db, "events_attendance"), orderBy("date"))
+  );
+  const logsSnap = await getDocs(
+    query(collection(db, "attendance_logs"), orderBy("createdAt"))
+  );
 
-  /* 背番号順（完全OK） */
+  /* 背番号順（完全） */
   const players = playersSnap.docs
     .map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
 
-  /* 月イベント抽出 → JSで日付ソート */
+  /* 月イベント抽出（形式混在対応） */
   const events = eventsSnap.docs
     .map(d => {
       const data = d.data();
@@ -71,8 +85,7 @@ async function render() {
       e._date &&
       e._date.getFullYear() === current.getFullYear() &&
       e._date.getMonth() === current.getMonth()
-    )
-    .sort((a, b) => a._date - b._date);
+    );
 
   /* 最新出欠 */
   latestStatus = {};
