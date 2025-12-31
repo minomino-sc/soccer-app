@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, getDocs, query, orderBy
+  getFirestore, collection, getDocs, query, orderBy, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase */
@@ -15,100 +15,127 @@ const db = getFirestore(app);
 
 /* DOM */
 const body = document.getElementById("statsBody");
-const graphs = document.getElementById("graphs");
 const label = document.getElementById("monthLabel");
+const csvBtn = document.getElementById("csvBtn");
+const ctx = document.getElementById("chart");
 
-/* 状態 */
 let current = new Date();
-let csvRows = [];
+let chart;
 
-/* 月切替 */
-document.getElementById("prev").onclick = ()=>{
+/* 日付変換 */
+function toDate(v){
+  if(typeof v==="string"){
+    const [y,m,d]=v.split("-").map(Number);
+    return new Date(y,m-1,d);
+  }
+  if(v instanceof Timestamp) return v.toDate();
+  return null;
+}
+
+document.getElementById("prevMonth").onclick=()=>{
   current.setMonth(current.getMonth()-1);
   render();
 };
-document.getElementById("next").onclick = ()=>{
+document.getElementById("nextMonth").onclick=()=>{
   current.setMonth(current.getMonth()+1);
   render();
 };
 
-/* CSV */
-document.getElementById("csv").onclick = ()=>{
-  const csv = csvRows.map(r=>r.join(",")).join("\n");
-  const blob = new Blob([csv],{type:"text/csv"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `${current.getFullYear()}-${current.getMonth()+1}_attendance.csv`;
-  a.click();
-};
+csvBtn.onclick=exportCSV;
 
 render();
 
 async function render(){
+  label.textContent=`${current.getFullYear()}年 ${current.getMonth()+1}月`;
   body.innerHTML="";
-  graphs.innerHTML="";
-  csvRows = [["名前","練習","試合","合計"]];
-
-  label.textContent = `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap = await getDocs(collection(db,"events_attendance"));
-  const logsSnap = await getDocs(query(collection(db,"attendance_logs"),orderBy("createdAt")));
+  const logsSnap = await getDocs(
+    query(collection(db,"attendance_logs"),orderBy("createdAt"))
+  );
 
   const players = playersSnap.docs
     .map(d=>({id:d.id,...d.data()}))
     .sort((a,b)=>(a.number??999)-(b.number??999));
 
-  const events = eventsSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const events = eventsSnap.docs
+    .map(d=>({id:d.id,...d.data(),date:toDate(d.data().date)}))
+    .filter(e=>e.date &&
+      e.date.getFullYear()===current.getFullYear() &&
+      e.date.getMonth()===current.getMonth()
+    );
 
-  const latest = {};
+  const latest={};
   logsSnap.forEach(l=>{
     const d=l.data();
     latest[`${d.playerId}_${d.eventId}`]=d.status;
   });
 
+  const chartLabels=[];
+  const chartData=[];
+
   players.forEach(p=>{
-    let prHit=0,prTot=0,maHit=0,maTot=0;
+    let prH=0,prT=0,maH=0,maT=0;
 
     events.forEach(e=>{
-      const [y,m] = e.date.split("-").map(Number);
-      if(y!==current.getFullYear() || m-1!==current.getMonth()) return;
-
-      const s = latest[`${p.id}_${e.id}`];
-      if(!s || s==="skip") return;
+      const s=latest[`${p.id}_${e.id}`];
+      if(s==="skip"||!s) return;
 
       if(e.type==="practice"){
-        prTot++; if(s==="present") prHit++;
+        prT++; if(s==="present") prH++;
       }
       if(e.type==="match"){
-        maTot++; if(s==="present") maHit++;
+        maT++; if(s==="present") maH++;
       }
     });
 
-    const pr = prTot ? Math.round(prHit/prTot*100) : 0;
-    const ma = maTot ? Math.round(maHit/maTot*100) : 0;
-    const ttTot = prTot+maTot;
-    const ttHit = prHit+maHit;
-    const tt = ttTot ? Math.round(ttHit/ttTot*100) : 0;
+    const totH=prH+maH, totT=prT+maT;
 
-    body.innerHTML += `
+    body.innerHTML+=`
       <tr>
+        <td>${p.number??""}</td>
         <td>${p.name}</td>
-        <td>${pr}%</td>
-        <td>${ma}%</td>
-        <td>${tt}%</td>
+        <td>${prT?Math.round(prH/prT*100):0}%</td>
+        <td>${maT?Math.round(maH/maT*100):0}%</td>
+        <td>${totT?Math.round(totH/totT*100):0}%</td>
       </tr>
     `;
 
-    graphs.innerHTML += `
-      <div class="graph">
-        <strong>${p.name}</strong>
-        <div class="bar practice" style="width:${pr}%"></div>
-        <div class="bar match" style="width:${ma}%"></div>
-        <div class="bar total" style="width:${tt}%"></div>
-      </div>
-    `;
-
-    csvRows.push([p.name,pr,ma,tt]);
+    chartLabels.push(p.name);
+    chartData.push(totT?Math.round(totH/totT*100):0);
   });
+
+  drawChart(chartLabels,chartData);
+}
+
+function drawChart(labels,data){
+  if(chart) chart.destroy();
+  chart=new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels,
+      datasets:[{
+        label:"出席率（%）",
+        data,
+        backgroundColor:"#1976d2"
+      }]
+    },
+    options:{
+      scales:{y:{beginAtZero:true,max:100}}
+    }
+  });
+}
+
+function exportCSV(){
+  let csv="背番号,名前,練習%,試合%,合計%\n";
+  document.querySelectorAll("#statsBody tr").forEach(tr=>{
+    csv += [...tr.children].map(td=>td.textContent).join(",")+"\n";
+  });
+
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`attendance_${current.getFullYear()}_${current.getMonth()+1}.csv`;
+  a.click();
 }
