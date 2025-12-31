@@ -4,8 +4,6 @@ import {
   collection,
   getDocs,
   addDoc,
-  query,
-  orderBy,
   serverTimestamp,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -28,19 +26,17 @@ const monthLabel = document.getElementById("monthLabel");
 let current = new Date();
 let latestStatus = {};
 
-/* 初期描画 */
+/* 初期表示 */
 render();
 
-/* 日付を必ず Date に変換 */
+/* 日付正規化（超重要） */
 function toDate(v) {
   if (!v) return null;
   if (typeof v === "string") {
     const [y, m, d] = v.split("-").map(Number);
     return new Date(y, m - 1, d);
   }
-  if (v instanceof Timestamp) {
-    return v.toDate();
-  }
+  if (v instanceof Timestamp) return v.toDate();
   return null;
 }
 
@@ -50,36 +46,41 @@ async function render() {
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
 
+  /* 全取得（orderByしない） */
   const playersSnap = await getDocs(collection(db, "players_attendance"));
-  const eventsSnap = await getDocs(
-    query(collection(db, "events_attendance"), orderBy("date"))
-  );
-  const logsSnap = await getDocs(
-    query(collection(db, "attendance_logs"), orderBy("createdAt"))
-  );
+  const eventsSnap  = await getDocs(collection(db, "events_attendance"));
+  const logsSnap    = await getDocs(collection(db, "attendance_logs"));
 
-  /* 背番号順 */
+  /* 部員：背番号順 */
   const players = playersSnap.docs
     .map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
 
-  /* 月イベント抽出（完全対応） */
+  /* イベント：月抽出＋日付順 */
   const events = eventsSnap.docs
-    .map(d => ({ id: d.id, ...d.data(), _date: toDate(d.data().date) }))
+    .map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        _date: toDate(data.date)
+      };
+    })
     .filter(e =>
       e._date &&
       e._date.getFullYear() === current.getFullYear() &&
       e._date.getMonth() === current.getMonth()
-    );
+    )
+    .sort((a, b) => a._date - b._date);
 
-  /* 最新出欠 */
+  /* 出欠最新 */
   latestStatus = {};
   logsSnap.forEach(l => {
     const d = l.data();
     latestStatus[`${d.eventId}_${d.playerId}`] = d.status;
   });
 
-  /* ヘッダ */
+  /* ===== ヘッダ ===== */
   const trH = document.createElement("tr");
   trH.innerHTML =
     "<th>背</th><th>名前</th>" +
@@ -90,10 +91,11 @@ async function render() {
     }).join("");
   table.appendChild(trH);
 
-  /* 本体 */
+  /* ===== 本体 ===== */
   players.forEach(p => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${p.number ?? ""}</td><td class="name">${p.name}</td>`;
+    tr.innerHTML =
+      `<td>${p.number ?? ""}</td><td class="name">${p.name}</td>`;
 
     events.forEach(e => {
       const key = `${e.id}_${p.id}`;
