@@ -167,22 +167,22 @@ async function render(){
     table.appendChild(tr);
   });
 
-  /* stats */
+  /* stats（分母付き） */
   players.forEach(p=>{
     let prH=0,prT=0,maH=0,maT=0;
     events.forEach(e=>{
       const s=latest[`${e.id}_${p.id}`];
       if(!s||s==="skip")return;
-      if(e.type==="practice"){prT++;if(s==="present")prH++;}
-      if(e.type==="match"){maT++;if(s==="present")maH++;}
+      if(e.type==="practice"){prT++; if(s==="present") prH++;}
+      if(e.type==="match"){maT++; if(s==="present") maH++;}
     });
     const tot=prT+maT,hit=prH+maH;
     stats.innerHTML+=`
       <div class="statsCard">
         <strong>${p.name}</strong><br>
-        練習：${prT?Math.round(prH/prT*100):0}%（${prH}回）<br>
-        試合：${maT?Math.round(maH/maT*100):0}%（${maH}回）<br>
-        合計：${tot?Math.round(hit/tot*100):0}%（${hit}回）
+        練習：${prH}/${prT}（${prT?Math.round(prH/prT*100):0}%）<br>
+        試合：${maH}/${maT}（${maT?Math.round(maH/maT*100):0}%）<br>
+        合計：${hit}/${tot}（${tot?Math.round(hit/tot*100):0}%）
       </div>`;
   });
 
@@ -226,42 +226,34 @@ window.exportCSV = function(){
 };
 
 /* ===============================
-   PDF 出力（jsPDF + autoTable）
+   PDF 出力（html2canvas方式、日本語対応）
    =============================== */
-window.exportPDF = function(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+window.exportPDF = async function(){
+  const tableWrap = document.querySelector(".tableWrap");
+  const statsEl = document.getElementById("stats");
 
-  const tableEl = document.getElementById("table");
-  const headers = [];
-  const rows = [];
+  // テーブルと出席率をまとめてキャプチャ
+  const container = document.createElement("div");
+  container.style.padding = "10px";
+  container.appendChild(tableWrap.cloneNode(true));
+  container.appendChild(statsEl.cloneNode(true));
+  container.style.background = "#fff";
 
-  tableEl.querySelectorAll("tr").forEach((tr,i)=>{
-    const row = [];
-    tr.querySelectorAll("th, td").forEach(td=>{
-      row.push(td.innerText);
-    });
-    if(i===0) headers.push(...row);
-    else rows.push(row);
-  });
+  // html2canvas でキャプチャ
+  const html2canvasScript = document.createElement("script");
+  html2canvasScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+  document.body.appendChild(html2canvasScript);
 
-  if(doc.autoTable){
-    doc.autoTable({
-      head: [headers],
-      body: rows,
-      startY: 20,
-      styles: { fontSize: 8 }
-    });
-  } else {
-    let y = 20;
-    doc.setFontSize(10);
-    doc.text(headers.join(" | "), 10, y);
-    y += 6;
-    rows.forEach(r=>{
-      doc.text(r.join(" | "), 10, y);
-      y += 6;
-    });
-  }
+  html2canvasScript.onload = async () => {
+    const canvas = await html2canvas(container);
+    const imgData = canvas.toDataURL("image/png");
 
-  doc.save(`${monthIdOf(current)}_attendance.pdf`);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("l","pt","a4"); // 横向き
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgWidth = pageWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+    pdf.save(`${monthIdOf(current)}_attendance.pdf`);
+  };
 };
