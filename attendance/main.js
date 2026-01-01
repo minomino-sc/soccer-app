@@ -30,10 +30,6 @@ let current = new Date();
 let latest = {};
 let rendering = false;
 
-/* CSV用キャッシュ（再読込なし） */
-let playersCache = [];
-let eventsCache = [];
-
 /* month switch */
 document.getElementById("prevMonth").onclick = () => {
   if (rendering) return;
@@ -109,10 +105,6 @@ async function render(){
     )
     .sort((a,b)=>a._date - b._date);
 
-  /* CSV用キャッシュ */
-  playersCache = players;
-  eventsCache  = events;
-
   /* logs → latest（createdAt 後勝ち） */
   latest = {};
   const latestTime = {};
@@ -121,7 +113,6 @@ async function render(){
     const d = l.data();
     const key = `${d.eventId}_${d.playerId}`;
     const t = d.createdAt?.toMillis?.() ?? 0;
-
     if (!latestTime[key] || t > latestTime[key]) {
       latestTime[key] = t;
       latest[key] = d.status;
@@ -202,46 +193,38 @@ async function render(){
   rendering = false;
 }
 
-/* =========================
-   CSV 出力（追加機能）
-========================= */
-const csvBtn = document.createElement("button");
-csvBtn.textContent = "CSV出力";
-csvBtn.style.fontSize = "12px";
-document.querySelector(".controls").appendChild(csvBtn);
-
-csvBtn.onclick = () => {
-  if (!playersCache.length || !eventsCache.length) {
-    alert("データがありません");
-    return;
-  }
-
+/* ===============================
+   CSV 出力（Excel文字化け防止）
+   =============================== */
+window.exportCSV = function(){
   const lines = [];
-  const header = ["背番号","名前"];
 
-  eventsCache.forEach(e=>{
-    header.push(
-      `${e._date.getMonth()+1}/${e._date.getDate()} ${e.type==="match"?"試合":"練習"}`
-    );
-  });
-  lines.push(header.join(","));
+  /* header */
+  lines.push(
+    ["背番号","名前", ...document.querySelectorAll("th:not(.no):not(.name)")]
+      .map(h=>typeof h==="string"?h:h.innerText.replace(/\n/g,""))
+      .join(",")
+  );
 
-  playersCache.forEach(p=>{
-    const row = [p.number ?? "", `"${p.name}"`];
-    eventsCache.forEach(e=>{
-      const s = latest[`${e.id}_${p.id}`];
-      row.push(s==="present"?"○":s==="absent"?"×":"－");
+  /* body */
+  document.querySelectorAll("#table tr").forEach((tr,i)=>{
+    if(i===0) return;
+    const row = [];
+    tr.querySelectorAll("td").forEach(td=>{
+      row.push(td.innerText);
     });
     lines.push(row.join(","));
   });
 
-  const csv = lines.join("\n");
+  /* ★ BOM付きUTF-8（Excel対策） */
+  const csv = "\uFEFF" + lines.join("\n");
   const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = `attendance_${monthIdOf(current)}.csv`;
+  a.download = `${monthIdOf(current)}_attendance.csv`;
   a.click();
+
   URL.revokeObjectURL(url);
 };
