@@ -76,7 +76,7 @@ async function render(){
 
   const monthId = monthIdOf(current);
 
-  /* Firestore 読み込み（安全） */
+  /* Firestore 読み込み */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
   const logsSnap    = await getDocs(
@@ -105,11 +105,19 @@ async function render(){
     )
     .sort((a,b)=>a._date - b._date);
 
-  /* logs → latest（後勝ち） */
+  /* logs → latest（createdAt 後勝ち・完全版） */
   latest = {};
+  const latestTime = {};
+
   logsSnap.forEach(l=>{
-    const d=l.data();
-    latest[`${d.eventId}_${d.playerId}`] = d.status;
+    const d = l.data();
+    const key = `${d.eventId}_${d.playerId}`;
+    const t = d.createdAt?.toMillis?.() ?? 0;
+
+    if (!latestTime[key] || t > latestTime[key]) {
+      latestTime[key] = t;
+      latest[key] = d.status;
+    }
   });
 
   /* header */
@@ -144,6 +152,7 @@ async function render(){
           cur==="skip" ? "present" :
           cur==="present" ? "absent" : "skip";
 
+        /* 即時反映 */
         latest[key]=next;
         td.textContent=symbol(next);
 
