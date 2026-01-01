@@ -33,13 +33,13 @@ let locked = false;
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
-  if(locked) return;
+  if (locked) return;
   current.setDate(1);
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
-  if(locked) return;
+  if (locked) return;
   current.setDate(1);
   current.setMonth(current.getMonth() + 1);
   render();
@@ -47,7 +47,7 @@ document.getElementById("nextMonth").onclick = () => {
 
 render();
 
-/* date → Date */
+/* util */
 function toDate(v){
   if(!v) return null;
   if(typeof v === "string"){
@@ -67,25 +67,21 @@ function symbol(s){
   return s==="present"?"○":s==="absent"?"×":"－";
 }
 
+/* render */
 async function render(){
-  locked = true;
   table.innerHTML="";
   stats.innerHTML="";
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  /* 必須データ */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
 
-  /* summary */
+  /* summary（表示月と同じIDだけ読む） */
   latest = {};
-  try{
-    const snap = await getDoc(
-      doc(db,"attendance_summary",monthIdOf(current))
-    );
-    if(snap.exists()) latest = snap.data();
-  }catch(e){}
+  const monthId = monthIdOf(current);
+  const snap = await getDoc(doc(db,"attendance_summary", monthId));
+  if(snap.exists()) latest = snap.data();
 
   /* players */
   const players = playersSnap.docs
@@ -129,25 +125,23 @@ async function render(){
       td.className=e.type;
       td.textContent=symbol(status);
 
-      td.onclick=async()=>{
-        if(locked) return;
-        locked=true;
+      td.onclick = async () => {
+        if (locked) return;
+        locked = true;
 
-        const cur=latest[key]||"skip";
-        const next=
+        const cur = latest[key] || "skip";
+        const next =
           cur==="skip"?"present":
           cur==="present"?"absent":"skip";
 
         /* 即時反映 */
-        latest[key]=next;
-        td.textContent=symbol(next);
-
-        const monthId=monthIdOf(e._date); // ★最重要
+        latest[key] = next;
+        td.textContent = symbol(next);
 
         await setDoc(
-          doc(db,"attendance_summary",monthId),
-          { [key]:next, updatedAt:serverTimestamp() },
-          { merge:true }
+          doc(db,"attendance_summary", monthId),
+          { [key]: next, updatedAt: serverTimestamp() },
+          { merge: true }
         );
 
         await addDoc(collection(db,"attendance_logs"),{
@@ -157,8 +151,9 @@ async function render(){
           createdAt:serverTimestamp()
         });
 
-        await render();
+        locked = false;
       };
+
       tr.appendChild(td);
     });
     table.appendChild(tr);
@@ -182,6 +177,4 @@ async function render(){
         合計：${tot?Math.round(hit/tot*100):0}%（${hit}回）
       </div>`;
   });
-
-  locked = false;
 }
