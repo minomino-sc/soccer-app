@@ -29,17 +29,14 @@ const monthLabel = document.getElementById("monthLabel");
 /* state */
 let current = new Date();
 let latest = {};
-let rendering = false;
 
 /* month switch */
 document.getElementById("prevMonth").onclick = () => {
-  if (rendering) return;
   current.setDate(1);
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
-  if (rendering) return;
   current.setDate(1);
   current.setMonth(current.getMonth() + 1);
   render();
@@ -69,7 +66,6 @@ function symbol(s){
 
 /* render */
 async function render(){
-  rendering = true;
   table.innerHTML = "";
   stats.innerHTML = "";
 
@@ -129,9 +125,6 @@ async function render(){
           cur==="skip" ? "present" :
           cur==="present" ? "absent" : "skip";
 
-        latest[key] = next;
-        td.textContent = symbol(next);
-
         await setDoc(
           doc(db,"attendance_summary", monthId),
           { [key]: next, updatedAt: serverTimestamp() },
@@ -145,7 +138,7 @@ async function render(){
           createdAt: serverTimestamp()
         });
 
-        updateStats(players, events);
+        render();
       };
 
       tr.appendChild(td);
@@ -154,13 +147,7 @@ async function render(){
     table.appendChild(tr);
   });
 
-  updateStats(players, events);
-  rendering = false;
-}
-
-/* stats */
-function updateStats(players, events){
-  stats.innerHTML = "";
+  /* stats */
   players.forEach(p => {
     let prH=0, prT=0, maH=0, maT=0;
     events.forEach(e => {
