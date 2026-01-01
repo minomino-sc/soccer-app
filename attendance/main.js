@@ -31,11 +31,21 @@ let rendering = false;
 /* キャッシュ */
 let players = [];
 let events = [];
-let logsCache = {}; // { "eventId_playerId": "status" }
+let logsCacheByMonth = {}; // { "2026-01": { "eventId_playerId": {status, time} } }
 
 /* 月切替 */
-document.getElementById("prevMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()-1); render(); };
-document.getElementById("nextMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()+1); render(); };
+document.getElementById("prevMonth").onclick = () => { 
+  if(rendering) return; 
+  current.setDate(1); 
+  current.setMonth(current.getMonth()-1); 
+  render(); 
+};
+document.getElementById("nextMonth").onclick = () => { 
+  if(rendering) return; 
+  current.setDate(1); 
+  current.setMonth(current.getMonth()+1); 
+  render(); 
+};
 
 render();
 
@@ -63,7 +73,7 @@ async function render(){
 
   const monthId = monthIdOf(current);
 
-  // players と events は初回または未取得時のみ取得
+  // players と events は初回取得のみ
   if(players.length===0){
     const playersSnap = await getDocs(collection(db,"players_attendance"));
     players = playersSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.number??999)-(b.number??999));
@@ -79,17 +89,20 @@ async function render(){
   // 当月イベントのみ
   const monthEvents = events.filter(e=>e._date && e._date.getFullYear()===current.getFullYear() && e._date.getMonth()===current.getMonth());
 
-  // attendance_logs は月単位で取得してキャッシュ
-  logsCache = {};
-  const logsSnap = await getDocs(query(collection(db,"attendance_logs"), where("monthId","==",monthId)));
-  logsSnap.forEach(l=>{
-    const d = l.data();
-    const key = `${d.eventId}_${d.playerId}`;
-    const t = d.createdAt?.toMillis?.()??0;
-    if(!logsCache[key] || t > logsCache[key].time){
-      logsCache[key] = {status:d.status, time:t};
-    }
-  });
+  // attendance_logs は月単位で取得（キャッシュ済みなら取得不要）
+  if(!logsCacheByMonth[monthId]){
+    logsCacheByMonth[monthId] = {};
+    const logsSnap = await getDocs(query(collection(db,"attendance_logs"), where("monthId","==",monthId)));
+    logsSnap.forEach(l=>{
+      const d = l.data();
+      const key = `${d.eventId}_${d.playerId}`;
+      const t = d.createdAt?.toMillis?.()??0;
+      if(!logsCacheByMonth[monthId][key] || t > logsCacheByMonth[monthId][key].time){
+        logsCacheByMonth[monthId][key] = {status: d.status, time: t};
+      }
+    });
+  }
+  const logsCache = logsCacheByMonth[monthId];
 
   // ----------------------
   // table header
@@ -113,7 +126,7 @@ async function render(){
         rendering = true;
         const cur = logsCache[key]?.status || "skip";
         const next = cur==="skip"?"present":cur==="present"?"absent":"skip";
-        // Firestore に書き込み（読み取りは不要）
+        // Firestore に書き込み（読み取り不要）
         await addDoc(collection(db,"attendance_logs"),{eventId:e.id,playerId:p.id,status:next,monthId,createdAt:serverTimestamp()});
         logsCache[key] = {status: next, time: Date.now()}; // キャッシュ更新
         td.textContent = symbol(next);
