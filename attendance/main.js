@@ -119,31 +119,32 @@ window.exportCSV = function(){
   URL.revokeObjectURL(url);
 };
 
-/* PDF 出力（タイトル＋月ラベル＋テーブル＋出席率カード） */
-window.exportPDF = async function(){
+/* PDF 出力 */
+async function exportPDF(){
   const pdfCapture = document.createElement("div");
   pdfCapture.style.padding="10px";
   pdfCapture.style.background="#fff";
 
-  // タイトル
   const title = document.createElement("h1");
   title.textContent = `⚽ 出欠管理 ${current.getFullYear()}年${current.getMonth()+1}月`;
   title.style.fontSize="16px";
   pdfCapture.appendChild(title);
 
-  // テーブルと出席率を追加
   pdfCapture.appendChild(document.querySelector(".tableWrap").cloneNode(true));
   pdfCapture.appendChild(document.getElementById("stats").cloneNode(true));
 
-  // html2canvas でキャプチャ
   const canvas = await html2canvas(pdfCapture, { scale: 2 });
   const imgData = canvas.toDataURL("image/png");
 
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("l","pt","a4"); // 横向き
+  const pdf = new jsPDF("l","pt","a4");
   const pageWidth = pdf.internal.pageSize.getWidth();
   const imgWidth = pageWidth - 20;
-  const imgHeight = (canvas.height*imgWidth)/canvas.width;
+  const imgHeight = (canvas.height * imgWidth)/canvas.width;
+
   pdf.addImage(imgData,"PNG",10,10,imgWidth,imgHeight);
   pdf.save(`${monthIdOf(current)}_attendance.pdf`);
-};
+}
+
+// モジュール内からボタンに紐づけ
+document.getElementById("pdfBtn").onclick = exportPDF;
