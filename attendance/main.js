@@ -29,17 +29,14 @@ const monthLabel = document.getElementById("monthLabel");
 /* 状態 */
 let current = new Date();
 let latest = {};
-let locked = false;
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
-  if (locked) return;
   current.setDate(1);
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
-  if (locked) return;
   current.setDate(1);
   current.setMonth(current.getMonth() + 1);
   render();
@@ -67,21 +64,26 @@ function symbol(s){
   return s==="present"?"○":s==="absent"?"×":"－";
 }
 
-/* render */
+/* render（表示専用・絶対壊れない） */
 async function render(){
   table.innerHTML="";
   stats.innerHTML="";
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
+  /* Firestore 読み込み */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
 
-  /* summary（表示月と同じIDだけ読む） */
+  /* summary（なければ空でOK） */
   latest = {};
   const monthId = monthIdOf(current);
-  const snap = await getDoc(doc(db,"attendance_summary", monthId));
-  if(snap.exists()) latest = snap.data();
+  const summarySnap = await getDoc(
+    doc(db,"attendance_summary", monthId)
+  );
+  if(summarySnap.exists()){
+    latest = summarySnap.data();
+  }
 
   /* players */
   const players = playersSnap.docs
@@ -126,9 +128,6 @@ async function render(){
       td.textContent=symbol(status);
 
       td.onclick = async () => {
-        if (locked) return;
-        locked = true;
-
         const cur = latest[key] || "skip";
         const next =
           cur==="skip"?"present":
@@ -138,20 +137,20 @@ async function render(){
         latest[key] = next;
         td.textContent = symbol(next);
 
+        /* summary 更新 */
         await setDoc(
           doc(db,"attendance_summary", monthId),
           { [key]: next, updatedAt: serverTimestamp() },
-          { merge: true }
+          { merge:true }
         );
 
+        /* 履歴 */
         await addDoc(collection(db,"attendance_logs"),{
           eventId:e.id,
           playerId:p.id,
           status:next,
           createdAt:serverTimestamp()
         });
-
-        locked = false;
       };
 
       tr.appendChild(td);
