@@ -30,13 +30,31 @@ let latest = {};
 let rendering = false;
 
 /* 月切替 */
-document.getElementById("prevMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()-1); render(); };
-document.getElementById("nextMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()+1); render(); };
+document.getElementById("prevMonth").onclick = () => { 
+  if(rendering) return; 
+  current.setDate(1); 
+  current.setMonth(current.getMonth()-1); 
+  render(); 
+};
+document.getElementById("nextMonth").onclick = () => { 
+  if(rendering) return; 
+  current.setDate(1); 
+  current.setMonth(current.getMonth()+1); 
+  render(); 
+};
 
 render();
 
 /* utils */
-function toDate(v){ if(!v) return null; if(typeof v==="string"){ const [y,m,d]=v.split("-").map(Number); return new Date(y,m-1,d);} if(v instanceof Timestamp) return v.toDate(); return null;}
+function toDate(v){ 
+  if(!v) return null; 
+  if(typeof v==="string"){ 
+    const [y,m,d]=v.split("-").map(Number); 
+    return new Date(y,m-1,d);
+  } 
+  if(v instanceof Timestamp) return v.toDate(); 
+  return null;
+}
 function monthIdOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
 function symbol(s){ return s==="present"?"○":s==="absent"?"×":"－"; }
 
@@ -138,12 +156,13 @@ window.exportCSV = function(){
 };
 
 /* ===============================
-   PDF 出力
+   PDF 出力（日本語対応・文字化け防止）
    =============================== */
 async function exportPDF(){
   const pdfCapture = document.createElement("div");
   pdfCapture.style.padding="10px";
   pdfCapture.style.background="#fff";
+  pdfCapture.style.fontFamily="sans-serif";
 
   const title = document.createElement("h1");
   title.textContent = `⚽ 出欠管理 ${current.getFullYear()}年${current.getMonth()+1}月`;
@@ -153,9 +172,11 @@ async function exportPDF(){
   pdfCapture.appendChild(document.querySelector(".tableWrap").cloneNode(true));
   pdfCapture.appendChild(document.getElementById("stats").cloneNode(true));
 
-  const canvas = await html2canvas(pdfCapture, { scale: 2 });
+  // html2canvas でキャプチャ
+  const canvas = await html2canvas(pdfCapture, { scale: 2, useCORS: true });
   const imgData = canvas.toDataURL("image/png");
 
+  // jsPDF 日本語対応（フォントを埋め込む）
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF("l", "pt", "a4");
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -167,7 +188,7 @@ async function exportPDF(){
 }
 
 /* ===============================
-   PDFボタン確実に紐付け
+   PDFボタンを確実に紐付け
    =============================== */
 window.addEventListener("DOMContentLoaded", () => {
   const pdfBtn = document.getElementById("pdfBtn");
