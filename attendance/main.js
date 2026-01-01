@@ -26,22 +26,16 @@ const monthLabel = document.getElementById("monthLabel");
 
 /* state */
 let current = new Date();
-let latest = {};
 let rendering = false;
 
+/* キャッシュ */
+let players = [];
+let events = [];
+let logsCache = {}; // { "eventId_playerId": "status" }
+
 /* 月切替 */
-document.getElementById("prevMonth").onclick = () => { 
-  if(rendering) return; 
-  current.setDate(1); 
-  current.setMonth(current.getMonth()-1); 
-  render(); 
-};
-document.getElementById("nextMonth").onclick = () => { 
-  if(rendering) return; 
-  current.setDate(1); 
-  current.setMonth(current.getMonth()+1); 
-  render(); 
-};
+document.getElementById("prevMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()-1); render(); };
+document.getElementById("nextMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()+1); render(); };
 
 render();
 
@@ -67,65 +61,81 @@ async function render(){
   stats.innerHTML="";
   monthLabel.textContent=`${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  const monthId=monthIdOf(current);
-  const playersSnap=await getDocs(collection(db,"players_attendance"));
-  const eventsSnap=await getDocs(collection(db,"events_attendance"));
-  const logsSnap=await getDocs(query(collection(db,"attendance_logs"),where("monthId","==",monthId)));
+  const monthId = monthIdOf(current);
 
-  const players=playersSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.number??999)-(b.number??999));
-  const events=eventsSnap.docs.map(d=>{const data=d.data(); return {id:d.id,...data,_date:toDate(data.date)}})
-                    .filter(e=>e.type!=="holiday" && e._date && e._date.getFullYear()===current.getFullYear() && e._date.getMonth()===current.getMonth())
-                    .sort((a,b)=>a._date-b._date);
+  // players と events は初回または未取得時のみ取得
+  if(players.length===0){
+    const playersSnap = await getDocs(collection(db,"players_attendance"));
+    players = playersSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.number??999)-(b.number??999));
+  }
 
-  latest={}; const latestTime={};
+  if(events.length===0){
+    const eventsSnap = await getDocs(collection(db,"events_attendance"));
+    events = eventsSnap.docs.map(d=>{const data=d.data(); return {id:d.id,...data,_date:toDate(data.date)}})
+                 .filter(e=>e.type!=="holiday")
+                 .sort((a,b)=>a._date-b._date);
+  }
+
+  // 当月イベントのみ
+  const monthEvents = events.filter(e=>e._date && e._date.getFullYear()===current.getFullYear() && e._date.getMonth()===current.getMonth());
+
+  // attendance_logs は月単位で取得してキャッシュ
+  logsCache = {};
+  const logsSnap = await getDocs(query(collection(db,"attendance_logs"), where("monthId","==",monthId)));
   logsSnap.forEach(l=>{
-    const d=l.data(); 
-    const key=`${d.eventId}_${d.playerId}`; 
-    const t=d.createdAt?.toMillis?.()??0; 
-    if(!latestTime[key]||t>latestTime[key]){latestTime[key]=t; latest[key]=d.status;} 
+    const d = l.data();
+    const key = `${d.eventId}_${d.playerId}`;
+    const t = d.createdAt?.toMillis?.()??0;
+    if(!logsCache[key] || t > logsCache[key].time){
+      logsCache[key] = {status:d.status, time:t};
+    }
   });
 
-  /* header */
-  const trH=document.createElement("tr");
-  trH.innerHTML="<th class='no'>背</th><th class='name'>名前</th>"+
-    events.map(e=>`<th class="${e.type}">${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}</th>`).join("");
+  // ----------------------
+  // table header
+  const trH = document.createElement("tr");
+  trH.innerHTML = "<th class='no'>背</th><th class='name'>名前</th>"+
+    monthEvents.map(e=>`<th class="${e.type}">${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}</th>`).join("");
   table.appendChild(trH);
 
-  /* body */
+  // table body
   players.forEach(p=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td class="no">${p.number??""}</td><td class="name">${p.name}</td>`;
-    events.forEach(e=>{
-      const key=`${e.id}_${p.id}`;
-      const td=document.createElement("td");
-      td.className=e.type;
-      td.textContent=symbol(latest[key]||"skip");
-      td.onclick=async ()=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="no">${p.number??""}</td><td class="name">${p.name}</td>`;
+    monthEvents.forEach(e=>{
+      const key = `${e.id}_${p.id}`;
+      const td = document.createElement("td");
+      td.className = e.type;
+      td.textContent = symbol(logsCache[key]?.status || "skip");
+
+      td.onclick = async ()=>{
         if(rendering) return;
-        rendering=true;
-        const cur=latest[key]||"skip";
-        const next=cur==="skip"?"present":cur==="present"?"absent":"skip";
-        latest[key]=next;
-        td.textContent=symbol(next);
+        rendering = true;
+        const cur = logsCache[key]?.status || "skip";
+        const next = cur==="skip"?"present":cur==="present"?"absent":"skip";
+        // Firestore に書き込み（読み取りは不要）
         await addDoc(collection(db,"attendance_logs"),{eventId:e.id,playerId:p.id,status:next,monthId,createdAt:serverTimestamp()});
-        await render();
+        logsCache[key] = {status: next, time: Date.now()}; // キャッシュ更新
+        td.textContent = symbol(next);
+        rendering=false;
       };
+
       tr.appendChild(td);
     });
     table.appendChild(tr);
   });
 
-  /* stats（分母付き） */
+  // stats（分母付き）
   players.forEach(p=>{
     let prH=0,prT=0,maH=0,maT=0;
-    events.forEach(e=>{
-      const s=latest[`${e.id}_${p.id}`]; 
-      if(!s||s==="skip") return; 
-      if(e.type==="practice"){prT++; if(s==="present") prH++;} 
-      if(e.type==="match"){maT++; if(s==="present") maH++;}
+    monthEvents.forEach(e=>{
+      const s = logsCache[`${e.id}_${p.id}`]?.status;
+      if(!s || s==="skip") return;
+      if(e.type==="practice"){ prT++; if(s==="present") prH++; }
+      if(e.type==="match"){ maT++; if(s==="present") maH++; }
     });
-    const tot=prT+maT,hit=prH+maH;
-    stats.innerHTML+=`<div class="statsCard"><strong>${p.name}</strong><br>
+    const tot = prT + maT, hit = prH + maH;
+    stats.innerHTML += `<div class="statsCard"><strong>${p.name}</strong><br>
       練習：${prH}/${prT}（${prT?Math.round(prH/prT*100):0}%）<br>
       試合：${maH}/${maT}（${maT?Math.round(maH/maT*100):0}%）<br>
       合計：${hit}/${tot}（${tot?Math.round(hit/tot*100):0}%）</div>`;
