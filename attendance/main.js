@@ -30,6 +30,10 @@ let current = new Date();
 let latest = {};
 let rendering = false;
 
+/* CSV用キャッシュ（再読込なし） */
+let playersCache = [];
+let eventsCache = [];
+
 /* month switch */
 document.getElementById("prevMonth").onclick = () => {
   if (rendering) return;
@@ -76,7 +80,7 @@ async function render(){
 
   const monthId = monthIdOf(current);
 
-  /* Firestore 読み込み */
+  /* Firestore 読み込み（最小） */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
   const logsSnap    = await getDocs(
@@ -105,7 +109,11 @@ async function render(){
     )
     .sort((a,b)=>a._date - b._date);
 
-  /* logs → latest（createdAt 後勝ち・完全版） */
+  /* CSV用キャッシュ */
+  playersCache = players;
+  eventsCache  = events;
+
+  /* logs → latest（createdAt 後勝ち） */
   latest = {};
   const latestTime = {};
 
@@ -152,7 +160,6 @@ async function render(){
           cur==="skip" ? "present" :
           cur==="present" ? "absent" : "skip";
 
-        /* 即時反映 */
         latest[key]=next;
         td.textContent=symbol(next);
 
@@ -194,3 +201,47 @@ async function render(){
 
   rendering = false;
 }
+
+/* =========================
+   CSV 出力（追加機能）
+========================= */
+const csvBtn = document.createElement("button");
+csvBtn.textContent = "CSV出力";
+csvBtn.style.fontSize = "12px";
+document.querySelector(".controls").appendChild(csvBtn);
+
+csvBtn.onclick = () => {
+  if (!playersCache.length || !eventsCache.length) {
+    alert("データがありません");
+    return;
+  }
+
+  const lines = [];
+  const header = ["背番号","名前"];
+
+  eventsCache.forEach(e=>{
+    header.push(
+      `${e._date.getMonth()+1}/${e._date.getDate()} ${e.type==="match"?"試合":"練習"}`
+    );
+  });
+  lines.push(header.join(","));
+
+  playersCache.forEach(p=>{
+    const row = [p.number ?? "", `"${p.name}"`];
+    eventsCache.forEach(e=>{
+      const s = latest[`${e.id}_${p.id}`];
+      row.push(s==="present"?"○":s==="absent"?"×":"－");
+    });
+    lines.push(row.join(","));
+  });
+
+  const csv = lines.join("\n");
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `attendance_${monthIdOf(current)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
