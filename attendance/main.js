@@ -5,6 +5,7 @@ import {
   getDocs,
   addDoc,
   query,
+  orderBy,
   where,
   serverTimestamp,
   Timestamp
@@ -28,14 +29,17 @@ const monthLabel = document.getElementById("monthLabel");
 /* state */
 let current = new Date();
 let latest = {};
+let rendering = false;
 
 /* month switch */
 document.getElementById("prevMonth").onclick = () => {
+  if (rendering) return;
   current.setDate(1);
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
+  if (rendering) return;
   current.setDate(1);
   current.setMonth(current.getMonth() + 1);
   render();
@@ -45,12 +49,12 @@ render();
 
 /* utils */
 function toDate(v){
-  if(!v) return null;
-  if(typeof v === "string"){
+  if (!v) return null;
+  if (typeof v === "string") {
     const [y,m,d] = v.split("-").map(Number);
-    return new Date(y,m-1,d);
+    return new Date(y, m-1, d);
   }
-  if(v instanceof Timestamp) return v.toDate();
+  if (v instanceof Timestamp) return v.toDate();
   return null;
 }
 
@@ -59,11 +63,12 @@ function monthIdOf(d){
 }
 
 function symbol(s){
-  return s==="present"?"○":s==="absent"?"×":"－";
+  return s==="present" ? "○" : s==="absent" ? "×" : "－";
 }
 
 /* render */
 async function render(){
+  rendering = true;
   table.innerHTML = "";
   stats.innerHTML = "";
 
@@ -72,39 +77,38 @@ async function render(){
 
   const monthId = monthIdOf(current);
 
-  /* Firestore */
+  /* Firestore 読み込み（最小限） */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap  = await getDocs(collection(db,"events_attendance"));
-
-  /* ★ orderBy を使わない（ここが決定的修正） */
-  let logsSnap;
-  try{
-    logsSnap = await getDocs(
-      query(
-        collection(db,"attendance_logs"),
-        where("monthId","==",monthId)
-      )
-    );
-  }catch(e){
-    logsSnap = { forEach:()=>{} };
-  }
+  const eventsSnap  = await getDocs(
+    query(collection(db,"events_attendance"), orderBy("date"))
+  );
+  const logsSnap = await getDocs(
+    query(
+      collection(db,"attendance_logs"),
+      where("monthId","==",monthId),
+      orderBy("createdAt")
+    )
+  );
 
   /* players */
   const players = playersSnap.docs
-    .map(d=>({id:d.id,...d.data()}))
-    .sort((a,b)=>(a.number??999)-(b.number??999));
+    .map(d => ({ id:d.id, ...d.data() }))
+    .sort((a,b)=>(a.number ?? 999)-(b.number ?? 999));
 
   /* events */
   const events = eventsSnap.docs
-    .map(d=>({id:d.id,...d.data(),_date:toDate(d.data().date)}))
+    .map(d=>{
+      const data=d.data();
+      return { id:d.id, ...data, _date:toDate(data.date) };
+    })
     .filter(e =>
+      e.type!=="holiday" &&
       e._date &&
       e._date.getFullYear()===current.getFullYear() &&
       e._date.getMonth()===current.getMonth()
-    )
-    .sort((a,b)=>a._date-b._date);
+    );
 
-  /* logs → latest */
+  /* logs → latest（最新状態のみ） */
   latest = {};
   logsSnap.forEach(l=>{
     const d=l.data();
@@ -124,20 +128,28 @@ async function render(){
   /* body */
   players.forEach(p=>{
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td class="no">${p.number??""}</td><td class="name">${p.name}</td>`;
+    tr.innerHTML=
+      `<td class="no">${p.number ?? ""}</td>`+
+      `<td class="name">${p.name}</td>`;
 
     events.forEach(e=>{
       const key=`${e.id}_${p.id}`;
-      const status=latest[key]||"skip";
-
       const td=document.createElement("td");
       td.className=e.type;
-      td.textContent=symbol(status);
+      td.textContent=symbol(latest[key]||"skip");
 
-      td.onclick=async()=>{
+      td.onclick = async ()=>{
+        if (rendering) return;
+        rendering = true;
+
+        const cur = latest[key] || "skip";
         const next =
-          status==="skip"?"present":
-          status==="present"?"absent":"skip";
+          cur==="skip" ? "present" :
+          cur==="present" ? "absent" : "skip";
+
+        /* ★ ローカル即更新（これが核心） */
+        latest[key]=next;
+        td.textContent=symbol(next);
 
         await addDoc(collection(db,"attendance_logs"),{
           eventId:e.id,
@@ -147,7 +159,7 @@ async function render(){
           createdAt:serverTimestamp()
         });
 
-        render();
+        await render();
       };
 
       tr.appendChild(td);
@@ -174,4 +186,6 @@ async function render(){
         合計：${tot?Math.round(hit/tot*100):0}%（${hit}回）
       </div>`;
   });
+
+  rendering = false;
 }
