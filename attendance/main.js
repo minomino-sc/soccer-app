@@ -29,17 +29,17 @@ const monthLabel = document.getElementById("monthLabel");
 /* state */
 let current = new Date();
 let latest = {};
-let locked = false;
+let rendering = false;
 
 /* month switch */
 document.getElementById("prevMonth").onclick = () => {
-  if (locked) return;
+  if (rendering) return;
   current.setDate(1);
   current.setMonth(current.getMonth() - 1);
   render();
 };
 document.getElementById("nextMonth").onclick = () => {
-  if (locked) return;
+  if (rendering) return;
   current.setDate(1);
   current.setMonth(current.getMonth() + 1);
   render();
@@ -64,38 +64,30 @@ function monthIdOf(d){
 }
 
 function symbol(s){
-  return s === "present" ? "○" : s === "absent" ? "×" : "－";
+  return s==="present" ? "○" : s==="absent" ? "×" : "－";
 }
 
 /* render */
 async function render(){
-  locked = true;
+  rendering = true;
   table.innerHTML = "";
   stats.innerHTML = "";
 
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  /* Firestore load */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
 
-  /* summary（月1ドキュメント） */
   latest = {};
   const monthId = monthIdOf(current);
-  try{
-    const snap = await getDoc(doc(db,"attendance_summary", monthId));
-    if (snap.exists()) latest = snap.data();
-  }catch(e){
-    latest = {};
-  }
+  const sumSnap = await getDoc(doc(db,"attendance_summary", monthId));
+  if (sumSnap.exists()) latest = sumSnap.data();
 
-  /* players */
   const players = playersSnap.docs
     .map(d => ({ id:d.id, ...d.data() }))
     .sort((a,b) => (a.number ?? 999) - (b.number ?? 999));
 
-  /* events */
   const events = eventsSnap.docs
     .map(d => {
       const data = d.data();
@@ -127,31 +119,25 @@ async function render(){
 
     events.forEach(e => {
       const key = `${e.id}_${p.id}`;
-      const status = latest[key] || "skip";
-
       const td = document.createElement("td");
       td.className = e.type;
-      td.textContent = symbol(status);
+      td.textContent = symbol(latest[key] || "skip");
 
       td.onclick = async () => {
-        if (locked) return;
-        locked = true;
-
         const cur = latest[key] || "skip";
         const next =
-          cur === "skip" ? "present" :
-          cur === "present" ? "absent" : "skip";
+          cur==="skip" ? "present" :
+          cur==="present" ? "absent" : "skip";
 
-        const eventMonthId = monthIdOf(e._date);
+        latest[key] = next;
+        td.textContent = symbol(next);
 
-        /* summary（必ず作成される） */
         await setDoc(
-          doc(db,"attendance_summary", eventMonthId),
+          doc(db,"attendance_summary", monthId),
           { [key]: next, updatedAt: serverTimestamp() },
           { merge:true }
         );
 
-        /* log */
         await addDoc(collection(db,"attendance_logs"),{
           eventId: e.id,
           playerId: p.id,
@@ -159,7 +145,7 @@ async function render(){
           createdAt: serverTimestamp()
         });
 
-        await render();
+        updateStats(players, events);
       };
 
       tr.appendChild(td);
@@ -168,20 +154,23 @@ async function render(){
     table.appendChild(tr);
   });
 
-  /* stats */
+  updateStats(players, events);
+  rendering = false;
+}
+
+/* stats */
+function updateStats(players, events){
+  stats.innerHTML = "";
   players.forEach(p => {
     let prH=0, prT=0, maH=0, maT=0;
-
     events.forEach(e => {
       const s = latest[`${e.id}_${p.id}`];
       if (!s || s==="skip") return;
       if (e.type==="practice"){ prT++; if(s==="present") prH++; }
       if (e.type==="match"){ maT++; if(s==="present") maH++; }
     });
-
     const tot = prT + maT;
     const hit = prH + maH;
-
     stats.innerHTML += `
       <div class="statsCard">
         <strong>${p.name}</strong><br>
@@ -191,6 +180,4 @@ async function render(){
       </div>
     `;
   });
-
-  locked = false;
 }
