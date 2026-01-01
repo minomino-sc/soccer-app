@@ -10,7 +10,7 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase */
+/* Firebase 設定 */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -167,7 +167,7 @@ async function exportPDF(){
 }
 
 /* ===============================
-   PDF ボタン確実に紐付け
+   PDFボタン確実に紐付け
    =============================== */
 window.addEventListener("DOMContentLoaded", () => {
   const pdfBtn = document.getElementById("pdfBtn");
