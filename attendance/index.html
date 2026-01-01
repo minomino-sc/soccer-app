@@ -55,14 +55,14 @@ table{
   border-collapse:collapse;
   background:#fff;
   width:max-content; /* 横固定 */
-  font-size:11px;    /* ★ フォント小さく */
+  font-size:11px;
 }
 
 th,td{
   border:1px solid #ddd;
-  padding:3px 4px;   /* ★ 行を詰める */
+  padding:3px 4px;
   text-align:center;
-  line-height:1.2;   /* ★ 高さ圧縮 */
+  line-height:1.2;
 }
 
 th{
@@ -113,12 +113,13 @@ th{
 
 <h1>⚽ 出欠管理</h1>
 
-<!-- 月切替＋CSVボタン -->
+<!-- 月切替＋CSV/PDFボタン -->
 <div class="controls">
   <button id="prevMonth">◀</button>
   <strong id="monthLabel"></strong>
   <button id="nextMonth">▶</button>
-  <button onclick="exportCSV()">CSV出力</button> <!-- 追加 -->
+  <button onclick="exportCSV()">CSV出力</button>
+  <button onclick="exportPDF()">PDF出力</button>
 </div>
 
 <div class="legend">
@@ -135,6 +136,10 @@ th{
 
 <h2 style="font-size:14px;margin:10px 0 6px">📊 出席率</h2>
 <div id="stats" class="stats"></div>
+
+<!-- jsPDF + autoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <script type="module" src="./main.js"></script>
 </body>
