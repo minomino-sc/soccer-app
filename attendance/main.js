@@ -204,16 +204,15 @@ window.exportCSV = function(){
 
   /* body */
   document.querySelectorAll("#table tr").forEach((tr,i)=>{
-    if(i===0) return; // skip header
+    if(i===0) return;
     const row = [];
     tr.querySelectorAll("td").forEach(td=>{
-      // カンマ・改行対策
       row.push(`"${td.innerText.replace(/"/g,'""')}"`);
     });
     lines.push(row.join(","));
   });
 
-  /* ★ BOM付きUTF-8（Excel対策） */
+  /* BOM付きUTF-8 */
   const csv = "\uFEFF" + lines.join("\n");
   const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
@@ -224,4 +223,45 @@ window.exportCSV = function(){
   a.click();
 
   URL.revokeObjectURL(url);
+};
+
+/* ===============================
+   PDF 出力（jsPDF + autoTable）
+   =============================== */
+window.exportPDF = function(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const tableEl = document.getElementById("table");
+  const headers = [];
+  const rows = [];
+
+  tableEl.querySelectorAll("tr").forEach((tr,i)=>{
+    const row = [];
+    tr.querySelectorAll("th, td").forEach(td=>{
+      row.push(td.innerText);
+    });
+    if(i===0) headers.push(...row);
+    else rows.push(row);
+  });
+
+  if(doc.autoTable){
+    doc.autoTable({
+      head: [headers],
+      body: rows,
+      startY: 20,
+      styles: { fontSize: 8 }
+    });
+  } else {
+    let y = 20;
+    doc.setFontSize(10);
+    doc.text(headers.join(" | "), 10, y);
+    y += 6;
+    rows.forEach(r=>{
+      doc.text(r.join(" | "), 10, y);
+      y += 6;
+    });
+  }
+
+  doc.save(`${monthIdOf(current)}_attendance.pdf`);
 };
