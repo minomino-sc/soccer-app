@@ -4,9 +4,9 @@ import {
   collection,
   getDocs,
   addDoc,
-  doc,
-  getDoc,
-  setDoc,
+  query,
+  orderBy,
+  where,
   serverTimestamp,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -26,11 +26,11 @@ const table = document.getElementById("table");
 const stats = document.getElementById("stats");
 const monthLabel = document.getElementById("monthLabel");
 
-/* state */
+/* 状態 */
 let current = new Date();
 let latest = {};
 
-/* month switch */
+/* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
   current.setDate(1);
   current.setMonth(current.getMonth() - 1);
@@ -44,13 +44,12 @@ document.getElementById("nextMonth").onclick = () => {
 
 render();
 
-/* utils */
+/* util */
 function toDate(v){
   if (!v) return null;
   if (typeof v === "string") {
-    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return null;
-    return new Date(+m[1], +m[2]-1, +m[3]);
+    const [y,m,d] = v.split("-").map(Number);
+    return new Date(y, m-1, d);
   }
   if (v instanceof Timestamp) return v.toDate();
   return null;
@@ -58,10 +57,6 @@ function toDate(v){
 
 function monthIdOf(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-}
-
-function symbol(s){
-  return s==="present" ? "○" : s==="absent" ? "×" : "－";
 }
 
 /* render */
@@ -72,9 +67,22 @@ async function render(){
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  /* Firestore load */
+  const monthId = monthIdOf(current);
+
+  /* Firestore 読み込み */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
-  const eventsSnap  = await getDocs(collection(db,"events_attendance"));
+  const eventsSnap  = await getDocs(
+    query(collection(db,"events_attendance"), orderBy("date"))
+  );
+
+  /* ★ 今月分だけ attendance_logs を読む（激減ポイント） */
+  const logsSnap = await getDocs(
+    query(
+      collection(db,"attendance_logs"),
+      where("monthId","==",monthId),
+      orderBy("createdAt")
+    )
+  );
 
   /* players */
   const players = playersSnap.docs
@@ -83,23 +91,19 @@ async function render(){
 
   /* events */
   const events = eventsSnap.docs
-    .map(d => {
-      const data = d.data();
-      return { id:d.id, ...data, _date: toDate(data.date) };
-    })
+    .map(d => ({ id:d.id, ...d.data(), _date: toDate(d.data().date) }))
     .filter(e =>
-      e.type !== "holiday" &&
       e._date &&
       e._date.getFullYear() === current.getFullYear() &&
       e._date.getMonth() === current.getMonth()
-    )
-    .sort((a,b) => a._date - b._date);
+    );
 
-  /* summary（今月分だけ読む） */
+  /* logs → latest */
   latest = {};
-  const monthId = monthIdOf(current);
-  const sumSnap = await getDoc(doc(db,"attendance_summary", monthId));
-  if (sumSnap.exists()) latest = sumSnap.data();
+  logsSnap.forEach(l=>{
+    const d = l.data();
+    latest[`${d.eventId}_${d.playerId}`] = d.status;
+  });
 
   /* header */
   const trH = document.createElement("tr");
@@ -113,35 +117,30 @@ async function render(){
   table.appendChild(trH);
 
   /* body */
-  players.forEach(p => {
+  players.forEach(p=>{
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${p.number ?? ""}</td><td class="name">${p.name}</td>`;
 
-    events.forEach(e => {
+    events.forEach(e=>{
       const key = `${e.id}_${p.id}`;
+      const status = latest[key] || "skip";
+
       const td = document.createElement("td");
       td.className = e.type;
-      td.textContent = symbol(latest[key] || "skip");
+      td.textContent =
+        status==="present"?"○":
+        status==="absent" ?"×":"－";
 
-      td.onclick = async () => {
-        const cur = latest[key] || "skip";
+      td.onclick = async ()=>{
         const next =
-          cur==="skip" ? "present" :
-          cur==="present" ? "absent" : "skip";
-
-        /* ★ イベントの月で必ず保存 */
-        const eventMonthId = monthIdOf(e._date);
-
-        await setDoc(
-          doc(db,"attendance_summary", eventMonthId),
-          { [key]: next, updatedAt: serverTimestamp() },
-          { merge:true }
-        );
+          status==="skip"?"present":
+          status==="present"?"absent":"skip";
 
         await addDoc(collection(db,"attendance_logs"),{
           eventId: e.id,
           playerId: p.id,
           status: next,
+          monthId,                 // ★ 追加
           createdAt: serverTimestamp()
         });
 
@@ -155,10 +154,10 @@ async function render(){
   });
 
   /* stats */
-  players.forEach(p => {
+  players.forEach(p=>{
     let prH=0, prT=0, maH=0, maT=0;
 
-    events.forEach(e => {
+    events.forEach(e=>{
       const s = latest[`${e.id}_${p.id}`];
       if (!s || s==="skip") return;
       if (e.type==="practice"){ prT++; if(s==="present") prH++; }
