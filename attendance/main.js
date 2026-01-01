@@ -40,7 +40,9 @@ function toDate(v){ if(!v) return null; if(typeof v==="string"){ const [y,m,d]=v
 function monthIdOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
 function symbol(s){ return s==="present"?"○":s==="absent"?"×":"－"; }
 
-/* render */
+/* ===============================
+   出欠レンダリング
+   =============================== */
 async function render(){
   rendering=true;
   table.innerHTML="";
@@ -58,7 +60,12 @@ async function render(){
                     .sort((a,b)=>a._date-b._date);
 
   latest={}; const latestTime={};
-  logsSnap.forEach(l=>{const d=l.data(); const key=`${d.eventId}_${d.playerId}`; const t=d.createdAt?.toMillis?.()??0; if(!latestTime[key]||t>latestTime[key]){latestTime[key]=t; latest[key]=d.status;} });
+  logsSnap.forEach(l=>{
+    const d=l.data(); 
+    const key=`${d.eventId}_${d.playerId}`; 
+    const t=d.createdAt?.toMillis?.()??0; 
+    if(!latestTime[key]||t>latestTime[key]){latestTime[key]=t; latest[key]=d.status;} 
+  });
 
   /* header */
   const trH=document.createElement("tr");
@@ -93,7 +100,12 @@ async function render(){
   /* stats（分母付き） */
   players.forEach(p=>{
     let prH=0,prT=0,maH=0,maT=0;
-    events.forEach(e=>{const s=latest[`${e.id}_${p.id}`]; if(!s||s==="skip")return; if(e.type==="practice"){prT++; if(s==="present") prH++;} if(e.type==="match"){maT++; if(s==="present") maH++;}});
+    events.forEach(e=>{
+      const s=latest[`${e.id}_${p.id}`]; 
+      if(!s||s==="skip") return; 
+      if(e.type==="practice"){prT++; if(s==="present") prH++;} 
+      if(e.type==="match"){maT++; if(s==="present") maH++;}
+    });
     const tot=prT+maT,hit=prH+maH;
     stats.innerHTML+=`<div class="statsCard"><strong>${p.name}</strong><br>
       練習：${prH}/${prT}（${prT?Math.round(prH/prT*100):0}%）<br>
@@ -104,13 +116,20 @@ async function render(){
   rendering=false;
 }
 
-/* CSV 出力 */
+/* ===============================
+   CSV 出力
+   =============================== */
 window.exportCSV = function(){
   const lines=[];
   const headers=["背番号","名前"];
   document.querySelectorAll("th:not(.no):not(.name)").forEach(h=>headers.push(h.innerText.replace(/\n/g,"")));
   lines.push(headers.join(","));
-  document.querySelectorAll("#table tr").forEach((tr,i)=>{if(i===0) return; const row=[]; tr.querySelectorAll("td").forEach(td=>row.push(`"${td.innerText.replace(/"/g,'""')}"`)); lines.push(row.join(",")); });
+  document.querySelectorAll("#table tr").forEach((tr,i)=>{
+    if(i===0) return;
+    const row=[];
+    tr.querySelectorAll("td").forEach(td=>row.push(`"${td.innerText.replace(/"/g,'""')}"`));
+    lines.push(row.join(","));
+  });
   const csv="\uFEFF"+lines.join("\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
   const url=URL.createObjectURL(blob);
@@ -118,7 +137,9 @@ window.exportCSV = function(){
   URL.revokeObjectURL(url);
 };
 
-/* PDF 出力 */
+/* ===============================
+   PDF 出力
+   =============================== */
 async function exportPDF(){
   const pdfCapture = document.createElement("div");
   pdfCapture.style.padding="10px";
@@ -126,7 +147,7 @@ async function exportPDF(){
 
   const title = document.createElement("h1");
   title.textContent = `⚽ 出欠管理 ${current.getFullYear()}年${current.getMonth()+1}月`;
-  title.style.fontSize="16px";
+  title.style.fontSize = "16px";
   pdfCapture.appendChild(title);
 
   pdfCapture.appendChild(document.querySelector(".tableWrap").cloneNode(true));
@@ -136,14 +157,19 @@ async function exportPDF(){
   const imgData = canvas.toDataURL("image/png");
 
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("l","pt","a4");
+  const pdf = new jsPDF("l", "pt", "a4");
   const pageWidth = pdf.internal.pageSize.getWidth();
   const imgWidth = pageWidth - 20;
-  const imgHeight = (canvas.height * imgWidth)/canvas.width;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  pdf.addImage(imgData,"PNG",10,10,imgWidth,imgHeight);
+  pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
   pdf.save(`${monthIdOf(current)}_attendance.pdf`);
 }
 
-// モジュール内から PDF ボタンに紐付け
-document.getElementById("pdfBtn").onclick = exportPDF;
+/* ===============================
+   PDF ボタン確実に紐付け
+   =============================== */
+window.addEventListener("DOMContentLoaded", () => {
+  const pdfBtn = document.getElementById("pdfBtn");
+  if(pdfBtn) pdfBtn.addEventListener("click", exportPDF);
+});
