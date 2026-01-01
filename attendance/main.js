@@ -1,21 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  where,
-  serverTimestamp,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase 設定 */
-const firebaseConfig = {
-  apiKey: "★★★★★",
-  authDomain: "★★★★★",
-  projectId: "minotani-sc-app",
-};
+const firebaseConfig = { apiKey:"★★★★★", authDomain:"★★★★★", projectId:"minotani-sc-app" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -30,31 +17,13 @@ let latest = {};
 let rendering = false;
 
 /* 月切替 */
-document.getElementById("prevMonth").onclick = () => { 
-  if(rendering) return; 
-  current.setDate(1); 
-  current.setMonth(current.getMonth()-1); 
-  render(); 
-};
-document.getElementById("nextMonth").onclick = () => { 
-  if(rendering) return; 
-  current.setDate(1); 
-  current.setMonth(current.getMonth()+1); 
-  render(); 
-};
+document.getElementById("prevMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()-1); render(); };
+document.getElementById("nextMonth").onclick = () => { if(rendering) return; current.setDate(1); current.setMonth(current.getMonth()+1); render(); };
 
 render();
 
 /* utils */
-function toDate(v){ 
-  if(!v) return null; 
-  if(typeof v==="string"){ 
-    const [y,m,d]=v.split("-").map(Number); 
-    return new Date(y,m-1,d);
-  } 
-  if(v instanceof Timestamp) return v.toDate(); 
-  return null;
-}
+function toDate(v){ if(!v) return null; if(typeof v==="string"){ const [y,m,d]=v.split("-").map(Number); return new Date(y,m-1,d);} if(v instanceof Timestamp) return v.toDate(); return null;}
 function monthIdOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
 function symbol(s){ return s==="present"?"○":s==="absent"?"×":"－"; }
 
@@ -78,12 +47,7 @@ async function render(){
                     .sort((a,b)=>a._date-b._date);
 
   latest={}; const latestTime={};
-  logsSnap.forEach(l=>{
-    const d=l.data(); 
-    const key=`${d.eventId}_${d.playerId}`; 
-    const t=d.createdAt?.toMillis?.()??0; 
-    if(!latestTime[key]||t>latestTime[key]){latestTime[key]=t; latest[key]=d.status;} 
-  });
+  logsSnap.forEach(l=>{const d=l.data(); const key=`${d.eventId}_${d.playerId}`; const t=d.createdAt?.toMillis?.()??0; if(!latestTime[key]||t>latestTime[key]){latestTime[key]=t; latest[key]=d.status;} });
 
   /* header */
   const trH=document.createElement("tr");
@@ -156,7 +120,7 @@ window.exportCSV = function(){
 };
 
 /* ===============================
-   PDF 出力（日本語対応・文字化け防止）
+   PDF 出力
    =============================== */
 async function exportPDF(){
   const pdfCapture = document.createElement("div");
@@ -172,11 +136,9 @@ async function exportPDF(){
   pdfCapture.appendChild(document.querySelector(".tableWrap").cloneNode(true));
   pdfCapture.appendChild(document.getElementById("stats").cloneNode(true));
 
-  // html2canvas でキャプチャ
   const canvas = await html2canvas(pdfCapture, { scale: 2, useCORS: true });
   const imgData = canvas.toDataURL("image/png");
 
-  // jsPDF 日本語対応（フォントを埋め込む）
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF("l", "pt", "a4");
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -188,9 +150,9 @@ async function exportPDF(){
 }
 
 /* ===============================
-   PDFボタンを確実に紐付け
+   PDFボタンに確実に紐付け
    =============================== */
-window.addEventListener("DOMContentLoaded", () => {
-  const pdfBtn = document.getElementById("pdfBtn");
-  if(pdfBtn) pdfBtn.addEventListener("click", exportPDF);
+document.addEventListener("DOMContentLoaded", ()=>{
+  const btn = document.getElementById("pdfBtn");
+  if(btn) btn.addEventListener("click", exportPDF);
 });
