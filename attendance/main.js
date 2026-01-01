@@ -16,7 +16,6 @@ const firebaseConfig = {
   authDomain: "★★★★★",
   projectId: "minotani-sc-app",
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -146,5 +145,5 @@ async function exportPDF(){
   pdf.save(`${monthIdOf(current)}_attendance.pdf`);
 }
 
-// モジュール内からボタンに紐づけ
+// モジュール内から PDF ボタンに紐付け
 document.getElementById("pdfBtn").onclick = exportPDF;
