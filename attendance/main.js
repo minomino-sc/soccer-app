@@ -30,121 +30,84 @@ let latest = {};
 let rendering = false;
 
 /* 月切替 */
-document.getElementById("prevMonth").onclick = () => {
-  if (rendering) return;
-  current.setDate(1);
-  current.setMonth(current.getMonth() - 1);
-  render();
+document.getElementById("prevMonth").onclick = () => { 
+  if(rendering) return; 
+  current.setDate(1); 
+  current.setMonth(current.getMonth()-1); 
+  render(); 
 };
-document.getElementById("nextMonth").onclick = () => {
-  if (rendering) return;
-  current.setDate(1);
-  current.setMonth(current.getMonth() + 1);
-  render();
+document.getElementById("nextMonth").onclick = () => { 
+  if(rendering) return; 
+  current.setDate(1); 
+  current.setMonth(current.getMonth()+1); 
+  render(); 
 };
 
 render();
 
 /* utils */
-function toDate(v) {
-  if (!v) return null;
-  if (typeof v === "string") {
-    const [y, m, d] = v.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-  if (v instanceof Timestamp) return v.toDate();
+function toDate(v){ 
+  if(!v) return null; 
+  if(typeof v==="string"){ 
+    const [y,m,d]=v.split("-").map(Number); 
+    return new Date(y,m-1,d);
+  } 
+  if(v instanceof Timestamp) return v.toDate(); 
   return null;
 }
-function monthIdOf(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-function symbol(s) {
-  return s === "present" ? "○" : s === "absent" ? "×" : "－";
-}
+function monthIdOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
+function symbol(s){ return s==="present"?"○":s==="absent"?"×":"－"; }
 
 /* ===============================
    出欠レンダリング
    =============================== */
-async function render() {
-  rendering = true;
-  table.innerHTML = "";
-  stats.innerHTML = "";
-  monthLabel.textContent = `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
+async function render(){
+  rendering=true;
+  table.innerHTML="";
+  stats.innerHTML="";
+  monthLabel.textContent=`${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  const monthId = monthIdOf(current);
-  const playersSnap = await getDocs(collection(db, "players_attendance"));
-  const eventsSnap = await getDocs(collection(db, "events_attendance"));
-  const logsSnap = await getDocs(
-    query(collection(db, "attendance_logs"), where("monthId", "==", monthId))
-  );
+  const monthId=monthIdOf(current);
+  const playersSnap=await getDocs(collection(db,"players_attendance"));
+  const eventsSnap=await getDocs(collection(db,"events_attendance"));
+  const logsSnap=await getDocs(query(collection(db,"attendance_logs"),where("monthId","==",monthId)));
 
-  const players = playersSnap.docs
-    .map((d) => ({ id: d.id, ...d.data() }))
-    .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
-  const events = eventsSnap.docs
-    .map((d) => {
-      const data = d.data();
-      return { id: d.id, ...data, _date: toDate(data.date) };
-    })
-    .filter(
-      (e) =>
-        e.type !== "holiday" &&
-        e._date &&
-        e._date.getFullYear() === current.getFullYear() &&
-        e._date.getMonth() === current.getMonth()
-    )
-    .sort((a, b) => a._date - b._date);
+  const players=playersSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.number??999)-(b.number??999));
+  const events=eventsSnap.docs.map(d=>{const data=d.data(); return {id:d.id,...data,_date:toDate(data.date)}})
+                    .filter(e=>e.type!=="holiday" && e._date && e._date.getFullYear()===current.getFullYear() && e._date.getMonth()===current.getMonth())
+                    .sort((a,b)=>a._date-b._date);
 
-  latest = {};
-  const latestTime = {};
-  logsSnap.forEach((l) => {
-    const d = l.data();
-    const key = `${d.eventId}_${d.playerId}`;
-    const t = d.createdAt?.toMillis?.() ?? 0;
-    if (!latestTime[key] || t > latestTime[key]) {
-      latestTime[key] = t;
-      latest[key] = d.status;
-    }
+  latest={}; const latestTime={};
+  logsSnap.forEach(l=>{
+    const d=l.data(); 
+    const key=`${d.eventId}_${d.playerId}`; 
+    const t=d.createdAt?.toMillis?.()??0; 
+    if(!latestTime[key]||t>latestTime[key]){latestTime[key]=t; latest[key]=d.status;} 
   });
 
   /* header */
-  const trH = document.createElement("tr");
-  trH.innerHTML =
-    "<th class='no'>背</th><th class='name'>名前</th>" +
-    events
-      .map(
-        (e) =>
-          `<th class="${e.type}">${e._date.getDate()}<br>${
-            e.type === "match" ? "試合" : "練習"
-          }</th>`
-      )
-      .join("");
+  const trH=document.createElement("tr");
+  trH.innerHTML="<th class='no'>背</th><th class='name'>名前</th>"+
+    events.map(e=>`<th class="${e.type}">${e._date.getDate()}<br>${e.type==="match"?"試合":"練習"}</th>`).join("");
   table.appendChild(trH);
 
   /* body */
-  players.forEach((p) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="no">${p.number ?? ""}</td><td class="name">${p.name}</td>`;
-    events.forEach((e) => {
-      const key = `${e.id}_${p.id}`;
-      const td = document.createElement("td");
-      td.className = e.type;
-      td.textContent = symbol(latest[key] || "skip");
-      td.onclick = async () => {
-        if (rendering) return;
-        rendering = true;
-        const cur = latest[key] || "skip";
-        const next =
-          cur === "skip" ? "present" : cur === "present" ? "absent" : "skip";
-        latest[key] = next;
-        td.textContent = symbol(next);
-        await addDoc(collection(db, "attendance_logs"), {
-          eventId: e.id,
-          playerId: p.id,
-          status: next,
-          monthId,
-          createdAt: serverTimestamp(),
-        });
+  players.forEach(p=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td class="no">${p.number??""}</td><td class="name">${p.name}</td>`;
+    events.forEach(e=>{
+      const key=`${e.id}_${p.id}`;
+      const td=document.createElement("td");
+      td.className=e.type;
+      td.textContent=symbol(latest[key]||"skip");
+      td.onclick=async ()=>{
+        if(rendering) return;
+        rendering=true;
+        const cur=latest[key]||"skip";
+        const next=cur==="skip"?"present":cur==="present"?"absent":"skip";
+        latest[key]=next;
+        td.textContent=symbol(next);
+        await addDoc(collection(db,"attendance_logs"),{eventId:e.id,playerId:p.id,status:next,monthId,createdAt:serverTimestamp()});
         await render();
       };
       tr.appendChild(td);
@@ -153,76 +116,65 @@ async function render() {
   });
 
   /* stats（分母付き） */
-  players.forEach((p) => {
-    let prH = 0,
-      prT = 0,
-      maH = 0,
-      maT = 0;
-    events.forEach((e) => {
-      const s = latest[`${e.id}_${p.id}`];
-      if (!s || s === "skip") return;
-      if (e.type === "practice") {
-        prT++;
-        if (s === "present") prH++;
-      }
-      if (e.type === "match") {
-        maT++;
-        if (s === "present") maH++;
-      }
+  players.forEach(p=>{
+    let prH=0,prT=0,maH=0,maT=0;
+    events.forEach(e=>{
+      const s=latest[`${e.id}_${p.id}`]; 
+      if(!s||s==="skip") return; 
+      if(e.type==="practice"){prT++; if(s==="present") prH++;} 
+      if(e.type==="match"){maT++; if(s==="present") maH++;}
     });
-    const tot = prT + maT,
-      hit = prH + maH;
-    stats.innerHTML += `<div class="statsCard"><strong>${p.name}</strong><br>
-      練習：${prH}/${prT}（${prT ? Math.round((prH / prT) * 100) : 0}%）<br>
-      試合：${maH}/${maT}（${maT ? Math.round((maH / maT) * 100) : 0}%）<br>
-      合計：${hit}/${tot}（${tot ? Math.round((hit / tot) * 100) : 0}%）</div>`;
+    const tot=prT+maT,hit=prH+maH;
+    stats.innerHTML+=`<div class="statsCard"><strong>${p.name}</strong><br>
+      練習：${prH}/${prT}（${prT?Math.round(prH/prT*100):0}%）<br>
+      試合：${maH}/${maT}（${maT?Math.round(maH/maT*100):0}%）<br>
+      合計：${hit}/${tot}（${tot?Math.round(hit/tot*100):0}%）</div>`;
   });
 
-  rendering = false;
+  rendering=false;
 }
 
 /* ===============================
-   CSV 出力（タイトル・年月・出席率込み）
+   CSV 出力（タイトル・年月・出席率入り）
    =============================== */
-window.exportCSV = function () {
+window.exportCSV = function(){
   const lines = [];
 
-  // タイトル
-  lines.push(`⚽ 出欠管理`);
-  lines.push(`${current.getFullYear()}年 ${current.getMonth() + 1}月`);
-  lines.push(""); // 空行
+  // タイトル・年月
+  lines.push(["⚽ 出欠管理"]);
+  lines.push([`${current.getFullYear()}年${current.getMonth()+1}月`]);
+  lines.push([]); // 空行
 
   // ヘッダー
-  const headers = ["背番号", "名前"];
-  document
-    .querySelectorAll("th:not(.no):not(.name)")
-    .forEach((h) => headers.push(h.innerText.replace(/\n/g, "")));
-  lines.push(headers.join(","));
+  const headers = ["背番号","名前"];
+  document.querySelectorAll("th:not(.no):not(.name)").forEach(h=>{
+    headers.push(h.innerText.replace(/\n/g,""));
+  });
+  lines.push(headers);
 
-  // 本体
-  document.querySelectorAll("#table tr").forEach((tr, i) => {
-    if (i === 0) return; // ヘッダーはスキップ
+  // 本文
+  document.querySelectorAll("#table tr").forEach((tr,i)=>{
+    if(i===0) return;
     const row = [];
-    tr.querySelectorAll("td").forEach((td) => row.push(`"${td.innerText.replace(/"/g, '""')}"`));
-    lines.push(row.join(","));
+    tr.querySelectorAll("td").forEach(td=>{
+      row.push(td.innerText);
+    });
+    lines.push(row);
   });
 
-  // 出席率
-  lines.push(""); // 空行
-  lines.push("📊 出席率");
-  document.querySelectorAll(".statsCard").forEach((card) => {
-    const name = card.querySelector("strong").innerText;
-    const statsText = card.innerHTML
-      .replace(/<br>/g, " ")
-      .replace(/<[^>]+>/g, "")
-      .trim();
-    lines.push(`"${name}","${statsText}"`);
+  // 出席率行
+  lines.push([]);
+  lines.push(["📊 出席率"]);
+  document.querySelectorAll(".statsCard").forEach(card=>{
+    const text = card.innerText.replace(/\n/g," ");
+    lines.push([text]);
   });
 
-  // CSV作成
-  const csv = "\uFEFF" + lines.join("\n"); // BOM付きUTF-8
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  // CSV文字列（BOM付きでExcel対応）
+  const csv = "\uFEFF" + lines.map(r=>r.map(c=>`"${c.replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
+
   const a = document.createElement("a");
   a.href = url;
   a.download = `${monthIdOf(current)}_attendance.csv`;
