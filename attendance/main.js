@@ -76,14 +76,11 @@ async function render(){
 
   const monthId = monthIdOf(current);
 
-  /* Firestore 読み込み（最小） */
+  /* Firestore 読み込み */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
   const logsSnap    = await getDocs(
-    query(
-      collection(db,"attendance_logs"),
-      where("monthId","==",monthId)
-    )
+    query(collection(db,"attendance_logs"), where("monthId","==",monthId))
   );
 
   /* players */
@@ -105,10 +102,9 @@ async function render(){
     )
     .sort((a,b)=>a._date - b._date);
 
-  /* logs → latest（createdAt 後勝ち） */
+  /* logs → latest */
   latest = {};
   const latestTime = {};
-
   logsSnap.forEach(l=>{
     const d = l.data();
     const key = `${d.eventId}_${d.playerId}`;
@@ -194,24 +190,25 @@ async function render(){
 }
 
 /* ===============================
-   CSV 出力（Excel文字化け防止）
+   CSV 出力（文字化け対応）
    =============================== */
 window.exportCSV = function(){
   const lines = [];
 
   /* header */
-  lines.push(
-    ["背番号","名前", ...document.querySelectorAll("th:not(.no):not(.name)")]
-      .map(h=>typeof h==="string"?h:h.innerText.replace(/\n/g,""))
-      .join(",")
-  );
+  const headers = ["背番号","名前"];
+  document.querySelectorAll("th:not(.no):not(.name)").forEach(h=>{
+    headers.push(h.innerText.replace(/\n/g,""));
+  });
+  lines.push(headers.join(","));
 
   /* body */
   document.querySelectorAll("#table tr").forEach((tr,i)=>{
-    if(i===0) return;
+    if(i===0) return; // skip header
     const row = [];
     tr.querySelectorAll("td").forEach(td=>{
-      row.push(td.innerText);
+      // カンマ・改行対策
+      row.push(`"${td.innerText.replace(/"/g,'""')}"`);
     });
     lines.push(row.join(","));
   });
