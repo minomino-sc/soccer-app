@@ -72,13 +72,9 @@ async function render(){
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
-  /* Firestore */
+  /* Firestore load */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
-
-  const monthId = monthIdOf(current);
-  const sumSnap = await getDoc(doc(db,"attendance_summary", monthId));
-  latest = sumSnap.exists() ? sumSnap.data() : {};   // ★核心修正
 
   /* players */
   const players = playersSnap.docs
@@ -98,6 +94,12 @@ async function render(){
       e._date.getMonth() === current.getMonth()
     )
     .sort((a,b) => a._date - b._date);
+
+  /* summary（今月分だけ読む） */
+  latest = {};
+  const monthId = monthIdOf(current);
+  const sumSnap = await getDoc(doc(db,"attendance_summary", monthId));
+  if (sumSnap.exists()) latest = sumSnap.data();
 
   /* header */
   const trH = document.createElement("tr");
@@ -127,8 +129,11 @@ async function render(){
           cur==="skip" ? "present" :
           cur==="present" ? "absent" : "skip";
 
+        /* ★ イベントの月で必ず保存 */
+        const eventMonthId = monthIdOf(e._date);
+
         await setDoc(
-          doc(db,"attendance_summary", monthId),
+          doc(db,"attendance_summary", eventMonthId),
           { [key]: next, updatedAt: serverTimestamp() },
           { merge:true }
         );
@@ -152,14 +157,17 @@ async function render(){
   /* stats */
   players.forEach(p => {
     let prH=0, prT=0, maH=0, maT=0;
+
     events.forEach(e => {
       const s = latest[`${e.id}_${p.id}`];
       if (!s || s==="skip") return;
       if (e.type==="practice"){ prT++; if(s==="present") prH++; }
       if (e.type==="match"){ maT++; if(s==="present") maH++; }
     });
+
     const tot = prT + maT;
     const hit = prH + maH;
+
     stats.innerHTML += `
       <div class="statsCard">
         <strong>${p.name}</strong><br>
