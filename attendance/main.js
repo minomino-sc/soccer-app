@@ -72,18 +72,20 @@ async function render(){
   monthLabel.textContent =
     `${current.getFullYear()}年 ${current.getMonth()+1}月`;
 
+  /* Firestore */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
 
-  latest = {};
   const monthId = monthIdOf(current);
   const sumSnap = await getDoc(doc(db,"attendance_summary", monthId));
-  if (sumSnap.exists()) latest = sumSnap.data();
+  latest = sumSnap.exists() ? sumSnap.data() : {};   // ★核心修正
 
+  /* players */
   const players = playersSnap.docs
     .map(d => ({ id:d.id, ...d.data() }))
     .sort((a,b) => (a.number ?? 999) - (b.number ?? 999));
 
+  /* events */
   const events = eventsSnap.docs
     .map(d => {
       const data = d.data();
