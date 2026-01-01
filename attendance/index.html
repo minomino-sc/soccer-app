@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>⚽ 出欠管理</title>
+<title>⚽ 出欠管理（CSV専用）</title>
 
 <style>
 body{
@@ -103,13 +103,12 @@ th{
 
 <h1>⚽ 出欠管理</h1>
 
-<!-- 月切替＋CSV/PDFボタン -->
+<!-- 月切替＋CSVボタン -->
 <div class="controls">
   <button id="prevMonth">◀</button>
   <strong id="monthLabel"></strong>
   <button id="nextMonth">▶</button>
   <button onclick="exportCSV()">CSV出力</button>
-  <button id="pdfBtn">PDF出力</button>
 </div>
 
 <div class="legend">
@@ -126,11 +125,6 @@ th{
 
 <h2 style="font-size:14px;margin:10px 0 6px">📊 出席率</h2>
 <div id="stats" class="stats"></div>
-
-<!-- jsPDF + autoTable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script type="module" src="./main.js"></script>
 </body>
