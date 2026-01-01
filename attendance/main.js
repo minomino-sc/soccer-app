@@ -6,6 +6,7 @@ import {
   addDoc,
   query,
   where,
+  orderBy,
   serverTimestamp,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -76,13 +77,14 @@ async function render(){
 
   const monthId = monthIdOf(current);
 
-  /* Firestore 読み込み（安全） */
+  /* Firestore 読み込み */
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
   const logsSnap    = await getDocs(
     query(
       collection(db,"attendance_logs"),
-      where("monthId","==",monthId)
+      where("monthId","==",monthId),
+      orderBy("createdAt")   // ★ ここが最重要
     )
   );
 
@@ -91,7 +93,7 @@ async function render(){
     .map(d => ({ id:d.id, ...d.data() }))
     .sort((a,b)=>(a.number ?? 999)-(b.number ?? 999));
 
-  /* events（JS側でソート） */
+  /* events */
   const events = eventsSnap.docs
     .map(d=>{
       const data=d.data();
@@ -105,11 +107,11 @@ async function render(){
     )
     .sort((a,b)=>a._date - b._date);
 
-  /* logs → latest */
+  /* logs → latest（後勝ち） */
   latest = {};
   logsSnap.forEach(l=>{
     const d=l.data();
-    latest[`${d.eventId}_${d.playerId}`]=d.status;
+    latest[`${d.eventId}_${d.playerId}`] = d.status;
   });
 
   /* header */
@@ -144,6 +146,7 @@ async function render(){
           cur==="skip" ? "present" :
           cur==="present" ? "absent" : "skip";
 
+        /* 即時反映 */
         latest[key]=next;
         td.textContent=symbol(next);
 
