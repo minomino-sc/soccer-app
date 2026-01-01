@@ -12,12 +12,10 @@ body{
   margin:0;
   padding:12px;
 }
-
 h1{
   margin:0 0 6px;
   font-size:16px;
 }
-
 /* 操作部 */
 .controls{
   display:flex;
@@ -29,7 +27,6 @@ h1{
   padding:4px 8px;
   font-size:12px;
 }
-
 /* 判例 */
 .legend{
   display:flex;
@@ -45,33 +42,28 @@ h1{
 }
 .legend .match{background:#ffe0e0;padding:2px 5px;border-radius:4px}
 .legend .practice{background:#e0ffe0;padding:2px 5px;border-radius:4px}
-
 /* テーブル */
 .tableWrap{
-  overflow-x:auto;   /* 横スクロールOK */
+  overflow-x:auto;
 }
-
 table{
   border-collapse:collapse;
   background:#fff;
-  width:max-content; /* 横固定 */
+  width:max-content;
   font-size:11px;
 }
-
 th,td{
   border:1px solid #ddd;
   padding:3px 4px;
   text-align:center;
   line-height:1.2;
 }
-
 th{
   background:#eee;
   position:sticky;
   top:0;
   z-index:2;
 }
-
 /* 左固定（背番号＋名前） */
 .no{
   position:sticky;
@@ -87,11 +79,9 @@ th{
   z-index:3;
   white-space:nowrap;
 }
-
 /* イベント種別 */
 .match{background:#ffe0e0}
 .practice{background:#e0ffe0}
-
 /* 出席率 */
 .stats{
   margin-top:10px;
@@ -119,7 +109,7 @@ th{
   <strong id="monthLabel"></strong>
   <button id="nextMonth">▶</button>
   <button onclick="exportCSV()">CSV出力</button>
-  <button onclick="exportPDF()">PDF出力</button>
+  <button id="pdfBtn">PDF出力</button>
 </div>
 
 <div class="legend">
@@ -140,6 +130,7 @@ th{
 <!-- jsPDF + autoTable -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script type="module" src="./main.js"></script>
 </body>
