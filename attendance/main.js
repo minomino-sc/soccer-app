@@ -64,7 +64,7 @@ function symbol(s){
   return s==="present"?"○":s==="absent"?"×":"－";
 }
 
-/* render（表示専用・絶対壊れない） */
+/* render */
 async function render(){
   table.innerHTML="";
   stats.innerHTML="";
@@ -75,14 +75,19 @@ async function render(){
   const playersSnap = await getDocs(collection(db,"players_attendance"));
   const eventsSnap  = await getDocs(collection(db,"events_attendance"));
 
-  /* summary（なければ空でOK） */
+  /* summary（失敗しても絶対に止めない） */
   latest = {};
   const monthId = monthIdOf(current);
-  const summarySnap = await getDoc(
-    doc(db,"attendance_summary", monthId)
-  );
-  if(summarySnap.exists()){
-    latest = summarySnap.data();
+  try{
+    const summarySnap = await getDoc(
+      doc(db,"attendance_summary", monthId)
+    );
+    if(summarySnap.exists()){
+      latest = summarySnap.data();
+    }
+  }catch(e){
+    // 🔕 summaryが無くても表示は続行
+    latest = {};
   }
 
   /* players */
@@ -133,18 +138,15 @@ async function render(){
           cur==="skip"?"present":
           cur==="present"?"absent":"skip";
 
-        /* 即時反映 */
         latest[key] = next;
         td.textContent = symbol(next);
 
-        /* summary 更新 */
         await setDoc(
           doc(db,"attendance_summary", monthId),
           { [key]: next, updatedAt: serverTimestamp() },
           { merge:true }
         );
 
-        /* 履歴 */
         await addDoc(collection(db,"attendance_logs"),{
           eventId:e.id,
           playerId:p.id,
