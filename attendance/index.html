@@ -2,183 +2,133 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>⚽ 出欠管理</title>
-
-<!-- 丸みのあるフォント -->
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚽ 出欠管理（CSV専用）</title>
 
 <style>
-/* ===============================
-   ベース
-   =============================== */
 body{
+  font-family:system-ui;
+  background:#f5f7fb;
   margin:0;
-  font-family:"M PLUS Rounded 1c",system-ui;
-  background:linear-gradient(135deg,#0a1f44,#8b1538);
-  color:#fff;
+  padding:12px;
+}
+h1{
+  margin:0 0 6px;
+  font-size:16px;
 }
 
-header{
-  padding:10px;
-  text-align:center;
-  font-weight:700;
-  font-size:18px;
-}
-
-/* ===============================
-   月操作
-   =============================== */
+/* 操作部 */
 .controls{
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  padding:8px 12px;
+  gap:6px;
+  margin-bottom:6px;
 }
 .controls button{
-  background:#f5c542;
-  border:none;
-  border-radius:20px;
-  padding:6px 14px;
-  font-weight:700;
-  cursor:pointer;
-}
-#monthLabel{
-  font-weight:700;
+  padding:4px 8px;
+  font-size:12px;
 }
 
-/* ===============================
-   テーブル
-   =============================== */
-.wrapper{
+/* 判例（※試合・練習は削除） */
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:11px;
+  margin-bottom:6px;
+}
+.legend span{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+/* テーブル */
+.tableWrap{
   overflow-x:auto;
-  padding:6px;
 }
-
 table{
   border-collapse:collapse;
-  width:max-content;
   background:#fff;
-  color:#222;
-  border-radius:12px;
-  overflow:hidden;
+  width:max-content;
+  font-size:11px;
 }
-
-/* ヘッダー */
+th,td{
+  border:1px solid #ddd;
+  padding:3px 4px;
+  text-align:center;
+  line-height:1.2;
+}
 th{
+  background:#eee;
   position:sticky;
   top:0;
-  background:#1d3557;
-  color:#fff;
-  font-size:12px;
-  padding:6px;
   z-index:2;
 }
 
-/* 背番号 */
-th.no,
-td.no{
-  background:#8b1538;
-  color:#fff;
-  font-weight:700;
-  text-align:center;
-  min-width:38px;
-}
-
-/* 名前 */
-th.name,
-td.name{
-  background:#0a1f44;
-  color:#fff;
-  font-weight:700;
-  min-width:90px;
+/* 左固定（背番号＋名前） */
+.no{
   position:sticky;
-  left:38px;
-  z-index:1;
+  left:0;
+  background:#fafafa;
+  z-index:3;
+  white-space:nowrap;
+}
+.name{
+  position:sticky;
+  left:34px;
+  background:#fafafa;
+  z-index:3;
+  white-space:nowrap;
 }
 
-/* セル共通 */
-td{
-  text-align:center;
-  font-size:14px;
-  padding:6px;
-  cursor:pointer;
-  user-select:none;
-  border:1px solid #ddd;
-}
+/* イベント色（セル側では引き続き使用） */
+.match{background:#ffe0e0}
+.practice{background:#e0ffe0}
 
-/* 試合／練習 色分け */
-td.match{
-  background:#ffe1e8;
-}
-td.practice{
-  background:#f9f9f9;
-}
-
-/* タップ時 */
-td:active{
-  transform:scale(0.95);
-}
-
-/* ===============================
-   出席率
-   =============================== */
-#stats{
+/* 出席率 */
+.stats{
+  margin-top:10px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:8px;
-  padding:10px;
+  grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:6px;
 }
-
 .statsCard{
-  background:#ffffffdd;
-  color:#222;
-  border-radius:12px;
-  padding:8px;
-  font-size:13px;
-}
-
-/* ===============================
-   CSVボタン
-   =============================== */
-.footer{
-  padding:10px;
-  text-align:center;
-}
-.footer button{
-  background:#f5c542;
-  border:none;
-  border-radius:20px;
-  padding:8px 20px;
-  font-weight:700;
-  cursor:pointer;
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:6px;
+  padding:6px;
+  font-size:11px;
 }
 </style>
 </head>
 
 <body>
 
-<header>⚽ 出欠管理</header>
+<h1>⚽ 出欠管理</h1>
 
+<!-- 月切替＋CSVボタン -->
 <div class="controls">
   <button id="prevMonth">◀</button>
-  <div id="monthLabel"></div>
+  <strong id="monthLabel"></strong>
   <button id="nextMonth">▶</button>
-</div>
-
-<div class="wrapper">
-  <table id="table"></table>
-</div>
-
-<div id="stats"></div>
-
-<div class="footer">
   <button onclick="exportCSV()">CSV出力</button>
 </div>
 
-<!-- あなたの main.js -->
-<script type="module" src="main.js"></script>
+<!-- 判例（試合・練習は表示しない） -->
+<div class="legend">
+  <span>○ 出席</span>
+  <span>× 欠席</span>
+  <span>－ 対象外</span>
+</div>
 
+<div class="tableWrap">
+  <table id="table"></table>
+</div>
+
+<h2 style="font-size:14px;margin:10px 0 6px">📊 出席率</h2>
+<div id="stats" class="stats"></div>
+
+<script type="module" src="./main.js"></script>
 </body>
 </html>
