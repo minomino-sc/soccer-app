@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 出欠管理</title>
 
-<!-- 丸みのあるフォント -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
@@ -38,7 +37,6 @@ h1{
   margin-bottom:8px;
 }
 
-/* 薄い緑ボタン */
 button{
   background:linear-gradient(135deg,#cde8d6,#e6f5ec);
   color:var(--barca-blue);
@@ -51,7 +49,6 @@ button{
   box-shadow:0 4px 10px rgba(0,0,0,.25);
 }
 button:hover{
-  background:linear-gradient(135deg,#b9dcc9,#dff0e7);
   transform:translateY(-1px);
 }
 
@@ -59,17 +56,12 @@ button:hover{
   font-weight:700;
 }
 
-/* ===== 判例（○ × － のみ） ===== */
+/* ===== 判例 ===== */
 .legend{
   display:flex;
   gap:12px;
   font-size:11px;
   margin-bottom:8px;
-}
-.legend span{
-  display:flex;
-  align-items:center;
-  gap:4px;
 }
 
 /* ===== テーブル ===== */
@@ -95,7 +87,7 @@ th,td{
   line-height:1.3;
 }
 
-/* ヘッダー */
+/* ===== ヘッダー行 ===== */
 th{
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
   color:#fff;
@@ -105,29 +97,34 @@ th{
   z-index:2;
 }
 
-/* ===== 左固定列（バルサカラー） ===== */
-th.no, td.no{
+/* ★ 背番号・名前（ヘッダーのみ） */
+th.no,
+th.name{
+  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
+  color:#fff;
+  z-index:3;
+}
+
+/* ===== 左固定（データ行は従来通り） */
+td.no{
   position:sticky;
   left:0;
-  background:var(--barca-blue);
-  color:var(--barca-gold);
-  z-index:3;
-  font-weight:700;
+  background:#f0f0f0;
+  color:#222;
+  z-index:1;
   white-space:nowrap;
 }
 
-th.name, td.name{
+td.name{
   position:sticky;
   left:36px;
-  background:var(--barca-blue);
-  color:var(--barca-gold);
-  z-index:3;
-  font-weight:700;
+  background:#f0f0f0;
+  color:#222;
+  z-index:1;
   white-space:nowrap;
-  border-right:2px solid #08142e;
 }
 
-/* イベントセル */
+/* ===== イベントセル ===== */
 td.practice{
   background:#ffffff;
 }
@@ -169,7 +166,6 @@ h2{
 
 <h1>⚽ 出欠管理</h1>
 
-<!-- 月切替＋CSV -->
 <div class="controls">
   <button id="prevMonth">◀</button>
   <strong id="monthLabel"></strong>
@@ -177,7 +173,6 @@ h2{
   <button onclick="exportCSV()">CSV出力</button>
 </div>
 
-<!-- 判例（簡潔） -->
 <div class="legend">
   <span>○ 出席</span>
   <span>× 欠席</span>
@@ -191,7 +186,6 @@ h2{
 <h2>📊 出席率</h2>
 <div id="stats" class="stats"></div>
 
-<!-- main.js はそのまま -->
 <script type="module" src="./main.js"></script>
 
 </body>
