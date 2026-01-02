@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 出欠管理</title>
 
-<!-- 丸みのあるフォント -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
@@ -47,9 +46,6 @@ button{
   font-size:12px;
   cursor:pointer;
   box-shadow:0 4px 10px rgba(0,0,0,.25);
-}
-button:hover{
-  transform:translateY(-1px);
 }
 
 #monthLabel{
@@ -104,23 +100,30 @@ th{
   z-index:2;
 }
 
-/* 左固定 */
-.no{
-  position:sticky;
-  left:0;
-  background:#f0f0f0;
-  z-index:3;
-  white-space:nowrap;
-}
+/* ===== 左固定（改善ポイント） ===== */
+.no,
 .name{
   position:sticky;
-  left:36px;
-  background:#f0f0f0;
+  background:linear-gradient(135deg,var(--barca-red),var(--barca-blue));
+  color:#fff;
+  font-weight:700;
   z-index:3;
   white-space:nowrap;
+  border-right:1px solid rgba(255,255,255,.2);
 }
 
-/* イベント種別 */
+.no{
+  left:0;
+  min-width:34px;
+}
+
+.name{
+  left:36px;
+  padding-left:8px;
+  padding-right:8px;
+}
+
+/* ===== イベント種別 ===== */
 td.practice{
   background:#ffffff;
 }
@@ -162,7 +165,6 @@ h2{
 
 <h1>⚽ 出欠管理</h1>
 
-<!-- 月切替＋CSV -->
 <div class="controls">
   <button id="prevMonth">◀</button>
   <strong id="monthLabel"></strong>
@@ -185,7 +187,6 @@ h2{
 <h2>📊 出席率</h2>
 <div id="stats" class="stats"></div>
 
-<!-- 今使っている main.js をそのまま -->
 <script type="module" src="./main.js"></script>
 
 </body>
