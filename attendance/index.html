@@ -11,8 +11,11 @@
 :root{
   --barca-blue:#0a1a3a;
   --barca-red:#8b1538;
-  --barca-gold:#f5c542;
   --barca-light:#f4f6fa;
+
+  /* ★ JSで実測して入れる */
+  --no-width: 40px;
+  --name-width: 90px;
 }
 
 /* ===== 全体 ===== */
@@ -20,7 +23,7 @@ body{
   margin:0;
   padding:12px;
   font-family:"M PLUS Rounded 1c",system-ui,sans-serif;
-  background:linear-gradient(135deg,var(--barca-blue),#122b5c);
+  background:#0a1a3a;
   color:#fff;
 }
 
@@ -29,28 +32,21 @@ h1{
   font-size:18px;
 }
 
-/* ===== 操作部（※変更なし） ===== */
+/* ===== 操作部（元の薄い緑・文字黒） ===== */
 .controls{
   display:flex;
   align-items:center;
   gap:6px;
   margin-bottom:8px;
 }
-
 button{
-  background:linear-gradient(135deg,var(--barca-gold),#ffda6b);
+  background:#cde8d6;
+  color:#000;
   border:none;
-  border-radius:20px;
-  padding:6px 14px;
-  font-weight:700;
+  border-radius:8px;
+  padding:6px 10px;
   font-size:12px;
   cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,.25);
-  color:#000;
-}
-
-#monthLabel{
-  font-weight:700;
 }
 
 /* ===== 凡例 ===== */
@@ -64,17 +60,15 @@ button{
 /* ===== テーブル ===== */
 .tableWrap{
   overflow-x:auto;
+  position:relative;
 }
 
 table{
-  border-collapse:separate;   /* ★ 修正点 */
-  border-spacing:0;           /* ★ 修正点 */
+  border-collapse:separate;
+  border-spacing:0;
   width:max-content;
   background:var(--barca-light);
   color:#222;
-  border-radius:14px;
-  overflow:hidden;
-  box-shadow:0 8px 20px rgba(0,0,0,.25);
   font-size:12px;
 }
 
@@ -82,58 +76,43 @@ th,td{
   border:1px solid #ddd;
   padding:4px 6px;
   text-align:center;
-  line-height:1.3;
+  white-space:nowrap;
 }
 
 /* ===== ヘッダー ===== */
 th{
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
   color:#fff;
-  font-weight:700;
   position:sticky;
   top:0;
-  z-index:6;
+  z-index:10;
 }
 
-/* ===== 左固定：背番号・名前 ===== */
-td.no{
+/* ===== 背番号 ===== */
+th.no, td.no{
   position:sticky;
   left:0;
-  background:#f0f0f0;
-  z-index:5;
-  white-space:nowrap;
-}
-
-td.name{
-  position:sticky;
-  left:42px;
-  background:#f0f0f0;
-  z-index:5;
-  white-space:nowrap;
-}
-
-th.no{
-  position:sticky;
-  left:0;
-  z-index:7;
+  z-index:20;
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
+  color:#fff;
 }
 
-th.name{
+/* ===== 名前 ===== */
+th.name, td.name{
   position:sticky;
-  left:42px;
-  z-index:7;
+  left:var(--no-width);
+  z-index:19;
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
+  color:#fff;
 }
 
 /* ===== 出欠セル ===== */
-td.practice{ background:#ffffff; }
+td.practice{ background:#fff; }
 td.match{ background:#fbeaec; }
 
 td.practice:hover,
 td.match:hover{
-  background:var(--barca-gold);
-  color:#000;
+  background:#f5c542;
   cursor:pointer;
 }
 
@@ -142,19 +121,16 @@ h2{
   font-size:15px;
   margin:12px 0 6px;
 }
-
 .stats{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
   gap:8px;
 }
-
 .statsCard{
   background:linear-gradient(135deg,var(--barca-red),var(--barca-blue));
   color:#fff;
   padding:10px;
-  border-radius:14px;
-  box-shadow:0 6px 15px rgba(0,0,0,.3);
+  border-radius:10px;
   font-size:12px;
 }
 </style>
@@ -186,6 +162,27 @@ h2{
 <div id="stats" class="stats"></div>
 
 <script type="module" src="./main.js"></script>
+
+<script>
+/* ===============================
+   ★ iOS Safari 対応：列幅を実測
+   =============================== */
+function fixStickyWidths(){
+  const no = document.querySelector("th.no");
+  const name = document.querySelector("th.name");
+  if(!no || !name) return;
+
+  const noW = no.getBoundingClientRect().width;
+  const nameW = name.getBoundingClientRect().width;
+
+  document.documentElement.style.setProperty("--no-width", noW + "px");
+  document.documentElement.style.setProperty("--name-width", nameW + "px");
+}
+
+/* table描画後に実行 */
+const observer = new MutationObserver(()=> fixStickyWidths());
+observer.observe(document.getElementById("table"), {childList:true});
+</script>
 
 </body>
 </html>
