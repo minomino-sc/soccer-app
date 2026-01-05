@@ -29,7 +29,7 @@ h1{
   font-size:18px;
 }
 
-/* ===== 操作部 ===== */
+/* ===== 操作部（※変更なし） ===== */
 .controls{
   display:flex;
   align-items:center;
@@ -38,8 +38,7 @@ h1{
 }
 
 button{
-  background:linear-gradient(135deg,#cde8d6,#e6f5ec);
-  color:var(--barca-blue);
+  background:linear-gradient(135deg,var(--barca-gold),#ffda6b);
   border:none;
   border-radius:20px;
   padding:6px 14px;
@@ -47,19 +46,17 @@ button{
   font-size:12px;
   cursor:pointer;
   box-shadow:0 4px 10px rgba(0,0,0,.25);
-}
-button:hover{
-  transform:translateY(-1px);
+  color:#000;
 }
 
 #monthLabel{
   font-weight:700;
 }
 
-/* ===== 判例 ===== */
+/* ===== 凡例 ===== */
 .legend{
   display:flex;
-  gap:12px;
+  gap:10px;
   font-size:11px;
   margin-bottom:8px;
 }
@@ -70,7 +67,8 @@ button:hover{
 }
 
 table{
-  border-collapse:collapse;
+  border-collapse:separate;   /* ★ 修正点 */
+  border-spacing:0;           /* ★ 修正点 */
   width:max-content;
   background:var(--barca-light);
   color:#222;
@@ -87,50 +85,50 @@ th,td{
   line-height:1.3;
 }
 
-/* ===== ヘッダー行 ===== */
+/* ===== ヘッダー ===== */
 th{
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
   color:#fff;
   font-weight:700;
   position:sticky;
   top:0;
-  z-index:2;
+  z-index:6;
 }
 
-/* ★ 背番号・名前（ヘッダーのみ） */
-th.no,
-th.name{
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
-  z-index:3;
-}
-
-/* ===== 左固定（データ行は従来通り） */
+/* ===== 左固定：背番号・名前 ===== */
 td.no{
   position:sticky;
   left:0;
   background:#f0f0f0;
-  color:#222;
-  z-index:1;
+  z-index:5;
   white-space:nowrap;
 }
 
 td.name{
   position:sticky;
-  left:36px;
+  left:42px;
   background:#f0f0f0;
-  color:#222;
-  z-index:1;
+  z-index:5;
   white-space:nowrap;
 }
 
-/* ===== イベントセル ===== */
-td.practice{
-  background:#ffffff;
+th.no{
+  position:sticky;
+  left:0;
+  z-index:7;
+  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
 }
-td.match{
-  background:#fbeaec;
+
+th.name{
+  position:sticky;
+  left:42px;
+  z-index:7;
+  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
 }
+
+/* ===== 出欠セル ===== */
+td.practice{ background:#ffffff; }
+td.match{ background:#fbeaec; }
 
 td.practice:hover,
 td.match:hover{
@@ -177,7 +175,7 @@ h2{
   <span>○ 出席</span>
   <span>× 欠席</span>
   <span>－ 対象外</span>
-  <span>※ トレセン</span>
+  <span>※ トレセン（出席扱い）</span>
 </div>
 
 <div class="tableWrap">
