@@ -48,15 +48,12 @@ button{
   cursor:pointer;
   box-shadow:0 4px 10px rgba(0,0,0,.25);
 }
-button:hover{
-  transform:translateY(-1px);
-}
 
 #monthLabel{
   font-weight:700;
 }
 
-/* ===== 判例 ===== */
+/* ===== 凡例 ===== */
 .legend{
   display:flex;
   gap:12px;
@@ -94,24 +91,33 @@ th{
   font-weight:700;
   position:sticky;
   top:0;
-  z-index:2;
+  z-index:5;
 }
 
-/* ★ 背番号・名前（ヘッダーのみ） */
-th.no,
-th.name{
+/* ★ 背番号・名前（ヘッダーも左固定する） */
+th.no{
+  position:sticky;
+  left:0;
+  z-index:6;
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
-  z-index:3;
+  white-space:nowrap;
 }
 
-/* ===== 左固定（データ行は従来通り） */
+th.name{
+  position:sticky;
+  left:36px;   /* 背番号列の幅と一致させる */
+  z-index:6;
+  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
+  white-space:nowrap;
+}
+
+/* ===== 左固定（データ行） ===== */
 td.no{
   position:sticky;
   left:0;
   background:#f0f0f0;
   color:#222;
-  z-index:1;
+  z-index:3;
   white-space:nowrap;
 }
 
@@ -120,17 +126,13 @@ td.name{
   left:36px;
   background:#f0f0f0;
   color:#222;
-  z-index:1;
+  z-index:3;
   white-space:nowrap;
 }
 
-/* ===== イベントセル ===== */
-td.practice{
-  background:#ffffff;
-}
-td.match{
-  background:#fbeaec;
-}
+/* ===== 出欠セル ===== */
+td.practice{ background:#ffffff; }
+td.match{ background:#fbeaec; }
 
 td.practice:hover,
 td.match:hover{
