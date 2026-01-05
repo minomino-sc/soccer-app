@@ -11,8 +11,8 @@
 :root{
   --barca-blue:#0a1a3a;
   --barca-red:#8b1538;
+  --barca-gold:#f5c542;
   --barca-light:#f4f6fa;
-  --btn-green:#cfe9d8;
 }
 
 /* ===== 全体 ===== */
@@ -38,23 +38,28 @@ h1{
 }
 
 button{
-  background:var(--btn-green);
+  background:linear-gradient(135deg,#cde8d6,#e6f5ec);
+  color:var(--barca-blue);
   border:none;
-  border-radius:18px;
+  border-radius:20px;
   padding:6px 14px;
   font-weight:700;
   font-size:12px;
   cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+}
+button:hover{
+  transform:translateY(-1px);
 }
 
 #monthLabel{
   font-weight:700;
 }
 
-/* ===== 凡例 ===== */
+/* ===== 判例 ===== */
 .legend{
   display:flex;
-  gap:10px;
+  gap:12px;
   font-size:11px;
   margin-bottom:8px;
 }
@@ -71,6 +76,7 @@ table{
   color:#222;
   border-radius:14px;
   overflow:hidden;
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
   font-size:12px;
 }
 
@@ -81,54 +87,44 @@ th,td{
   line-height:1.3;
 }
 
-/* ===== ヘッダー ===== */
+/* ===== ヘッダー行 ===== */
 th{
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
   color:#fff;
   font-weight:700;
   position:sticky;
   top:0;
-  z-index:6;
+  z-index:2;
 }
 
-/* ===== 左固定（背番号・名前） ===== */
-/* 列幅を明示 */
-th.no, td.no{
-  width:32px;
-  min-width:32px;
+/* ★ 背番号・名前（ヘッダーのみ） */
+th.no,
+th.name{
+  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
+  color:#fff;
+  z-index:3;
 }
 
-/* 背番号 */
+/* ===== 左固定（データ行は従来通り） */
 td.no{
   position:sticky;
   left:0;
   background:#f0f0f0;
-  z-index:5;
+  color:#222;
+  z-index:1;
   white-space:nowrap;
 }
 
-th.no{
-  position:sticky;
-  left:0;
-  z-index:7;
-}
-
-/* 名前（← 背番号幅ぴったり） */
 td.name{
   position:sticky;
-  left:32px;
+  left:36px;
   background:#f0f0f0;
-  z-index:5;
+  color:#222;
+  z-index:1;
   white-space:nowrap;
 }
 
-th.name{
-  position:sticky;
-  left:32px;
-  z-index:7;
-}
-
-/* ===== 出欠セル ===== */
+/* ===== イベントセル ===== */
 td.practice{
   background:#ffffff;
 }
@@ -138,7 +134,8 @@ td.match{
 
 td.practice:hover,
 td.match:hover{
-  background:#cfe9d8;
+  background:var(--barca-gold);
+  color:#000;
   cursor:pointer;
 }
 
@@ -159,6 +156,7 @@ h2{
   color:#fff;
   padding:10px;
   border-radius:14px;
+  box-shadow:0 6px 15px rgba(0,0,0,.3);
   font-size:12px;
 }
 </style>
@@ -179,7 +177,7 @@ h2{
   <span>○ 出席</span>
   <span>× 欠席</span>
   <span>－ 対象外</span>
-  <span>※ トレセン（出席扱い）</span>
+  <span>※ トレセン</span>
 </div>
 
 <div class="tableWrap">
