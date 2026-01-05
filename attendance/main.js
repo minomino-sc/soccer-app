@@ -63,12 +63,17 @@ function toDate(v) {
 function monthIdOf(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
+
+/* 表示記号 */
 function symbol(s) {
-  return s === "present" ? "○" : s === "absent" ? "×" : "－";
+  if (s === "present") return "○";
+  if (s === "special") return "※"; // ★ トレセン
+  if (s === "absent") return "×";
+  return "－";
 }
 
 /* ===============================
-   出席率描画（※読み取りなし）
+   出席率描画（読み取りなし）
    =============================== */
 function renderStats(players, monthEvents, logsCache) {
   stats.innerHTML = "";
@@ -80,13 +85,15 @@ function renderStats(players, monthEvents, logsCache) {
       const s = logsCache[`${e.id}_${p.id}`]?.status;
       if (!s || s === "skip") return;
 
+      const isHit = (s === "present" || s === "special"); // ★ ※も出席扱い
+
       if (e.type === "practice") {
         prT++;
-        if (s === "present") prH++;
+        if (isHit) prH++;
       }
       if (e.type === "match") {
         maT++;
-        if (s === "present") maH++;
+        if (isHit) maH++;
       }
     });
 
@@ -195,7 +202,11 @@ async function render() {
         rendering = true;
 
         const cur = logsCache[key]?.status || "skip";
-        const next = cur === "skip" ? "present" : cur === "present" ? "absent" : "skip";
+        const next =
+          cur === "skip" ? "present" :
+          cur === "present" ? "special" : // ★ ※
+          cur === "special" ? "absent" :
+          "skip";
 
         await addDoc(collection(db, "attendance_logs"), {
           eventId: e.id,
@@ -208,7 +219,7 @@ async function render() {
         logsCache[key] = { status: next, time: Date.now() };
         td.textContent = symbol(next);
 
-        // ★ 出席率を即時再計算（読み取りなし）
+        // 出席率を即時更新（読み取りなし）
         renderStats(players, monthEvents, logsCache);
 
         rendering = false;
@@ -220,7 +231,7 @@ async function render() {
     table.appendChild(tr);
   });
 
-  /* 出席率初期描画 */
+  /* 出席率 初期描画 */
   renderStats(players, monthEvents, logsCache);
 
   rendering = false;
