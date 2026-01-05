@@ -5,15 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 出欠管理</title>
 
-<!-- 丸みのあるフォント -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
   --barca-blue:#0a1a3a;
   --barca-red:#8b1538;
-  --barca-gold:#f5c542;
   --barca-light:#f4f6fa;
+  --btn-green:#cfe9d8;
 }
 
 /* ===== 全体 ===== */
@@ -39,14 +38,13 @@ h1{
 }
 
 button{
-  background:linear-gradient(135deg,var(--barca-gold),#ffda6b);
+  background:var(--btn-green);
   border:none;
-  border-radius:20px;
+  border-radius:18px;
   padding:6px 14px;
   font-weight:700;
   font-size:12px;
   cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,.25);
 }
 
 #monthLabel{
@@ -64,7 +62,6 @@ button{
 /* ===== テーブル ===== */
 .tableWrap{
   overflow-x:auto;
-  overflow-y:visible;
 }
 
 table{
@@ -73,9 +70,8 @@ table{
   background:var(--barca-light);
   color:#222;
   border-radius:14px;
-  box-shadow:0 8px 20px rgba(0,0,0,.25);
+  overflow:hidden;
   font-size:12px;
-  position:relative; /* ★ sticky 安定化 */
 }
 
 th,td{
@@ -95,8 +91,14 @@ th{
   z-index:6;
 }
 
-/* ===== 左固定：背番号・名前 ===== */
-/* 本文 */
+/* ===== 左固定（背番号・名前） ===== */
+/* 列幅を明示 */
+th.no, td.no{
+  width:32px;
+  min-width:32px;
+}
+
+/* 背番号 */
 td.no{
   position:sticky;
   left:0;
@@ -105,31 +107,25 @@ td.no{
   white-space:nowrap;
 }
 
+th.no{
+  position:sticky;
+  left:0;
+  z-index:7;
+}
+
+/* 名前（← 背番号幅ぴったり） */
 td.name{
   position:sticky;
-  left:42px; /* 背番号列幅 */
+  left:32px;
   background:#f0f0f0;
   z-index:5;
   white-space:nowrap;
 }
 
-/* ヘッダー */
-th.no{
-  position:sticky;
-  left:0;
-  z-index:7;
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
-  white-space:nowrap;
-}
-
 th.name{
   position:sticky;
-  left:42px;
+  left:32px;
   z-index:7;
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
-  white-space:nowrap;
 }
 
 /* ===== 出欠セル ===== */
@@ -142,8 +138,7 @@ td.match{
 
 td.practice:hover,
 td.match:hover{
-  background:var(--barca-gold);
-  color:#000;
+  background:#cfe9d8;
   cursor:pointer;
 }
 
@@ -164,7 +159,6 @@ h2{
   color:#fff;
   padding:10px;
   border-radius:14px;
-  box-shadow:0 6px 15px rgba(0,0,0,.3);
   font-size:12px;
 }
 </style>
@@ -195,7 +189,6 @@ h2{
 <h2>📊 出席率</h2>
 <div id="stats" class="stats"></div>
 
-<!-- main.js は変更不要 -->
 <script type="module" src="./main.js"></script>
 
 </body>
