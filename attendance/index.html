@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 出欠管理</title>
 
-<!-- 丸みのあるフォント -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
@@ -38,15 +37,15 @@ h1{
   margin-bottom:8px;
 }
 
-button{
-  background:linear-gradient(135deg,var(--barca-gold),#ffda6b);
+/* 月切替・CSV 共通ボタン（元の色） */
+.monthBtn{
+  background:#e0e0e0;
+  color:#222;
   border:none;
-  border-radius:20px;
-  padding:6px 14px;
-  font-weight:700;
+  border-radius:16px;
+  padding:5px 10px;
   font-size:12px;
   cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,.25);
 }
 
 #monthLabel{
@@ -94,41 +93,44 @@ th{
   z-index:6;
 }
 
-/* ===== 左固定：背番号・名前 ===== */
+/* ===== 左固定列 ===== */
+th.no, td.no{
+  width:40px;
+  min-width:40px;
+}
+
+th.name, td.name{
+  width:110px;
+  min-width:110px;
+  text-align:left;
+}
+
 /* 本文 */
 td.no{
   position:sticky;
   left:0;
   background:#f0f0f0;
   z-index:5;
-  white-space:nowrap;
 }
 
 td.name{
   position:sticky;
-  left:42px; /* ← 背番号列の幅 */
+  left:40px;
   background:#f0f0f0;
   z-index:5;
-  white-space:nowrap;
 }
 
-/* ヘッダー（← 日付と同じ見た目にする） */
+/* ヘッダー */
 th.no{
   position:sticky;
   left:0;
   z-index:7;
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
-  white-space:nowrap;
 }
 
 th.name{
   position:sticky;
-  left:42px;
+  left:40px;
   z-index:7;
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
-  white-space:nowrap;
 }
 
 /* ===== 出欠セル ===== */
@@ -174,10 +176,10 @@ h2{
 <h1>⚽ 出欠管理</h1>
 
 <div class="controls">
-  <button id="prevMonth">◀</button>
+  <button id="prevMonth" class="monthBtn">◀</button>
   <strong id="monthLabel"></strong>
-  <button id="nextMonth">▶</button>
-  <button onclick="exportCSV()">CSV出力</button>
+  <button id="nextMonth" class="monthBtn">▶</button>
+  <button onclick="exportCSV()" class="monthBtn">CSV出力</button>
 </div>
 
 <div class="legend">
@@ -194,7 +196,6 @@ h2{
 <h2>📊 出席率</h2>
 <div id="stats" class="stats"></div>
 
-<!-- 既存 main.js をそのまま使用 -->
 <script type="module" src="./main.js"></script>
 
 </body>
