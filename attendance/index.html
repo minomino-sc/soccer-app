@@ -13,9 +13,8 @@
   --barca-red:#8b1538;
   --barca-light:#f4f6fa;
 
-  /* ★ JSで実測して入れる */
-  --no-width: 40px;
-  --name-width: 90px;
+  --no-width:40px;
+  --name-width:90px;
 }
 
 /* ===== 全体 ===== */
@@ -25,6 +24,7 @@ body{
   font-family:"M PLUS Rounded 1c",system-ui,sans-serif;
   background:#0a1a3a;
   color:#fff;
+  font-size:12px; /* ← 元のサイズ */
 }
 
 h1{
@@ -32,7 +32,7 @@ h1{
   font-size:18px;
 }
 
-/* ===== 操作部（元の薄い緑・文字黒） ===== */
+/* ===== 操作部（元の色） ===== */
 .controls{
   display:flex;
   align-items:center;
@@ -88,22 +88,32 @@ th{
   z-index:10;
 }
 
-/* ===== 背番号 ===== */
-th.no, td.no{
+/* ===== 背番号・名前（ヘッダーのみバルサ） ===== */
+th.no{
   position:sticky;
   left:0;
   z-index:20;
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
 }
-
-/* ===== 名前 ===== */
-th.name, td.name{
+th.name{
   position:sticky;
   left:var(--no-width);
   z-index:19;
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
+}
+
+/* ===== 本文（元の見た目に戻す） ===== */
+td.no{
+  position:sticky;
+  left:0;
+  z-index:5;
+  background:#f0f0f0;
+  color:#000;
+}
+td.name{
+  position:sticky;
+  left:var(--no-width);
+  z-index:5;
+  background:#f0f0f0;
+  color:#000;
 }
 
 /* ===== 出欠セル ===== */
@@ -164,24 +174,20 @@ h2{
 <script type="module" src="./main.js"></script>
 
 <script>
-/* ===============================
-   ★ iOS Safari 対応：列幅を実測
-   =============================== */
+/* ===== 列幅実測（横スクロール固定用） ===== */
 function fixStickyWidths(){
   const no = document.querySelector("th.no");
   const name = document.querySelector("th.name");
   if(!no || !name) return;
 
-  const noW = no.getBoundingClientRect().width;
-  const nameW = name.getBoundingClientRect().width;
-
-  document.documentElement.style.setProperty("--no-width", noW + "px");
-  document.documentElement.style.setProperty("--name-width", nameW + "px");
+  document.documentElement.style.setProperty(
+    "--no-width",
+    no.getBoundingClientRect().width + "px"
+  );
 }
 
-/* table描画後に実行 */
-const observer = new MutationObserver(()=> fixStickyWidths());
-observer.observe(document.getElementById("table"), {childList:true});
+new MutationObserver(fixStickyWidths)
+  .observe(document.getElementById("table"), {childList:true});
 </script>
 
 </body>
