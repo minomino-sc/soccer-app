@@ -1,295 +1,194 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  where,
-  serverTimestamp,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚽ 出欠管理</title>
 
-/* Firebase 設定 */
-const firebaseConfig = {
-  apiKey: "★★★★★",
-  authDomain: "★★★★★",
-  projectId: "minotani-sc-app",
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
 
-/* DOM */
-const table = document.getElementById("table");
-const stats = document.getElementById("stats");
-const monthLabel = document.getElementById("monthLabel");
+<style>
+:root{
+  --barca-blue:#0a1a3a;
+  --barca-red:#8b1538;
+  --barca-light:#f4f6fa;
 
-/* state */
-let current = new Date();
-let rendering = false;
-
-/* キャッシュ */
-let players = [];
-let events = [];
-let logsCacheByMonth = {}; 
-// { "2026-01": { "eventId_playerId": {status, time} } }
-
-/* 月切替 */
-document.getElementById("prevMonth").onclick = () => {
-  if (rendering) return;
-  current.setDate(1);
-  current.setMonth(current.getMonth() - 1);
-  render();
-};
-document.getElementById("nextMonth").onclick = () => {
-  if (rendering) return;
-  current.setDate(1);
-  current.setMonth(current.getMonth() + 1);
-  render();
-};
-
-render();
-
-/* utils */
-function toDate(v) {
-  if (!v) return null;
-  if (typeof v === "string") {
-    const [y, m, d] = v.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-  if (v instanceof Timestamp) return v.toDate();
-  return null;
-}
-function monthIdOf(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-function symbol(s) {
-  if (s === "present") return "○";
-  if (s === "absent") return "×";
-  if (s === "tc") return "※"; // トレセン（出席扱い）
-  return "－";
+  --no-width:40px;
+  --name-width:90px;
 }
 
-/* ===============================
-   出席率描画（読み取りなし）
-   =============================== */
-function renderStats(players, monthEvents, logsCache) {
-  stats.innerHTML = "";
-
-  players.forEach(p => {
-    let prH = 0, prT = 0, maH = 0, maT = 0;
-
-    monthEvents.forEach(e => {
-      const s = logsCache[`${e.id}_${p.id}`]?.status;
-      if (!s || s === "skip") return;
-
-      const isHit = s === "present" || s === "tc";
-
-      if (e.type === "practice") {
-        prT++;
-        if (isHit) prH++;
-      }
-      if (e.type === "match") {
-        maT++;
-        if (isHit) maH++;
-      }
-    });
-
-    const tot = prT + maT;
-    const hit = prH + maH;
-
-    stats.innerHTML += `
-      <div class="statsCard">
-        <strong>${p.name}</strong><br>
-        練習：${prH}/${prT}（${prT ? Math.round(prH / prT * 100) : 0}%）<br>
-        試合：${maH}/${maT}（${maT ? Math.round(maH / maT * 100) : 0}%）<br>
-        合計：${hit}/${tot}（${tot ? Math.round(hit / tot * 100) : 0}%）
-      </div>
-    `;
-  });
+/* ===== 全体 ===== */
+body{
+  margin:0;
+  padding:12px;
+  font-family:"M PLUS Rounded 1c",system-ui,sans-serif;
+  background:#0a1a3a;
+  color:#fff;
+  font-size:12px; /* ← 元のサイズ */
 }
 
-/* ===============================
-   メイン描画
-   =============================== */
-async function render() {
-  rendering = true;
-  table.innerHTML = "";
-  stats.innerHTML = "";
-  monthLabel.textContent = `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
+h1{
+  margin:0 0 6px;
+  font-size:18px;
+}
 
-  const monthId = monthIdOf(current);
+/* ===== 操作部（元の色） ===== */
+.controls{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:8px;
+}
+button{
+  background:#cde8d6;
+  color:#000;
+  border:none;
+  border-radius:8px;
+  padding:6px 10px;
+  font-size:12px;
+  cursor:pointer;
+}
 
-  /* players（初回のみ） */
-  if (players.length === 0) {
-    const snap = await getDocs(collection(db, "players_attendance"));
-    players = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
-  }
+/* ===== 凡例 ===== */
+.legend{
+  display:flex;
+  gap:10px;
+  font-size:11px;
+  margin-bottom:8px;
+}
 
-  /* events（初回のみ） */
-  if (events.length === 0) {
-    const snap = await getDocs(collection(db, "events_attendance"));
-    events = snap.docs
-      .map(d => {
-        const data = d.data();
-        return { id: d.id, ...data, _date: toDate(data.date) };
-      })
-      .filter(e => e.type !== "holiday")
-      .sort((a, b) => a._date - b._date);
-  }
+/* ===== テーブル ===== */
+.tableWrap{
+  overflow-x:auto;
+  position:relative;
+}
 
-  /* 当月イベント */
-  const monthEvents = events.filter(
-    e =>
-      e._date &&
-      e._date.getFullYear() === current.getFullYear() &&
-      e._date.getMonth() === current.getMonth()
+table{
+  border-collapse:separate;
+  border-spacing:0;
+  width:max-content;
+  background:var(--barca-light);
+  color:#222;
+  font-size:12px;
+}
+
+th,td{
+  border:1px solid #ddd;
+  padding:4px 6px;
+  text-align:center;
+  white-space:nowrap;
+}
+
+/* ===== ヘッダー ===== */
+th{
+  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
+  color:#fff;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+/* ===== 背番号・名前（ヘッダーのみバルサ） ===== */
+th.no{
+  position:sticky;
+  left:0;
+  z-index:20;
+}
+th.name{
+  position:sticky;
+  left:var(--no-width);
+  z-index:19;
+}
+
+/* ===== 本文（元の見た目に戻す） ===== */
+td.no{
+  position:sticky;
+  left:0;
+  z-index:5;
+  background:#f0f0f0;
+  color:#000;
+}
+td.name{
+  position:sticky;
+  left:var(--no-width);
+  z-index:5;
+  background:#f0f0f0;
+  color:#000;
+}
+
+/* ===== 出欠セル ===== */
+td.practice{ background:#fff; }
+td.match{ background:#fbeaec; }
+
+td.practice:hover,
+td.match:hover{
+  background:#f5c542;
+  cursor:pointer;
+}
+
+/* ===== 出席率 ===== */
+h2{
+  font-size:15px;
+  margin:12px 0 6px;
+}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:8px;
+}
+.statsCard{
+  background:linear-gradient(135deg,var(--barca-red),var(--barca-blue));
+  color:#fff;
+  padding:10px;
+  border-radius:10px;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚽ 出欠管理</h1>
+
+<div class="controls">
+  <button id="prevMonth">◀</button>
+  <strong id="monthLabel"></strong>
+  <button id="nextMonth">▶</button>
+  <button onclick="exportCSV()">CSV出力</button>
+</div>
+
+<div class="legend">
+  <span>○ 出席</span>
+  <span>× 欠席</span>
+  <span>－ 対象外</span>
+  <span>※ トレセン（出席扱い）</span>
+</div>
+
+<div class="tableWrap">
+  <table id="table"></table>
+</div>
+
+<h2>📊 出席率</h2>
+<div id="stats" class="stats"></div>
+
+<script type="module" src="./main.js"></script>
+
+<script>
+/* ===== 列幅実測（横スクロール固定用） ===== */
+function fixStickyWidths(){
+  const no = document.querySelector("th.no");
+  const name = document.querySelector("th.name");
+  if(!no || !name) return;
+
+  document.documentElement.style.setProperty(
+    "--no-width",
+    no.getBoundingClientRect().width + "px"
   );
-
-  /* attendance_logs（月1回だけ取得） */
-  if (!logsCacheByMonth[monthId]) {
-    logsCacheByMonth[monthId] = {};
-    const snap = await getDocs(
-      query(collection(db, "attendance_logs"), where("monthId", "==", monthId))
-    );
-
-    snap.forEach(doc => {
-      const d = doc.data();
-      const key = `${d.eventId}_${d.playerId}`;
-      const t = d.createdAt?.toMillis?.() ?? 0;
-      if (
-        !logsCacheByMonth[monthId][key] ||
-        t > logsCacheByMonth[monthId][key].time
-      ) {
-        logsCacheByMonth[monthId][key] = { status: d.status, time: t };
-      }
-    });
-  }
-
-  const logsCache = logsCacheByMonth[monthId];
-
-  /* ---------- table header ---------- */
-  const trH = document.createElement("tr");
-
-  const thNo = document.createElement("th");
-  thNo.className = "no";
-  thNo.textContent = "背";
-  trH.appendChild(thNo);
-
-  const thName = document.createElement("th");
-  thName.className = "name";
-  thName.textContent = "名前";
-  trH.appendChild(thName);
-
-  monthEvents.forEach(e => {
-    const th = document.createElement("th");
-    th.className = e.type;
-    th.innerHTML = `${e._date.getDate()}<br>${e.type === "match" ? "試合" : "練習"}`;
-    trH.appendChild(th);
-  });
-
-  table.appendChild(trH);
-
-  /* ---------- table body ---------- */
-  players.forEach(p => {
-    const tr = document.createElement("tr");
-
-    // ★★★ ここが重要：innerHTMLを使わず確実に固定 ★★★
-    const tdNo = document.createElement("td");
-    tdNo.className = "no";
-    tdNo.textContent = p.number ?? "";
-    tr.appendChild(tdNo);
-
-    const tdName = document.createElement("td");
-    tdName.className = "name";
-    tdName.textContent = p.name;
-    tr.appendChild(tdName);
-
-    monthEvents.forEach(e => {
-      const key = `${e.id}_${p.id}`;
-      const td = document.createElement("td");
-      td.className = e.type;
-      td.textContent = symbol(logsCache[key]?.status || "skip");
-
-      td.onclick = async () => {
-        if (rendering) return;
-        rendering = true;
-
-        const cur = logsCache[key]?.status || "skip";
-        const next =
-          cur === "skip" ? "present" :
-          cur === "present" ? "absent" :
-          cur === "absent" ? "tc" :
-          "skip";
-
-        await addDoc(collection(db, "attendance_logs"), {
-          eventId: e.id,
-          playerId: p.id,
-          status: next,
-          monthId,
-          createdAt: serverTimestamp()
-        });
-
-        logsCache[key] = { status: next, time: Date.now() };
-        td.textContent = symbol(next);
-
-        renderStats(players, monthEvents, logsCache);
-        rendering = false;
-      };
-
-      tr.appendChild(td);
-    });
-
-    table.appendChild(tr);
-  });
-
-  renderStats(players, monthEvents, logsCache);
-  rendering = false;
 }
 
-/* ===============================
-   CSV 出力（元のまま）
-   =============================== */
-window.exportCSV = function () {
-  const lines = [];
+new MutationObserver(fixStickyWidths)
+  .observe(document.getElementById("table"), {childList:true});
+</script>
 
-  lines.push(["⚽ 出欠管理"]);
-  lines.push([`${current.getFullYear()}年${current.getMonth() + 1}月`]);
-  lines.push([]);
-
-  const headers = ["背番号", "名前"];
-  document.querySelectorAll("th:not(.no):not(.name)").forEach(h => {
-    headers.push(h.innerText.replace(/\n/g, ""));
-  });
-  lines.push(headers);
-
-  document.querySelectorAll("#table tr").forEach((tr, i) => {
-    if (i === 0) return;
-    const row = [];
-    tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
-    lines.push(row);
-  });
-
-  lines.push([]);
-  lines.push(["📊 出席率"]);
-  document.querySelectorAll(".statsCard").forEach(card => {
-    lines.push([card.innerText.replace(/\n/g, " ")]);
-  });
-
-  const csv =
-    "\uFEFF" +
-    lines
-      .map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${monthIdOf(current)}_attendance.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+</body>
+</html>
