@@ -145,7 +145,6 @@ h2{
   .statsCard{ page-break-inside:avoid; }
 }
 
-/* ===== PDF 表紙 ===== */
 #pdfCover{
   height:100vh;
   display:flex;
@@ -154,17 +153,11 @@ h2{
   align-items:center;
   background:#fff;
   color:#000;
+  page-break-after:always;
 }
 #pdfCover h1{ font-size:26px; margin-bottom:8px; }
 #pdfCover h2{ font-size:18px; margin-bottom:16px; }
-#pdfCover p{ font-size:14px; }
-
-/* ★ html2pdf 強制改ページ（最重要） */
-.pdfPageBreak{
-  display:block;
-  height:1px;
-  page-break-after:always;
-}
+#pdfCover p{ font-size:14px; margin:4px 0; }
 </style>
 </head>
 
@@ -216,10 +209,10 @@ new MutationObserver(fixStickyWidths)
 <!-- PDF生成ライブラリ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- ===== 月まとめPDF（確定版） ===== -->
+<!-- 月まとめPDF（練習回数・試合回数 自動） -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
-  const statsArea = document.getElementById("statsPdfArea");
+
   const cards = document.querySelectorAll(".statsCard");
   if (!cards.length) {
     alert("出席率データがありません");
@@ -228,6 +221,14 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
 
   const monthText = document.getElementById("monthLabel").textContent;
 
+  /* 練習・試合回数を表ヘッダから取得 */
+  let practiceCount = 0;
+  let matchCount = 0;
+  document.querySelectorAll("#table th").forEach(th => {
+    if (th.classList.contains("practice")) practiceCount++;
+    if (th.classList.contains("match")) matchCount++;
+  });
+
   /* 表紙 */
   const cover = document.createElement("div");
   cover.id = "pdfCover";
@@ -235,18 +236,14 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
     <h1>⚽ 箕谷サッカークラブ</h1>
     <h2>${monthText} 出席率まとめ</h2>
     <p>対象人数：${cards.length} 名</p>
-    <p>作成日：${new Date().toLocaleDateString("ja-JP")}</p>
+    <p>練習回数：${practiceCount} 回</p>
+    <p>試合回数：${matchCount} 回</p>
+    <p style="margin-top:12px;">作成日：${new Date().toLocaleDateString("ja-JP")}</p>
   `;
 
-  /* 強制改ページ */
-  const pageBreak = document.createElement("div");
-  pageBreak.className = "pdfPageBreak";
-
-  /* PDF用ラッパー */
   const wrapper = document.createElement("div");
   wrapper.appendChild(cover);
-  wrapper.appendChild(pageBreak);
-  wrapper.appendChild(statsArea.cloneNode(true));
+  wrapper.appendChild(document.getElementById("statsPdfArea").cloneNode(true));
 
   html2pdf()
     .set({
