@@ -145,23 +145,9 @@ h2{ font-size:15px; margin:12px 0 6px; }
 
 <script type="module" src="./main.js"></script>
 
-<!-- 列幅固定 -->
-<script>
-function fixStickyWidths(){
-  const no = document.querySelector("th.no");
-  if(!no) return;
-  document.documentElement.style.setProperty(
-    "--no-width",
-    no.getBoundingClientRect().width + "px"
-  );
-}
-new MutationObserver(fixStickyWidths)
-  .observe(document.getElementById("table"), {childList:true});
-</script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- ===== 月まとめPDF ===== -->
+<!-- ===== 月まとめPDF（2ページ目上部から開始・確定版） ===== -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   const stats = document.getElementById("stats");
@@ -170,28 +156,40 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
     return;
   }
 
-  const monthText = document.getElementById("monthLabel")?.textContent || "";
-  const cards = stats.querySelectorAll(".statsCard");
+  const monthText = document.getElementById("monthLabel").textContent;
+  const memberCount = stats.querySelectorAll(".statsCard").length;
+
+  const practiceCount = document.querySelectorAll("th.practice").length;
+  const matchCount = document.querySelectorAll("th.match").length;
 
   const cover = document.createElement("div");
-  cover.style.padding = "80px 20px";
-  cover.style.textAlign = "center";
+  cover.style.height = "100vh";
+  cover.style.display = "flex";
+  cover.style.flexDirection = "column";
+  cover.style.justifyContent = "center";
+  cover.style.alignItems = "center";
+  cover.style.background = "#fff";
+  cover.style.color = "#000";
+  cover.style.pageBreakAfter = "always"; // ★ ここが重要
+
   cover.innerHTML = `
     <h1 style="font-size:26px;">⚽ 箕谷サッカークラブ</h1>
-    <h2 style="font-size:18px; margin:16px 0;">${monthText} 出席率まとめ</h2>
-    <p>対象人数：${cards.length} 名</p>
-    <p>作成日：${new Date().toLocaleDateString()}</p>
+    <h2 style="font-size:18px; margin:16px 0;">
+      ${monthText} 出席率まとめ
+    </h2>
+    <p>対象人数：${memberCount} 名</p>
+    <p>練習回数：${practiceCount} 回</p>
+    <p>試合回数：${matchCount} 回</p>
+    <p style="margin-top:16px;">
+      作成日：${new Date().toLocaleDateString()}
+    </p>
   `;
-
-  const pageBreak = document.createElement("div");
-  pageBreak.style.pageBreakAfter = "always";
 
   const statsClone = document.getElementById("statsPdfArea").cloneNode(true);
   statsClone.querySelector(".stats").style.gridTemplateColumns = "repeat(5, 1fr)";
 
   const wrapper = document.createElement("div");
   wrapper.appendChild(cover);
-  wrapper.appendChild(pageBreak);
   wrapper.appendChild(statsClone);
 
   html2pdf()
