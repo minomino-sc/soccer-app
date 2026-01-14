@@ -6,8 +6,6 @@
 <title>⚽ 出欠管理</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
-
-<!-- PDF用ライブラリ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
@@ -15,7 +13,6 @@
   --barca-blue:#0a1a3a;
   --barca-red:#8b1538;
   --barca-light:#f4f6fa;
-
   --no-width:40px;
   --name-width:90px;
 }
@@ -55,6 +52,7 @@ button{
 }
 
 .tableWrap{overflow-x:auto}
+
 table{
   border-collapse:separate;
   border-spacing:0;
@@ -62,12 +60,14 @@ table{
   background:var(--barca-light);
   color:#222;
 }
+
 th,td{
   border:1px solid #ddd;
   padding:4px 6px;
   text-align:center;
   white-space:nowrap;
 }
+
 th{
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
   color:#fff;
@@ -75,9 +75,19 @@ th{
   top:0;
 }
 
+td.no,td.name{
+  position:sticky;
+  left:0;
+  background:#f0f0f0;
+  color:#000;
+}
+
+h2{font-size:15px;margin:12px 0 6px}
+
+/* ★ 元の横2列を完全復元 */
 .stats{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  grid-template-columns:repeat(2,1fr);
   gap:8px;
 }
 .statsCard{
@@ -85,23 +95,22 @@ th{
   color:#fff;
   padding:10px;
   border-radius:10px;
+  font-size:12px;
 }
 
 /* ===== PDF専用 ===== */
 #pdfRoot{
+  display:none;
   background:#fff;
   color:#000;
-  padding:40px 24px;
+  padding:40px;
+  font-family:"M PLUS Rounded 1c";
 }
 .pdf-cover{
   text-align:center;
-  min-height:100vh;
+  margin-top:200px;
 }
-.pdf-cover h1{font-size:22px;margin-bottom:12px}
-.pdf-cover h2{font-size:16px;margin-bottom:16px}
-.pdf-cover p{font-size:13px;margin:6px 0}
-
-.pdf-stats{
+.page-break{
   page-break-before:always;
 }
 </style>
@@ -116,14 +125,14 @@ th{
   <strong id="monthLabel"></strong>
   <button id="nextMonth">▶</button>
   <button onclick="exportCSV()">CSV出力</button>
-  <button onclick="exportAttendancePDF()">📄 出席率PDF</button>
+  <button onclick="exportAttendancePDF()">PDF出力</button>
 </div>
 
 <div class="legend">
   <span>○ 出席</span>
   <span>× 欠席</span>
   <span>－ 対象外</span>
-  <span>※ トレセン（出席扱い）</span>
+  <span>※ トレセン</span>
 </div>
 
 <div class="tableWrap">
@@ -133,64 +142,9 @@ th{
 <h2>📊 出席率</h2>
 <div id="stats" class="stats"></div>
 
-<!-- PDF用（非表示） -->
-<div id="pdfRoot" style="display:none">
-  <div class="pdf-cover">
-    <h1>⚽ 箕谷サッカークラブ</h1>
-    <h2 id="pdfMonth"></h2>
-
-    <p>・対象人数：<span id="pdfMembers"></span>名</p>
-    <p>・練習回数：<span id="pdfPractice"></span>回</p>
-    <p>・試合回数：<span id="pdfMatch"></span>回</p>
-
-    <p style="margin-top:20px">
-      作成日：<span id="pdfDate"></span>
-    </p>
-  </div>
-
-  <div class="pdf-stats" id="pdfStats"></div>
-</div>
+<!-- PDF生成用 -->
+<div id="pdfRoot"></div>
 
 <script type="module" src="./main.js"></script>
-
-<script>
-function exportAttendancePDF(){
-  const stats = document.getElementById("stats");
-  const pdfStats = document.getElementById("pdfStats");
-
-  pdfStats.innerHTML = stats.innerHTML;
-
-  // ===== 集計 =====
-  const memberCount = stats.children.length;
-  const practiceCount = window.monthPracticeCount || 0;
-  const matchCount = window.monthMatchCount || 0;
-
-  document.getElementById("pdfMembers").textContent = memberCount;
-  document.getElementById("pdfPractice").textContent = practiceCount;
-  document.getElementById("pdfMatch").textContent = matchCount;
-
-  document.getElementById("pdfMonth").textContent =
-    document.getElementById("monthLabel").textContent + " 出席率まとめ";
-
-  document.getElementById("pdfDate").textContent =
-    new Date().toISOString().slice(0,10).replace(/-/g,"/");
-
-  document.getElementById("pdfRoot").style.display="block";
-
-  html2pdf()
-    .set({
-      margin:10,
-      filename:"出席率まとめ.pdf",
-      html2canvas:{scale:2},
-      jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
-    })
-    .from(document.getElementById("pdfRoot"))
-    .save()
-    .then(()=>{
-      document.getElementById("pdfRoot").style.display="none";
-    });
-}
-</script>
-
 </body>
 </html>
