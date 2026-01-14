@@ -24,7 +24,7 @@ body{
   font-family:"M PLUS Rounded 1c",system-ui,sans-serif;
   background:#0a1a3a;
   color:#fff;
-  font-size:12px; /* ← 元のサイズ */
+  font-size:12px;
 }
 
 h1{
@@ -32,7 +32,7 @@ h1{
   font-size:18px;
 }
 
-/* ===== 操作部（元の色） ===== */
+/* ===== 操作部 ===== */
 .controls{
   display:flex;
   align-items:center;
@@ -62,7 +62,6 @@ button{
   overflow-x:auto;
   position:relative;
 }
-
 table{
   border-collapse:separate;
   border-spacing:0;
@@ -71,7 +70,6 @@ table{
   color:#222;
   font-size:12px;
 }
-
 th,td{
   border:1px solid #ddd;
   padding:4px 6px;
@@ -88,7 +86,7 @@ th{
   z-index:10;
 }
 
-/* ===== 背番号・名前（ヘッダーのみバルサ） ===== */
+/* ===== 背番号・名前 ===== */
 th.no{
   position:sticky;
   left:0;
@@ -99,8 +97,6 @@ th.name{
   left:var(--no-width);
   z-index:19;
 }
-
-/* ===== 本文（元の見た目に戻す） ===== */
 td.no{
   position:sticky;
   left:0;
@@ -119,7 +115,6 @@ td.name{
 /* ===== 出欠セル ===== */
 td.practice{ background:#fff; }
 td.match{ background:#fbeaec; }
-
 td.practice:hover,
 td.match:hover{
   background:#f5c542;
@@ -143,6 +138,26 @@ h2{
   border-radius:10px;
   font-size:12px;
 }
+
+/* ===== PDF専用 ===== */
+@media print{
+  body{ background:#fff !important; }
+  .statsCard{ page-break-inside:avoid; box-shadow:none; }
+}
+
+#pdfCover{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:#fff;
+  color:#000;
+  page-break-after:always;
+}
+#pdfCover h1{ font-size:26px; margin-bottom:8px; }
+#pdfCover h2{ font-size:18px; margin-bottom:16px; }
+#pdfCover p{ font-size:14px; }
 </style>
 </head>
 
@@ -155,6 +170,7 @@ h2{
   <strong id="monthLabel"></strong>
   <button id="nextMonth">▶</button>
   <button onclick="exportCSV()">CSV出力</button>
+  <button id="exportMonthlyPdf">📘 月まとめPDF</button>
 </div>
 
 <div class="legend">
@@ -169,25 +185,66 @@ h2{
 </div>
 
 <h2>📊 出席率</h2>
-<div id="stats" class="stats"></div>
+<div id="statsPdfArea">
+  <div id="stats" class="stats"></div>
+</div>
 
 <script type="module" src="./main.js"></script>
 
+<!-- 列幅固定 -->
 <script>
-/* ===== 列幅実測（横スクロール固定用） ===== */
 function fixStickyWidths(){
   const no = document.querySelector("th.no");
   const name = document.querySelector("th.name");
   if(!no || !name) return;
-
   document.documentElement.style.setProperty(
     "--no-width",
     no.getBoundingClientRect().width + "px"
   );
 }
-
 new MutationObserver(fixStickyWidths)
   .observe(document.getElementById("table"), {childList:true});
+</script>
+
+<!-- PDF生成ライブラリ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- 月まとめ一括PDF -->
+<script>
+document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
+  const statsArea = document.getElementById("statsPdfArea");
+  if (!statsArea || statsArea.children.length === 0) {
+    alert("出席率データがありません");
+    return;
+  }
+
+  const monthText = document.getElementById("monthLabel")?.textContent || "";
+  const cards = document.querySelectorAll(".statsCard");
+
+  const cover = document.createElement("div");
+  cover.id = "pdfCover";
+  cover.innerHTML = `
+    <h1>⚽ 箕谷サッカークラブ</h1>
+    <h2>${monthText} 出席率まとめ</h2>
+    <p>対象人数：${cards.length} 名</p>
+    <p>作成日：${new Date().toLocaleDateString()}</p>
+  `;
+
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(cover);
+  wrapper.appendChild(statsArea.cloneNode(true));
+
+  html2pdf()
+    .set({
+      margin:12,
+      filename:`${monthText}_出席率まとめ.pdf`,
+      image:{ type:"jpeg", quality:0.98 },
+      html2canvas:{ scale:2 },
+      jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
+    })
+    .from(wrapper)
+    .save();
+});
 </script>
 
 </body>
