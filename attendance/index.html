@@ -142,25 +142,28 @@ h2{
 /* ===== PDF専用 ===== */
 @media print{
   body{ background:#fff !important; }
-  .statsCard{ page-break-inside:avoid; box-shadow:none; }
+  .statsCard{ page-break-inside:avoid; }
 }
 
-/* ★ 修正：高さ指定をやめ、改ページを安定させる */
+/* ===== PDF 表紙 ===== */
 #pdfCover{
-  padding-top:120px;
-  padding-bottom:120px;
-  text-align:center;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
   background:#fff;
   color:#000;
-  page-break-after:always;
 }
 #pdfCover h1{ font-size:26px; margin-bottom:8px; }
 #pdfCover h2{ font-size:18px; margin-bottom:16px; }
 #pdfCover p{ font-size:14px; }
 
-/* ★ 出席率は必ず新しいページ先頭から */
-#statsPdfArea{
-  page-break-before:always;
+/* ★ html2pdf 強制改ページ（最重要） */
+.pdfPageBreak{
+  display:block;
+  height:1px;
+  page-break-after:always;
 }
 </style>
 </head>
@@ -213,18 +216,19 @@ new MutationObserver(fixStickyWidths)
 <!-- PDF生成ライブラリ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- 月まとめ一括PDF -->
+<!-- ===== 月まとめPDF（確定版） ===== -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   const statsArea = document.getElementById("statsPdfArea");
-  if (!statsArea || statsArea.children.length === 0) {
+  const cards = document.querySelectorAll(".statsCard");
+  if (!cards.length) {
     alert("出席率データがありません");
     return;
   }
 
-  const monthText = document.getElementById("monthLabel")?.textContent || "";
-  const cards = document.querySelectorAll(".statsCard");
+  const monthText = document.getElementById("monthLabel").textContent;
 
+  /* 表紙 */
   const cover = document.createElement("div");
   cover.id = "pdfCover";
   cover.innerHTML = `
@@ -234,8 +238,14 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
     <p>作成日：${new Date().toLocaleDateString("ja-JP")}</p>
   `;
 
+  /* 強制改ページ */
+  const pageBreak = document.createElement("div");
+  pageBreak.className = "pdfPageBreak";
+
+  /* PDF用ラッパー */
   const wrapper = document.createElement("div");
   wrapper.appendChild(cover);
+  wrapper.appendChild(pageBreak);
   wrapper.appendChild(statsArea.cloneNode(true));
 
   html2pdf()
