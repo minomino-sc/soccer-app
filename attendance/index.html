@@ -12,6 +12,7 @@
   --barca-blue:#0a1a3a;
   --barca-red:#8b1538;
   --barca-light:#f4f6fa;
+  --no-width:40px;
 }
 
 /* ===== 全体 ===== */
@@ -28,63 +29,86 @@ h1{ margin:0 0 6px; font-size:18px; }
 /* ===== 操作部 ===== */
 .controls{
   display:flex;
+  align-items:center;
   gap:6px;
   margin-bottom:8px;
 }
 button{
   background:#cde8d6;
+  color:#000;
   border:none;
   border-radius:8px;
   padding:6px 10px;
   font-size:12px;
+  cursor:pointer;
+}
+
+/* ===== 凡例 ===== */
+.legend{
+  display:flex;
+  gap:10px;
+  font-size:11px;
+  margin-bottom:8px;
 }
 
 /* ===== テーブル ===== */
-.tableWrap{ overflow-x:auto; }
+.tableWrap{
+  overflow-x:auto;
+  position:relative;
+}
 table{
   border-collapse:separate;
   border-spacing:0;
+  width:max-content;
   background:var(--barca-light);
   color:#222;
+  font-size:12px;
 }
 th,td{
   border:1px solid #ddd;
   padding:4px 6px;
   text-align:center;
   white-space:nowrap;
-  box-sizing:border-box;
 }
 
-/* ===== ヘッダー ===== */
+/* ===== ヘッダー（元のまま） ===== */
 th{
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
   color:#fff;
   position:sticky;
   top:0;
+  z-index:10;
+}
+
+/* ===== 背番号・名前 ===== */
+th.no{ position:sticky; left:0; z-index:20; }
+th.name{ position:sticky; left:var(--no-width); z-index:19; }
+td.no{
+  position:sticky;
+  left:0;
+  background:#f0f0f0;
+  color:#000;
+  z-index:5;
+}
+td.name{
+  position:sticky;
+  left:var(--no-width);
+  background:#f0f0f0;
+  color:#000;
   z-index:5;
 }
 
-/* ===== 固定列（完全固定・ズレなし） ===== */
-th.no, td.no{
-  position:sticky;
-  left:0;
-  width:42px;
-  min-width:42px;
-  background:#f0f0f0;
-  color:#000;
-  z-index:10;
-}
-th.name, td.name{
-  position:sticky;
-  left:42px;
-  width:110px;
-  min-width:110px;
-  background:#f0f0f0;
-  color:#000;
-  z-index:9;
+/* ===== 出欠セル ===== */
+td.practice{ background:#fff; }
+td.match{ background:#fbeaec; }
+td.practice:hover,
+td.match:hover{
+  background:#f5c542;
+  cursor:pointer;
 }
 
-/* ===== 出席率 ===== */
+/* ===== 出席率（画面用） ===== */
+h2{ font-size:15px; margin:12px 0 6px; }
 .stats{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
@@ -95,32 +119,22 @@ th.name, td.name{
   color:#fff;
   padding:10px;
   border-radius:10px;
+  font-size:12px;
 }
 
 /* ===== PDF専用 ===== */
-#pdfRoot{
-  position:absolute;
-  top:0;
-  left:0;
-  width:210mm;
-  background:#fff;
-  color:#000;
-  z-index:-1;
-}
-
-.pdfCover{
+.pdf-cover{
+  width:100%;
   height:297mm;
-  padding:70mm 20mm;
-  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
   text-align:center;
   page-break-after:always;
 }
-
-.pdfStats{
-  padding:12mm;
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:6mm;
+.pdf-stats{
+  page-break-before:always;
 }
 </style>
 </head>
@@ -133,7 +147,15 @@ th.name, td.name{
   <button id="prevMonth">◀</button>
   <strong id="monthLabel"></strong>
   <button id="nextMonth">▶</button>
+  <button onclick="exportCSV()">CSV出力</button>
   <button id="exportMonthlyPdf">📘 月まとめPDF</button>
+</div>
+
+<div class="legend">
+  <span>○ 出席</span>
+  <span>× 欠席</span>
+  <span>－ 対象外</span>
+  <span>※ トレセン（出席扱い）</span>
 </div>
 
 <div class="tableWrap">
@@ -141,50 +163,66 @@ th.name, td.name{
 </div>
 
 <h2>📊 出席率</h2>
-<div id="stats" class="stats"></div>
-
-<!-- PDF専用DOM -->
-<div id="pdfRoot" hidden>
-  <div id="pdfCover" class="pdfCover"></div>
-  <div id="pdfStats" class="pdfStats"></div>
+<div id="statsPdfArea">
+  <div id="stats" class="stats"></div>
 </div>
 
 <script type="module" src="./main.js"></script>
+
+<!-- 列幅実測（元方式） -->
+<script>
+function fixStickyWidths(){
+  const no = document.querySelector("th.no");
+  if(!no) return;
+  document.documentElement.style.setProperty(
+    "--no-width",
+    no.getBoundingClientRect().width + "px"
+  );
+}
+new MutationObserver(fixStickyWidths)
+  .observe(document.getElementById("table"), { childList:true });
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+<!-- ===== 月まとめPDF（最終安定版） ===== -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
-
-  const statsCards = document.querySelectorAll("#stats .statsCard");
-  if(statsCards.length === 0){
-    alert("出席率がありません");
+  const stats = document.getElementById("stats");
+  if (!stats || stats.children.length === 0) {
+    alert("出席率データがありません");
     return;
   }
 
-  const pdfRoot = document.getElementById("pdfRoot");
-  pdfRoot.hidden = false;   // ★重要：表示する
+  const monthText = document.getElementById("monthLabel")?.textContent || "";
+  const cards = stats.querySelectorAll(".statsCard");
 
-  document.getElementById("pdfCover").innerHTML = `
-    <h1>箕谷サッカークラブ</h1>
-    <h2>${monthLabel.textContent} 出席率まとめ</h2>
-    <p>対象人数：${statsCards.length} 名</p>
+  const cover = document.createElement("div");
+  cover.className = "pdf-cover";
+  cover.innerHTML = `
+    <h1 style="font-size:26px;">⚽ 箕谷サッカークラブ</h1>
+    <h2 style="font-size:18px; margin:16px 0;">${monthText} 出席率まとめ</h2>
+    <p>対象人数：${cards.length} 名</p>
     <p>作成日：${new Date().toLocaleDateString()}</p>
   `;
 
-  const pdfStats = document.getElementById("pdfStats");
-  pdfStats.innerHTML = "";
-  statsCards.forEach(c => pdfStats.appendChild(c.cloneNode(true)));
+  const statsClone = document.getElementById("statsPdfArea").cloneNode(true);
+  statsClone.classList.add("pdf-stats");
+  statsClone.querySelector(".stats").style.gridTemplateColumns = "repeat(5,1fr)";
+
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(cover);
+  wrapper.appendChild(statsClone);
 
   html2pdf()
     .set({
       margin:0,
-      filename:`${monthLabel.textContent}_出席率まとめ.pdf`,
+      filename:`${monthText}_出席率まとめ.pdf`,
       html2canvas:{ scale:2 },
-      jsPDF:{ unit:"mm", format:"a4" }
+      jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
     })
-    .from(pdfRoot)
-    .save()
-    .then(()=> pdfRoot.hidden = true); // ★元に戻す
+    .from(wrapper)
+    .save();
 });
 </script>
 
