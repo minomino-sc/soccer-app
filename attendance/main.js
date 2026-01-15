@@ -32,7 +32,6 @@ let rendering = false;
 let players = [];
 let events = [];
 let logsCacheByMonth = {}; 
-// { "2026-01": { "eventId_playerId": {status, time} } }
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
@@ -67,13 +66,15 @@ function monthIdOf(d) {
 /* 表示記号 */
 function symbol(s) {
   if (s === "present") return "○";
-  if (s === "special") return "※"; // ★ トレセン
   if (s === "absent") return "×";
+  if (s === "special") return "※";   // トレセン
+  if (s === "school") return "◻︎";   // 学校行事
   return "－";
 }
 
 /* ===============================
-   出席率描画（読み取りなし）
+   出席率描画
+   ※ ※・◻︎は対象外
    =============================== */
 function renderStats(players, monthEvents, logsCache) {
   stats.innerHTML = "";
@@ -85,15 +86,15 @@ function renderStats(players, monthEvents, logsCache) {
       const s = logsCache[`${e.id}_${p.id}`]?.status;
       if (!s || s === "skip") return;
 
-      const isHit = (s === "present" || s === "special"); // ★ ※も出席扱い
+      const isCount = (s === "present");
 
       if (e.type === "practice") {
-        prT++;
-        if (isHit) prH++;
+        if (s !== "special" && s !== "school") prT++;
+        if (isCount) prH++;
       }
       if (e.type === "match") {
-        maT++;
-        if (isHit) maH++;
+        if (s !== "special" && s !== "school") maT++;
+        if (isCount) maH++;
       }
     });
 
@@ -122,7 +123,6 @@ async function render() {
 
   const monthId = monthIdOf(current);
 
-  /* players（初回のみ） */
   if (players.length === 0) {
     const snap = await getDocs(collection(db, "players_attendance"));
     players = snap.docs
@@ -130,7 +130,6 @@ async function render() {
       .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
   }
 
-  /* events（初回のみ） */
   if (events.length === 0) {
     const snap = await getDocs(collection(db, "events_attendance"));
     events = snap.docs
@@ -142,7 +141,6 @@ async function render() {
       .sort((a, b) => a._date - b._date);
   }
 
-  /* 当月イベント */
   const monthEvents = events.filter(
     e =>
       e._date &&
@@ -150,7 +148,6 @@ async function render() {
       e._date.getMonth() === current.getMonth()
   );
 
-  /* attendance_logs（月1回だけ取得） */
   if (!logsCacheByMonth[monthId]) {
     logsCacheByMonth[monthId] = {};
     const snap = await getDocs(
@@ -172,7 +169,6 @@ async function render() {
 
   const logsCache = logsCacheByMonth[monthId];
 
-  /* ---------- table header ---------- */
   const trH = document.createElement("tr");
   trH.innerHTML =
     "<th class='no'>背</th><th class='name'>名前</th>" +
@@ -186,7 +182,6 @@ async function render() {
       .join("");
   table.appendChild(trH);
 
-  /* ---------- table body ---------- */
   players.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="no">${p.number ?? ""}</td><td class="name">${p.name}</td>`;
@@ -204,8 +199,9 @@ async function render() {
         const cur = logsCache[key]?.status || "skip";
         const next =
           cur === "skip" ? "present" :
-          cur === "present" ? "special" : // ★ ※
-          cur === "special" ? "absent" :
+          cur === "present" ? "absent" :
+          cur === "absent" ? "special" :
+          cur === "special" ? "school" :
           "skip";
 
         await addDoc(collection(db, "attendance_logs"), {
@@ -219,9 +215,7 @@ async function render() {
         logsCache[key] = { status: next, time: Date.now() };
         td.textContent = symbol(next);
 
-        // 出席率を即時更新（読み取りなし）
         renderStats(players, monthEvents, logsCache);
-
         rendering = false;
       };
 
@@ -231,14 +225,12 @@ async function render() {
     table.appendChild(tr);
   });
 
-  /* 出席率 初期描画 */
   renderStats(players, monthEvents, logsCache);
-
   rendering = false;
 }
 
 /* ===============================
-   CSV 出力
+   CSV 出力（変更なし）
    =============================== */
 window.exportCSV = function () {
   const lines = [];
