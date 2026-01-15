@@ -5,251 +5,207 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 出欠管理</title>
 
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- html2pdf -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-:root{
-  --barca-blue:#0a1a3a;
-  --barca-red:#8b1538;
-  --barca-light:#f4f6fa;
-
-  --no-width:40px;
-  --name-width:90px;
-}
-
-/* ===== 全体 ===== */
 body{
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background:#f5f7fb;
   margin:0;
   padding:12px;
-  font-family:"M PLUS Rounded 1c",system-ui,sans-serif;
-  background:#0a1a3a;
-  color:#fff;
-  font-size:12px;
-}
-h1{
-  margin:0 0 6px;
-  font-size:18px;
 }
 
-/* ===== 操作部 ===== */
-.controls{
+header{
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:8px;
   margin-bottom:8px;
 }
+
 button{
-  background:#cde8d6;
-  color:#000;
-  border:none;
-  border-radius:8px;
   padding:6px 10px;
-  font-size:12px;
-  cursor:pointer;
+  font-size:13px;
 }
 
-/* ===== 凡例（★2行対応） ===== */
-.legend{
-  display:flex;
-  flex-wrap:wrap;     /* ← 追加：2行表示を許可 */
-  gap:10px;
-  font-size:11px;
-  margin-bottom:8px;
+#monthLabel{
+  font-weight:bold;
 }
 
-/* ===== テーブル ===== */
-.tableWrap{
-  overflow-x:auto;
-  position:relative;
-}
+/* ===== 表 ===== */
 table{
-  border-collapse:separate;
-  border-spacing:0;
-  width:max-content;
-  background:var(--barca-light);
-  color:#222;
+  border-collapse:collapse;
+  background:#fff;
   font-size:12px;
 }
 th,td{
-  border:1px solid #ddd;
-  padding:4px 6px;
+  border:1px solid #ccc;
+  padding:4px;
   text-align:center;
-  white-space:nowrap;
+  min-width:28px;
 }
 
-/* ===== ヘッダー ===== */
-th{
-  background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
-  color:#fff;
-  position:sticky;
-  top:0;
-  z-index:10;
-}
-
-/* ===== 背番号・名前（完全復活） ===== */
-th.no{
+th.no, td.no{
   position:sticky;
   left:0;
-  z-index:20;
+  background:#e9f1ff;
+  z-index:3;
 }
-th.name{
+th.name, td.name{
   position:sticky;
-  left:var(--no-width);
-  z-index:19;
-}
-td.no{
-  position:sticky;
-  left:0;
-  z-index:5;
-  background:#f0f0f0;
-  color:#000;
-}
-td.name{
-  position:sticky;
-  left:var(--no-width);
-  z-index:5;
-  background:#f0f0f0;
-  color:#000;
-}
-
-/* ===== 出欠セル ===== */
-td.practice{ background:#fff; }
-td.match{ background:#fbeaec; }
-td.practice:hover,
-td.match:hover{
-  background:#f5c542;
-  cursor:pointer;
+  left:36px;
+  background:#e9f1ff;
+  z-index:3;
+  min-width:80px;
+  text-align:left;
+  padding-left:6px;
 }
 
 /* ===== 出席率 ===== */
-h2{
-  font-size:15px;
-  margin:12px 0 6px;
-}
-.stats{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+#stats{
+  display:flex;
+  flex-wrap:wrap;
   gap:8px;
+  margin-top:10px;
 }
 .statsCard{
-  background:linear-gradient(135deg,var(--barca-red),var(--barca-blue));
-  color:#fff;
-  padding:10px;
-  border-radius:10px;
-  font-size:12px;
-}
-
-/* ===== PDF専用 ===== */
-@media print{
-  body{ background:#fff !important; }
-  .statsCard{ page-break-inside:avoid; }
-}
-
-#pdfCover{
-  height:auto;
-  padding:20px 10px 10px;
-  text-align:center;
   background:#fff;
-  color:#000;
+  border:1px solid #ccc;
+  padding:6px 8px;
+  font-size:12px;
+  width:180px;
 }
-#pdfCover h1{ font-size:24px; margin-bottom:6px; }
-#pdfCover h2{ font-size:16px; margin-bottom:10px; }
-#pdfCover p{ font-size:13px; margin:4px 0; }
+
+/* ===== PDF用 ===== */
+#pdfRoot{
+  position:relative;
+  background:#fff;
+  padding:16px;
+}
+
+/* ロゴ透かし */
+.pdf-watermark{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:60%;
+  max-width:420px;
+  transform:translate(-50%,-50%);
+  opacity:0.06;
+  pointer-events:none;
+  z-index:0;
+}
+
+#pdfRoot > *:not(.pdf-watermark){
+  position:relative;
+  z-index:1;
+}
+
+/* 表紙 */
+.pdf-title{
+  font-size:20px;
+  font-weight:bold;
+  margin-bottom:4px;
+}
+.pdf-month{
+  font-size:14px;
+  margin-bottom:12px;
+}
+
+/* 凡例（2行） */
+.legend{
+  font-size:12px;
+  margin:8px 0;
+}
+.legend-line{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+/* 補足（上品版） */
+.note{
+  margin-top:10px;
+  padding-top:6px;
+  border-top:1px dashed #ccc;
+  font-size:11px;
+  color:#555;
+}
+.note-title{
+  font-weight:bold;
+  margin-bottom:2px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>⚽ 出欠管理</h1>
-
-<div class="controls">
+<header>
   <button id="prevMonth">◀</button>
-  <strong id="monthLabel"></strong>
+  <span id="monthLabel"></span>
   <button id="nextMonth">▶</button>
-  <button onclick="exportCSV()">CSV出力</button>
-  <button id="exportMonthlyPdf">📘 月まとめPDF</button>
-</div>
 
-<div class="legend">
-  <span>○ 出席</span>
-  <span>× 欠席</span>
-  <span>－ 対象外</span>
-  <span>※ トレセン（出席率対象外）</span>
-  <span>◻︎ 学校行事（出席率対象外）</span>
-</div>
+  <button onclick="exportPDF()">月まとめPDF</button>
+  <button onclick="exportCSV()">CSV</button>
+</header>
 
-<div class="tableWrap">
+<!-- ===== PDF対象 ===== -->
+<div id="pdfRoot">
+
+  <!-- 透かしロゴ（画像パスだけ合わせてください） -->
+  <img src="./logo.png" class="pdf-watermark">
+
+  <!-- 表紙 -->
+  <div class="pdf-title">⚽ 出欠管理</div>
+  <div class="pdf-month" id="pdfMonth"></div>
+
+  <!-- 凡例（2行） -->
+  <div class="legend">
+    <div class="legend-line">
+      <span>○：出席</span>
+      <span>×：欠席</span>
+      <span>－：未入力</span>
+    </div>
+    <div class="legend-line">
+      <span>※：トレセン</span>
+      <span>◻︎：学校行事</span>
+    </div>
+  </div>
+
+  <!-- 表 -->
   <table id="table"></table>
+
+  <!-- 出席率 -->
+  <div id="stats"></div>
+
+  <!-- 補足 -->
+  <div class="note">
+    <div class="note-title">⭐ 補足</div>
+    トレセンおよび学校行事は、出席率の算出対象外としています。
+  </div>
+
 </div>
 
-<h2>📊 出席率</h2>
-<div id="statsPdfArea">
-  <div id="stats" class="stats"></div>
-</div>
-
+<!-- main.js（既存のまま） -->
 <script type="module" src="./main.js"></script>
 
-<!-- 列幅固定 -->
 <script>
-function fixStickyWidths(){
-  const no = document.querySelector("th.no");
-  if(!no) return;
-  document.documentElement.style.setProperty(
-    "--no-width",
-    no.getBoundingClientRect().width + "px"
-  );
-}
-new MutationObserver(fixStickyWidths)
-  .observe(document.getElementById("table"), {childList:true});
-</script>
+function exportPDF(){
+  const month = document.getElementById("monthLabel").innerText;
+  document.getElementById("pdfMonth").innerText = month;
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<script>
-document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
-  const cards = document.querySelectorAll(".statsCard");
-  if (!cards.length) {
-    alert("出席率データがありません");
-    return;
-  }
-
-  const monthText = document.getElementById("monthLabel").textContent;
-
-  let practiceCount = 0;
-  let matchCount = 0;
-  document.querySelectorAll("#table th").forEach(th => {
-    if (th.classList.contains("practice")) practiceCount++;
-    if (th.classList.contains("match")) matchCount++;
-  });
-
-  const cover = document.createElement("div");
-  cover.id = "pdfCover";
-  cover.innerHTML = `
-    <h1>⚽ 箕谷サッカークラブ</h1>
-    <h2>${monthText} 出席率まとめ</h2>
-    <p>対象人数：${cards.length} 名</p>
-    <p>練習回数：${practiceCount} 回</p>
-    <p>試合回数：${matchCount} 回</p>
-    <p style="margin-top:8px;font-size:12px;">
-      ⭐️補足<br>
-      トレセンおよび学校行事は出席率にカウントしておりません。
-    </p>
-  `;
-
-  const wrapper = document.createElement("div");
-  wrapper.appendChild(cover);
-  wrapper.appendChild(document.getElementById("statsPdfArea").cloneNode(true));
-
+  const el = document.getElementById("pdfRoot");
   html2pdf()
     .set({
-      margin:[10,8,10,8],
-      filename:`${monthText}_出席率まとめ.pdf`,
-      html2canvas:{ scale:2 },
+      margin:8,
+      filename: month.replace(/\s/g,"") + "_出欠管理.pdf",
+      image:{ type:"jpeg", quality:0.98 },
+      html2canvas:{ scale:2, backgroundColor:"#ffffff" },
       jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
     })
-    .from(wrapper)
+    .from(el)
     .save();
-});
+}
 </script>
 
 </body>
