@@ -1,275 +1,163 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  query,
-  where,
-  serverTimestamp,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+/***********************
+ * Firebase 初期化（Compat）
+ ***********************/
+firebase.initializeApp({
+  apiKey: "AIzaSyA-u--fB_d8W6zRTJYj4PLyHc61pNQpKjQ",
+  authDomain: "dog-family-videos.firebaseapp.com",
+  projectId: "dog-family-videos"
+});
+const db = firebase.firestore();
 
-/* Firebase 設定 */
-const firebaseConfig = {
-  apiKey: "★★★★★",
-  authDomain: "★★★★★",
-  projectId: "minotani-sc-app",
+/***********************
+ * 定数・ユーティリティ
+ ***********************/
+const STATUS_ORDER = ["skip", "present", "absent", "special", "school"];
+const STATUS_SYMBOL = {
+  skip: "－",
+  present: "○",
+  absent: "×",
+  special: "※",   // トレセン
+  school: "◻︎"     // 学校行事
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
-/* DOM */
-const table = document.getElementById("table");
-const stats = document.getElementById("stats");
-const monthLabel = document.getElementById("monthLabel");
+function symbol(s){
+  return STATUS_SYMBOL[s] || "－";
+}
 
-/* state */
-let current = new Date();
+// ★ 過去日判定（今回追加）
+function isPastDate(dateStr){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(dateStr);
+  target.setHours(0,0,0,0);
+  return target < today;
+}
+
+/***********************
+ * グローバル
+ ***********************/
 let rendering = false;
+let logsCache = {};
+let monthId = "";
 
-/* キャッシュ */
-let players = [];
-let events = [];
-let logsCacheByMonth = {}; 
+/***********************
+ * 出欠テーブル描画
+ ***********************/
+async function renderAttendance(players, events){
+  const tbody = document.querySelector("#attendance-body");
+  tbody.innerHTML = "";
 
-/* 月切替 */
-document.getElementById("prevMonth").onclick = () => {
-  if (rendering) return;
-  current.setDate(1);
-  current.setMonth(current.getMonth() - 1);
-  render();
-};
-document.getElementById("nextMonth").onclick = () => {
-  if (rendering) return;
-  current.setDate(1);
-  current.setMonth(current.getMonth() + 1);
-  render();
-};
-
-render();
-
-/* utils */
-function toDate(v) {
-  if (!v) return null;
-  if (typeof v === "string") {
-    const [y, m, d] = v.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-  if (v instanceof Timestamp) return v.toDate();
-  return null;
-}
-function monthIdOf(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-
-/* 表示記号 */
-function symbol(s) {
-  if (s === "present") return "○";
-  if (s === "absent") return "×";
-  if (s === "special") return "※";   // トレセン
-  if (s === "school") return "◻︎";   // 学校行事
-  return "－";
-}
-
-/* ===============================
-   出席率描画
-   ※ ※・◻︎は対象外
-   =============================== */
-function renderStats(players, monthEvents, logsCache) {
-  stats.innerHTML = "";
-
-  players.forEach(p => {
-    let prH = 0, prT = 0, maH = 0, maT = 0;
-
-    monthEvents.forEach(e => {
-      const s = logsCache[`${e.id}_${p.id}`]?.status;
-      if (!s || s === "skip") return;
-
-      const isCount = (s === "present");
-
-      if (e.type === "practice") {
-        if (s !== "special" && s !== "school") prT++;
-        if (isCount) prH++;
-      }
-      if (e.type === "match") {
-        if (s !== "special" && s !== "school") maT++;
-        if (isCount) maH++;
-      }
-    });
-
-    const tot = prT + maT;
-    const hit = prH + maH;
-
-    stats.innerHTML += `
-      <div class="statsCard">
-        <strong>${p.name}</strong><br>
-        練習：${prH}/${prT}（${prT ? Math.round(prH / prT * 100) : 0}%）<br>
-        試合：${maH}/${maT}（${maT ? Math.round(maH / maT * 100) : 0}%）<br>
-        合計：${hit}/${tot}（${tot ? Math.round(hit / tot * 100) : 0}%）
-      </div>
-    `;
-  });
-}
-
-/* ===============================
-   メイン描画
-   =============================== */
-async function render() {
-  rendering = true;
-  table.innerHTML = "";
-  stats.innerHTML = "";
-  monthLabel.textContent = `${current.getFullYear()}年 ${current.getMonth() + 1}月`;
-
-  const monthId = monthIdOf(current);
-
-  if (players.length === 0) {
-    const snap = await getDocs(collection(db, "players_attendance"));
-    players = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
-  }
-
-  if (events.length === 0) {
-    const snap = await getDocs(collection(db, "events_attendance"));
-    events = snap.docs
-      .map(d => {
-        const data = d.data();
-        return { id: d.id, ...data, _date: toDate(data.date) };
-      })
-      .filter(e => e.type !== "holiday")
-      .sort((a, b) => a._date - b._date);
-  }
-
-  const monthEvents = events.filter(
-    e =>
-      e._date &&
-      e._date.getFullYear() === current.getFullYear() &&
-      e._date.getMonth() === current.getMonth()
-  );
-
-  if (!logsCacheByMonth[monthId]) {
-    logsCacheByMonth[monthId] = {};
-    const snap = await getDocs(
-      query(collection(db, "attendance_logs"), where("monthId", "==", monthId))
-    );
-
-    snap.forEach(doc => {
-      const d = doc.data();
-      const key = `${d.eventId}_${d.playerId}`;
-      const t = d.createdAt?.toMillis?.() ?? 0;
-      if (
-        !logsCacheByMonth[monthId][key] ||
-        t > logsCacheByMonth[monthId][key].time
-      ) {
-        logsCacheByMonth[monthId][key] = { status: d.status, time: t };
-      }
-    });
-  }
-
-  const logsCache = logsCacheByMonth[monthId];
-
-  const trH = document.createElement("tr");
-  trH.innerHTML =
-    "<th class='no'>背</th><th class='name'>名前</th>" +
-    monthEvents
-      .map(
-        e =>
-          `<th class="${e.type}">
-            ${e._date.getDate()}<br>${e.type === "match" ? "試合" : "練習"}
-          </th>`
-      )
-      .join("");
-  table.appendChild(trH);
-
-  players.forEach(p => {
+  for(const p of players){
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="no">${p.number ?? ""}</td><td class="name">${p.name}</td>`;
 
-    monthEvents.forEach(e => {
-      const key = `${e.id}_${p.id}`;
+    // 背番号
+    const tdNo = document.createElement("td");
+    tdNo.textContent = p.number || "";
+    tdNo.className = "fixed-col no";
+    tr.appendChild(tdNo);
+
+    // 名前
+    const tdName = document.createElement("td");
+    tdName.textContent = p.name;
+    tdName.className = "fixed-col name";
+    tr.appendChild(tdName);
+
+    for(const e of events){
       const td = document.createElement("td");
-      td.className = e.type;
-      td.textContent = symbol(logsCache[key]?.status || "skip");
+      const key = `${p.id}_${e.id}`;
+      const cur = logsCache[key]?.status || "skip";
+      td.textContent = symbol(cur);
 
       td.onclick = async () => {
         if (rendering) return;
+
+        // ★ 過去日の注意喚起（ここだけ追加）
+        if (isPastDate(e.date)) {
+          const ok = confirm(
+            "過去の日付の出欠を変更しようとしています。\n本当に修正しますか？"
+          );
+          if (!ok) return;
+        }
+
         rendering = true;
 
-        const cur = logsCache[key]?.status || "skip";
-        const next =
-          cur === "skip" ? "present" :
-          cur === "present" ? "absent" :
-          cur === "absent" ? "special" :
-          cur === "special" ? "school" :
-          "skip";
+        const idx = STATUS_ORDER.indexOf(cur);
+        const next = STATUS_ORDER[(idx + 1) % STATUS_ORDER.length];
 
-        await addDoc(collection(db, "attendance_logs"), {
-          eventId: e.id,
+        await db.collection("attendance_logs").add({
           playerId: p.id,
+          eventId: e.id,
           status: next,
           monthId,
-          createdAt: serverTimestamp()
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        logsCache[key] = { status: next, time: Date.now() };
+        logsCache[key] = { status: next };
         td.textContent = symbol(next);
 
-        renderStats(players, monthEvents, logsCache);
+        renderStats(players, events, logsCache);
         rendering = false;
       };
 
       tr.appendChild(td);
-    });
+    }
 
-    table.appendChild(tr);
-  });
-
-  renderStats(players, monthEvents, logsCache);
-  rendering = false;
+    tbody.appendChild(tr);
+  }
 }
 
-/* ===============================
-   CSV 出力（変更なし）
-   =============================== */
-window.exportCSV = function () {
-  const lines = [];
+/***********************
+ * 出席率計算
+ ***********************/
+function renderStats(players, events, logs){
+  players.forEach(p => {
+    let attend = 0;
+    let total = 0;
 
-  lines.push(["⚽ 出欠管理"]);
-  lines.push([`${current.getFullYear()}年${current.getMonth() + 1}月`]);
-  lines.push([]);
+    events.forEach(e => {
+      const key = `${p.id}_${e.id}`;
+      const st = logs[key]?.status;
 
-  const headers = ["背番号", "名前"];
-  document.querySelectorAll("th:not(.no):not(.name)").forEach(h => {
-    headers.push(h.innerText.replace(/\n/g, ""));
+      // トレセン・学校行事はカウント外
+      if (st === "special" || st === "school") return;
+
+      if (st && st !== "skip") {
+        total++;
+        if (st === "present") attend++;
+      }
+    });
+
+    const rate = total ? Math.round(attend / total * 100) : 0;
+    const el = document.querySelector(`#rate-${p.id}`);
+    if (el) el.textContent = `${rate}%`;
   });
-  lines.push(headers);
+}
 
-  document.querySelectorAll("#table tr").forEach((tr, i) => {
-    if (i === 0) return;
-    const row = [];
-    tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
-    lines.push(row);
+/***********************
+ * 初期ロード
+ ***********************/
+async function loadMonth(targetMonth){
+  monthId = targetMonth;
+
+  const playersSnap = await db.collection("players").get();
+  const players = playersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const eventsSnap = await db.collection("events")
+    .where("monthId", "==", monthId)
+    .orderBy("date")
+    .get();
+  const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const logsSnap = await db.collection("attendance_logs")
+    .where("monthId", "==", monthId)
+    .get();
+
+  logsCache = {};
+  logsSnap.forEach(d => {
+    const v = d.data();
+    logsCache[`${v.playerId}_${v.eventId}`] = v;
   });
 
-  lines.push([]);
-  lines.push(["📊 出席率"]);
-  document.querySelectorAll(".statsCard").forEach(card => {
-    lines.push([card.innerText.replace(/\n/g, " ")]);
-  });
-
-  const csv =
-    "\uFEFF" +
-    lines
-      .map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${monthIdOf(current)}_attendance.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+  renderAttendance(players, events);
+  renderStats(players, events, logsCache);
+}
