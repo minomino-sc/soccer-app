@@ -24,11 +24,13 @@ function symbol(s){
   return STATUS_SYMBOL[s] || "－";
 }
 
-// ★ 過去日判定（今回追加）
+// ★ 過去日判定（追加機能・ここだけ）
 function isPastDate(dateStr){
+  if (!dateStr) return false;
   const today = new Date();
   today.setHours(0,0,0,0);
   const target = new Date(dateStr);
+  if (isNaN(target)) return false;
   target.setHours(0,0,0,0);
   return target < today;
 }
@@ -44,23 +46,20 @@ let monthId = "";
  * 出欠テーブル描画
  ***********************/
 async function renderAttendance(players, events){
-  const tbody = document.querySelector("#attendance-body");
-  tbody.innerHTML = "";
+  const table = document.getElementById("table");
+  table.innerHTML = "";
 
+  /* ヘッダー */
+  const trH = document.createElement("tr");
+  trH.innerHTML =
+    "<th class='no'>背</th><th class='name'>名前</th>" +
+    events.map(e => `<th>${e.date}</th>`).join("");
+  table.appendChild(trH);
+
+  /* 本体 */
   for(const p of players){
     const tr = document.createElement("tr");
-
-    // 背番号
-    const tdNo = document.createElement("td");
-    tdNo.textContent = p.number || "";
-    tdNo.className = "fixed-col no";
-    tr.appendChild(tdNo);
-
-    // 名前
-    const tdName = document.createElement("td");
-    tdName.textContent = p.name;
-    tdName.className = "fixed-col name";
-    tr.appendChild(tdName);
+    tr.innerHTML = `<td class="no">${p.number || ""}</td><td class="name">${p.name}</td>`;
 
     for(const e of events){
       const td = document.createElement("td");
@@ -71,7 +70,7 @@ async function renderAttendance(players, events){
       td.onclick = async () => {
         if (rendering) return;
 
-        // ★ 過去日の注意喚起（ここだけ追加）
+        // ★ 過去日の注意喚起（唯一の追加点）
         if (isPastDate(e.date)) {
           const ok = confirm(
             "過去の日付の出欠を変更しようとしています。\n本当に修正しますか？"
@@ -102,7 +101,7 @@ async function renderAttendance(players, events){
       tr.appendChild(td);
     }
 
-    tbody.appendChild(tr);
+    table.appendChild(tr);
   }
 }
 
@@ -118,7 +117,7 @@ function renderStats(players, events, logs){
       const key = `${p.id}_${e.id}`;
       const st = logs[key]?.status;
 
-      // トレセン・学校行事はカウント外
+      // トレセン・学校行事は対象外
       if (st === "special" || st === "school") return;
 
       if (st && st !== "skip") {
@@ -128,7 +127,7 @@ function renderStats(players, events, logs){
     });
 
     const rate = total ? Math.round(attend / total * 100) : 0;
-    const el = document.querySelector(`#rate-${p.id}`);
+    const el = document.getElementById(`rate-${p.id}`);
     if (el) el.textContent = `${rate}%`;
   });
 }
