@@ -80,7 +80,7 @@ th{
   z-index:10;
 }
 
-/* ===== 背番号・名前（ズレ防止 完全版） ===== */
+/* ===== 背番号・名前 ===== */
 th.no, td.no{
   position:sticky;
   left:0;
@@ -107,7 +107,7 @@ td.match:hover{
   cursor:pointer;
 }
 
-/* ===== 出席率（画面用：横2列） ===== */
+/* ===== 出席率（画面用） ===== */
 h2{ font-size:15px; margin:12px 0 6px; }
 .stats{
   display:grid;
@@ -154,23 +154,8 @@ h2{ font-size:15px; margin:12px 0 6px; }
 
 <script type="module" src="./main.js"></script>
 
-<!-- 列幅固定（横スクロール時ズレ完全防止） -->
-<script>
-function fixStickyWidths(){
-  const no = document.querySelector("th.no");
-  if(!no) return;
-  document.documentElement.style.setProperty(
-    "--no-width",
-    no.getBoundingClientRect().width + "px"
-  );
-}
-new MutationObserver(fixStickyWidths)
-  .observe(document.getElementById("table"), { childList:true });
-</script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- ===== 月まとめPDF（完成版） ===== -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   const stats = document.getElementById("stats");
@@ -182,21 +167,21 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   const monthText = document.getElementById("monthLabel")?.textContent || "";
   const cards = stats.querySelectorAll(".statsCard");
 
-  /* ===== 表紙（A4 1ページ固定） ===== */
+  /* ===== 表紙（⚽️なし・A4厳守） ===== */
   const cover = document.createElement("div");
-  cover.style.height = "297mm";
+  cover.style.minHeight = "297mm";
   cover.style.boxSizing = "border-box";
-  cover.style.padding = "80px 20px";
+  cover.style.padding = "60mm 20mm 20mm";
   cover.style.textAlign = "center";
   cover.style.pageBreakAfter = "always";
   cover.innerHTML = `
-    <h1 style="font-size:26px;">⚽ 箕谷サッカークラブ</h1>
+    <h1 style="font-size:26px;">箕谷サッカークラブ</h1>
     <h2 style="font-size:18px; margin:16px 0;">${monthText} 出席率まとめ</h2>
     <p>対象人数：${cards.length} 名</p>
     <p>作成日：${new Date().toLocaleDateString()}</p>
   `;
 
-  /* ===== 出席率（PDF用：横5列・2ページ目上部固定） ===== */
+  /* ===== 出席率（2ページ目・上から） ===== */
   const statsClone = document.getElementById("statsPdfArea").cloneNode(true);
   statsClone.style.padding = "12mm";
   statsClone.querySelector(".stats").style.gridTemplateColumns = "repeat(5, 1fr)";
@@ -209,7 +194,6 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
     .set({
       margin:0,
       filename:`${monthText}_出席率まとめ.pdf`,
-      image:{ type:"jpeg", quality:0.98 },
       html2canvas:{ scale:2 },
       jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
     })
