@@ -167,7 +167,7 @@ h2{ font-size:15px; margin:12px 0 6px; }
 
 <script type="module" src="./main.js"></script>
 
-<!-- 列幅実測（背番号と名前列を正確に固定） -->
+<!-- 列幅調整 -->
 <script>
 function fixStickyWidths(){
   const thNo = document.querySelector("th.no");
@@ -177,7 +177,7 @@ function fixStickyWidths(){
   const noWidth = thNo.getBoundingClientRect().width;
   document.documentElement.style.setProperty("--no-width", noWidth + "px");
 
-  // 名前列の left を正確に th.no の右端に
+  // 名前列の left を th.no の右端に
   thName.style.left = noWidth + "px";
   document.querySelectorAll("td.name").forEach(td=>{
     td.style.left = noWidth + "px";
@@ -191,18 +191,18 @@ window.addEventListener("resize", fixStickyWidths);
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- ===== 月まとめPDF（表紙1ページ・出席率2ページ目） ===== -->
+<!-- ===== 月まとめPDF ===== -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   const statsArea = document.getElementById("stats");
   const monthText = document.getElementById("monthLabel")?.textContent || "月";
 
+  // ラッパー作成
   const wrapper = document.createElement("div");
 
-  // 表紙
+  // 表紙を生成
   const cover = document.createElement("div");
   cover.className = "pdf-cover";
-  cover.style.display = "block";
   cover.innerHTML = `
     <h1 style="font-size:26px;">⚽ 箕谷サッカークラブ</h1>
     <h2 style="font-size:18px; margin:16px 0;">${monthText} 出席率まとめ</h2>
@@ -211,17 +211,15 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   `;
   wrapper.appendChild(cover);
 
-  // 出席率（2ページ目）
+  // 出席率部分をコピーして2ページ目
   if(statsArea && statsArea.children.length > 0){
-    const statsClone = statsArea.cloneNode(true);
-    statsClone.classList.add("pdf-stats");
-    statsClone.style.display = "block";
-    statsClone.style.pageBreakBefore = "always";
-    const statsGrid = statsClone.querySelector(".stats");
-    if(statsGrid) statsGrid.style.gridTemplateColumns = "repeat(5,1fr)";
-    wrapper.appendChild(statsClone);
+    const statsWrapper = statsArea.cloneNode(true);
+    statsWrapper.classList.add("pdf-stats");
+    statsWrapper.style.pageBreakBefore = "always"; // 2ページ目から
+    wrapper.appendChild(statsWrapper);
   }
 
+  // PDF生成
   html2pdf()
     .set({
       margin: [10,10,10,10],
