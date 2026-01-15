@@ -26,7 +26,6 @@ body{
   color:#fff;
   font-size:12px;
 }
-
 h1{
   margin:0 0 6px;
   font-size:18px;
@@ -49,9 +48,10 @@ button{
   cursor:pointer;
 }
 
-/* ===== 凡例 ===== */
+/* ===== 凡例（★2行対応） ===== */
 .legend{
   display:flex;
+  flex-wrap:wrap;     /* ← 追加：2行表示を許可 */
   gap:10px;
   font-size:11px;
   margin-bottom:8px;
@@ -86,7 +86,7 @@ th{
   z-index:10;
 }
 
-/* ===== 背番号・名前 ===== */
+/* ===== 背番号・名前（完全復活） ===== */
 th.no{
   position:sticky;
   left:0;
@@ -139,25 +139,22 @@ h2{
   font-size:12px;
 }
 
-/* ===== PDF 専用 ===== */
+/* ===== PDF専用 ===== */
 @media print{
   body{ background:#fff !important; }
   .statsCard{ page-break-inside:avoid; }
 }
 
 #pdfCover{
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-  align-items:center;
+  height:auto;
+  padding:20px 10px 10px;
+  text-align:center;
   background:#fff;
   color:#000;
-  padding-top:20px;
-  margin-bottom:12px;
 }
-#pdfCover h1{ font-size:26px; margin:0 0 4px 0; }
-#pdfCover h2{ font-size:18px; margin:0 0 8px 0; }
-#pdfCover p{ font-size:14px; margin:2px 0; }
+#pdfCover h1{ font-size:24px; margin-bottom:6px; }
+#pdfCover h2{ font-size:16px; margin-bottom:10px; }
+#pdfCover p{ font-size:13px; margin:4px 0; }
 </style>
 </head>
 
@@ -196,8 +193,7 @@ h2{
 <script>
 function fixStickyWidths(){
   const no = document.querySelector("th.no");
-  const name = document.querySelector("th.name");
-  if(!no || !name) return;
+  if(!no) return;
   document.documentElement.style.setProperty(
     "--no-width",
     no.getBoundingClientRect().width + "px"
@@ -207,13 +203,10 @@ new MutationObserver(fixStickyWidths)
   .observe(document.getElementById("table"), {childList:true});
 </script>
 
-<!-- PDF生成ライブラリ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- 月まとめPDF（表紙+出席率を1ページにまとめ、出席率を下に表示） -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
-
   const cards = document.querySelectorAll(".statsCard");
   if (!cards.length) {
     alert("出席率データがありません");
@@ -222,15 +215,13 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
 
   const monthText = document.getElementById("monthLabel").textContent;
 
-  /* 練習・試合回数を表ヘッダから取得 */
   let practiceCount = 0;
   let matchCount = 0;
   document.querySelectorAll("#table th").forEach(th => {
-    if(th.classList.contains("practice")) practiceCount++;
-    if(th.classList.contains("match")) matchCount++;
+    if (th.classList.contains("practice")) practiceCount++;
+    if (th.classList.contains("match")) matchCount++;
   });
 
-  /* 表紙 */
   const cover = document.createElement("div");
   cover.id = "pdfCover";
   cover.innerHTML = `
@@ -239,17 +230,15 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
     <p>対象人数：${cards.length} 名</p>
     <p>練習回数：${practiceCount} 回</p>
     <p>試合回数：${matchCount} 回</p>
-    <p style="margin-top:8px;">作成日：${new Date().toLocaleDateString("ja-JP")}</p>
+    <p style="margin-top:8px;font-size:12px;">
+      ⭐️補足<br>
+      トレセンおよび学校行事は出席率にカウントしておりません。
+    </p>
   `;
-
-  /* 出席率部分 */
-  const statsClone = document.getElementById("statsPdfArea").cloneNode(true);
-  statsClone.style.pageBreakBefore = "auto"; // 1ページにまとめる
-  statsClone.style.marginTop = "30px"; // 出席率を下に表示
 
   const wrapper = document.createElement("div");
   wrapper.appendChild(cover);
-  wrapper.appendChild(statsClone);
+  wrapper.appendChild(document.getElementById("statsPdfArea").cloneNode(true));
 
   html2pdf()
     .set({
