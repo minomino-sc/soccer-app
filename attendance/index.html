@@ -81,21 +81,19 @@ th{
 }
 
 /* ===== 背番号・名前 ===== */
-th.no{ position:sticky; left:0; z-index:20; }
-th.name{ position:sticky; left:var(--no-width); z-index:19; }
-td.no{
+th.no, td.no{
   position:sticky;
   left:0;
+  z-index:20;
   background:#f0f0f0;
   color:#000;
-  z-index:5;
 }
-td.name{
+th.name, td.name{
   position:sticky;
   left:var(--no-width);
+  z-index:19;
   background:#f0f0f0;
   color:#000;
-  z-index:5;
 }
 
 /* ===== 出欠セル ===== */
@@ -169,14 +167,21 @@ h2{ font-size:15px; margin:12px 0 6px; }
 
 <script type="module" src="./main.js"></script>
 
-<!-- 列幅実測（改修版） -->
+<!-- 列幅実測（背番号と名前列を正確に固定） -->
 <script>
 function fixStickyWidths(){
-  const no = document.querySelector("th.no");
-  const name = document.querySelector("th.name");
-  if(!no || !name) return;
+  const thNo = document.querySelector("th.no");
+  const thName = document.querySelector("th.name");
+  if(!thNo || !thName) return;
 
-  document.documentElement.style.setProperty("--no-width", name.getBoundingClientRect().width + "px");
+  const noWidth = thNo.getBoundingClientRect().width;
+  document.documentElement.style.setProperty("--no-width", noWidth + "px");
+
+  // 名前列の left を正確に th.no の右端に
+  thName.style.left = noWidth + "px";
+  document.querySelectorAll("td.name").forEach(td=>{
+    td.style.left = noWidth + "px";
+  });
 }
 new MutationObserver(fixStickyWidths)
   .observe(document.getElementById("table"), { childList:true, subtree:true });
@@ -186,20 +191,15 @@ window.addEventListener("resize", fixStickyWidths);
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- ===== 月まとめPDF（表紙1ページ・出席率2ページ目以降） ===== -->
+<!-- ===== 月まとめPDF（表紙1ページ・出席率2ページ目） ===== -->
 <script>
 document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   const statsArea = document.getElementById("stats");
-  if (!statsArea || statsArea.children.length === 0) {
-    alert("出席率データがありません");
-    return;
-  }
-
-  const monthText = document.getElementById("monthLabel")?.textContent || "";
+  const monthText = document.getElementById("monthLabel")?.textContent || "月";
 
   const wrapper = document.createElement("div");
 
-  // 表紙（1ページ目）
+  // 表紙
   const cover = document.createElement("div");
   cover.className = "pdf-cover";
   cover.style.display = "block";
@@ -207,19 +207,21 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
     <h1 style="font-size:26px;">⚽ 箕谷サッカークラブ</h1>
     <h2 style="font-size:18px; margin:16px 0;">${monthText} 出席率まとめ</h2>
     <p>作成日：${new Date().toLocaleDateString()}</p>
-    <p>対象人数：${statsArea.children.length} 名</p>
+    <p>対象人数：${statsArea ? statsArea.children.length : 0} 名</p>
   `;
   wrapper.appendChild(cover);
 
-  // 出席率部分（2ページ目以降）
-  const statsClone = statsArea.cloneNode(true);
-  statsClone.classList.add("pdf-stats");
-  statsClone.style.display = "block";
-  statsClone.style.pageBreakBefore = "always"; // 2ページ目から表示
-  statsClone.querySelector(".stats").style.gridTemplateColumns = "repeat(5, 1fr)";
-  wrapper.appendChild(statsClone);
+  // 出席率（2ページ目）
+  if(statsArea && statsArea.children.length > 0){
+    const statsClone = statsArea.cloneNode(true);
+    statsClone.classList.add("pdf-stats");
+    statsClone.style.display = "block";
+    statsClone.style.pageBreakBefore = "always";
+    const statsGrid = statsClone.querySelector(".stats");
+    if(statsGrid) statsGrid.style.gridTemplateColumns = "repeat(5,1fr)";
+    wrapper.appendChild(statsClone);
+  }
 
-  // PDF生成
   html2pdf()
     .set({
       margin: [10,10,10,10],
