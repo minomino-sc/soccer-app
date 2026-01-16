@@ -194,6 +194,19 @@ async function render() {
 
       td.onclick = async () => {
         if (rendering) return;
+
+        // ★ ここだけ追加（過去日注意喚起）
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const target = new Date(e._date);
+        target.setHours(0,0,0,0);
+        if (target < today) {
+          const ok = confirm(
+            "過去の日付の出欠を変更しようとしています。\n本当に修正しますか？"
+          );
+          if (!ok) return;
+        }
+
         rendering = true;
 
         const cur = logsCache[key]?.status || "skip";
