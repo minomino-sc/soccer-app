@@ -17,42 +17,49 @@ const db = getFirestore(app);
 /* DOM */
 const evMsg = document.getElementById("evMsg");
 const plMsg = document.getElementById("plMsg");
-const list  = document.getElementById("playerList");
+const list = document.getElementById("playerList");
 
-/* =====================
-   イベント登録
-   ===================== */
+/* イベント登録 */
 document.getElementById("saveEvent").onclick = async () => {
   const date  = evDate.value;
   const type  = evType.value;
-  const team  = evTeam.value;   // ★ チーム
   const title = evTitle.value;
 
-  if(!date){
+  const targetTeams = [];
+  if (document.getElementById("teamA").checked) targetTeams.push("A");
+  if (document.getElementById("teamB").checked) targetTeams.push("B");
+
+  if (!date) {
     evMsg.textContent = "日付は必須です";
     return;
   }
 
-  await addDoc(collection(db,"events_attendance"),{
+  if (targetTeams.length === 0) {
+    evMsg.textContent = "対象チームを選択してください";
+    return;
+  }
+
+  await addDoc(collection(db, "events_attendance"), {
     date,
     type,
-    team,                     // ★ 保存
     title: title || "",
+    targetTeams,          // ← ここが今回の肝
     createdAt: serverTimestamp()
   });
 
   evMsg.textContent = "イベントを登録しました";
+
   evTitle.value = "";
+  document.getElementById("teamA").checked = false;
+  document.getElementById("teamB").checked = false;
 };
 
-/* =====================
-   部員登録
-   ===================== */
+/* 部員登録 */
 document.getElementById("savePlayer").onclick = async () => {
-  const name   = plName.value.trim();
+  const name = plName.value.trim();
   const number = Number(plNumber.value);
 
-  if(!name || !number){
+  if (!name || !number) {
     plMsg.textContent = "背番号と名前を入力してください";
     return;
   }
@@ -70,17 +77,11 @@ document.getElementById("savePlayer").onclick = async () => {
   loadPlayers();
 };
 
-/* =====================
-   部員一覧（背番号順）
-   ===================== */
+/* 部員一覧（背番号順） */
 async function loadPlayers(){
   list.innerHTML = "";
-
   const snap = await getDocs(
-    query(
-      collection(db,"players_attendance"),
-      orderBy("number","asc")
-    )
+    query(collection(db,"players_attendance"), orderBy("number","asc"))
   );
 
   snap.forEach(d=>{
