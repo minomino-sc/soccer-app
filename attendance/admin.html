@@ -7,12 +7,13 @@
 
 <style>
 body{
-  font-family:system-ui;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
   background:#f5f7fb;
   padding:16px;
 }
-h1{margin-bottom:8px}
-h2{margin-top:32px}
+
+h1{margin:0 0 12px}
+h2{margin:28px 0 8px}
 
 label{
   display:block;
@@ -22,18 +23,19 @@ label{
 
 input,select,button{
   width:100%;
-  padding:8px;
-  margin-top:4px;
+  padding:10px;
+  margin-top:6px;
   font-size:16px;
+  box-sizing:border-box;
 }
 
 button{
-  margin-top:16px;
+  margin-top:20px;
   background:#2563eb;
   color:#fff;
   border:none;
-  border-radius:6px;
-  cursor:pointer;
+  border-radius:10px;
+  font-weight:600;
 }
 
 .msg{
@@ -41,20 +43,42 @@ button{
   font-size:14px;
 }
 
-/* 対象チーム */
-.teamSelect{
-  display:flex;
-  gap:16px;
+/* ===== 対象チーム ===== */
+.teamWrap{
   margin-top:8px;
-}
-.teamSelect label{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:16px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
 }
 
-/* 部員一覧 */
+.teamItem{
+  border:2px solid #ddd;
+  border-radius:12px;
+  padding:12px 8px;
+  text-align:center;
+  font-size:15px;
+  background:#fff;
+}
+
+.teamItem input{
+  display:none;
+}
+
+.teamItem span{
+  display:block;
+}
+
+/* 選択中 */
+.teamItem input:checked + span{
+  color:#2563eb;
+  font-weight:700;
+}
+
+.teamItem input:checked + span::before{
+  content:"✔ ";
+}
+
+/* ===== 部員一覧 ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -63,7 +87,7 @@ table{
 }
 th,td{
   border:1px solid #ddd;
-  padding:6px;
+  padding:8px;
   text-align:center;
 }
 th{background:#eee}
@@ -94,18 +118,18 @@ th{background:#eee}
 </label>
 
 <label>対象チーム</label>
-<div class="teamSelect">
-  <label>
+<div class="teamWrap">
+  <label class="teamItem">
     <input type="radio" name="team" value="A">
-    箕谷 A
+    <span>箕谷 A</span>
   </label>
-  <label>
+  <label class="teamItem">
     <input type="radio" name="team" value="B">
-    箕谷 B
+    <span>箕谷 B</span>
   </label>
-  <label>
+  <label class="teamItem">
     <input type="radio" name="team" value="AB">
-    箕谷 A・B 両方
+    <span>A・B 両方</span>
   </label>
 </div>
 
