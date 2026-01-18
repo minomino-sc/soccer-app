@@ -17,12 +17,15 @@ const db = getFirestore(app);
 /* DOM */
 const evMsg = document.getElementById("evMsg");
 const plMsg = document.getElementById("plMsg");
-const list = document.getElementById("playerList");
+const list  = document.getElementById("playerList");
 
-/* イベント登録 */
+/* =====================
+   イベント登録
+   ===================== */
 document.getElementById("saveEvent").onclick = async () => {
   const date  = evDate.value;
   const type  = evType.value;
+  const team  = evTeam.value;   // ★ チーム
   const title = evTitle.value;
 
   if(!date){
@@ -31,7 +34,10 @@ document.getElementById("saveEvent").onclick = async () => {
   }
 
   await addDoc(collection(db,"events_attendance"),{
-    date, type, title: title || "",
+    date,
+    type,
+    team,                     // ★ 保存
+    title: title || "",
     createdAt: serverTimestamp()
   });
 
@@ -39,9 +45,11 @@ document.getElementById("saveEvent").onclick = async () => {
   evTitle.value = "";
 };
 
-/* 部員登録 */
+/* =====================
+   部員登録
+   ===================== */
 document.getElementById("savePlayer").onclick = async () => {
-  const name = plName.value.trim();
+  const name   = plName.value.trim();
   const number = Number(plNumber.value);
 
   if(!name || !number){
@@ -62,11 +70,17 @@ document.getElementById("savePlayer").onclick = async () => {
   loadPlayers();
 };
 
-/* 部員一覧（背番号順） */
+/* =====================
+   部員一覧（背番号順）
+   ===================== */
 async function loadPlayers(){
   list.innerHTML = "";
+
   const snap = await getDocs(
-    query(collection(db,"players_attendance"), orderBy("number","asc"))
+    query(
+      collection(db,"players_attendance"),
+      orderBy("number","asc")
+    )
   );
 
   snap.forEach(d=>{
