@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>管理画面</title>
+<title>🛠 管理画面</title>
 
 <style>
 body{
@@ -11,21 +11,50 @@ body{
   background:#f5f7fb;
   padding:16px;
 }
+h1{margin-bottom:8px}
 h2{margin-top:32px}
-label{display:block;margin-top:12px}
+
+label{
+  display:block;
+  margin-top:12px;
+  font-size:14px;
+}
+
 input,select,button{
   width:100%;
   padding:8px;
   margin-top:4px;
   font-size:16px;
 }
+
 button{
   margin-top:16px;
   background:#2563eb;
   color:#fff;
   border:none;
   border-radius:6px;
+  cursor:pointer;
 }
+
+.msg{
+  margin-top:8px;
+  font-size:14px;
+}
+
+/* 対象チーム */
+.teamSelect{
+  display:flex;
+  gap:16px;
+  margin-top:8px;
+}
+.teamSelect label{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:16px;
+}
+
+/* 部員一覧 */
 table{
   width:100%;
   border-collapse:collapse;
@@ -38,20 +67,9 @@ th,td{
   text-align:center;
 }
 th{background:#eee}
-.msg{margin-top:8px}
-
-.team-box{
-  display:flex;
-  gap:16px;
-  margin-top:8px;
-}
-.team-box label{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
 </style>
 </head>
+
 <body>
 
 <h1>🛠 管理画面</h1>
@@ -76,9 +94,19 @@ th{background:#eee}
 </label>
 
 <label>対象チーム</label>
-<div class="team-box">
-  <label><input type="checkbox" id="teamA" value="A"> 箕谷A</label>
-  <label><input type="checkbox" id="teamB" value="B"> 箕谷B</label>
+<div class="teamSelect">
+  <label>
+    <input type="radio" name="team" value="A">
+    箕谷 A
+  </label>
+  <label>
+    <input type="radio" name="team" value="B">
+    箕谷 B
+  </label>
+  <label>
+    <input type="radio" name="team" value="AB">
+    箕谷 A・B 両方
+  </label>
 </div>
 
 <button id="saveEvent">イベント登録</button>
