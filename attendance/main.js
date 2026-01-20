@@ -67,14 +67,13 @@ function monthIdOf(d) {
 function symbol(s) {
   if (s === "present") return "○";
   if (s === "absent") return "×";
-  if (s === "special") return "※";   // トレセン
-  if (s === "school") return "◻︎";   // 学校行事
+  if (s === "special") return "※";
+  if (s === "school") return "◻︎";
   return "－";
 }
 
 /* ===============================
-   出席率描画
-   ※ ※・◻︎は対象外
+   出席率描画（変更なし）
    =============================== */
 function renderStats(players, monthEvents, logsCache) {
   stats.innerHTML = "";
@@ -113,6 +112,29 @@ function renderStats(players, monthEvents, logsCache) {
 }
 
 /* ===============================
+   ★ 月まとめPDF用：A/B別イベント回数集計
+   events_attendance だけを見る
+   =============================== */
+function countEventsByTeam(monthEvents) {
+  const result = {
+    A: { practice: 0, match: 0 },
+    B: { practice: 0, match: 0 }
+  };
+
+  monthEvents.forEach(e => {
+    if (!Array.isArray(e.targetTeams)) return;
+
+    e.targetTeams.forEach(team => {
+      if (!result[team]) return;
+      if (e.type === "practice") result[team].practice++;
+      if (e.type === "match") result[team].match++;
+    });
+  });
+
+  return result;
+}
+
+/* ===============================
    メイン描画
    =============================== */
 async function render() {
@@ -147,6 +169,12 @@ async function render() {
       e._date.getFullYear() === current.getFullYear() &&
       e._date.getMonth() === current.getMonth()
   );
+
+  /* ★ PDF用にここで取得できる */
+  const teamCounts = countEventsByTeam(monthEvents);
+  console.log("PDF用 月集計", teamCounts);
+  // teamCounts.A.practice / teamCounts.A.match
+  // teamCounts.B.practice / teamCounts.B.match
 
   if (!logsCacheByMonth[monthId]) {
     logsCacheByMonth[monthId] = {};
@@ -195,16 +223,12 @@ async function render() {
       td.onclick = async () => {
         if (rendering) return;
 
-        // ★ ここだけ追加（過去日注意喚起）
         const today = new Date();
         today.setHours(0,0,0,0);
         const target = new Date(e._date);
         target.setHours(0,0,0,0);
         if (target < today) {
-          const ok = confirm(
-            "過去の日付の出欠を変更しようとしています。\n本当に修正しますか？"
-          );
-          if (!ok) return;
+          if (!confirm("過去の日付の出欠を変更しますか？")) return;
         }
 
         rendering = true;
