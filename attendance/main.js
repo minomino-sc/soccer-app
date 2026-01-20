@@ -33,6 +33,12 @@ let players = [];
 let events = [];
 let logsCacheByMonth = {};
 
+/* ★ PDF 用：月別チーム集計（index.html から参照） */
+window.monthTeamSummary = {
+  A: { practice: 0, match: 0 },
+  B: { practice: 0, match: 0 }
+};
+
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
   if (rendering) return;
@@ -102,12 +108,40 @@ function renderStats(players, monthEvents, logsCache) {
 
     stats.innerHTML +=
       "<div class='statsCard'>" +
-      "<strong>" + p.name + "</strong><br>" +
-      "練習：" + prH + "/" + prT + "（" + (prT ? Math.round(prH / prT * 100) : 0) + "%）<br>" +
-      "試合：" + maH + "/" + maT + "（" + (maT ? Math.round(maH / maT * 100) : 0) + "%）<br>" +
-      "合計：" + hit + "/" + tot + "（" + (tot ? Math.round(hit / tot * 100) : 0) + "%）" +
+        "<strong>" + p.name + "</strong><br>" +
+        "練習：" + prH + "/" + prT + "（" + (prT ? Math.round(prH / prT * 100) : 0) + "%）<br>" +
+        "試合：" + maH + "/" + maT + "（" + (maT ? Math.round(maH / maT * 100) : 0) + "%）<br>" +
+        "合計：" + hit + "/" + tot + "（" + (tot ? Math.round(hit / tot * 100) : 0) + "%）" +
       "</div>";
   });
+}
+
+/* ===============================
+   ★ チーム別イベント集計（PDF用）
+   =============================== */
+function calcTeamSummary(monthEvents) {
+  const summary = {
+    A: { practice: 0, match: 0 },
+    B: { practice: 0, match: 0 }
+  };
+
+  monthEvents.forEach(e => {
+    let teams = [];
+
+    if (Array.isArray(e.targetTeams)) {
+      teams = e.targetTeams;
+    } else if (typeof e.targetTeam === "string") {
+      teams = [e.targetTeam];
+    }
+
+    teams.forEach(t => {
+      if (!summary[t]) return;
+      if (e.type === "practice") summary[t].practice++;
+      if (e.type === "match") summary[t].match++;
+    });
+  });
+
+  window.monthTeamSummary = summary;
 }
 
 /* ===============================
@@ -145,6 +179,9 @@ async function render() {
     e._date.getMonth() === current.getMonth()
   );
 
+  /* ★ チーム集計（PDF用） */
+  calcTeamSummary(monthEvents);
+
   if (!logsCacheByMonth[monthId]) {
     logsCacheByMonth[monthId] = {};
     const snap = await getDocs(
@@ -169,8 +206,8 @@ async function render() {
     "<th class='no'>背</th><th class='name'>名前</th>" +
     monthEvents.map(e =>
       "<th class='" + e.type + "'>" +
-      e._date.getDate() + "<br>" +
-      (e.type === "match" ? "試合" : "練習") +
+        e._date.getDate() + "<br>" +
+        (e.type === "match" ? "試合" : "練習") +
       "</th>"
     ).join("");
   table.appendChild(trH);
@@ -178,8 +215,6 @@ async function render() {
   /* 行 */
   players.forEach(p => {
     const tr = document.createElement("tr");
-
-    /* ★ 改行ゼロ（空白バグ対策） */
     tr.innerHTML =
       "<td class='no'>" + (p.number ?? "") + "</td>" +
       "<td class='name'>" + p.name + "</td>";
@@ -193,18 +228,13 @@ async function render() {
       td.onclick = async () => {
         if (rendering) return;
 
-        /* ★ 過去日注意喚起（完全復活） */
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
+        today.setHours(0,0,0,0);
         const target = new Date(e._date);
-        target.setHours(0, 0, 0, 0);
+        target.setHours(0,0,0,0);
 
         if (target < today) {
-          const ok = confirm(
-            "過去の日付の出欠を変更しようとしています。\n本当に修正しますか？"
-          );
-          if (!ok) return;
+          if (!confirm("過去の日付の出欠を変更しようとしています。\n本当に修正しますか？")) return;
         }
 
         rendering = true;
@@ -249,7 +279,7 @@ window.exportCSV = function () {
   const lines = [];
 
   lines.push(["⚽ 出欠管理"]);
-  lines.push([`${current.getFullYear()}年${current.getMonth() + 1}月`]);
+  lines.push([`${current.getFullYear()}年 ${current.getMonth() + 1}月`]);
   lines.push([]);
 
   const headers = ["背番号", "名前"];
