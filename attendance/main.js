@@ -10,7 +10,9 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase 設定 */
+/* ===============================
+   Firebase 設定
+   =============================== */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
@@ -19,21 +21,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* DOM */
+/* ===============================
+   DOM
+   =============================== */
 const table = document.getElementById("table");
 const stats = document.getElementById("stats");
 const monthLabel = document.getElementById("monthLabel");
 
-/* state */
+/* ===============================
+   state
+   =============================== */
 let current = new Date();
 let rendering = false;
 
-/* キャッシュ */
+/* ===============================
+   cache
+   =============================== */
 let players = [];
 let events = [];
 let logsCacheByMonth = {};
 
-/* 月切替 */
+/* ===============================
+   月切替
+   =============================== */
 document.getElementById("prevMonth").onclick = () => {
   if (rendering) return;
   current.setDate(1);
@@ -49,7 +59,9 @@ document.getElementById("nextMonth").onclick = () => {
 
 render();
 
-/* utils */
+/* ===============================
+   utils
+   =============================== */
 function toDate(v) {
   if (!v) return null;
   if (typeof v === "string") {
@@ -63,7 +75,9 @@ function monthIdOf(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-/* 表示記号 */
+/* ===============================
+   表示記号
+   =============================== */
 function symbol(s) {
   if (s === "present") return "○";
   if (s === "absent") return "×";
@@ -74,7 +88,6 @@ function symbol(s) {
 
 /* ===============================
    出席率描画
-   ※ ※・◻︎は対象外
    =============================== */
 function renderStats(players, monthEvents, logsCache) {
   stats.innerHTML = "";
@@ -112,38 +125,6 @@ function renderStats(players, monthEvents, logsCache) {
 }
 
 /* ===============================
-   ★ A / B 別 イベント回数集計
-   events_attendance だけで判断
-   =============================== */
-function countEventsByTeam(monthEvents) {
-  const result = {
-    A: { practice: 0, match: 0 },
-    B: { practice: 0, match: 0 }
-  };
-
-  monthEvents.forEach(e => {
-    let teams = [];
-
-    // 配列・単数・未定義すべて対応
-    if (Array.isArray(e.targetTeams)) {
-      teams = e.targetTeams;
-    } else if (typeof e.targetTeam === "string") {
-      teams = [e.targetTeam];
-    } else {
-      return;
-    }
-
-    teams.forEach(t => {
-      if (!result[t]) return;
-      if (e.type === "practice") result[t].practice++;
-      if (e.type === "match") result[t].match++;
-    });
-  });
-
-  return result;
-}
-
-/* ===============================
    メイン描画
    =============================== */
 async function render() {
@@ -154,6 +135,7 @@ async function render() {
 
   const monthId = monthIdOf(current);
 
+  /* players */
   if (players.length === 0) {
     const snap = await getDocs(collection(db, "players_attendance"));
     players = snap.docs
@@ -161,6 +143,7 @@ async function render() {
       .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
   }
 
+  /* events */
   if (events.length === 0) {
     const snap = await getDocs(collection(db, "events_attendance"));
     events = snap.docs
@@ -179,6 +162,10 @@ async function render() {
       e._date.getMonth() === current.getMonth()
   );
 
+  /* ★ PDF 用に公開（ここが重要） */
+  window.monthEvents = monthEvents;
+
+  /* logs */
   if (!logsCacheByMonth[monthId]) {
     logsCacheByMonth[monthId] = {};
     const snap = await getDocs(
@@ -215,8 +202,6 @@ async function render() {
   /* 行 */
   players.forEach(p => {
     const tr = document.createElement("tr");
-
-    // ★ Safari対策：改行を絶対に入れない
     tr.innerHTML =
       "<td class='no'>" + (p.number ?? "") + "</td>" +
       "<td class='name'>" + p.name + "</td>";
@@ -274,7 +259,7 @@ async function render() {
 }
 
 /* ===============================
-   CSV 出力（変更なし）
+   CSV 出力
    =============================== */
 window.exportCSV = function () {
   const lines = [];
