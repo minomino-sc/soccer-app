@@ -31,7 +31,7 @@ let rendering = false;
 /* キャッシュ */
 let players = [];
 let events = [];
-let logsCacheByMonth = {}; 
+let logsCacheByMonth = {};
 
 /* 月切替 */
 document.getElementById("prevMonth").onclick = () => {
@@ -67,13 +67,14 @@ function monthIdOf(d) {
 function symbol(s) {
   if (s === "present") return "○";
   if (s === "absent") return "×";
-  if (s === "special") return "※";
-  if (s === "school") return "◻︎";
+  if (s === "special") return "※";   // トレセン
+  if (s === "school") return "◻︎";    // 学校行事
   return "－";
 }
 
 /* ===============================
-   出席率描画（変更なし）
+   出席率描画
+   ※ ※・◻︎は対象外
    =============================== */
 function renderStats(players, monthEvents, logsCache) {
   stats.innerHTML = "";
@@ -100,20 +101,19 @@ function renderStats(players, monthEvents, logsCache) {
     const tot = prT + maT;
     const hit = prH + maH;
 
-    stats.innerHTML += `
-      <div class="statsCard">
-        <strong>${p.name}</strong><br>
-        練習：${prH}/${prT}（${prT ? Math.round(prH / prT * 100) : 0}%）<br>
-        試合：${maH}/${maT}（${maT ? Math.round(maH / maT * 100) : 0}%）<br>
-        合計：${hit}/${tot}（${tot ? Math.round(hit / tot * 100) : 0}%）
-      </div>
-    `;
+    stats.innerHTML +=
+      "<div class='statsCard'>" +
+        "<strong>" + p.name + "</strong><br>" +
+        "練習：" + prH + "/" + prT + "（" + (prT ? Math.round(prH / prT * 100) : 0) + "%）<br>" +
+        "試合：" + maH + "/" + maT + "（" + (maT ? Math.round(maH / maT * 100) : 0) + "%）<br>" +
+        "合計：" + hit + "/" + tot + "（" + (tot ? Math.round(hit / tot * 100) : 0) + "%）" +
+      "</div>";
   });
 }
 
 /* ===============================
-   ★ 月まとめPDF用：A/B別イベント回数集計
-   events_attendance だけを見る
+   ★ A / B 別 イベント回数集計
+   events_attendance だけで判断
    =============================== */
 function countEventsByTeam(monthEvents) {
   const result = {
@@ -122,12 +122,21 @@ function countEventsByTeam(monthEvents) {
   };
 
   monthEvents.forEach(e => {
-    if (!Array.isArray(e.targetTeams)) return;
+    let teams = [];
 
-    e.targetTeams.forEach(team => {
-      if (!result[team]) return;
-      if (e.type === "practice") result[team].practice++;
-      if (e.type === "match") result[team].match++;
+    // 配列・単数・未定義すべて対応
+    if (Array.isArray(e.targetTeams)) {
+      teams = e.targetTeams;
+    } else if (typeof e.targetTeam === "string") {
+      teams = [e.targetTeam];
+    } else {
+      return;
+    }
+
+    teams.forEach(t => {
+      if (!result[t]) return;
+      if (e.type === "practice") result[t].practice++;
+      if (e.type === "match") result[t].match++;
     });
   });
 
@@ -170,12 +179,6 @@ async function render() {
       e._date.getMonth() === current.getMonth()
   );
 
-  /* ★ PDF用にここで取得できる */
-  const teamCounts = countEventsByTeam(monthEvents);
-  console.log("PDF用 月集計", teamCounts);
-  // teamCounts.A.practice / teamCounts.A.match
-  // teamCounts.B.practice / teamCounts.B.match
-
   if (!logsCacheByMonth[monthId]) {
     logsCacheByMonth[monthId] = {};
     const snap = await getDocs(
@@ -197,22 +200,26 @@ async function render() {
 
   const logsCache = logsCacheByMonth[monthId];
 
+  /* ヘッダー */
   const trH = document.createElement("tr");
   trH.innerHTML =
     "<th class='no'>背</th><th class='name'>名前</th>" +
-    monthEvents
-      .map(
-        e =>
-          `<th class="${e.type}">
-            ${e._date.getDate()}<br>${e.type === "match" ? "試合" : "練習"}
-          </th>`
-      )
-      .join("");
+    monthEvents.map(e =>
+      "<th class='" + e.type + "'>" +
+        e._date.getDate() + "<br>" +
+        (e.type === "match" ? "試合" : "練習") +
+      "</th>"
+    ).join("");
   table.appendChild(trH);
 
+  /* 行 */
   players.forEach(p => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="no">${p.number ?? ""}</td><td class="name">${p.name}</td>`;
+
+    // ★ Safari対策：改行を絶対に入れない
+    tr.innerHTML =
+      "<td class='no'>" + (p.number ?? "") + "</td>" +
+      "<td class='name'>" + p.name + "</td>";
 
     monthEvents.forEach(e => {
       const key = `${e.id}_${p.id}`;
@@ -297,9 +304,9 @@ window.exportCSV = function () {
 
   const csv =
     "\uFEFF" +
-    lines
-      .map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    lines.map(r =>
+      r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")
+    ).join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
