@@ -100,14 +100,13 @@ function renderStats(players, monthEvents, logsCache) {
     const tot = prT + maT;
     const hit = prH + maH;
 
-    stats.innerHTML += `
-      <div class="statsCard">
-        <strong>${p.name}</strong><br>
-        練習：${prH}/${prT}（${prT ? Math.round(prH / prT * 100) : 0}%）<br>
-        試合：${maH}/${maT}（${maT ? Math.round(maH / maT * 100) : 0}%）<br>
-        合計：${hit}/${tot}（${tot ? Math.round(hit / tot * 100) : 0}%）
-      </div>
-    `;
+    stats.innerHTML +=
+      "<div class='statsCard'>" +
+      "<strong>" + p.name + "</strong><br>" +
+      "練習：" + prH + "/" + prT + "（" + (prT ? Math.round(prH / prT * 100) : 0) + "%）<br>" +
+      "試合：" + maH + "/" + maT + "（" + (maT ? Math.round(maH / maT * 100) : 0) + "%）<br>" +
+      "合計：" + hit + "/" + tot + "（" + (tot ? Math.round(hit / tot * 100) : 0) + "%）" +
+      "</div>";
   });
 }
 
@@ -140,28 +139,11 @@ async function render() {
       .sort((a, b) => a._date - b._date);
   }
 
-  const monthEvents = events.filter(
-    e =>
-      e._date &&
-      e._date.getFullYear() === current.getFullYear() &&
-      e._date.getMonth() === current.getMonth()
+  const monthEvents = events.filter(e =>
+    e._date &&
+    e._date.getFullYear() === current.getFullYear() &&
+    e._date.getMonth() === current.getMonth()
   );
-
-  /* ===== ★ チーム別回数集計（PDF用・ここが今回の本題） ===== */
-  window.monthTeamCounts = {
-    A: { practice: 0, match: 0 },
-    B: { practice: 0, match: 0 }
-  };
-
-  monthEvents.forEach(e => {
-    if (!Array.isArray(e.targetTeams)) return;
-    e.targetTeams.forEach(team => {
-      if (!window.monthTeamCounts[team]) return;
-      if (e.type === "practice") window.monthTeamCounts[team].practice++;
-      if (e.type === "match") window.monthTeamCounts[team].match++;
-    });
-  });
-  /* ========================================================= */
 
   if (!logsCacheByMonth[monthId]) {
     logsCacheByMonth[monthId] = {};
@@ -173,10 +155,7 @@ async function render() {
       const d = doc.data();
       const key = `${d.eventId}_${d.playerId}`;
       const t = d.createdAt?.toMillis?.() ?? 0;
-      if (
-        !logsCacheByMonth[monthId][key] ||
-        t > logsCacheByMonth[monthId][key].time
-      ) {
+      if (!logsCacheByMonth[monthId][key] || t > logsCacheByMonth[monthId][key].time) {
         logsCacheByMonth[monthId][key] = { status: d.status, time: t };
       }
     });
@@ -184,19 +163,26 @@ async function render() {
 
   const logsCache = logsCacheByMonth[monthId];
 
+  /* ヘッダー */
   const trH = document.createElement("tr");
   trH.innerHTML =
     "<th class='no'>背</th><th class='name'>名前</th>" +
     monthEvents.map(e =>
-      `<th class="${e.type}">
-        ${e._date.getDate()}<br>${e.type === "match" ? "試合" : "練習"}
-      </th>`
+      "<th class='" + e.type + "'>" +
+      e._date.getDate() + "<br>" +
+      (e.type === "match" ? "試合" : "練習") +
+      "</th>"
     ).join("");
   table.appendChild(trH);
 
+  /* 行 */
   players.forEach(p => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="no">${p.number ?? ""}</td><td class="name">${p.name}</td>`;
+
+    /* ★ 改行ゼロ（空白バグ対策） */
+    tr.innerHTML =
+      "<td class='no'>" + (p.number ?? "") + "</td>" +
+      "<td class='name'>" + p.name + "</td>";
 
     monthEvents.forEach(e => {
       const key = `${e.id}_${p.id}`;
@@ -206,6 +192,21 @@ async function render() {
 
       td.onclick = async () => {
         if (rendering) return;
+
+        /* ★ 過去日注意喚起（完全復活） */
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const target = new Date(e._date);
+        target.setHours(0, 0, 0, 0);
+
+        if (target < today) {
+          const ok = confirm(
+            "過去の日付の出欠を変更しようとしています。\n本当に修正しますか？"
+          );
+          if (!ok) return;
+        }
+
         rendering = true;
 
         const cur = logsCache[key]?.status || "skip";
@@ -241,9 +242,12 @@ async function render() {
   rendering = false;
 }
 
-/* CSV 出力（変更なし） */
+/* ===============================
+   CSV 出力（変更なし）
+   =============================== */
 window.exportCSV = function () {
   const lines = [];
+
   lines.push(["⚽ 出欠管理"]);
   lines.push([`${current.getFullYear()}年${current.getMonth() + 1}月`]);
   lines.push([]);
@@ -261,13 +265,22 @@ window.exportCSV = function () {
     lines.push(row);
   });
 
+  lines.push([]);
+  lines.push(["📊 出席率"]);
+  document.querySelectorAll(".statsCard").forEach(card => {
+    lines.push([card.innerText.replace(/\n/g, " ")]);
+  });
+
   const csv =
     "\uFEFF" +
-    lines.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+    lines.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
+  a.href = url;
   a.download = `${monthIdOf(current)}_attendance.csv`;
   a.click();
+  URL.revokeObjectURL(url);
 };
