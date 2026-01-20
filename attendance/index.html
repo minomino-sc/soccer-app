@@ -15,7 +15,6 @@
   --no-width:40px;
 }
 
-/* ===== 全体 ===== */
 body{
   margin:0;
   padding:12px;
@@ -26,7 +25,6 @@ body{
 }
 h1{ margin:0 0 6px; font-size:18px; }
 
-/* ===== 操作部 ===== */
 .controls{
   display:flex;
   align-items:center;
@@ -43,7 +41,6 @@ button{
   cursor:pointer;
 }
 
-/* ===== 凡例（2行対応） ===== */
 .legend{
   display:flex;
   flex-wrap:wrap;
@@ -52,7 +49,6 @@ button{
   margin-bottom:8px;
 }
 
-/* ===== テーブル ===== */
 .tableWrap{ overflow-x:auto; position:relative; }
 table{
   border-collapse:separate;
@@ -69,7 +65,6 @@ th,td{
   white-space:nowrap;
 }
 
-/* ===== ヘッダー ===== */
 th{
   background:linear-gradient(135deg,var(--barca-blue),var(--barca-red));
   color:#fff;
@@ -78,25 +73,20 @@ th{
   z-index:10;
 }
 
-/* ===== 背番号・名前 ===== */
 th.no{ position:sticky; left:0; z-index:20; }
 th.name{ position:sticky; left:var(--no-width); z-index:19; }
-td.no{
-  position:sticky; left:0;
-  background:#f0f0f0; color:#000; z-index:5;
+td.no, td.name{
+  position:sticky;
+  background:#f0f0f0;
+  color:#000;
+  z-index:5;
 }
-td.name{
-  position:sticky; left:var(--no-width);
-  background:#f0f0f0; color:#000; z-index:5;
-}
+td.no{ left:0; }
+td.name{ left:var(--no-width); }
 
-/* ===== 出欠セル ===== */
 td.practice{ background:#fff; }
 td.match{ background:#fbeaec; }
-td.practice:hover,
-td.match:hover{ background:#f5c542; cursor:pointer; }
 
-/* ===== 出席率 ===== */
 h2{ font-size:15px; margin:12px 0 6px; }
 .stats{
   display:grid;
@@ -111,31 +101,27 @@ h2{ font-size:15px; margin:12px 0 6px; }
   font-size:12px;
 }
 
-/* ===== PDF専用 ===== */
+/* ===== PDF ===== */
 #pdfCover{
   position:relative;
-  padding:24px 16px 12px;
+  padding:30px 20px 20px;
   text-align:center;
   background:#fff;
   color:#000;
 }
-
-/* 透かしロゴ */
 #pdfCover::before{
   content:"";
   position:absolute;
   inset:0;
   background:url("./IMG_2508.jpeg") center/240px no-repeat;
   opacity:0.12;
-  pointer-events:none;
 }
-
 #pdfCover h1{ font-size:24px; margin:0 0 6px; }
 #pdfCover h2{ font-size:16px; margin:0 0 10px; }
-#pdfCover p{ font-size:13px; margin:2px 0; }
+#pdfCover p{ margin:4px 0; font-size:13px; }
 
 .pdf-note{
-  margin-top:10px;
+  margin-top:12px;
   font-size:11px;
   color:#555;
   border-top:1px solid #ccc;
@@ -160,8 +146,8 @@ h2{ font-size:15px; margin:12px 0 6px; }
   <span>○ 出席</span>
   <span>× 欠席</span>
   <span>－ 対象外</span>
-  <span>※ トレセン（出席率対象外）</span>
-  <span>◻︎ 学校行事（出席率対象外）</span>  
+  <span>※ トレセン</span>
+  <span>◻︎ 学校行事</span>
 </div>
 
 <div class="tableWrap">
@@ -174,38 +160,33 @@ h2{ font-size:15px; margin:12px 0 6px; }
 </div>
 
 <script type="module" src="./main.js"></script>
-
-<script>
-function fixStickyWidths(){
-  const no = document.querySelector("th.no");
-  if(!no) return;
-  document.documentElement.style.setProperty(
-    "--no-width",
-    no.getBoundingClientRect().width + "px"
-  );
-}
-new MutationObserver(fixStickyWidths)
-  .observe(document.getElementById("table"), { childList:true });
-</script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
-document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
-
-  const stats = document.getElementById("stats");
-  if (!stats || stats.children.length === 0) {
-    alert("出席率データがありません");
-    return;
-  }
+document.getElementById("exportMonthlyPdf").onclick = async () => {
 
   const monthText = document.getElementById("monthLabel").textContent;
-  const cards = stats.querySelectorAll(".statsCard");
+  const cards = document.querySelectorAll(".statsCard");
 
-  let practiceCount = 0, matchCount = 0;
+  let A_practice = 0, A_match = 0;
+  let B_practice = 0, B_match = 0;
+
   document.querySelectorAll("#table th").forEach(th=>{
-    if(th.classList.contains("practice")) practiceCount++;
-    if(th.classList.contains("match")) matchCount++;
+    if(!th.classList.contains("practice") && !th.classList.contains("match")) return;
+
+    const eventId = th.dataset.eventId;
+    const teams = (window.eventTeams && window.eventTeams[eventId]) || ["A","B"];
+
+    teams.forEach(t=>{
+      if(th.classList.contains("practice")){
+        if(t==="A") A_practice++;
+        if(t==="B") B_practice++;
+      }
+      if(th.classList.contains("match")){
+        if(t==="A") A_match++;
+        if(t==="B") B_match++;
+      }
+    });
   });
 
   const cover = document.createElement("div");
@@ -214,10 +195,11 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
     <h1>⚽ 箕谷サッカークラブ</h1>
     <h2>${monthText} 出席率まとめ</h2>
     <p>対象人数：${cards.length} 名</p>
-    <p>練習回数：${practiceCount} 回 ／ 試合回数：${matchCount} 回</p>
+    <p>箕谷A：練習 ${A_practice} 回 ／ 試合 ${A_match} 回</p>
+    <p>箕谷B：練習 ${B_practice} 回 ／ 試合 ${B_match} 回</p>
     <p>作成日：${new Date().toLocaleDateString("ja-JP")}</p>
     <div class="pdf-note">
-      ※ トレセン・学校行事は出席率の算出対象外です
+      ※ トレセン・学校行事は出席率の算出対象外
     </div>
   `;
 
@@ -225,16 +207,13 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
   wrapper.appendChild(cover);
   wrapper.appendChild(document.getElementById("statsPdfArea").cloneNode(true));
 
-  html2pdf()
-    .set({
-      margin:[8,8,10,8],
-      filename:`${monthText}_出席率まとめ.pdf`,
-      html2canvas:{ scale:2 },
-      jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
-    })
-    .from(wrapper)
-    .save();
-});
+  html2pdf().set({
+    margin:[8,8,10,8],
+    filename:`${monthText}_出席率まとめ.pdf`,
+    html2canvas:{ scale:2 },
+    jsPDF:{ unit:"mm", format:"a4" }
+  }).from(wrapper).save();
+};
 </script>
 
 </body>
