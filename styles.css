@@ -635,5 +635,6 @@ select option:not([value=""]) {
 
 /* iOS Safari：select 未選択（薄文字）対策 */
 select option:disabled {
-  color: #999;
+  color: #999 !important;
+  -webkit-text-fill-color: #999 !important;
 }
