@@ -621,6 +621,7 @@ select {
   color: #999;
 }
 
-select:focus {
+select:focus,
+select:not([value=""]) {
   color: #333;
 }
