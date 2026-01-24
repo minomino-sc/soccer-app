@@ -605,3 +605,14 @@ input[type="date"]::-webkit-date-and-time-value {
   border: 1px solid #777;
   border-radius: 8px;
 }
+
+/* ==============================
+   iOS Safari select 文字切れ対策
+============================== */
+select {
+  height: auto !important;          /* ← 固定高さを無効化 */
+  line-height: 1.4 !important;
+  padding: 12px 14px !important;    /* ← padding で高さ確保 */
+  font-size: 16px !important;       /* ← iOS拡大防止 */
+  box-sizing: border-box !important;
+}
