@@ -616,3 +616,19 @@ select {
   font-size: 16px !important;       /* ← iOS拡大防止 */
   box-sizing: border-box !important;
 }
+
+/* ==============================
+   iOS Safari select 未選択文字 復活
+============================== */
+
+/* 未選択（placeholder相当） */
+select:has(option[value=""]:checked),
+select:not(:has(option:checked)) {
+  color: #999 !important;              /* 薄文字を明示 */
+  -webkit-text-fill-color: #999 !important;
+}
+
+/* 選択後は通常文字色 */
+select option:not([value=""]) {
+  color: #333;
+}
