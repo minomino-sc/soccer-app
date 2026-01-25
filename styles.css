@@ -606,7 +606,8 @@ input[type="date"]::-webkit-date-and-time-value {
   border-radius: 8px;
 }
 
-/* iOS Safari select 下切れ対策（最小・安全） */
+/* iOS Safari select 描画位置ズレ最終対策 */
 select {
-  min-height: 44px;
+  padding-top: 12px;
+  padding-bottom: 8px;
 }
