@@ -606,8 +606,13 @@ input[type="date"]::-webkit-date-and-time-value {
   border-radius: 8px;
 }
 
-/* iOS Safari select 描画位置ズレ最終対策 */
+/* ===============================
+   試合日 input と同じ思想の select 補正
+================================ */
 select {
-  padding-top: 12px;
-  padding-bottom: 8px;
+  flex: none !important;          /* ← row の呪いを断ち切る */
+  height: auto !important;        /* ← Safari に任せる */
+  min-height: 30px;               /* ← 試合日と同じ最低ライン */
+  padding: 0 10px !important;     /* ← 上下0が効く */
+  line-height: normal !important; /* ← 触らない */
 }
