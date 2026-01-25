@@ -48,6 +48,7 @@ body {
    入力フォーム
 ========================================= */
 input,
+select,
 button,
 textarea {
   padding: 10px;
