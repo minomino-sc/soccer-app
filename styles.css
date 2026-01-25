@@ -605,3 +605,8 @@ input[type="date"]::-webkit-date-and-time-value {
   border: 1px solid #777;
   border-radius: 8px;
 }
+
+/* iOS Safari select 下切れ対策（最小・安全） */
+select {
+  min-height: 44px;
+}
