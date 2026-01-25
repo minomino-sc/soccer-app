@@ -607,21 +607,12 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 /* ==============================
-   iOS Safari select 文字切れ対策
+   iOS Safari select 文字切れ対策（確定版）
 ============================== */
 select {
-  height: auto !important;          /* ← 固定高さを無効化 */
-  line-height: 1.4 !important;
-  padding: 12px 14px !important;    /* ← padding で高さ確保 */
-  font-size: 16px !important;       /* ← iOS拡大防止 */
+  height: 44px !important;        /* 高さを明示 */
+  line-height: 44px !important;   /* 文字を中央に固定 */
+  padding: 0 14px !important;     /* 左右のみ */
+  font-size: 16px !important;     /* iOS拡大防止 */
   box-sizing: border-box !important;
-}
-
-select {
-  color: #999;
-}
-
-select:focus,
-select:not([value=""]) {
-  color: #333;
 }
