@@ -605,17 +605,3 @@ input[type="date"]::-webkit-date-and-time-value {
   border: 1px solid #777;
   border-radius: 8px;
 }
-
-/* ==============================
-   iOS Safari select 安定版（inputと統一）
-============================== */
-select {
-  width: 100% !important;
-  height: 44px !important;
-  padding: 0 10px !important;
-  font-size: 16px !important;
-  line-height: normal !important;
-  box-sizing: border-box !important;
-  color: #333 !important;
-  background-color: #fff !important;
-}
