@@ -610,9 +610,9 @@ input[type="date"]::-webkit-date-and-time-value {
    iOS Safari select 高さ最終調整
 ============================== */
 select {
-  height: 40px !important;          /* ← 実寸でちょうど良い */
-  line-height: normal !important;   /* ← Safariに任せる */
-  padding: 0 14px !important;       /* ← 上下0がポイント */
-  font-size: 16px !important;       /* ← iOS拡大防止 */
+  height: 40px !important;
+  line-height: normal !important;
+  padding: 0 14px !important;
+  font-size: 16px !important;
   box-sizing: border-box !important;
 }
