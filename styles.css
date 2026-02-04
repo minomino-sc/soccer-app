@@ -616,3 +616,30 @@ select {
   padding: 0 10px !important;     /* ← 上下0が効く */
   line-height: normal !important; /* ← 触らない */
 }
+
+/* ===============================
+   月別成績モーダル専用
+================================ */
+.monthly-block {
+  margin-bottom: 14px;
+}
+
+.monthly-block h3 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.monthly-block p {
+  margin: 2px 0;
+  font-size: 0.95rem;
+}
+
+.monthly-list {
+  padding-left: 18px;
+  margin-top: 6px;
+  font-size: 0.9rem;
+}
+
+.monthly-list li {
+  margin-bottom: 4px;
+}
