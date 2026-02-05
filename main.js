@@ -478,6 +478,37 @@ function matchesSearch(it,q){
   return false;
 }
 
+// ===== ① 月別成績 集計 =====
+function calcMonthlyStats(items){
+  const result = {
+    total: { games:0, win:0, lose:0, draw:0, goals:0, conceded:0 },
+    byType: {}
+  };
+
+  items.forEach(it=>{
+    if(typeof it.scoreA !== "number" || typeof it.scoreB !== "number") return;
+
+    const t = it.matchType || "未設定";
+    result.byType[t] ??= { games:0, win:0, lose:0, draw:0 };
+
+    result.total.games++;
+    result.byType[t].games++;
+
+    result.total.goals += it.scoreA;
+    result.total.conceded += it.scoreB;
+
+    if(it.scoreA > it.scoreB){
+      result.total.win++; result.byType[t].win++;
+    }else if(it.scoreA < it.scoreB){
+      result.total.lose++; result.byType[t].lose++;
+    }else{
+      result.total.draw++; result.byType[t].draw++;
+    }
+  });
+
+  return result;
+}
+
 /* YouTube 再生ボタン（ヘルパー） */
 function createPlayButton(videoId, timeSec){
   const btn = document.createElement("button");
