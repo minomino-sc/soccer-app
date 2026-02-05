@@ -567,8 +567,42 @@ const q = query(scoresCol,
     header.innerHTML = `<strong>${key}</strong> <span class="muted small">${groups[key].items.length} 試合</span> <span class="agg">${aggText}</span>`;
     group.appendChild(header);
 
-    const body = document.createElement("div");
-    body.className = "month-body";
+// ===== 月別成績ブロック =====
+const monthStats = calcMonthlyStats(
+  groups[key].items.map(v => v.it)
+);
+
+const statsBlock = document.createElement("div");
+statsBlock.className = "section-card";
+
+const winRate = monthStats.total.games
+  ? Math.round((monthStats.total.win / monthStats.total.games) * 100)
+  : 0;
+
+statsBlock.innerHTML = `
+  <h3>${key.replace("-", "年")}月 成績</h3>
+
+  <div class="monthly-block">
+    <h3>【総合】</h3>
+    <p>${monthStats.total.games}試合｜${monthStats.total.win}勝 ${monthStats.total.lose}敗 ${monthStats.total.draw}分</p>
+    <p>勝率：${winRate}%</p>
+    <p>得点：${monthStats.total.goals}　失点：${monthStats.total.conceded}</p>
+  </div>
+
+  ${Object.entries(monthStats.byType).map(([type,v])=>`
+    <div class="monthly-block">
+      <h3>【${type}】</h3>
+      <p>${v.games}試合｜${v.win}勝 ${v.lose}敗 ${v.draw}分</p>
+    </div>
+  `).join("")}
+`;
+
+const body = document.createElement("div");
+body.className = "month-body";
+
+// ★ 月別成績を先頭に追加
+body.appendChild(statsBlock);
+
     if(collapsedMonths.includes(key)){ body.classList.add("hidden"); header.classList.add("closed"); }
     else header.classList.add("open");
 
