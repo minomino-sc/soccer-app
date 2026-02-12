@@ -21,9 +21,9 @@ let currentSearchQuery = "";
 window.currentEditIndex = undefined;
 // ▼ 新ゴール管理用（編集中の一時保存）
 let editingHighlights = [];
-
+ 
 // ----------------------------
-// ゴールタイム描画・操作（秒数＋自チーム/失点）
+// ゴールタイム描画関数（グローバル）
 // ----------------------------
 function renderGoalTimelinePreview() {
   const goalTimelineList = document.getElementById("goalTimelineList");
@@ -31,74 +31,27 @@ function renderGoalTimelinePreview() {
 
   goalTimelineList.innerHTML = "";
 
-  const sorted = [...editingHighlights].sort((a, b) => a.time - b.time);
+  const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
 
-  sorted.forEach((ev, index) => {
+  sorted.forEach((ev,index)=>{
     const div = document.createElement("div");
-    div.style.display = "flex";
-    div.style.alignItems = "center";
-    div.style.gap = "8px";
-    div.style.marginBottom = "4px";
+    div.style.cursor = "pointer";
+    div.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
 
-    // 表示ラベル
-    const label = document.createElement("span");
-    label.textContent = `${ev.time}' ${ev.team === "my" ? "⚽ 得点シーン" : "🔴 失点シーン"}`;
-    div.appendChild(label);
-
-    // 自チーム / 失点 切替ボタン
-    const toggleBtn = document.createElement("button");
-    toggleBtn.type = "button";
-    toggleBtn.textContent = "切替";
-    toggleBtn.style.fontSize = "0.8em";
-    toggleBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      ev.team = ev.team === "my" ? "opp" : "my";
-      renderGoalTimelinePreview();
-    });
-    div.appendChild(toggleBtn);
-
-    // 削除ボタン
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.textContent = "✖";
-    delBtn.style.color = "#c00";
-    delBtn.style.border = "none";
-    delBtn.style.background = "transparent";
-    delBtn.style.cursor = "pointer";
-    delBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (!confirm("このゴールを削除しますか？")) return;
-      const idx = editingHighlights.findIndex(h => h.time === ev.time && h.team === ev.team);
-      if (idx > -1) editingHighlights.splice(idx, 1);
-      renderGoalTimelinePreview();
-    });
-    div.appendChild(delBtn);
-
-    // クリックで YouTube 再生も可能（動画IDがある場合）
-    div.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const currentVideoId = document.getElementById("edit-video-select")?.value;
-      if (!currentVideoId) return;
-      window.open(`https://youtu.be/${currentVideoId}?t=${ev.time}`, "_blank", "noopener");
+    div.addEventListener("click", ()=>{
+      if(confirm("このゴールを削除しますか？")){
+        const originalIndex = editingHighlights.findIndex(h =>
+          h.time === ev.time && h.team === ev.team
+        );
+        if(originalIndex > -1){
+          editingHighlights.splice(originalIndex,1);
+        }
+        renderGoalTimelinePreview();
+      }
     });
 
     goalTimelineList.appendChild(div);
   });
-}
-
-// ---------- 秒数入力から追加 ----------
-function addHighlightTop() {
-  const inp = document.getElementById("hlSeconds");
-  if (!inp) return;
-  const v = (inp.value || "").trim();
-  const sec = Number(v);
-  if (isNaN(sec) || sec < 0) return alert("正しい秒数を入力してください");
-
-  // デフォルトは自チーム得点
-  editingHighlights.push({ time: sec, team: "my" });
-
-  inp.value = "";
-  renderGoalTimelinePreview();
 }
 
 /* ---------- ユーティリティ ---------- */
