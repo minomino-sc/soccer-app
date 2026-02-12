@@ -191,23 +191,14 @@
 <select id="edit-video-select" disabled></select>     
     </div>
 
-<div class="row vertical">
-  <label class="lbl">ゴール登録</label>
-
-  <!-- 秒数入力 -->
-  <div class="row">
-    <input id="goalTime" type="number" placeholder="秒数（例：85）" />
-  </div>
-
-  <!-- ボタン -->
-  <div class="row">
-    <button id="btnAddMyGoal" class="btn">⚽ 自チーム</button>
-    <button id="btnAddOpponentGoal" class="btn danger">🔴 失点</button>
-  </div>
-
-  <!-- タイムライン表示 -->
-  <div id="goalTimelineList" class="muted small" style="margin-top:8px;"></div>
-</div>
+    <div class="row vertical">
+      <label class="lbl">自チームゴール秒数</label>
+      <div class="row">
+        <input id="hlSeconds" type="number" placeholder="例：85" />
+        <button id="btnMarkGoal" class="btn">追加</button>
+      </div>
+      <div id="hlList" class="muted small" style="margin-top:8px;"></div>
+    </div>
 
     <div class="row" style="margin-top:12px;">
       <button id="saveEdit" class="save-btn" style="flex:1;">保存</button>
