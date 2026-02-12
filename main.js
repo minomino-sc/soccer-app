@@ -35,20 +35,43 @@ function renderGoalTimelinePreview() {
 
   sorted.forEach((ev,index)=>{
     const div = document.createElement("div");
-    div.style.cursor = "pointer";
-    div.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
+    div.style.display = "flex";
+    div.style.alignItems = "center";
+    div.style.gap = "8px";
 
-    div.addEventListener("click", ()=>{
-      if(confirm("このゴールを削除しますか？")){
-        const originalIndex = editingHighlights.findIndex(h =>
-          h.time === ev.time && h.team === ev.team
-        );
-        if(originalIndex > -1){
-          editingHighlights.splice(originalIndex,1);
-        }
-        renderGoalTimelinePreview();
-      }
+    // 表示ラベル
+    const label = document.createElement("span");
+    label.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}`;
+    label.style.cursor = "pointer";
+    div.appendChild(label);
+
+    // チーム切替ボタン
+    const toggleBtn = document.createElement("button");
+    toggleBtn.type = "button";
+    toggleBtn.textContent = "切替";
+    toggleBtn.addEventListener("click", e=>{
+      e.stopPropagation();
+      ev.team = ev.team === "my" ? "opp" : "my";
+      renderGoalTimelinePreview();
     });
+    div.appendChild(toggleBtn);
+
+    // 削除ボタン
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.textContent = "✖";
+    delBtn.style.color = "#c00";
+    delBtn.style.border = "none";
+    delBtn.style.background = "transparent";
+    delBtn.style.cursor = "pointer";
+    delBtn.addEventListener("click", e=>{
+      e.stopPropagation();
+      if(!confirm("このゴールを削除しますか？")) return;
+      const idx = editingHighlights.findIndex(h=>h.time===ev.time && h.team===ev.team);
+      if(idx > -1) editingHighlights.splice(idx,1);
+      renderGoalTimelinePreview();
+    });
+    div.appendChild(delBtn);
 
     goalTimelineList.appendChild(div);
   });
