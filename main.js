@@ -664,23 +664,30 @@ meta.innerHTML = `<div class="title"><span class="type-icon ${typeClass}">${icon
                   <div class="sub match-venue">${it.place||""}</div>
                   <div class="sub">得点: ${scoreText}</div>`;     
 
-      // highlights
-      if(Array.isArray(it.hlSeconds) && it.hlSeconds.length){
-        const hlWrap = document.createElement("div");
-        hlWrap.className = "hl-wrap";
-        it.hlSeconds.forEach(sec=>{
-          const btn = document.createElement("button");
-          btn.type = "button"; btn.className = "hl-btn";
-          btn.textContent = `ゴールシーン ${sec} 秒`;
-          btn.addEventListener("click", e=>{
-            e.stopPropagation();
-            if(!it.videoId) return alert("紐づく動画がありません。");
-            window.open(`https://youtu.be/${it.videoId}?t=${sec}`,"_blank","noopener");
-          });
-          hlWrap.appendChild(btn);
-        });
-        meta.appendChild(hlWrap);
-      }
+// highlights（新方式）
+if(Array.isArray(it.highlights) && it.highlights.length){
+  const hlWrap = document.createElement("div");
+  hlWrap.className = "hl-wrap";
+
+  it.highlights
+    .sort((a,b)=>a.time-b.time)
+    .forEach(ev=>{
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hl-btn";
+      btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽":"🔴"}`;
+
+      btn.addEventListener("click", e=>{
+        e.stopPropagation();
+        if(!it.videoId) return alert("紐づく動画がありません。");
+        window.open(`https://youtu.be/${it.videoId}?t=${ev.time}`,"_blank","noopener");
+      });
+
+      hlWrap.appendChild(btn);
+  });
+
+  meta.appendChild(hlWrap);
+}
 
       card.appendChild(meta);
 
@@ -804,7 +811,8 @@ const pkScoreBVal = document.getElementById("edit-pkB")?.value;
        
   pkScoreA: pkScoreAVal==="" ? null : Number(pkScoreAVal),
   pkScoreB: pkScoreBVal==="" ? null : Number(pkScoreBVal),
-      hlSeconds, videoId
+highlights: editingHighlights,
+videoId
     });
     alert("Firestore に保存しました！");
     closeEditModal();
