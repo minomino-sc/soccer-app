@@ -21,9 +21,9 @@ let currentSearchQuery = "";
 window.currentEditIndex = undefined;
 // ▼ 新ゴール管理用（編集中の一時保存）
 let editingHighlights = [];
- 
+
 // ----------------------------
-// ゴールタイム描画関数（グローバル）
+// ゴールタイム描画関数（改修版）
 // ----------------------------
 function renderGoalTimelinePreview() {
   const goalTimelineList = document.getElementById("goalTimelineList");
@@ -31,9 +31,8 @@ function renderGoalTimelinePreview() {
 
   goalTimelineList.innerHTML = "";
 
-  const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
-
-  sorted.forEach((ev,index)=>{
+  // index付きで描画
+  editingHighlights.forEach((ev, index) => {
     const div = document.createElement("div");
     div.style.display = "flex";
     div.style.alignItems = "center";
@@ -41,25 +40,22 @@ function renderGoalTimelinePreview() {
 
     // 表示ラベル
     const label = document.createElement("span");
-    label.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}`;
+    label.textContent = `${ev.time}' ${ev.team === "my" ? "⚽ 得点シーン" : "🔴 失点シーン"}`;
     label.style.cursor = "pointer";
     div.appendChild(label);
 
-    // チーム切替ボタン（修正版）
+    // チーム切替ボタン
     const toggleBtn = document.createElement("button");
     toggleBtn.type = "button";
     toggleBtn.textContent = "切替";
-    toggleBtn.addEventListener("click", e=>{
+    toggleBtn.dataset.index = index; // インデックスを保持
+    toggleBtn.addEventListener("click", e => {
       e.stopPropagation();
-
-      // editingHighlights の本体を直接更新
-      const idxInOriginal = editingHighlights.findIndex(h => h.time === ev.time && h.team === ev.team);
-      if(idxInOriginal > -1){
-        editingHighlights[idxInOriginal].team =
-          editingHighlights[idxInOriginal].team === "my" ? "opp" : "my";
+      const idx = Number(e.currentTarget.dataset.index);
+      if (editingHighlights[idx]) {
+        editingHighlights[idx].team = editingHighlights[idx].team === "my" ? "opp" : "my";
+        renderGoalTimelinePreview();
       }
-
-      renderGoalTimelinePreview();
     });
     div.appendChild(toggleBtn);
 
@@ -71,17 +67,38 @@ function renderGoalTimelinePreview() {
     delBtn.style.border = "none";
     delBtn.style.background = "transparent";
     delBtn.style.cursor = "pointer";
-    delBtn.addEventListener("click", e=>{
+    delBtn.dataset.index = index; // インデックスを保持
+    delBtn.addEventListener("click", e => {
       e.stopPropagation();
-      if(!confirm("このゴールを削除しますか？")) return;
-      const idx = editingHighlights.findIndex(h=>h.time===ev.time && h.team===ev.team);
-      if(idx > -1) editingHighlights.splice(idx,1);
+      if (!confirm("このゴールを削除しますか？")) return;
+      const idx = Number(e.currentTarget.dataset.index);
+      editingHighlights.splice(idx, 1); // spliceで確実に削除
       renderGoalTimelinePreview();
     });
     div.appendChild(delBtn);
 
     goalTimelineList.appendChild(div);
   });
+}
+
+// ---------- 編集モーダル
+function openEditModal(index, date, matchType, opponent, place, scoreA, scoreB, highlights, videoId) {
+  window.currentEditIndex = index;
+
+  // ★ editingHighlights は毎回リセット
+  editingHighlights = Array.isArray(highlights) ? [...highlights] : [];
+
+  document.getElementById("edit-date").value = date || "";
+  document.getElementById("matchType").value = matchType || "";
+  document.getElementById("edit-opponent").value = opponent || "";
+  document.getElementById("edit-place").value = place || "";
+  document.getElementById("edit-my-score").value = scoreA ?? "";
+  document.getElementById("edit-opponent-score").value = scoreB ?? "";
+
+  renderGoalTimelinePreview();     // ★ 新方式プレビュー
+  renderVideoSelects(videoId);    // 動画セレクト反映
+
+  document.getElementById("editModal").classList.remove("hidden");
 }
 
 /* ---------- ユーティリティ ---------- */
