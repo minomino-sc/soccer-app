@@ -45,13 +45,20 @@ function renderGoalTimelinePreview() {
     label.style.cursor = "pointer";
     div.appendChild(label);
 
-    // チーム切替ボタン
+    // チーム切替ボタン（修正版）
     const toggleBtn = document.createElement("button");
     toggleBtn.type = "button";
     toggleBtn.textContent = "切替";
     toggleBtn.addEventListener("click", e=>{
       e.stopPropagation();
-      ev.team = ev.team === "my" ? "opp" : "my";
+
+      // editingHighlights の本体を直接更新
+      const idxInOriginal = editingHighlights.findIndex(h => h.time === ev.time && h.team === ev.team);
+      if(idxInOriginal > -1){
+        editingHighlights[idxInOriginal].team =
+          editingHighlights[idxInOriginal].team === "my" ? "opp" : "my";
+      }
+
       renderGoalTimelinePreview();
     });
     div.appendChild(toggleBtn);
