@@ -945,4 +945,45 @@ btnBack?.addEventListener("click", ()=>{
     catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
   });
 
+  // =====================
+  // ゴール登録処理（新方式）
+  // =====================
+
+  const goalTimeInput = document.getElementById("goalTime");
+  const btnAddMyGoal = document.getElementById("btnAddMyGoal");
+  const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
+  const goalTimelineList = document.getElementById("goalTimelineList");
+
+  function renderGoalTimelinePreview() {
+    if (!goalTimelineList) return;
+
+    goalTimelineList.innerHTML = "";
+
+    const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
+
+    sorted.forEach(ev=>{
+      const div = document.createElement("div");
+      div.textContent = `${ev.time}' ${ev.team==="my"?"⚽":"🔴"}`;
+      goalTimelineList.appendChild(div);
+    });
+  }
+
+  function addGoal(teamType) {
+    if (!goalTimeInput) return;
+
+    const sec = Number(goalTimeInput.value);
+    if (isNaN(sec)) return alert("秒数を入力してください");
+
+    editingHighlights.push({
+      time: sec,
+      team: teamType
+    });
+
+    goalTimeInput.value = "";
+    renderGoalTimelinePreview();
+  }
+
+  btnAddMyGoal?.addEventListener("click", ()=>addGoal("my"));
+  btnAddOpponentGoal?.addEventListener("click", ()=>addGoal("opponent"));
+
 });
