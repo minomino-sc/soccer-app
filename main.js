@@ -407,7 +407,7 @@ const pkScoreBEl = document.getElementById("pkB");
   pkScoreA: pkScoreAEl?.value === "" ? null : Number(pkScoreAEl.value),
   pkScoreB: pkScoreBEl?.value === "" ? null : Number(pkScoreBEl.value),     
     videoId,
-    hlSeconds: [],
+highlights: [],
 
     createdAt: new Date().toISOString()
   };
