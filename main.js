@@ -408,6 +408,7 @@ const pkScoreBEl = document.getElementById("pkB");
   pkScoreB: pkScoreBEl?.value === "" ? null : Number(pkScoreBEl.value),     
     videoId,
     hlSeconds: [],
+
     createdAt: new Date().toISOString()
   };
 
@@ -750,8 +751,16 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 }
 
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
-function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
+function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,highlights,videoId){
+
   window.currentEditIndex = index;
+
+  // ★ ここが超重要（毎回リセット）
+  editingHighlights = [];
+
+  // ★ 試合データをコピー
+  editingHighlights = Array.isArray(highlights) ? [...highlights] : [];
+
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
   document.getElementById("edit-opponent").value = opponent || "";
@@ -759,12 +768,14 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSecon
   document.getElementById("edit-my-score").value = scoreA ?? "";
   document.getElementById("edit-opponent-score").value = scoreB ?? "";
 
-  const hlList = document.getElementById("hlList");
-  if(hlList){ hlList.innerHTML = ""; (Array.isArray(hlSeconds)?hlSeconds:[]).forEach(sec=> hlList.appendChild(createHlItemElement(sec))); }
+  // ★ 新方式のプレビュー表示
+  renderGoalTimelinePreview();
 
   renderVideoSelects(videoId);
+
   document.getElementById("editModal").classList.remove("hidden");
 }
+
 function closeEditModal(){ const m=document.getElementById("editModal"); if(m && !m.classList.contains("hidden")) m.classList.add("hidden"); window.currentEditIndex = undefined; }
 function createHlItemElement(sec){
   const wrapper = document.createElement("div");
