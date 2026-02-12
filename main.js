@@ -969,13 +969,28 @@ btnBack?.addEventListener("click", ()=>{
 
     const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
 
-    sorted.forEach(ev=>{
-      const div = document.createElement("div");
-      div.textContent = `${ev.time}' ${ev.team==="my"?"⚽":"🔴"}`;
-      goalTimelineList.appendChild(div);
-    });
-  }
+sorted.forEach((ev,index)=>{
+  const div = document.createElement("div");
+  div.style.cursor = "pointer";
+  div.textContent = `${ev.time}' ${ev.team==="my"?"⚽":"🔴"}  ✖`;
 
+  div.addEventListener("click", ()=>{
+    if(confirm("このゴールを削除しますか？")){
+      // 元配列から削除
+      const originalIndex = editingHighlights.findIndex(h =>
+        h.time === ev.time && h.team === ev.team
+      );
+      if(originalIndex > -1){
+        editingHighlights.splice(originalIndex,1);
+      }
+      renderGoalTimelinePreview();
+    }
+  });
+
+  goalTimelineList.appendChild(div);
+});
+  }
+   
   function addGoal(teamType) {
     if (!goalTimeInput) return;
 
