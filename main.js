@@ -19,6 +19,8 @@ let videos = [];
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 let currentSearchQuery = "";
 window.currentEditIndex = undefined;
+// ▼ 新ゴール管理用（編集中の一時保存）
+let editingHighlights = [];
 
 /* ---------- ユーティリティ ---------- */
 function log(...args){ console.log("[main.js]", ...args); }
