@@ -752,6 +752,11 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
 function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
   window.currentEditIndex = index;
+
+// ----- 試合固有のハイライトで編集用配列を初期化 -----
+// highlights は [{time: 秒数, team: "my"|"opponent"}] 形式を想定
+editingHighlights = Array.isArray(highlights) ? highlights.map(ev => ({ ...ev })) : [];
+   
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
   document.getElementById("edit-opponent").value = opponent || "";
