@@ -477,8 +477,11 @@ function matchesSearch(it,q){
   if((it.date||"").toLowerCase().includes(s)) return true;
   if(it.scoreA!==null && String(it.scoreA).includes(s)) return true;
   if(it.scoreB!==null && String(it.scoreB).includes(s)) return true;
-  if(Array.isArray(it.hlSeconds) && it.hlSeconds.some(h=>String(h).includes(s))) return true;
-  return false;
+if (Array.isArray(it.highlights) &&
+    it.highlights.some(h => String(h.time).includes(s))) return true;
+
+return false;
+   
 }
 
 // ===== ① 月別成績 集計 =====
