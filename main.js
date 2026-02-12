@@ -21,6 +21,38 @@ let currentSearchQuery = "";
 window.currentEditIndex = undefined;
 // ▼ 新ゴール管理用（編集中の一時保存）
 let editingHighlights = [];
+ 
+// ----------------------------
+// ゴールタイム描画関数（グローバル）
+// ----------------------------
+function renderGoalTimelinePreview() {
+  const goalTimelineList = document.getElementById("goalTimelineList");
+  if (!goalTimelineList) return;
+
+  goalTimelineList.innerHTML = "";
+
+  const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
+
+  sorted.forEach((ev,index)=>{
+    const div = document.createElement("div");
+    div.style.cursor = "pointer";
+    div.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
+
+    div.addEventListener("click", ()=>{
+      if(confirm("このゴールを削除しますか？")){
+        const originalIndex = editingHighlights.findIndex(h =>
+          h.time === ev.time && h.team === ev.team
+        );
+        if(originalIndex > -1){
+          editingHighlights.splice(originalIndex,1);
+        }
+        renderGoalTimelinePreview();
+      }
+    });
+
+    goalTimelineList.appendChild(div);
+  });
+}
 
 /* ---------- ユーティリティ ---------- */
 function log(...args){ console.log("[main.js]", ...args); }
@@ -871,22 +903,21 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   await loadScores();
 
   // --- チームがログイン済みなら UI を反映 ---
-const team = getTeam();
-if (team) {
-  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
-} else {
-// 未ログインならチーム入力欄を表示
-  const teamSection = document.getElementById("teamSection");
-  if(teamSection) teamSection.style.display = "block";
-}
+  const team = getTeam();
+  if (team) {
+    await applyTeamUI(true); // ← trueでメインメニュー表示に変更
+  } else {
+    // 未ログインならチーム入力欄を表示
+    const teamSection = document.getElementById("teamSection");
+    if(teamSection) teamSection.style.display = "block";
+  }
 
   // --- btnBack イベント登録 ---
-
-btnBack?.addEventListener("click", ()=>{
-  document.getElementById("teamNameInput").value = "";
-  document.getElementById("inviteCodeInput").value = "";
-  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
-});
+  btnBack?.addEventListener("click", ()=>{
+    document.getElementById("teamNameInput").value = "";
+    document.getElementById("inviteCodeInput").value = "";
+    applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
+  });
 
   // --- 他のボタン登録 ---
   document.getElementById("btnBackupAllFirestore")?.addEventListener("click", backupAllFirestore);
@@ -967,60 +998,5 @@ btnBack?.addEventListener("click", ()=>{
     catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
   });
 
-  // =====================
-  // ゴール登録処理（新方式）
-  // =====================
-
-  const goalTimeInput = document.getElementById("goalTime");
-  const btnAddMyGoal = document.getElementById("btnAddMyGoal");
-  const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
-  const goalTimelineList = document.getElementById("goalTimelineList");
-
-  function renderGoalTimelinePreview() {
-    if (!goalTimelineList) return;
-
-    goalTimelineList.innerHTML = "";
-
-    const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
-
-sorted.forEach((ev,index)=>{
-  const div = document.createElement("div");
-  div.style.cursor = "pointer";
-div.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
-
-  div.addEventListener("click", ()=>{
-    if(confirm("このゴールを削除しますか？")){
-      // 元配列から削除
-      const originalIndex = editingHighlights.findIndex(h =>
-        h.time === ev.time && h.team === ev.team
-      );
-      if(originalIndex > -1){
-        editingHighlights.splice(originalIndex,1);
-      }
-      renderGoalTimelinePreview();
-    }
-  });
-
-  goalTimelineList.appendChild(div);
-});
-  }
-   
-  function addGoal(teamType) {
-    if (!goalTimeInput) return;
-
-    const sec = Number(goalTimeInput.value);
-    if (isNaN(sec)) return alert("秒数を入力してください");
-
-    editingHighlights.push({
-      time: sec,
-      team: teamType
-    });
-
-    goalTimeInput.value = "";
-    renderGoalTimelinePreview();
-  }
-
-  btnAddMyGoal?.addEventListener("click", ()=>addGoal("my"));
-  btnAddOpponentGoal?.addEventListener("click", ()=>addGoal("opponent"));
-
+  // ⚽ ゴール登録関連の旧方式ブロックは削除済み
 });
