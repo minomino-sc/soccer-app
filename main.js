@@ -704,7 +704,7 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
         e.stopPropagation();
         const pass = prompt("編集にはパスワードが必要です。");
         if(pass !== "mino2025") return alert("パスワードが違います");
-        openEditModal(idx, it.date, it.matchType||"", it.opponent, it.place, it.scoreA, it.scoreB, it.hlSeconds||[], it.videoId);
+        openEditModal(idx, it.date, it.matchType||"", it.opponent, it.place, it.scoreA, it.scoreB, it.highlights||[], it.videoId);
       });
       actionRow.appendChild(editBtn);
 
@@ -751,7 +751,7 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 }
 
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
-function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,highlights,videoId){
+function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,highlightsit,videoId){
 
   window.currentEditIndex = index;
 
