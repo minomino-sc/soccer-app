@@ -753,10 +753,12 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
   window.currentEditIndex = index;
 
-// ----- 試合固有のハイライトで編集用配列を初期化 -----
-// highlights は [{time: 秒数, team: "my"|"opponent"}] 形式を想定
-editingHighlights = Array.isArray(highlights) ? highlights.map(ev => ({ ...ev })) : [];
-   
+  // highlights が undefined の場合は空配列にする
+  highlights = Array.isArray(highlights) ? highlights : [];
+
+  // 試合固有の編集用配列にコピー
+  editingHighlights = highlights.map(ev => ({ ...ev }));
+
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
   document.getElementById("edit-opponent").value = opponent || "";
