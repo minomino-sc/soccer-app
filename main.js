@@ -674,8 +674,8 @@ if(Array.isArray(it.highlights) && it.highlights.length){
     .forEach(ev=>{
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "hl-btn";
-      btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽":"🔴"}`;
+      btn.className = "hl-btn";  
+btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}`;
 
       btn.addEventListener("click", e=>{
         e.stopPropagation();
@@ -972,7 +972,7 @@ btnBack?.addEventListener("click", ()=>{
 sorted.forEach((ev,index)=>{
   const div = document.createElement("div");
   div.style.cursor = "pointer";
-  div.textContent = `${ev.time}' ${ev.team==="my"?"⚽":"🔴"}  ✖`;
+div.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
 
   div.addEventListener("click", ()=>{
     if(confirm("このゴールを削除しますか？")){
