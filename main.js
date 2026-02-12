@@ -758,6 +758,9 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,highlig
 
   window.currentEditIndex = index;
 
+  // ★ ここが超重要（毎回リセット）
+  editingHighlights = [];
+   
   // ★ 試合データをコピー
   editingHighlights = Array.isArray(highlights) ? [...highlights] : [];
 
