@@ -19,6 +19,8 @@ let videos = [];
 let collapsedMonths = JSON.parse(localStorage.getItem("collapsedMonths")) || [];
 let currentSearchQuery = "";
 window.currentEditIndex = undefined;
+// ▼ 新ゴール管理用（編集中の一時保存）
+let editingHighlights = [];
 
 /* ---------- ユーティリティ ---------- */
 function log(...args){ console.log("[main.js]", ...args); }
@@ -662,23 +664,30 @@ meta.innerHTML = `<div class="title"><span class="type-icon ${typeClass}">${icon
                   <div class="sub match-venue">${it.place||""}</div>
                   <div class="sub">得点: ${scoreText}</div>`;     
 
-      // highlights
-      if(Array.isArray(it.hlSeconds) && it.hlSeconds.length){
-        const hlWrap = document.createElement("div");
-        hlWrap.className = "hl-wrap";
-        it.hlSeconds.forEach(sec=>{
-          const btn = document.createElement("button");
-          btn.type = "button"; btn.className = "hl-btn";
-          btn.textContent = `ゴールシーン ${sec} 秒`;
-          btn.addEventListener("click", e=>{
-            e.stopPropagation();
-            if(!it.videoId) return alert("紐づく動画がありません。");
-            window.open(`https://youtu.be/${it.videoId}?t=${sec}`,"_blank","noopener");
-          });
-          hlWrap.appendChild(btn);
-        });
-        meta.appendChild(hlWrap);
-      }
+// highlights（新方式）
+if(Array.isArray(it.highlights) && it.highlights.length){
+  const hlWrap = document.createElement("div");
+  hlWrap.className = "hl-wrap";
+
+  it.highlights
+    .sort((a,b)=>a.time-b.time)
+    .forEach(ev=>{
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hl-btn";  
+btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}`;
+
+      btn.addEventListener("click", e=>{
+        e.stopPropagation();
+        if(!it.videoId) return alert("紐づく動画がありません。");
+        window.open(`https://youtu.be/${it.videoId}?t=${ev.time}`,"_blank","noopener");
+      });
+
+      hlWrap.appendChild(btn);
+  });
+
+  meta.appendChild(hlWrap);
+}
 
       card.appendChild(meta);
 
@@ -802,7 +811,8 @@ const pkScoreBVal = document.getElementById("edit-pkB")?.value;
        
   pkScoreA: pkScoreAVal==="" ? null : Number(pkScoreAVal),
   pkScoreB: pkScoreBVal==="" ? null : Number(pkScoreBVal),
-      hlSeconds, videoId
+highlights: editingHighlights,
+videoId
     });
     alert("Firestore に保存しました！");
     closeEditModal();
@@ -942,5 +952,61 @@ btnBack?.addEventListener("click", ()=>{
     }
     catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
   });
+
+  // =====================
+  // ゴール登録処理（新方式）
+  // =====================
+
+  const goalTimeInput = document.getElementById("goalTime");
+  const btnAddMyGoal = document.getElementById("btnAddMyGoal");
+  const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
+  const goalTimelineList = document.getElementById("goalTimelineList");
+
+  function renderGoalTimelinePreview() {
+    if (!goalTimelineList) return;
+
+    goalTimelineList.innerHTML = "";
+
+    const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
+
+sorted.forEach((ev,index)=>{
+  const div = document.createElement("div");
+  div.style.cursor = "pointer";
+div.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
+
+  div.addEventListener("click", ()=>{
+    if(confirm("このゴールを削除しますか？")){
+      // 元配列から削除
+      const originalIndex = editingHighlights.findIndex(h =>
+        h.time === ev.time && h.team === ev.team
+      );
+      if(originalIndex > -1){
+        editingHighlights.splice(originalIndex,1);
+      }
+      renderGoalTimelinePreview();
+    }
+  });
+
+  goalTimelineList.appendChild(div);
+});
+  }
+   
+  function addGoal(teamType) {
+    if (!goalTimeInput) return;
+
+    const sec = Number(goalTimeInput.value);
+    if (isNaN(sec)) return alert("秒数を入力してください");
+
+    editingHighlights.push({
+      time: sec,
+      team: teamType
+    });
+
+    goalTimeInput.value = "";
+    renderGoalTimelinePreview();
+  }
+
+  btnAddMyGoal?.addEventListener("click", ()=>addGoal("my"));
+  btnAddOpponentGoal?.addEventListener("click", ()=>addGoal("opponent"));
 
 });
