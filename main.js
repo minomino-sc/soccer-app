@@ -766,9 +766,6 @@ function openEditModal(index, date, matchType, opponent, place, scoreA, scoreB, 
       )
     : [];
 
-  renderHighlights();
-}
-
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
   document.getElementById("edit-opponent").value = opponent || "";
