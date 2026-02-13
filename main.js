@@ -995,19 +995,6 @@ btnBack?.addEventListener("click", ()=>{
     }
     catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
   });
-
-  // =====================
-  // ゴール登録処理（新方式）
-  // =====================
-
-  const goalTimeInput = document.getElementById("goalTime");
-  const btnAddMyGoal = document.getElementById("btnAddMyGoal");
-  const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
-  const goalTimelineList = document.getElementById("goalTimelineList");
-
-  goalTimelineList.appendChild(div);
-});
-  }
    
   function addGoal(teamType) {
     if (!goalTimeInput) return;
