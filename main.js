@@ -750,24 +750,8 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 }
 
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
-function openEditModal(index, date, matchType, opponent, place, scoreA, scoreB, hlSeconds, videoId) {
-
+function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
   window.currentEditIndex = index;
-
-   alert("hlSeconds: " + JSON.stringify(hlSeconds));
-
-  // 🔥 ① まず完全リセット（念のため）
-  editingHighlights = [];
-
-  // 🔵 ② その試合のハイライトで初期化
-  editingHighlights = Array.isArray(hlSeconds)
-    ? hlSeconds.map(sec =>
-        typeof sec === "object"
-          ? { time: sec.time }
-          : { time: sec }
-      )
-    : [];
-
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
   document.getElementById("edit-opponent").value = opponent || "";
@@ -776,17 +760,11 @@ function openEditModal(index, date, matchType, opponent, place, scoreA, scoreB, 
   document.getElementById("edit-opponent-score").value = scoreB ?? "";
 
   const hlList = document.getElementById("hlList");
-  if(hlList){
-    hlList.innerHTML = "";
-    editingHighlights.forEach(ev=>{
-      hlList.appendChild(createHlItemElement(ev.time));
-    });
-  }
+  if(hlList){ hlList.innerHTML = ""; (Array.isArray(hlSeconds)?hlSeconds:[]).forEach(sec=> hlList.appendChild(createHlItemElement(sec))); }
 
   renderVideoSelects(videoId);
   document.getElementById("editModal").classList.remove("hidden");
 }
-
 function closeEditModal(){ const m=document.getElementById("editModal"); if(m && !m.classList.contains("hidden")) m.classList.add("hidden"); window.currentEditIndex = undefined; }
 function createHlItemElement(sec){
   const wrapper = document.createElement("div");
@@ -833,7 +811,7 @@ const pkScoreBVal = document.getElementById("edit-pkB")?.value;
        
   pkScoreA: pkScoreAVal==="" ? null : Number(pkScoreAVal),
   pkScoreB: pkScoreBVal==="" ? null : Number(pkScoreBVal),
-highlights: hlSeconds,
+highlights: editingHighlights,
 videoId
     });
     alert("Firestore に保存しました！");
