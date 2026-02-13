@@ -833,7 +833,7 @@ const pkScoreBVal = document.getElementById("edit-pkB")?.value;
        
   pkScoreA: pkScoreAVal==="" ? null : Number(pkScoreAVal),
   pkScoreB: pkScoreBVal==="" ? null : Number(pkScoreBVal),
-highlights: editingHighlights,
+highlights: hlSeconds,
 videoId
     });
     alert("Firestore に保存しました！");
