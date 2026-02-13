@@ -751,7 +751,16 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
 function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
+
+  // 🔍 ① 呼び出し直後ログ
+  alert(
+    "① openEditModal呼出\n" +
+    "index: " + index + "\n" +
+    "受信hlSeconds: " + JSON.stringify(hlSeconds)
+  );
+
   window.currentEditIndex = index;
+
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
   document.getElementById("edit-opponent").value = opponent || "";
@@ -760,11 +769,41 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSecon
   document.getElementById("edit-opponent-score").value = scoreB ?? "";
 
   const hlList = document.getElementById("hlList");
-  if(hlList){ hlList.innerHTML = ""; (Array.isArray(hlSeconds)?hlSeconds:[]).forEach(sec=> hlList.appendChild(createHlItemElement(sec))); }
+
+  if(hlList){
+
+    // 🔍 ② 描画前ログ
+    alert(
+      "② 描画前\n" +
+      "hlList.innerHTML長さ: " + hlList.innerHTML.length
+    );
+
+    hlList.innerHTML = "";
+
+    const safeArray = Array.isArray(hlSeconds) ? hlSeconds : [];
+
+    // 🔍 ③ ループ前ログ
+    alert(
+      "③ ループ開始\n" +
+      "配列長さ: " + safeArray.length
+    );
+
+    safeArray.forEach(sec=>{
+      alert("④ 追加する値: " + JSON.stringify(sec));
+      hlList.appendChild(createHlItemElement(sec));
+    });
+
+    // 🔍 ⑤ 描画後ログ
+    alert(
+      "⑤ 描画後\n" +
+      "hlList.innerHTML長さ: " + hlList.innerHTML.length
+    );
+  }
 
   renderVideoSelects(videoId);
   document.getElementById("editModal").classList.remove("hidden");
 }
+
 function closeEditModal(){ const m=document.getElementById("editModal"); if(m && !m.classList.contains("hidden")) m.classList.add("hidden"); window.currentEditIndex = undefined; }
 function createHlItemElement(sec){
   const wrapper = document.createElement("div");
