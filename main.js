@@ -900,22 +900,20 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   await loadScores();
 
   // --- チームがログイン済みなら UI を反映 ---
-const team = getTeam();
-if (team) {
-  await applyTeamUI(true); // ← trueでメインメニュー表示に変更
-} else {
-// 未ログインならチーム入力欄を表示
-  const teamSection = document.getElementById("teamSection");
-  if(teamSection) teamSection.style.display = "block";
-}
+  const team = getTeam();
+  if (team) {
+    await applyTeamUI(true); // ← trueでメインメニュー表示
+  } else {
+    const teamSection = document.getElementById("teamSection");
+    if(teamSection) teamSection.style.display = "block";
+  }
 
   // --- btnBack イベント登録 ---
-
-btnBack?.addEventListener("click", ()=>{
-  document.getElementById("teamNameInput").value = "";
-  document.getElementById("inviteCodeInput").value = "";
-  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
-});
+  btnBack?.addEventListener("click", ()=>{
+    document.getElementById("teamNameInput").value = "";
+    document.getElementById("inviteCodeInput").value = "";
+    applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
+  });
 
   // --- 他のボタン登録 ---
   document.getElementById("btnBackupAllFirestore")?.addEventListener("click", backupAllFirestore);
@@ -944,36 +942,34 @@ btnBack?.addEventListener("click", ()=>{
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
-  document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-// --- ゴール追加ボタン（修正版） ---
-const goalTimeInput = document.getElementById("goalTime");
-const btnAddMyGoal = document.getElementById("btnAddMyGoal");
-const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
-const goalTimelineList = document.getElementById("goalTimelineList");
+  // --- ゴール追加ボタン（統一版） ---
+  const goalTimeInput = document.getElementById("goalTime");
+  const btnAddMyGoal = document.getElementById("btnAddMyGoal");
+  const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
 
-function addGoal(teamType) {
-  if (!goalTimeInput) return;
+  function addGoal(teamType) {
+    if (!goalTimeInput) return;
 
-  const raw = goalTimeInput.value.trim();
-  if (!raw) return alert("秒数を入力してください");
+    const raw = goalTimeInput.value.trim();
+    if (!raw) return alert("秒数を入力してください");
 
-  const sec = parseInt(raw, 10);
-  if (isNaN(sec) || sec < 0) return alert("正しい秒数を入力してください");
+    const sec = parseInt(raw, 10);
+    if (isNaN(sec) || sec <= 0) return alert("0秒以下は登録できません");
 
-  // 重複チェック
-  if(editingHighlights.some(h => h.time === sec && h.team === teamType)){
-    return alert(`${sec}秒はすでに登録されています`);
+    // 重複チェック
+    if(editingHighlights.some(h => h.time === sec && h.team === teamType)){
+      return alert(`${sec}秒はすでに登録されています`);
+    }
+
+    editingHighlights.push({ time: sec, team: teamType });
+
+    goalTimeInput.value = "";
+    renderGoalTimelinePreview();
   }
 
-  editingHighlights.push({ time: sec, team: teamType });
-
-  goalTimeInput.value = "";
-  renderGoalTimelinePreview();
-}
-
-btnAddMyGoal?.addEventListener("click", () => addGoal("my"));
-btnAddOpponentGoal?.addEventListener("click", () => addGoal("opponent"));
+  btnAddMyGoal?.addEventListener("click", () => addGoal("my"));
+  btnAddOpponentGoal?.addEventListener("click", () => addGoal("opponent"));
 
   // --- チーム参加/作成 ---
   document.getElementById("btnJoin")?.addEventListener("click", async () => {
@@ -1024,23 +1020,5 @@ btnAddOpponentGoal?.addEventListener("click", () => addGoal("opponent"));
     }
     catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
   });
-   
-  function addGoal(teamType) {
-    if (!goalTimeInput) return;
-
-    const sec = Number(goalTimeInput.value);
-    if (isNaN(sec)) return alert("秒数を入力してください");
-
-    editingHighlights.push({
-      time: sec,
-      team: teamType
-    });
-
-    goalTimeInput.value = "";
-    renderGoalTimelinePreview();
-  }
-
-  btnAddMyGoal?.addEventListener("click", ()=>addGoal("my"));
-  btnAddOpponentGoal?.addEventListener("click", ()=>addGoal("opponent"));
 
 });
