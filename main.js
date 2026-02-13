@@ -750,15 +750,24 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 }
 
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
-function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
+function openEditModal(index, date, matchType, opponent, place, scoreA, scoreB, hlSeconds, videoId) {
+
   window.currentEditIndex = index;
 
-  // 🔵 ここが重要：毎回その試合のハイライトで初期化
-editingHighlights = Array.isArray(hlSeconds)
-  ? hlSeconds.map(sec =>
-      typeof sec === "object" ? { time: sec.time } : { time: sec }
-    )
-  : [];
+  // 🔥 ① まず完全リセット（念のため）
+  editingHighlights = [];
+
+  // 🔵 ② その試合のハイライトで初期化
+  editingHighlights = Array.isArray(hlSeconds)
+    ? hlSeconds.map(sec =>
+        typeof sec === "object"
+          ? { time: sec.time }
+          : { time: sec }
+      )
+    : [];
+
+  renderHighlights();
+}
 
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
