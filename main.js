@@ -752,19 +752,16 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
 function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
 
-const debugHl = document.getElementById("hlList");
+  // ★ ① 編集用ハイライトを必ずリセット
+  editingHighlights = [];
 
-alert(
-  "モーダル開く前のhlList存在: " + !!debugHl +
-  "\n子要素数: " + (debugHl ? debugHl.children.length : "取得不可")
-);
-   
-  // 🔍 ① 呼び出し直後ログ
-  alert(
-    "① openEditModal呼出\n" +
-    "index: " + index + "\n" +
-    "受信hlSeconds: " + JSON.stringify(hlSeconds)
-  );
+  // ★ ② 既存データがあれば復元（ここが超重要）
+  if(scores[index] && Array.isArray(scores[index].highlights)){
+    editingHighlights = [...scores[index].highlights];
+  }
+
+  // ★ ③ プレビュー再描画
+  renderGoalTimelinePreview();
 
   window.currentEditIndex = index;
 
@@ -775,39 +772,8 @@ alert(
   document.getElementById("edit-my-score").value = scoreA ?? "";
   document.getElementById("edit-opponent-score").value = scoreB ?? "";
 
-  const hlList = document.getElementById("hlList");
-
-  if(hlList){
-
-    // 🔍 ② 描画前ログ
-    alert(
-      "② 描画前\n" +
-      "hlList.innerHTML長さ: " + hlList.innerHTML.length
-    );
-
-    hlList.innerHTML = "";
-
-    const safeArray = Array.isArray(hlSeconds) ? hlSeconds : [];
-
-    // 🔍 ③ ループ前ログ
-    alert(
-      "③ ループ開始\n" +
-      "配列長さ: " + safeArray.length
-    );
-
-    safeArray.forEach(sec=>{
-      alert("④ 追加する値: " + JSON.stringify(sec));
-      hlList.appendChild(createHlItemElement(sec));
-    });
-
-    // 🔍 ⑤ 描画後ログ
-    alert(
-      "⑤ 描画後\n" +
-      "hlList.innerHTML長さ: " + hlList.innerHTML.length
-    );
-  }
-
   renderVideoSelects(videoId);
+
   document.getElementById("editModal").classList.remove("hidden");
 }
 
