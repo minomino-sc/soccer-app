@@ -754,9 +754,11 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSecon
   window.currentEditIndex = index;
 
   // 🔵 ここが重要：毎回その試合のハイライトで初期化
-  editingHighlights = Array.isArray(hlSeconds)
-    ? hlSeconds.map(sec => ({ time: sec }))
-    : [];
+editingHighlights = Array.isArray(hlSeconds)
+  ? hlSeconds.map(sec =>
+      typeof sec === "object" ? { time: sec.time } : { time: sec }
+    )
+  : [];
 
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
