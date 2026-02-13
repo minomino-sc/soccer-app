@@ -22,6 +22,37 @@ window.currentEditIndex = undefined;
 // ▼ 新ゴール管理用（編集中の一時保存）
 let editingHighlights = [];
 
+function renderGoalTimelinePreview() {
+
+  const goalTimelineList = document.getElementById("goalTimelineList");
+  if (!goalTimelineList) return;
+
+  goalTimelineList.innerHTML = "";
+
+  const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
+
+  sorted.forEach((ev)=>{
+    const div = document.createElement("div");
+    div.style.cursor = "pointer";
+    div.textContent =
+      `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
+
+    div.addEventListener("click", ()=>{
+      if(confirm("このゴールを削除しますか？")){
+        const originalIndex = editingHighlights.findIndex(h =>
+          h.time === ev.time && h.team === ev.team
+        );
+        if(originalIndex > -1){
+          editingHighlights.splice(originalIndex,1);
+        }
+        renderGoalTimelinePreview();
+      }
+    });
+
+    goalTimelineList.appendChild(div);
+  });
+}
+
 /* ---------- ユーティリティ ---------- */
 function log(...args){ console.log("[main.js]", ...args); }
 
@@ -973,31 +1004,6 @@ btnBack?.addEventListener("click", ()=>{
   const btnAddMyGoal = document.getElementById("btnAddMyGoal");
   const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
   const goalTimelineList = document.getElementById("goalTimelineList");
-
-  function renderGoalTimelinePreview() {
-    if (!goalTimelineList) return;
-
-    goalTimelineList.innerHTML = "";
-
-    const sorted = [...editingHighlights].sort((a,b)=>a.time-b.time);
-
-sorted.forEach((ev,index)=>{
-  const div = document.createElement("div");
-  div.style.cursor = "pointer";
-div.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失点シーン"}  ✖`;
-
-  div.addEventListener("click", ()=>{
-    if(confirm("このゴールを削除しますか？")){
-      // 元配列から削除
-      const originalIndex = editingHighlights.findIndex(h =>
-        h.time === ev.time && h.team === ev.team
-      );
-      if(originalIndex > -1){
-        editingHighlights.splice(originalIndex,1);
-      }
-      renderGoalTimelinePreview();
-    }
-  });
 
   goalTimelineList.appendChild(div);
 });
