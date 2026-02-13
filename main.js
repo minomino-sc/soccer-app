@@ -946,6 +946,30 @@ btnBack?.addEventListener("click", ()=>{
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
+  // --- ゴール追加ボタン ---
+  const goalTimeInput = document.getElementById("goalTime");
+  const btnAddMyGoal = document.getElementById("btnAddMyGoal");
+  const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
+  const goalTimelineList = document.getElementById("goalTimelineList");
+
+  function addGoal(teamType) {
+    if (!goalTimeInput) return;
+
+    const sec = Number(goalTimeInput.value);
+    if (isNaN(sec)) return alert("秒数を入力してください");
+
+    editingHighlights.push({
+      time: sec,
+      team: teamType
+    });
+
+    goalTimeInput.value = "";
+    renderGoalTimelinePreview();
+  }
+
+  btnAddMyGoal?.addEventListener("click", ()=>addGoal("my"));
+  btnAddOpponentGoal?.addEventListener("click", ()=>addGoal("opponent"));
+
   // --- チーム参加/作成 ---
   document.getElementById("btnJoin")?.addEventListener("click", async () => {
     const nameEl = document.getElementById("teamNameInput");
