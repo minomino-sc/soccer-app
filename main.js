@@ -752,6 +752,11 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
 function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
 
+alert(
+  "モーダル開く前のhlList長さ: " +
+  document.getElementById("hlList").children.length
+);
+   
   // 🔍 ① 呼び出し直後ログ
   alert(
     "① openEditModal呼出\n" +
