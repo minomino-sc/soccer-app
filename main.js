@@ -753,11 +753,10 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
   window.currentEditIndex = index;
 
-  // highlights が undefined の場合は空配列にする
-  highlights = Array.isArray(highlights) ? highlights : [];
-
-  // 試合固有の編集用配列にコピー
-  editingHighlights = highlights.map(ev => ({ ...ev }));
+  // 🔵 ここが重要：毎回その試合のハイライトで初期化
+  editingHighlights = Array.isArray(hlSeconds)
+    ? hlSeconds.map(sec => ({ time: sec }))
+    : [];
 
   document.getElementById("edit-date").value = date || "";
   document.getElementById("matchType").value = matchType || "";
@@ -767,11 +766,17 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSecon
   document.getElementById("edit-opponent-score").value = scoreB ?? "";
 
   const hlList = document.getElementById("hlList");
-  if(hlList){ hlList.innerHTML = ""; (Array.isArray(hlSeconds)?hlSeconds:[]).forEach(sec=> hlList.appendChild(createHlItemElement(sec))); }
+  if(hlList){
+    hlList.innerHTML = "";
+    editingHighlights.forEach(ev=>{
+      hlList.appendChild(createHlItemElement(ev.time));
+    });
+  }
 
   renderVideoSelects(videoId);
   document.getElementById("editModal").classList.remove("hidden");
 }
+
 function closeEditModal(){ const m=document.getElementById("editModal"); if(m && !m.classList.contains("hidden")) m.classList.add("hidden"); window.currentEditIndex = undefined; }
 function createHlItemElement(sec){
   const wrapper = document.createElement("div");
