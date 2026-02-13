@@ -946,29 +946,34 @@ btnBack?.addEventListener("click", ()=>{
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
   document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
-  // --- ゴール追加ボタン ---
-  const goalTimeInput = document.getElementById("goalTime");
-  const btnAddMyGoal = document.getElementById("btnAddMyGoal");
-  const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
-  const goalTimelineList = document.getElementById("goalTimelineList");
+// --- ゴール追加ボタン（修正版） ---
+const goalTimeInput = document.getElementById("goalTime");
+const btnAddMyGoal = document.getElementById("btnAddMyGoal");
+const btnAddOpponentGoal = document.getElementById("btnAddOpponentGoal");
+const goalTimelineList = document.getElementById("goalTimelineList");
 
-  function addGoal(teamType) {
-    if (!goalTimeInput) return;
+function addGoal(teamType) {
+  if (!goalTimeInput) return;
 
-    const sec = Number(goalTimeInput.value);
-    if (isNaN(sec)) return alert("秒数を入力してください");
+  const raw = goalTimeInput.value.trim();
+  if (!raw) return alert("秒数を入力してください");
 
-    editingHighlights.push({
-      time: sec,
-      team: teamType
-    });
+  const sec = parseInt(raw, 10);
+  if (isNaN(sec) || sec < 0) return alert("正しい秒数を入力してください");
 
-    goalTimeInput.value = "";
-    renderGoalTimelinePreview();
+  // 重複チェック
+  if(editingHighlights.some(h => h.time === sec && h.team === teamType)){
+    return alert(`${sec}秒はすでに登録されています`);
   }
 
-  btnAddMyGoal?.addEventListener("click", ()=>addGoal("my"));
-  btnAddOpponentGoal?.addEventListener("click", ()=>addGoal("opponent"));
+  editingHighlights.push({ time: sec, team: teamType });
+
+  goalTimeInput.value = "";
+  renderGoalTimelinePreview();
+}
+
+btnAddMyGoal?.addEventListener("click", () => addGoal("my"));
+btnAddOpponentGoal?.addEventListener("click", () => addGoal("opponent"));
 
   // --- チーム参加/作成 ---
   document.getElementById("btnJoin")?.addEventListener("click", async () => {
