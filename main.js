@@ -944,7 +944,7 @@ btnBack?.addEventListener("click", ()=>{
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
-  //document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
+  document.getElementById("btnMarkGoal")?.addEventListener("click", addHighlightTop);
 
   // --- ゴール追加ボタン ---
   const goalTimeInput = document.getElementById("goalTime");
