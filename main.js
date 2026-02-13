@@ -754,6 +754,8 @@ function openEditModal(index, date, matchType, opponent, place, scoreA, scoreB, 
 
   window.currentEditIndex = index;
 
+   alert("hlSeconds: " + JSON.stringify(hlSeconds));
+
   // 🔥 ① まず完全リセット（念のため）
   editingHighlights = [];
 
