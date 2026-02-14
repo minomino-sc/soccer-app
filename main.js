@@ -1005,6 +1005,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
           inviteCode: matched.inviteCode,
           baseTeamName: makeBaseTeamName(matched.teamName)
         });
+      updateTeamHistory(matched.teamName);
         alert(`チーム "${matched.teamName}" にログインしました`);
         await applyTeamUI();
         return;
@@ -1015,6 +1016,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
       const newRef = await addDoc(teamsCol, { teamName: name, inviteCode: code, createdAt: new Date().toISOString() });
       setTeam({ teamName: name, inviteCode: code, baseTeamName: makeBaseTeamName(name) });
+updateTeamHistory(name);
       alert(`チーム "${name}" を新規登録しました`);
       await applyTeamUI();
     }
