@@ -1022,3 +1022,39 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   });
 
 });
+
+/* ===== チーム名サジェスト ===== */
+
+function showTeamSuggestions(value){
+  const box = document.getElementById("teamSuggestions");
+  if(!box) return;
+
+  box.innerHTML = "";
+
+  const history = JSON.parse(localStorage.getItem("teamHistory") || "[]");
+
+  const filtered = history.filter(name =>
+    name.toLowerCase().includes(value.toLowerCase())
+  );
+
+  filtered.forEach(name=>{
+    const div = document.createElement("div");
+    div.textContent = name;
+    div.onclick = ()=>{
+      document.getElementById("teamNameInput").value = name;
+      box.innerHTML = "";
+    };
+    box.appendChild(div);
+  });
+}
+
+function updateTeamHistory(name){
+  if(!name) return;
+
+  let history = JSON.parse(localStorage.getItem("teamHistory") || "[]");
+
+  if(!history.includes(name)){
+    history.push(name);
+    localStorage.setItem("teamHistory", JSON.stringify(history));
+  }
+}
