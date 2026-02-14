@@ -1023,6 +1023,11 @@ updateTeamHistory(name);
     catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
   });
 
+  // --- チーム名入力でサジェスト表示 ---
+  document.getElementById("teamNameInput")?.addEventListener("input", (e)=>{
+    showTeamSuggestions(e.target.value);
+  });
+   
 });
 
 /* ===== チーム名サジェスト ===== */
