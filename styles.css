@@ -643,3 +643,24 @@ select {
 .monthly-list li {
   margin-bottom: 4px;
 }
+
+/* --- チーム名サジェスト用 --- */
+.suggestions{
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  z-index: 10;
+}
+
+.suggestions div{
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions div:hover{
+  background: #f0f0f0;
+}
