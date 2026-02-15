@@ -1025,14 +1025,16 @@ updateInviteHistory(code);
     catch (err) { console.error("team create/login error", err); alert("チーム登録/ログインでエラーが発生しました"); }
   });
 
-  // --- チーム名入力でサジェスト表示 ---
-  document.getElementById("teamNameInput")?.addEventListener("input", (e)=>{
-    showTeamSuggestions(e.target.value);
-  });
+// --- チーム名入力でサジェスト表示 ---
+document.getElementById("teamNameInput")?.addEventListener("input", (e)=>{
+  showTeamSuggestions(e.target.value);
+});
+
+// --- 招待コード入力でサジェスト表示 ---
 document.getElementById("inviteCodeInput")?.addEventListener("input", (e)=>{
   showInviteSuggestions(e.target.value);
 });
-   
+
 });
 
 /* ===== チーム名サジェスト ===== */
