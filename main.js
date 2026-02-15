@@ -1029,6 +1029,9 @@ updateInviteHistory(code);
   document.getElementById("teamNameInput")?.addEventListener("input", (e)=>{
     showTeamSuggestions(e.target.value);
   });
+document.getElementById("inviteCodeInput")?.addEventListener("input", (e)=>{
+  showInviteSuggestions(e.target.value);
+});
    
 });
 
