@@ -1051,15 +1051,24 @@ function showTeamSuggestions(value){
     name.toLowerCase().includes(value.toLowerCase())
   );
 
+  if(filtered.length === 0){
+    box.classList.remove("show");
+    return;
+  }
+
   filtered.forEach(name=>{
     const div = document.createElement("div");
     div.textContent = name;
+
     div.onclick = ()=>{
       document.getElementById("teamNameInput").value = name;
-      box.innerHTML = "";
+      box.classList.remove("show");
     };
+
     box.appendChild(div);
   });
+
+  box.classList.add("show");
 }
 
 function updateTeamHistory(name){
@@ -1072,6 +1081,7 @@ function updateTeamHistory(name){
     localStorage.setItem("teamHistory", JSON.stringify(history));
   }
 }
+
 
 /* ===== 招待コードサジェスト ===== */
 
@@ -1087,15 +1097,24 @@ function showInviteSuggestions(value){
     code.toLowerCase().includes(value.toLowerCase())
   );
 
+  if(filtered.length === 0){
+    box.classList.remove("show");
+    return;
+  }
+
   filtered.forEach(code=>{
     const div = document.createElement("div");
     div.textContent = code;
+
     div.onclick = ()=>{
       document.getElementById("inviteCodeInput").value = code;
-      box.innerHTML = "";
+      box.classList.remove("show");
     };
+
     box.appendChild(div);
   });
+
+  box.classList.add("show");
 }
 
 function updateInviteHistory(code){
