@@ -1018,6 +1018,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       const newRef = await addDoc(teamsCol, { teamName: name, inviteCode: code, createdAt: new Date().toISOString() });
       setTeam({ teamName: name, inviteCode: code, baseTeamName: makeBaseTeamName(name) });
 updateTeamHistory(name);
+updateInviteHistory(code);
       alert(`チーム "${name}" を新規登録しました`);
       await applyTeamUI();
     }
