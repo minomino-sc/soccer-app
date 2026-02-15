@@ -664,3 +664,11 @@ select {
 .suggestions div:hover{
   background: #f0f0f0;
 }
+
+.suggestions{
+  display: none;
+}
+
+.suggestions.show{
+  display: block;
+}
