@@ -1006,6 +1006,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
           baseTeamName: makeBaseTeamName(matched.teamName)
         });
       updateTeamHistory(matched.teamName);
+      updateInviteHistory(code);
         alert(`チーム "${matched.teamName}" にログインしました`);
         await applyTeamUI();
         return;
