@@ -1065,3 +1065,39 @@ function updateTeamHistory(name){
     localStorage.setItem("teamHistory", JSON.stringify(history));
   }
 }
+
+/* ===== 招待コードサジェスト ===== */
+
+function showInviteSuggestions(value){
+  const box = document.getElementById("inviteSuggestions");
+  if(!box) return;
+
+  box.innerHTML = "";
+
+  const history = JSON.parse(localStorage.getItem("inviteHistory") || "[]");
+
+  const filtered = history.filter(code =>
+    code.toLowerCase().includes(value.toLowerCase())
+  );
+
+  filtered.forEach(code=>{
+    const div = document.createElement("div");
+    div.textContent = code;
+    div.onclick = ()=>{
+      document.getElementById("inviteCodeInput").value = code;
+      box.innerHTML = "";
+    };
+    box.appendChild(div);
+  });
+}
+
+function updateInviteHistory(code){
+  if(!code) return;
+
+  let history = JSON.parse(localStorage.getItem("inviteHistory") || "[]");
+
+  if(!history.includes(code)){
+    history.push(code);
+    localStorage.setItem("inviteHistory", JSON.stringify(history));
+  }
+}
