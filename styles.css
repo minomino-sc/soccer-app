@@ -679,7 +679,7 @@ select {
 .month-summary-card {
   position: relative;
   border-radius: 18px;
-  padding: 20px;
+  padding: 16px;
   margin-top: 16px;
   background: linear-gradient(135deg, #ffffff, #f0fff4);
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
