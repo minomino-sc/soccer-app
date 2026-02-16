@@ -637,7 +637,7 @@ const monthStats = calcMonthlyStats(
 );
 
 const statsBlock = document.createElement("div");
-statsBlock.className = "section-card";
+statsBlock.className = "month-summary-card";
 
 const winRate = monthStats.total.games
   ? Math.round((monthStats.total.win / monthStats.total.games) * 100)
