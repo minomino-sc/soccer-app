@@ -342,10 +342,10 @@ button:hover {
 .section-card {
   background: #ffffff;
   border-radius: 16px;
-  border: 2px solid #d1ead1; /* 薄い緑枠 */
+  border: none;              /* ← 緑枠削除 */
   padding: 18px;
   margin: 20px 0;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06); /* 少し強めに */
 }
 
 /* ↑ タイトル（h2/h3）に余白調整 */
@@ -671,4 +671,51 @@ select {
 
 .suggestions.show{
   display: block;
+}
+
+/* ===============================
+   月別成績カード（プレミア仕様）
+================================ */
+.month-summary-card {
+  position: relative;
+  border-radius: 18px;
+  padding: 20px;
+  margin-top: 16px;
+  background: linear-gradient(135deg, #ffffff, #f0fff4);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* 上部アクセントバー */
+.month-summary-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #2a8cff, #00c853);
+}
+
+/* タイトル強調 */
+.month-summary-card h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* 成績ブロック */
+.month-summary-card .block {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.7);
+}
+
+/* 勝率を強調 */
+.month-summary-card .win-rate {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #2a8cff;
 }
