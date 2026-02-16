@@ -705,10 +705,10 @@ select {
   margin-bottom: 10px;
 }
 
-/* 成績ブロック */
+/* 成績ブロック（引き締め版） */
 .month-summary-card .block {
-  margin-top: 10px;
-  padding: 12px;
+  margin-top: 8px;              /* 少し詰める */
+  padding: 10px 12px;           /* 上下だけ2px削る */
   border-radius: 12px;
   background: rgba(255,255,255,0.7);
 }
