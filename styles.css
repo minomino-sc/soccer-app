@@ -724,3 +724,32 @@ select {
   background: linear-gradient(135deg, #e3f2fd, #ffffff);
   border-left: 5px solid #2196f3;
 }
+
+/* ===============================
+   月別 成績 Cプラン（総合強調＋種別1行）
+================================ */
+
+.total-block {
+  background: linear-gradient(135deg, #e3f2fd, #ffffff);
+  border-left: 5px solid #2196f3;
+}
+
+.type-list {
+  margin-top: 10px;
+}
+
+.type-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 4px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.type-name {
+  font-weight: 600;
+}
+
+.type-result {
+  opacity: 0.8;
+}
