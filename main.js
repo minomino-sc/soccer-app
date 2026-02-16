@@ -643,19 +643,22 @@ const winRate = monthStats.total.games
   ? Math.round((monthStats.total.win / monthStats.total.games) * 100)
   : 0;
 
-statsBlock.innerHTML = `
-  <h3>${key.replace("-", "年")}月 成績</h3>
+const diff = monthStats.total.goals - monthStats.total.conceded;
 
-  <div class="monthly-block">
-    <h3>【総合】</h3>
+statsBlock.innerHTML = `
+  <h3>📊 ${key.replace("-", "年")}月 成績</h3>
+
+  <div class="block">
+    <p><strong>総合</strong></p>
     <p>${monthStats.total.games}試合｜${monthStats.total.win}勝 ${monthStats.total.lose}敗 ${monthStats.total.draw}分</p>
-    <p>勝率：${winRate}%</p>
+    <p class="win-rate">勝率：${winRate}%</p>
     <p>得点：${monthStats.total.goals}　失点：${monthStats.total.conceded}</p>
+    <p>得失点差：${diff >= 0 ? "+" + diff : diff}</p>
   </div>
 
   ${Object.entries(monthStats.byType).map(([type,v])=>`
-    <div class="monthly-block">
-      <h3>【${type}】</h3>
+    <div class="block">
+      <p><strong>【${type}】</strong></p>
       <p>${v.games}試合｜${v.win}勝 ${v.lose}敗 ${v.draw}分</p>
     </div>
   `).join("")}
