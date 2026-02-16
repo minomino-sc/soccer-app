@@ -648,7 +648,7 @@ const diff = monthStats.total.goals - monthStats.total.conceded;
 statsBlock.innerHTML = `
   <h3>📊 ${key.replace("-", "年")}月 成績</h3>
 
-  <div class="block">
+  <div class="block total-block">
     <p><strong>総合</strong></p>
     <p>${monthStats.total.games}試合｜${monthStats.total.win}勝 ${monthStats.total.lose}敗 ${monthStats.total.draw}分</p>
     <p class="win-rate">勝率：${winRate}%</p>
@@ -656,12 +656,16 @@ statsBlock.innerHTML = `
     <p>得失点差：${diff >= 0 ? "+" + diff : diff}</p>
   </div>
 
-  ${Object.entries(monthStats.byType).map(([type,v])=>`
-    <div class="block">
-      <p><strong>【${type}】</strong></p>
-      <p>${v.games}試合｜${v.win}勝 ${v.lose}敗 ${v.draw}分</p>
-    </div>
-  `).join("")}
+  <div class="type-list">
+    ${Object.entries(monthStats.byType).map(([type,v])=>`
+      <div class="type-row">
+        <span class="type-name">${type}</span>
+        <span class="type-result">
+          ${v.games}試合 ${v.win}勝${v.lose}敗${v.draw}分
+        </span>
+      </div>
+    `).join("")}
+  </div>
 `;
 
 const body = document.createElement("div");
