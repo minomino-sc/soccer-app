@@ -759,19 +759,11 @@ select {
   line-height: 1.3;
 }
 
-/* ===== 勝率カラー ===== */
+/* ===== 勝率カラー（文字色） ===== */
 .win-high { color: #2e7d32; }   /* 緑 */
 .win-mid  { color: #1e88e5; }   /* 青 */
 .win-low  { color: #c62828; }   /* 赤 */
 
-.win-mid  { 
-  background: linear-gradient(135deg,#FF9800,#F57C00); 
-  color: white;
-}
-.win-low  { 
-  background: linear-gradient(135deg,#F44336,#C62828); 
-  color: white;
-}
 
 /* ===== 勝率バー ===== */
 .win-bar {
@@ -785,9 +777,13 @@ select {
 .win-bar-inner {
   height: 100%;
   width: 0%;
-  background: currentColor;  /* ← ここを変更 */
   transition: width 0.8s ease;
 }
+
+/* バーの色を明示的に指定 */
+.win-bar-inner.win-high { background: #2e7d32; }
+.win-bar-inner.win-mid  { background: #1e88e5; }
+.win-bar-inner.win-low  { background: #c62828; }
 
 /* ===== 表示アニメーション ===== */
 .month-summary-card {
