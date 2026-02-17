@@ -679,40 +679,31 @@ body.className = "month-body";
 
 // ★ 月別成績を先頭に追加
 body.appendChild(statsBlock);
-
+    
 /* ===== ここに追加 ===== */
 const winRateEl = statsBlock.querySelector(".win-rate");
-
-if(winRateEl){
-
-  winRateEl.classList.remove("win-high","win-mid","win-low");
-
-  if(winRate >= 70){
-    winRateEl.classList.add("win-high");
-  }else if(winRate >= 50){
-    winRateEl.classList.add("win-mid");
-  }else{
-    winRateEl.classList.add("win-low");
-  }
-
-}
-
 const winBar = statsBlock.querySelector(".win-bar-inner");
 
-if(winBar){
-  winBar.style.width = winRate + "%";
+if(winRateEl && winBar){
 
+  winRateEl.classList.remove("win-high","win-mid","win-low");
   winBar.classList.remove("win-high","win-mid","win-low");
 
   if(winRate >= 70){
+    winRateEl.classList.add("win-high");
     winBar.classList.add("win-high");
   }else if(winRate >= 50){
+    winRateEl.classList.add("win-mid");
     winBar.classList.add("win-mid");
   }else{
+    winRateEl.classList.add("win-low");
     winBar.classList.add("win-low");
   }
-}
 
+  // ★ アニメーション実行
+  animateWinRate(winRateEl, winBar, winRate);
+}
+    
     if(collapsedMonths.includes(key)){ body.classList.add("hidden"); header.classList.add("closed"); }
     else header.classList.add("open");
 
