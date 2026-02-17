@@ -753,3 +753,8 @@ select {
 .type-result {
   opacity: 0.8;
 }
+
+.month-summary-card p {
+  margin: 3px 0;
+  line-height: 1.3;
+}
