@@ -760,10 +760,10 @@ select {
 }
 
 /* ===== 勝率カラー ===== */
-.win-high { 
-  background: linear-gradient(135deg,#4CAF50,#2E7D32); 
-  color: white;
-}
+.win-high { color: #2e7d32; }   /* 緑 */
+.win-mid  { color: #1e88e5; }   /* 青 */
+.win-low  { color: #c62828; }   /* 赤 */
+
 .win-mid  { 
   background: linear-gradient(135deg,#FF9800,#F57C00); 
   color: white;
@@ -785,7 +785,7 @@ select {
 .win-bar-inner {
   height: 100%;
   width: 0%;
-  background: white;
+  background: currentColor;  /* ← ここを変更 */
   transition: width 0.8s ease;
 }
 
@@ -803,13 +803,6 @@ select {
     opacity:1;
     transform:translateY(0);
   }
-}
-
-/* 勝率カラー時の文字を濃くする */
-.win-high,
-.win-mid,
-.win-low {
-  color: #1a1a1a;
 }
 
 /* 勝率の数値だけ強調 */
