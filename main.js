@@ -542,43 +542,6 @@ function calcMonthlyStats(items){
   return result;
 }
 
-function calcMonthlyStats(items){
-  const result = { ... };
-
-  // 集計処理 ...
-
-  return result;
-}
-
-// ← ここに追加する
-function animateWinRate(el, barEl, target) {
-  let current = 0;
-  const duration = 1000;
-  const startTime = performance.now();
-
-  el.textContent = "勝率：0%";
-  barEl.style.width = "0%";
-
-  function update(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-
-    // ease-out
-    const eased = 1 - Math.pow(1 - progress, 3);
-
-    current = Math.floor(target * eased);
-
-    el.textContent = `勝率：${current}%`;
-    barEl.style.width = current + "%";
-
-    if (progress < 1) {
-      requestAnimationFrame(update);
-    }
-  }
-
-  requestAnimationFrame(update);
-}
-
 /* YouTube 再生ボタン（ヘルパー） */
 function createPlayButton(videoId, timeSec){
   const btn = document.createElement("button");
@@ -716,31 +679,40 @@ body.className = "month-body";
 
 // ★ 月別成績を先頭に追加
 body.appendChild(statsBlock);
-    
+
 /* ===== ここに追加 ===== */
 const winRateEl = statsBlock.querySelector(".win-rate");
-const winBar = statsBlock.querySelector(".win-bar-inner");
 
-if(winRateEl && winBar){
+if(winRateEl){
 
   winRateEl.classList.remove("win-high","win-mid","win-low");
-  winBar.classList.remove("win-high","win-mid","win-low");
 
   if(winRate >= 70){
     winRateEl.classList.add("win-high");
-    winBar.classList.add("win-high");
   }else if(winRate >= 50){
     winRateEl.classList.add("win-mid");
-    winBar.classList.add("win-mid");
   }else{
     winRateEl.classList.add("win-low");
-    winBar.classList.add("win-low");
   }
 
-  // ★ アニメーション実行
-  animateWinRate(winRateEl, winBar, winRate);
 }
-    
+
+const winBar = statsBlock.querySelector(".win-bar-inner");
+
+if(winBar){
+  winBar.style.width = winRate + "%";
+
+  winBar.classList.remove("win-high","win-mid","win-low");
+
+  if(winRate >= 70){
+    winBar.classList.add("win-high");
+  }else if(winRate >= 50){
+    winBar.classList.add("win-mid");
+  }else{
+    winBar.classList.add("win-low");
+  }
+}
+
     if(collapsedMonths.includes(key)){ body.classList.add("hidden"); header.classList.add("closed"); }
     else header.classList.add("open");
 
