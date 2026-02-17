@@ -858,18 +858,30 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
     group.appendChild(body);
     container.appendChild(group);
 
-    header.addEventListener("click", ()=>{
-      body.classList.toggle("hidden");
-      const isHidden = body.classList.contains("hidden");
-      if(isHidden){
-        header.classList.replace("open","closed");
-        if(!collapsedMonths.includes(key)) collapsedMonths.push(key);
-      } else {
-        header.classList.replace("closed","open");
-        collapsedMonths = collapsedMonths.filter(k=>k!==key);
-      }
-      localStorage.setItem("collapsedMonths", JSON.stringify(collapsedMonths));
-    });
+header.addEventListener("click", ()=>{
+  body.classList.toggle("hidden");
+  const isHidden = body.classList.contains("hidden");
+  if(isHidden){
+    header.classList.replace("open","closed");
+    if(!collapsedMonths.includes(key)) collapsedMonths.push(key);
+  } else {
+    header.classList.replace("closed","open");
+    collapsedMonths = collapsedMonths.filter(k=>k!==key);
+
+    // ★ 折りたたみ開いたときに勝率バーを毎回アニメーション
+    const statsBlock = body.querySelector(".month-summary-card");
+    if(statsBlock){
+      const monthStats = calcMonthlyStats(
+        groups[key].items.map(v => v.it)
+      );
+      const winRate = monthStats.total.games
+        ? Math.round((monthStats.total.win / monthStats.total.games) * 100)
+        : 0;
+      renderWinRate(statsBlock, winRate);
+    }
+  }
+  localStorage.setItem("collapsedMonths", JSON.stringify(collapsedMonths));
+});
 
   }); // end groups loop
 }
