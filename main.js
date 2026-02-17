@@ -542,6 +542,43 @@ function calcMonthlyStats(items){
   return result;
 }
 
+function calcMonthlyStats(items){
+  const result = { ... };
+
+  // 集計処理 ...
+
+  return result;
+}
+
+// ← ここに追加する
+function animateWinRate(el, barEl, target) {
+  let current = 0;
+  const duration = 1000;
+  const startTime = performance.now();
+
+  el.textContent = "勝率：0%";
+  barEl.style.width = "0%";
+
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+
+    // ease-out
+    const eased = 1 - Math.pow(1 - progress, 3);
+
+    current = Math.floor(target * eased);
+
+    el.textContent = `勝率：${current}%`;
+    barEl.style.width = current + "%";
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
 /* YouTube 再生ボタン（ヘルパー） */
 function createPlayButton(videoId, timeSec){
   const btn = document.createElement("button");
