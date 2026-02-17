@@ -675,10 +675,28 @@ statsBlock.innerHTML = `
 `;
 
 const body = document.createElement("div");
-body.className = "month-body";
+body.className = "month-body";  
 
 // ★ 月別成績を先頭に追加
 body.appendChild(statsBlock);
+
+/* ===== ここに追加 ===== */
+
+const totalBlock = statsBlock.querySelector(".total-block");
+
+if(totalBlock){
+
+  totalBlock.classList.remove("win-high","win-mid","win-low");
+
+  if(winRate >= 70){
+    totalBlock.classList.add("win-high");
+  }else if(winRate >= 50){
+    totalBlock.classList.add("win-mid");
+  }else{
+    totalBlock.classList.add("win-low");
+  }
+
+}
 
     if(collapsedMonths.includes(key)){ body.classList.add("hidden"); header.classList.add("closed"); }
     else header.classList.add("open");
