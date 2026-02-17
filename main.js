@@ -511,7 +511,7 @@ function matchesSearch(it,q){
   return false;
 }
 
-// ===== ① 月別成績 集計 =====
+// ===== 月別成績 集計 =====
 function calcMonthlyStats(items){
   const result = {
     total: { games:0, win:0, lose:0, draw:0, goals:0, conceded:0 },
@@ -542,16 +542,10 @@ function calcMonthlyStats(items){
   return result;
 }
 
-function calcMonthlyStats(items){
-  const result = { ... };
-
-  // 集計処理 ...
-
-  return result;
-}
-
-// ← ここに追加する
+// --- 勝率アニメーション関数 ---
 function animateWinRate(el, barEl, target) {
+  if (!el || !barEl) return;
+
   let current = 0;
   const duration = 1000;
   const startTime = performance.now();
@@ -562,8 +556,6 @@ function animateWinRate(el, barEl, target) {
   function update(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
-
-    // ease-out
     const eased = 1 - Math.pow(1 - progress, 3);
 
     current = Math.floor(target * eased);
@@ -571,12 +563,34 @@ function animateWinRate(el, barEl, target) {
     el.textContent = `勝率：${current}%`;
     barEl.style.width = current + "%";
 
-    if (progress < 1) {
-      requestAnimationFrame(update);
-    }
+    if (progress < 1) requestAnimationFrame(update);
   }
 
   requestAnimationFrame(update);
+}
+
+// --- 安全に勝率描画・アニメーション ---
+function renderWinRate(statsBlock, winRate){
+  if (!statsBlock) return;
+  const winRateEl = statsBlock.querySelector(".win-rate");
+  const winBar = statsBlock.querySelector(".win-bar-inner");
+  if(!winRateEl || !winBar) return;
+
+  winRateEl.classList.remove("win-high","win-mid","win-low");
+  winBar.classList.remove("win-high","win-mid","win-low");
+
+  if(winRate >= 70){
+    winRateEl.classList.add("win-high");
+    winBar.classList.add("win-high");
+  } else if(winRate >= 50){
+    winRateEl.classList.add("win-mid");
+    winBar.classList.add("win-mid");
+  } else {
+    winRateEl.classList.add("win-low");
+    winBar.classList.add("win-low");
+  }
+
+  requestAnimationFrame(()=>animateWinRate(winRateEl, winBar, winRate));
 }
 
 /* YouTube 再生ボタン（ヘルパー） */
