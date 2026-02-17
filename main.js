@@ -576,6 +576,11 @@ function renderWinRate(statsBlock, winRate){
   const winBar = statsBlock.querySelector(".win-bar-inner");
   if(!winRateEl || !winBar) return;
 
+  // --- 前回値をリセット（毎回ゼロからスタート） ---
+  winRateEl.dataset.current = 0;  // 数字用
+  winBar.style.width = "0%";      // バー幅リセット
+
+  // --- クラス付与 ---
   winRateEl.classList.remove("win-high","win-mid","win-low");
   winBar.classList.remove("win-high","win-mid","win-low");
 
@@ -590,7 +595,8 @@ function renderWinRate(statsBlock, winRate){
     winBar.classList.add("win-low");
   }
 
-  requestAnimationFrame(()=>animateWinRate(winRateEl, winBar, winRate));
+  // --- アニメーション実行 ---
+  requestAnimationFrame(() => animateWinRate(winRateEl, winBar, winRate));
 }
 
 /* YouTube 再生ボタン（ヘルパー） */
