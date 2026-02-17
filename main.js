@@ -681,36 +681,21 @@ body.className = "month-body";
 body.appendChild(statsBlock);
 
 /* ===== ここに追加 ===== */
-const winRateEl = statsBlock.querySelector(".win-rate");
 
-if(winRateEl){
+const totalBlock = statsBlock.querySelector(".total-block");
 
-  winRateEl.classList.remove("win-high","win-mid","win-low");
+if(totalBlock){
 
-  if(winRate >= 70){
-    winRateEl.classList.add("win-high");
-  }else if(winRate >= 50){
-    winRateEl.classList.add("win-mid");
-  }else{
-    winRateEl.classList.add("win-low");
-  }
-
-}
-
-const winBar = statsBlock.querySelector(".win-bar-inner");
-
-if(winBar){
-  winBar.style.width = winRate + "%";
-
-  winBar.classList.remove("win-high","win-mid","win-low");
+  totalBlock.classList.remove("win-high","win-mid","win-low");
 
   if(winRate >= 70){
-    winBar.classList.add("win-high");
+    totalBlock.classList.add("win-high");
   }else if(winRate >= 50){
-    winBar.classList.add("win-mid");
+    totalBlock.classList.add("win-mid");
   }else{
-    winBar.classList.add("win-low");
+    totalBlock.classList.add("win-low");
   }
+
 }
 
     if(collapsedMonths.includes(key)){ body.classList.add("hidden"); header.classList.add("closed"); }
