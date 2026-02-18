@@ -812,3 +812,27 @@ select {
 body {
   background: linear-gradient(160deg, #0b1c3d 0%, #102a5c 60%, #09142b 100%);
 }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0b1c3d 0%, #09142b 100%);
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+#teamSection {
+  background: #ffffff !important;
+  border-radius: 24px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+}
+
+.page-title {
+  color: #ffffff !important;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+footer,
+small {
+  color: rgba(255,255,255,0.7) !important;
+}
