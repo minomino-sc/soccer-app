@@ -805,3 +805,25 @@ select {
   font-weight: 700;
   font-size: 18px;
 }
+
+.login-animation {
+  position: fixed;
+  bottom: 40px;
+  left: -300px;
+  width: 220px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-animation img {
+  width: 100%;
+  animation: dribbleMove 8s linear infinite;
+}
+
+@keyframes dribbleMove {
+  0% { transform: translateX(0); }
+  45% { transform: translateX(70vw); }
+  50% { transform: translateX(70vw) scaleX(1); }
+  55% { transform: translateX(70vw) scaleX(-1); }
+  100% { transform: translateX(0) scaleX(-1); }
+}
