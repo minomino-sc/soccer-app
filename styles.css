@@ -808,7 +808,7 @@ select {
 
 .login-animation {
   position: fixed;
-  top: 90%;                 /* ← 真ん中付近を通す */
+  top: 80%;                 /* ← 真ん中付近を通す */
   left: -250px;
   width: 200px;
   transform: translateY(-50%);
