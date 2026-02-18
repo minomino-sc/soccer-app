@@ -805,3 +805,93 @@ select {
   font-weight: 700;
   font-size: 18px;
 }
+
+/* =========================================
+   ログイン画面 プレミア背景
+========================================= */
+#teamSection {
+  position: relative;
+  background: linear-gradient(160deg, #0b1c3d 0%, #102a5c 60%, #09142b 100%) !important;
+  border-radius: 22px;
+  padding: 28px 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+  color: #fff;
+}
+
+/* ユニフォーム風ストライプ */
+#teamSection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(200,30,30,0.12) 0px,
+    rgba(200,30,30,0.12) 40px,
+    transparent 40px,
+    transparent 80px
+  );
+  pointer-events: none;
+}
+
+#teamSection .page-title {
+  color: #fff !important;
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+#teamSection input {
+  background: rgba(255,255,255,0.15) !important;
+  border: none !important;
+  border-radius: 14px !important;
+  padding: 14px !important;
+  color: #fff !important;
+  font-size: 15px;
+  backdrop-filter: blur(6px);
+}
+
+#teamSection input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+#teamSection input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(29,94,216,0.9);
+}
+
+#btnJoin {
+  background: linear-gradient(90deg, #1d5ed8, #c61f1f) !important;
+  border-radius: 18px !important;
+  font-weight: bold;
+  letter-spacing: 1px;
+  height: 50px;
+  font-size: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  transition: 0.3s;
+}
+
+#btnJoin:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+}
+
+.team-logo {
+  width: 65px !important;
+  filter: drop-shadow(0 12px 25px rgba(0,0,0,0.6));
+}
+
+#teamSection {
+  animation: loginFade 0.8s ease;
+}
+
+@keyframes loginFade {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
