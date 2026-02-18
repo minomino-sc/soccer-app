@@ -809,50 +809,31 @@ select {
 /* ==========================
    ドリブルアニメーション
 ========================== */
-
 .dribble-area {
-  position: relative;
   height: 120px;
   overflow: hidden;
   margin-top: 10px;
 }
 
-/* 選手（ユニ風シルエット） */
+.dribble-svg {
+  width: 100%;
+}
+
 .player {
-  position: absolute;
-  bottom: 20px;
-  left: -80px;
-  width: 60px;
-  height: 80px;
-  background: linear-gradient(#1d5ed8 60%, #c61f1f 60%);
-  border-radius: 12px;
-  animation: run 6s linear infinite;
+  animation: movePlayer 6s linear infinite;
 }
 
-/* ボール */
 .ball {
-  position: absolute;
-  bottom: 10px;
-  left: -40px;
-  width: 22px;
-  height: 22px;
-  background: white;
-  border-radius: 50%;
-  box-shadow: inset -4px -4px 0 #333;
-  animation: runBall 6s linear infinite;
+  animation: moveBall 6s linear infinite;
 }
 
-/* 選手移動 */
-@keyframes run {
-  0% { left: -80px; }
-  100% { left: 110%; }
+@keyframes movePlayer {
+  0% { transform: translateX(-60px); }
+  100% { transform: translateX(120%); }
 }
 
-/* ボールドリブル感 */
-@keyframes runBall {
-  0% { left: -40px; transform: translateY(0); }
-  25% { transform: translateY(-6px); }
-  50% { transform: translateY(0); }
-  75% { transform: translateY(-6px); }
-  100% { left: 110%; transform: translateY(0); }
+@keyframes moveBall {
+  0% { transform: translate(-60px, 0); }
+  50% { transform: translate(50%, -5px); }
+  100% { transform: translate(120%, 0); }
 }
