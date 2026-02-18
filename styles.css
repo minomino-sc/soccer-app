@@ -812,17 +812,3 @@ select {
 body {
   background: linear-gradient(160deg, #0b1c3d 0%, #102a5c 60%, #09142b 100%);
 }
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(200,30,30,0.08) 0px,
-    rgba(200,30,30,0.08) 40px,
-    transparent 40px,
-    transparent 80px
-  );
-  pointer-events: none;
-}
