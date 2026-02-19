@@ -808,7 +808,7 @@ select {
 
 .login-animation {
   position: fixed;
-  top: 80%;                 /* ← 真ん中付近を通す */
+  top: 80%;
   left: -250px;
   width: 200px;
   transform: translateY(-50%);
@@ -819,13 +819,24 @@ select {
 
 .login-animation img {
   width: 100%;
+  animation: slightBounce 0.6s ease-in-out infinite alternate;
 }
 
 @keyframes runAcross {
   0% {
     left: -250px;
+    transform: translateY(-50%) translateY(0);
+  }
+  50% {
+    transform: translateY(-50%) translateY(-4px);
   }
   100% {
     left: 110%;
+    transform: translateY(-50%) translateY(0);
   }
+}
+
+@keyframes slightBounce {
+  from { transform: rotate(0.8deg); }
+  to   { transform: rotate(-0.8deg); }
 }
