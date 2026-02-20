@@ -805,3 +805,18 @@ select {
   font-weight: 700;
   font-size: 18px;
 }
+
+.team-photo-area {
+  margin: 30px auto;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.team-photo-area img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
