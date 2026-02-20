@@ -807,16 +807,30 @@ select {
 }
 
 .team-photo-area {
-  margin: 30px auto;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  margin: 15px auto;
+  width: 92%;
+  max-width: 520px;
+  position: relative;
 }
 
 .team-photo-area img {
   width: 100%;
   display: block;
-  object-fit: cover;
+
+  /* 楕円にする */
+  border-radius: 50% / 35%;
+
+  /* 外側フェードぼかし */
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    rgba(0,0,0,1) 60%,
+    rgba(0,0,0,0.6) 75%,
+    rgba(0,0,0,0) 100%
+  );
+  mask-image: radial-gradient(
+    ellipse at center,
+    rgba(0,0,0,1) 60%,
+    rgba(0,0,0,0.6) 75%,
+    rgba(0,0,0,0) 100%
+  );
 }
