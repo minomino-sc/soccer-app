@@ -807,43 +807,44 @@ select {
 }
 
 .team-photo-area {
-  margin: 15px auto;
   width: 92%;
   max-width: 520px;
+  margin: 20px auto;
   display: flex;
   justify-content: center;
 }
 
-.photo-wrapper {
-  position: relative;
+/* 楕円をここで作る */
+.ellipse {
   width: 100%;
-  aspect-ratio: 16 / 9;   /* 横長に固定 */
+  height: 260px;          /* ← ここで高さ固定 */
+  border-radius: 50%;
   overflow: hidden;
+  position: relative;
+}
 
-  /* 本物の楕円 */
-  border-radius: 50% / 35%;
+/* 横長楕円にする */
+.ellipse {
+  border-radius: 50% / 40%;
 }
 
 /* 画像 */
-.photo-wrapper img {
+.ellipse img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* 周囲フェード（これが本命） */
-.photo-wrapper::after {
+/* 周囲フェード */
+.ellipse::after {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 50% / 35%;
-
+  border-radius: 50% / 40%;
   background: radial-gradient(
     ellipse at center,
-    rgba(0,0,0,0) 55%,
-    rgba(194, 214, 178, 0.6) 75%,
-    rgba(194, 214, 178, 1) 100%
+    rgba(0,0,0,0) 60%,
+    rgba(0,0,0,0.15) 75%,
+    rgba(0,0,0,0.35) 90%
   );
-
-  pointer-events: none;
 }
