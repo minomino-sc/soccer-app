@@ -817,3 +817,47 @@ select {
   height: auto;
   display: block;
 }
+
+/* ============================= */
+/* チーム登録 ログイン中央化 */
+/* ============================= */
+
+#teamSection {
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+}
+
+.login-header {
+  position: relative;
+  padding: 30px 0 10px 0;
+}
+
+.center-title {
+  text-align: center;
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
+}
+
+/* 背景ロゴ */
+.login-bg-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  width: 220px;          /* サイズ調整 */
+  opacity: 0.06;         /* 薄さ（0.05〜0.1が綺麗） */
+  
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 入力とボタンを前面に */
+#teamSection input,
+#teamSection button,
+#teamSection .muted {
+  position: relative;
+  z-index: 2;
+}
