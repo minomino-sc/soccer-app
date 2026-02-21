@@ -861,3 +861,15 @@ select {
   position: relative;
   z-index: 2;
 }
+
+/* ===== ログインヘッダー調整 ===== */
+
+.login-header {
+  padding: 15px 0 8px 0;
+}
+
+.login-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
