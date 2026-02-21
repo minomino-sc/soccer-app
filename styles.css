@@ -826,6 +826,8 @@ select {
   position: relative;
   text-align: center;
   overflow: hidden;
+
+  min-height: 420px;   /* ← これを追加するだけ */   
 }
 
 .login-header {
