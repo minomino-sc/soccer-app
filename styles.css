@@ -654,6 +654,10 @@ select {
   border: 1px solid #ccc;
   border-top: none;
   z-index: 10;
+
+  max-height: 200px;     /* ← 追加 */
+  overflow-y: auto;      /* ← 追加 */
+  border-radius: 0 0 8px 8px;
 }
 
 .suggestions div{
