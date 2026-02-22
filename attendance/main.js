@@ -200,16 +200,34 @@ async function render() {
 
   const logsCache = logsCacheByMonth[monthId];
 
-  /* ヘッダー */
-  const trH = document.createElement("tr");
-  trH.innerHTML =
-    "<th class='no'>背</th><th class='name'>名前</th>" +
-    monthEvents.map(e =>
+/* ヘッダー */
+const trH = document.createElement("tr");
+trH.innerHTML =
+  "<th class='no'>背</th><th class='name'>名前</th>" +
+  monthEvents.map(e => {
+
+    // ★ チーム取得
+    let teams = [];
+    if (Array.isArray(e.targetTeams)) {
+      teams = e.targetTeams;
+    } else if (typeof e.targetTeam === "string") {
+      teams = [e.targetTeam];
+    }
+
+    // 表示用テキスト
+    let teamText = "";
+    if (teams.length > 0) {
+      teamText = "<br><small>(" + teams.join("/") + ")</small>";
+    }
+
+    return (
       "<th class='" + e.type + "'>" +
         e._date.getDate() + "<br>" +
         (e.type === "match" ? "試合" : "練習") +
+        teamText +
       "</th>"
-    ).join("");
+    );
+  }).join("");
   table.appendChild(trH);
 
   /* 行 */
