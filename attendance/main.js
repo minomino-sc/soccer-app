@@ -214,11 +214,25 @@ trH.innerHTML =
       teams = [e.targetTeam];
     }
 
-    // 表示用テキスト
-    let teamText = "";
-    if (teams.length > 0) {
-      teamText = "<br><small>(" + teams.join("/") + ")</small>";
-    }
+// ★ Aを必ず左に並べる
+teams = teams.sort((a, b) => {
+  if (a === "A" && b !== "A") return -1;
+  if (b === "A" && a !== "A") return 1;
+  return 0;
+});
+
+// ★ 色付き表示
+let teamText = "";
+if (teams.length > 0) {
+
+  const colored = teams.map(t => {
+    if (t === "A") return "<span class='teamA'>A</span>";
+    if (t === "B") return "<span class='teamB'>B</span>";
+    return t;
+  });
+
+  teamText = "<br><small>" + colored.join(" / ") + "</small>";
+}
 
     return (
       "<th class='" + e.type + "'>" +
