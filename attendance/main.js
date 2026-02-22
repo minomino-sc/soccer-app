@@ -173,11 +173,33 @@ async function render() {
       .sort((a, b) => a._date - b._date);
   }
 
-  const monthEvents = events.filter(e =>
+const monthEvents = events
+  .filter(e =>
     e._date &&
     e._date.getFullYear() === current.getFullYear() &&
     e._date.getMonth() === current.getMonth()
-  );
+  )
+  .sort((a, b) => {
+
+    // ① 日付順
+    if (a._date.getTime() !== b._date.getTime()) {
+      return a._date - b._date;
+    }
+
+    // ② 同日なら A を左に
+    const getTeam = e =>
+      Array.isArray(e.targetTeams)
+        ? e.targetTeams[0]
+        : e.targetTeam || "";
+
+    const ta = getTeam(a);
+    const tb = getTeam(b);
+
+    if (ta === "A" && tb !== "A") return -1;
+    if (tb === "A" && ta !== "A") return 1;
+
+    return 0;
+  });
 
   /* ★ チーム集計（PDF用） */
   calcTeamSummary(monthEvents);
