@@ -1009,6 +1009,16 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   const team = getTeam();
   if (team) {
     await applyTeamUI(true); // ← trueでメインメニュー表示
+
+  // ★ ここに年間スケジュールボタンのイベント登録を追加
+  const btnShowSchedule = document.getElementById("btnShowSchedule");
+  const scheduleSection = document.getElementById("scheduleSection");
+  if (btnShowSchedule && scheduleSection) {
+    btnShowSchedule.addEventListener("click", () => {
+      scheduleSection.classList.toggle("hidden"); // 表示/非表示切り替え
+    });
+  }
+    
   } else {
     const teamSection = document.getElementById("teamSection");
     if(teamSection) teamSection.style.display = "block";
@@ -1048,20 +1058,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
-
-// ←ここに追加
-document.getElementById("btnShowSchedule")?.addEventListener("click", async () => {
-    // 年間スケジュールを表示
-    const scoresSection = document.getElementById("scoresSection");
-    if(scoresSection) scoresSection.style.display = "block";
-
-    // メインメニューは非表示
-    const teamSection = document.getElementById("teamSection");
-    if(teamSection) teamSection.style.display = "none";
-
-    // Firestore から最新スコアを読み込む
-    await loadScores();
-});
 
   // --- ゴール追加ボタン（統一版） ---
   const goalTimeInput = document.getElementById("goalTime");
