@@ -1008,29 +1008,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   // --- チームがログイン済みなら UI を反映 ---
   const team = getTeam();
   if (team) {
-   await applyTeamUI(true); // ← trueでメインメニュー表示 
-
-const btnSchedule = document.getElementById("btnSchedule");
-const scheduleSection = document.getElementById("scheduleSection");
-
-if(btnSchedule){
-  if(getTeam()){               // ログイン済みなら表示
-    btnSchedule.style.display = "block";
-  } else {                     // 未ログインなら非表示
-    btnSchedule.style.display = "none";
-  }
-
-  if(isAdmin() && scheduleSection){  // 管理者のみクリックで登録セクション
-    btnSchedule.addEventListener("click", ()=>{
-      scheduleSection.style.display = "block";
-      ["scoresSection","addVideoSection","createMatchSection"].forEach(id=>{
-        const el = document.getElementById(id);
-        if(el) el.style.display = "none";
-      });
-    });
-  }
-}
-   
+    await applyTeamUI(true); // ← trueでメインメニュー表示
   } else {
     const teamSection = document.getElementById("teamSection");
     if(teamSection) teamSection.style.display = "block";
@@ -1038,17 +1016,10 @@ if(btnSchedule){
 
   // --- btnBack イベント登録 ---
   btnBack?.addEventListener("click", ()=>{
-   document.getElementById("teamNameInput").value = "";
+    document.getElementById("teamNameInput").value = "";
     document.getElementById("inviteCodeInput").value = "";
     applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
   });
-
-// --- btnBack イベント登録 ---
-btnBack?.addEventListener("click", ()=>{
-  document.getElementById("teamNameInput").value = "";
-  document.getElementById("inviteCodeInput").value = "";
-  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
-});   
 
   // --- 他のボタン登録 ---
   document.getElementById("btnBackupAllFirestore")?.addEventListener("click", backupAllFirestore);
