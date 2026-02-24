@@ -1023,20 +1023,25 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
 // --- チームがログイン済みなら UI を反映 ---
 const team = getTeam();
+const teamSection = document.getElementById("teamSection");
+const btnSchedule = document.getElementById("btnSchedule");
+const scheduleSection = document.getElementById("scheduleSection");
+
 if (team) {
   await applyTeamUI(true); // ← trueでメインメニュー表示
 
-  // --- 年間スケジュールボタンを表示 & クリックイベント ---
-  const btnSchedule = document.getElementById("btnSchedule");
-  const scheduleSection = document.getElementById("scheduleSection");
-  if(btnSchedule) btnSchedule.style.display = "block";
+  // ログイン画面は非表示にする
+  if (teamSection) teamSection.style.display = "none";
 
-  if(btnSchedule && scheduleSection) {
+  // 年間スケジュールボタン表示
+  if (btnSchedule) btnSchedule.style.display = "block";
+
+  // クリックイベント
+  if (btnSchedule && scheduleSection) {
     btnSchedule.addEventListener("click", () => {
-      // スケジュールセクションを表示
       scheduleSection.style.display = "block";
 
-      // 他のセクションは非表示にする
+      // 他のセクションは非表示に
       const hideIds = ["scoresSection", "addVideoSection", "createMatchSection"];
       hideIds.forEach(id => {
         const el = document.getElementById(id);
@@ -1046,8 +1051,9 @@ if (team) {
   }
 
 } else {
-  const teamSection = document.getElementById("teamSection");
+  // ログインしていなければ teamSection を表示 & ボタンは非表示
   if(teamSection) teamSection.style.display = "block";
+  if(btnSchedule) btnSchedule.style.display = "none";
 }
 
 // --- btnBack イベント登録 ---
