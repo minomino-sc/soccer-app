@@ -1010,27 +1010,26 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   if (team) {
    await applyTeamUI(true); // ← trueでメインメニュー表示 
 
-    // --- 年間スケジュールボタン表示（全員） ---
-    const btnSchedule = document.getElementById("btnSchedule");
-    if(btnSchedule) btnSchedule.style.display = "block";
+const btnSchedule = document.getElementById("btnSchedule");
+const scheduleSection = document.getElementById("scheduleSection");
 
-    // --- 管理者だけ登録用クリックイベントを付与 ---
-    if(isAdmin()){
-      const scheduleSection = document.getElementById("scheduleSection");
-      if(btnSchedule && scheduleSection){
-        btnSchedule.addEventListener("click", ()=>{
-          // スケジュールセクション表示
-          scheduleSection.style.display = "block";
+if(btnSchedule){
+  if(getTeam()){               // ログイン済みなら表示
+    btnSchedule.style.display = "block";
+  } else {                     // 未ログインなら非表示
+    btnSchedule.style.display = "none";
+  }
 
-          // 他のセクションを非表示
-          const hideIds = ["scoresSection","addVideoSection","createMatchSection"];
-          hideIds.forEach(id=>{
-            const el = document.getElementById(id);
-            if(el) el.style.display = "none";
-          });
-        });
-      }
-    }
+  if(isAdmin() && scheduleSection){  // 管理者のみクリックで登録セクション
+    btnSchedule.addEventListener("click", ()=>{
+      scheduleSection.style.display = "block";
+      ["scoresSection","addVideoSection","createMatchSection"].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.style.display = "none";
+      });
+    });
+  }
+}
    
   } else {
     const teamSection = document.getElementById("teamSection");
