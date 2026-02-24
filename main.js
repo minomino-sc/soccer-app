@@ -1049,6 +1049,20 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("saveEdit")?.addEventListener("click", saveEditGeneric);
   document.getElementById("deleteMatch")?.addEventListener("click", deleteCurrentMatch);
 
+// ←ここに追加
+document.getElementById("btnShowSchedule")?.addEventListener("click", async () => {
+    // 年間スケジュールを表示
+    const scoresSection = document.getElementById("scoresSection");
+    if(scoresSection) scoresSection.style.display = "block";
+
+    // メインメニューは非表示
+    const teamSection = document.getElementById("teamSection");
+    if(teamSection) teamSection.style.display = "none";
+
+    // Firestore から最新スコアを読み込む
+    await loadScores();
+});
+
   // --- ゴール追加ボタン（統一版） ---
   const goalTimeInput = document.getElementById("goalTime");
   const btnAddMyGoal = document.getElementById("btnAddMyGoal");
