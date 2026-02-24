@@ -1008,17 +1008,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   // --- チームがログイン済みなら UI を反映 ---
   const team = getTeam();
   if (team) {
-    await applyTeamUI(true); // ← trueでメインメニュー表示
-
-  // ★ ここに年間スケジュールボタンのイベント登録を追加
-  const btnShowSchedule = document.getElementById("btnShowSchedule");
-  const scheduleSection = document.getElementById("scheduleSection");
-  if (btnShowSchedule && scheduleSection) {
-    btnShowSchedule.addEventListener("click", () => {
-      scheduleSection.classList.toggle("hidden"); // 表示/非表示切り替え
-    });
-  }
-    
+    await applyTeamUI(true); // ← trueでメインメニュー表示  
   } else {
     const teamSection = document.getElementById("teamSection");
     if(teamSection) teamSection.style.display = "block";
