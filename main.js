@@ -1008,7 +1008,30 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   // --- チームがログイン済みなら UI を反映 ---
   const team = getTeam();
   if (team) {
-   await applyTeamUI(true); // ← trueでメインメニュー表示  
+   await applyTeamUI(true); // ← trueでメインメニュー表示 
+
+    // --- 年間スケジュールボタン表示（全員） ---
+    const btnSchedule = document.getElementById("btnSchedule");
+    if(btnSchedule) btnSchedule.style.display = "block";
+
+    // --- 管理者だけ登録用クリックイベントを付与 ---
+    if(isAdmin()){
+      const scheduleSection = document.getElementById("scheduleSection");
+      if(btnSchedule && scheduleSection){
+        btnSchedule.addEventListener("click", ()=>{
+          // スケジュールセクション表示
+          scheduleSection.style.display = "block";
+
+          // 他のセクションを非表示
+          const hideIds = ["scoresSection","addVideoSection","createMatchSection"];
+          hideIds.forEach(id=>{
+            const el = document.getElementById(id);
+            if(el) el.style.display = "none";
+          });
+        });
+      }
+    }
+   
   } else {
     const teamSection = document.getElementById("teamSection");
     if(teamSection) teamSection.style.display = "block";
