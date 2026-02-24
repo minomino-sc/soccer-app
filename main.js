@@ -1006,20 +1006,56 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   await loadScores();
 
   // --- チームがログイン済みなら UI を反映 ---
-  const team = getTeam();
-  if (team) {
-    await applyTeamUI(true); // ← trueでメインメニュー表示  
-  } else {
-    const teamSection = document.getElementById("teamSection");
-    if(teamSection) teamSection.style.display = "block";
-  }
+  //const team = getTeam();
+  //if (team) {
+    //await applyTeamUI(true); // ← trueでメインメニュー表示  
+  //} else {
+    //const teamSection = document.getElementById("teamSection");
+    //if(teamSection) teamSection.style.display = "block";
+  //}
 
   // --- btnBack イベント登録 ---
-  btnBack?.addEventListener("click", ()=>{
-    document.getElementById("teamNameInput").value = "";
-    document.getElementById("inviteCodeInput").value = "";
-    applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
-  });
+  //btnBack?.addEventListener("click", ()=>{
+    //document.getElementById("teamNameInput").value = "";
+    //document.getElementById("inviteCodeInput").value = "";
+    //applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
+  //});
+
+// --- チームがログイン済みなら UI を反映 ---
+const team = getTeam();
+if (team) {
+  await applyTeamUI(true); // ← trueでメインメニュー表示
+
+  // --- 年間スケジュールボタンを表示 & クリックイベント ---
+  const btnSchedule = document.getElementById("btnSchedule");
+  const scheduleSection = document.getElementById("scheduleSection");
+  if(btnSchedule) btnSchedule.style.display = "block";
+
+  if(btnSchedule && scheduleSection) {
+    btnSchedule.addEventListener("click", () => {
+      // スケジュールセクションを表示
+      scheduleSection.style.display = "block";
+
+      // 他のセクションは非表示にする
+      const hideIds = ["scoresSection", "addVideoSection", "createMatchSection"];
+      hideIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = "none";
+      });
+    });
+  }
+
+} else {
+  const teamSection = document.getElementById("teamSection");
+  if(teamSection) teamSection.style.display = "block";
+}
+
+// --- btnBack イベント登録 ---
+btnBack?.addEventListener("click", ()=>{
+  document.getElementById("teamNameInput").value = "";
+  document.getElementById("inviteCodeInput").value = "";
+  applyTeamUI(true);  // ← BackButton を非表示にしてメインメニューを表示
+});   
 
   // --- 他のボタン登録 ---
   document.getElementById("btnBackupAllFirestore")?.addEventListener("click", backupAllFirestore);
