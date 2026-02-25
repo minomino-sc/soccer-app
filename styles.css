@@ -888,19 +888,24 @@ select {
   cursor: pointer;
 }
 
-/* ===== ポータルボタン ===== */
-.portal-btn{
-  display:inline-block;
-  margin:10px;
-  padding:12px 20px;
-  background:#2a8cff;
-  color:#fff;
-  text-decoration:none;
-  border-radius:8px;
-  font-weight:bold;
-  transition:0.2s;
+.portal-link{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:16px 18px;
+  margin:12px 0;
+
+  background:#ffffffcc;
+  border-radius:14px;
+  font-size:17px;
+  font-weight:600;
+
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  cursor:pointer;
+  transition:0.15s;
 }
 
-.portal-btn:hover{
-  background:#005fcc;
+.portal-link:active{
+  transform:scale(0.98);
 }
