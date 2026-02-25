@@ -1412,3 +1412,30 @@ const annualEvents = [
 document.addEventListener("DOMContentLoaded", () => {
   generateAnnualSchedule(annualEvents);
 });
+
+// ▼ カレンダー描画関数
+function renderCalendar(year = 2026) {
+  const calendarContainer = document.getElementById('calendarContainer');
+  if (!calendarContainer) return;
+
+  calendarContainer.innerHTML = ''; // 既存をクリア
+
+  const startDate = new Date(year, 3, 1); // 4月1日
+  const endDate = new Date(year + 1, 2, 31); // 翌年3月31日
+
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dayCell = document.createElement('div');
+    dayCell.className = 'day-cell';
+    dayCell.textContent = d.getDate();
+
+    // クリックで簡易詳細表示
+    dayCell.addEventListener('click', () => {
+      const eventDetail = document.getElementById('eventDetail');
+      if (eventDetail) {
+        eventDetail.textContent = `選択日: ${d.toLocaleDateString()}`;
+      }
+    });
+
+    calendarContainer.appendChild(dayCell);
+  }
+}
