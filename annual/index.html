@@ -3,41 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>年間スケジュール</title>
+  <title>年間スケジュール（チーム管理版）</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-    h1 { margin-bottom: 10px; white-space: nowrap; } /* タイトル1行 */
+    h1 { margin-bottom: 10px; white-space: nowrap; }
     button { margin-bottom: 10px; }
 
-    /* 管理パネル */
     #adminPanel input, #adminPanel select, #adminPanel button { margin-right: 5px; }
 
-    /* 凡例 */
     #calendarLegend { margin-bottom: 15px; font-size: 14px; }
     #calendarLegend span { margin-right: 12px; }
 
-    /* 月ごとのコンテナ */
     .month { margin-bottom: 25px; }
-
-    /* カレンダーグリッド */
     .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-
-    /* 曜日ヘッダー */
     .weekday-header { font-weight: bold; text-align: center; }
     .sunday { color: red; }
     .saturday { color: blue; }
 
-    /* 日付セル */
     .day { border: 1px solid #ccc; min-height: 40px; text-align: center; padding-top: 4px; background: #fff; cursor: pointer; }
     .holiday { color: orange; }
 
-    /* イベント絵文字 */
     .label { display: block; font-size: 16px; line-height: 1; background: none; }
 
-    /* ポップアップ詳細 */
     #eventPopup {
-      position: absolute;
+      position: fixed;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
       background: #fff;
       border: 1px solid #666;
       padding: 8px 12px;
@@ -46,18 +39,24 @@
       font-size: 14px;
       z-index: 1000;
       display: none;
-      max-width: 220px;
+      max-width: 300px;
+      max-height: 400px;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
 
-<h1>📅 2026年度 年間スケジュール</h1>
+<h1>📅 2026年度 年間スケジュール（チーム管理）</h1>
 
 <button onclick="toggleAdmin()">管理モード</button>
 
 <div id="adminPanel" style="display:none; margin:20px 0;">
   <input type="date" id="adminDate">
+  <select id="adminTeam">
+    <option value="A">チームA</option>
+    <option value="B">チームB</option>
+  </select>
   <select id="adminType">
     <option value="practice">練習</option>
     <option value="official">公式戦</option>
@@ -68,7 +67,6 @@
   <button onclick="addEvent()">追加</button>
 </div>
 
-<!-- 凡例 -->
 <div id="calendarLegend">
   <span>🟢 練習</span>
   <span>🔵 公式戦</span>
@@ -76,10 +74,7 @@
   <span>🟣 交流戦</span>
 </div>
 
-<!-- カレンダー本体 -->
 <div id="calendarContainer"></div>
-
-<!-- ポップアップ詳細 -->
 <div id="eventPopup"></div>
 
 <script src="main.js"></script>
