@@ -85,3 +85,20 @@ function createMonth(month) {
 
 for (let m = 4; m <= 12; m++) createMonth(m);
 for (let m = 1; m <= 3; m++) createMonth(m);
+
+function toggleAdmin(){
+  const panel = document.getElementById("adminPanel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
+
+function addEvent(){
+  const date = document.getElementById("adminDate").value;
+  const type = document.getElementById("adminType").value;
+  const text = document.getElementById("adminText").value;
+
+  if(!events[date]) events[date] = [];
+
+  events[date].push({type, text});
+
+  location.reload();
+}
