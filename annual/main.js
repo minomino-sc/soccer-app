@@ -13,11 +13,12 @@ const year = 2026;
 const container = document.getElementById("calendarContainer");
 const popup = document.getElementById("eventPopup");
 
+// typeMapを絵文字と文字ラベルで分離
 const typeMap = {
-  practice: { label: "🟢 練習" },
-  official: { label: "🔵 公式戦" },
-  cup: { label: "🟡 カップ戦" },
-  friendly: { label: "🟣 交流戦" }
+  practice: { emoji: "🟢", label: "練習" },
+  official: { emoji: "🔵", label: "公式戦" },
+  cup: { emoji: "🟡", label: "カップ戦" },
+  friendly: { emoji: "🟣", label: "交流戦" }
 };
 
 // イベント例（複数対応）
@@ -69,25 +70,23 @@ function createMonth(month, y) {
     if(holidays.includes(dateStr)) dayDiv.classList.add("holiday");
     dayDiv.innerHTML = `<div>${day}</div>`;
 
-    // イベント絵文字だけ表示
+    // 日付セルに絵文字のみ表示
     if(events[dateStr]){
       events[dateStr].forEach(ev=>{
         const label = document.createElement("div");
         label.className = "label";
-        //label.textContent = typeMap[ev.type].label[0]; // 絵文字のみ
-        label.textContent = typeMap[ev.type].label; // 1文字でなく全体を使う
+        label.textContent = typeMap[ev.type].emoji; // 絵文字のみ
         dayDiv.appendChild(label);
       });
 
+      // ポップアップ表示
       dayDiv.addEventListener("click", (e)=>{
         e.stopPropagation();
         const eventsHtml = events[dateStr]
-          .map(ev=>`<div>${typeMap[ev.type].label} ${ev.text}</div>`)
+          .map(ev => `<div>${typeMap[ev.type].emoji} ${typeMap[ev.type].label} ${ev.text}</div>`)
           .join("");
         popup.innerHTML = eventsHtml;
         popup.style.display = "block";
-
-        // マウスクリック位置に表示
         popup.style.top = (e.pageY + 10) + "px";
         popup.style.left = (e.pageX + 10) + "px";
       });
@@ -105,7 +104,7 @@ for(let m=4; m<=12; m++) createMonth(m, year);
 // 1月〜3月 2027年
 for(let m=1; m<=3; m++) createMonth(m, year+1);
 
-// クリックでポップアップ非表示
+// ポップアップを画面クリックで閉じる
 document.addEventListener("click", ()=>{
   popup.style.display = "none";
 });
@@ -119,7 +118,6 @@ function addEvent(){
   const date = document.getElementById("adminDate").value;
   const type = document.getElementById("adminType").value;
   const text = document.getElementById("adminText").value;
-
   if(!events[date]) events[date]=[];
   events[date].push({type,text});
   location.reload();
