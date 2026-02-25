@@ -89,6 +89,10 @@ async function applyTeamUI(showMainMenu = false){
     if(scoresSection) scoresSection.style.display = "none";
     if(backupSection) backupSection.style.display = "none";
 
+  // ★ これを追加（超重要）
+  const portalMenu = document.getElementById("portalMenu");
+  if(portalMenu) portalMenu.style.display = "none";
+ 
     // メインメニューでは BackButton 非表示
     const btn = document.getElementById("btnBackLogin");
     if(btn) btn.style.display = "none";
