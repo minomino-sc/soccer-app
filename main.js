@@ -94,8 +94,18 @@ async function applyTeamUI(showMainMenu = false){
     if(btn) btn.style.display = "none";
 
   // ★ これを追加
-  const portalMenu = document.getElementById("portalMenu");
-  if(portalMenu) portalMenu.style.display = "none";
+const portalMenu = document.getElementById("portalMenu");
+const team = getTeam();
+
+if(portalMenu && team){
+  const base = team.baseTeamName;   // ← 既に保存済み
+
+  if(base === "箕谷SC-A" || base === "箕谷SC-B"){
+    portalMenu.style.display = "block";
+  } else {
+    portalMenu.style.display = "none";
+  }
+}     
 
   } else {
     // 管理者UI表示（動画追加・試合作成・スコア一覧など）
@@ -105,9 +115,6 @@ async function applyTeamUI(showMainMenu = false){
     if(addVideoSection) addVideoSection.style.display = admin ? "block" : "none";
     if(createMatchSection) createMatchSection.style.display = admin ? "block" : "none";
     if(backupSection) backupSection.style.display = admin ? "block" : "none";
-
-const portalMenu = document.getElementById("portalMenu");
-if(portalMenu) portalMenu.style.display = "block";
  
     await loadVideosFromFirestore();
     await loadScores();
