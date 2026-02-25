@@ -6,21 +6,49 @@
   <title>年間スケジュール</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* カレンダー基本スタイル */
-    .month { margin-bottom: 20px; }
-    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .weekday-header { font-weight: bold; text-align: center; }
-    .day { border: 1px solid #ccc; min-height: 40px; position: relative; text-align: center; padding-top: 4px; }
-    .sunday { color: red; }
-    .saturday { color: blue; }
-    .holiday { color: orange; }
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    h1 { margin-bottom: 10px; }
 
-    /* イベント絵文字表示 */
-    .label { display: block; font-size: 16px; line-height: 1; background: none; }
+    button { margin-bottom: 10px; }
+
+    /* 管理パネル */
+    #adminPanel input, #adminPanel select, #adminPanel button { margin-right: 5px; }
 
     /* 凡例 */
-    #calendarLegend { margin-bottom: 10px; font-size: 14px; }
+    #calendarLegend { margin-bottom: 15px; font-size: 14px; }
     #calendarLegend span { margin-right: 12px; }
+
+    /* 月ごとのコンテナ */
+    .month { margin-bottom: 25px; }
+
+    /* カレンダーグリッド */
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+
+    /* 曜日ヘッダー */
+    .weekday-header { font-weight: bold; text-align: center; }
+    .sunday { color: red; }
+    .saturday { color: blue; }
+
+    /* 日付セル */
+    .day { border: 1px solid #ccc; min-height: 40px; text-align: center; padding-top: 4px; background: #fff; cursor: pointer; }
+    .holiday { color: orange; }
+
+    /* イベント絵文字 */
+    .label { display: block; font-size: 16px; line-height: 1; background: none; }
+
+    /* ポップアップ詳細 */
+    #eventPopup {
+      position: absolute;
+      background: #fff;
+      border: 1px solid #666;
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      font-size: 14px;
+      z-index: 1000;
+      display: none;
+      max-width: 220px;
+    }
   </style>
 </head>
 <body>
@@ -29,7 +57,7 @@
 
 <button onclick="toggleAdmin()">管理モード</button>
 
-<div id="adminPanel" style="display:none; margin:15px 0;">
+<div id="adminPanel" style="display:none; margin:20px 0;">
   <input type="date" id="adminDate">
   <select id="adminType">
     <option value="practice">練習</option>
@@ -41,7 +69,7 @@
   <button onclick="addEvent()">追加</button>
 </div>
 
-<!-- 凡例（文字のみ、塗り潰しなし） -->
+<!-- 凡例 -->
 <div id="calendarLegend">
   <span>🟢 練習</span>
   <span>🔵 公式戦</span>
@@ -49,8 +77,11 @@
   <span>🟣 交流戦</span>
 </div>
 
+<!-- カレンダー本体 -->
 <div id="calendarContainer"></div>
-<div id="eventDetail"></div>
+
+<!-- ポップアップ詳細 -->
+<div id="eventPopup"></div>
 
 <script src="main.js"></script>
 </body>
