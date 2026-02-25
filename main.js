@@ -1083,6 +1083,14 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     if(teamSection) teamSection.style.display = "block";
   }
 
+  // ★ ここで年間スケジュール描画を呼び出す
+  const matchesByDate = {};
+  scores.forEach(s=>{
+    if(!s.date) return;
+    matchesByDate[s.date] = s.matchType || "未設定";
+  });
+  renderAnnualCalendar(matchesByDate);
+ 
   // --- btnBack イベント登録 ---
   btnBack?.addEventListener("click", ()=>{
     document.getElementById("teamNameInput").value = "";
