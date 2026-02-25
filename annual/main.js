@@ -79,7 +79,10 @@ weekDays.forEach((day,index)=>{
     const date = new Date(year, month-1, day);
     const dayOfWeek = date.getDay();
     const dateStr = `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-
+if (holidays.includes(dateStr)) {
+  dayDiv.classList.add("holiday");
+}
+    
     const dayDiv = document.createElement("div");
     dayDiv.className = "day";
 
