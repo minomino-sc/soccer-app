@@ -75,7 +75,7 @@ function createMonth(month, y) {
       events[dateStr].forEach(ev=>{
         const label = document.createElement("div");
         label.className = "label";
-        label.textContent = typeMap[ev.type].emoji; // 絵文字のみ
+        label.textContent = typeMap[ev.type].emoji;
         dayDiv.appendChild(label);
       });
 
@@ -114,11 +114,50 @@ function toggleAdmin(){
   panel.style.display = panel.style.display==="none"?"block":"none";
 }
 
+// 管理者モードでリアルタイム追加
 function addEvent(){
-  const date = document.getElementById("adminDate").value;
+  const dateInput = document.getElementById("adminDate");
   const type = document.getElementById("adminType").value;
   const text = document.getElementById("adminText").value;
-  if(!events[date]) events[date]=[];
-  events[date].push({type,text});
-  location.reload();
+  const date = dateInput.value;
+
+  if(!date){
+    alert("日付を選択してください");
+    return;
+  }
+  if(!text){
+    alert("内容を入力してください");
+    return;
+  }
+
+  if(!events[date]) events[date] = [];
+  events[date].push({type, text});
+
+  // 日付セルに絵文字を追加
+  const dayDivs = document.querySelectorAll(".day");
+  dayDivs.forEach(dayDiv=>{
+    const dayNumber = dayDiv.querySelector("div")?.textContent;
+    if(dayNumber === String(new Date(date).getDate())){
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = typeMap[type].emoji;
+      dayDiv.appendChild(label);
+
+      dayDiv.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const eventsHtml = events[date]
+          .map(ev => `<div>${typeMap[ev.type].emoji} ${typeMap[ev.type].label} ${ev.text}</div>`)
+          .join("");
+        popup.innerHTML = eventsHtml;
+        popup.style.display = "block";
+        popup.style.top = (e.pageY + 10) + "px";
+        popup.style.left = (e.pageX + 10) + "px";
+      });
+    }
+  });
+
+  // 入力をクリア
+  dateInput.value = "";
+  document.getElementById("adminText").value = "";
+  alert("イベントを追加しました");
 }
