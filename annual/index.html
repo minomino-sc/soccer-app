@@ -10,6 +10,20 @@
 
 <h1>📅 2026年度 年間スケジュール</h1>
 
+<button onclick="toggleAdmin()">管理モード</button>
+
+<div id="adminPanel" style="display:none; margin:20px 0;">
+  <input type="date" id="adminDate">
+  <select id="adminType">
+    <option value="practice">練習</option>
+    <option value="official">公式戦</option>
+    <option value="cup">カップ戦</option>
+    <option value="friendly">交流戦</option>
+  </select>
+  <input type="text" id="adminText" placeholder="内容">
+  <button onclick="addEvent()">追加</button>
+</div>
+
 <div id="calendarContainer"></div>
 
 <div id="eventDetail"></div>
