@@ -887,3 +887,42 @@ select {
   font-size: 16px;
   cursor: pointer;
 }
+
+/* 年間スケジュール全体 */
+#annualSchedule {
+  margin-top: 20px;
+}
+
+/* 月カード */
+.month-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* 月ヘッダー */
+.month-header {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* 日付ボタン */
+.day-label {
+  margin: 2px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* 詳細表示エリア */
+#eventDetail {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f1f8e9;
+  border-radius: 8px;
+}

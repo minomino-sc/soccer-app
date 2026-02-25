@@ -1233,3 +1233,105 @@ function updateInviteHistory(code){
     localStorage.setItem("inviteHistory", JSON.stringify(history));
   }
 }
+
+// ==============================
+// 年間スケジュール表示
+// ==============================
+
+// 年間スケジュール生成
+function generateAnnualSchedule(events) {
+  const container = document.getElementById("annualSchedule");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const months = [
+    "4月","5月","6月","7月","8月","9月",
+    "10月","11月","12月","1月","2月","3月"
+  ];
+
+  months.forEach((month, index) => {
+    const monthDiv = document.createElement("div");
+    monthDiv.classList.add("month-card");
+
+    const monthHeader = document.createElement("div");
+    monthHeader.classList.add("month-header", "closed");
+    monthHeader.textContent = month;
+
+    const monthBody = document.createElement("div");
+    monthBody.classList.add("month-body", "hidden");
+
+    // カレンダー日付生成
+    events.forEach(ev => {
+      // 月のマッピング：4月(4)〜3月(3)
+      let evMonth = ev.month;
+      let targetMonthIndex = index;
+      if (index < 9) { // 4〜12月
+        if (evMonth !== index + 4) return;
+      } else { // 1〜3月
+        if (evMonth !== index - 8) return;
+      }
+
+      const dayBtn = document.createElement("button");
+      dayBtn.textContent = ev.date;
+      dayBtn.classList.add("day-label");
+
+      // 色設定
+      switch(ev.type){
+        case "practice": dayBtn.style.backgroundColor = "#4caf50"; break; // 🟢 練習
+        case "official": dayBtn.style.backgroundColor = "#2196f3"; break; // 🔵 公式戦
+        case "cup":      dayBtn.style.backgroundColor = "#ffeb3b"; break; // 🟡 カップ戦
+        case "friendly": dayBtn.style.backgroundColor = "#9c27b0"; break; // 🟣 交流戦
+      }
+
+      dayBtn.addEventListener("click", () => showEventDetail(ev));
+      monthBody.appendChild(dayBtn);
+    });
+
+    // 月ヘッダークリックで折りたたみ／展開
+    monthHeader.addEventListener("click", () => {
+      monthBody.classList.toggle("hidden");
+      monthHeader.classList.toggle("open");
+      monthHeader.classList.toggle("closed");
+    });
+
+    monthDiv.appendChild(monthHeader);
+    monthDiv.appendChild(monthBody);
+    container.appendChild(monthDiv);
+  });
+}
+
+// 日付クリックで詳細表示
+function showEventDetail(ev){
+  const detail = document.getElementById("eventDetail");
+  if (!detail) return;
+
+  const typeLabels = {
+    practice: "🟢 練習",
+    official: "🔵 公式戦",
+    cup: "🟡 カップ戦",
+    friendly: "🟣 交流戦"
+  };
+
+  detail.innerHTML = `
+    <strong>${ev.date} ${ev.month}月:</strong> ${typeLabels[ev.type]}<br>
+    ${ev.desc || ""}
+  `;
+}
+
+// ==============================
+// 初期表示サンプルデータ（任意で置き換え）
+// ==============================
+const annualEvents = [
+  { month: 4, date: 5, type: "practice", desc: "初回練習" },
+  { month: 4, date: 12, type: "official", desc: "公式戦 vs XYZ" },
+  { month: 5, date: 8, type: "cup", desc: "カップ戦予選" },
+  { month: 6, date: 15, type: "friendly", desc: "交流戦 vs ABC" },
+  { month: 7, date: 20, type: "practice", desc: "強化練習" },
+  { month: 8, date: 30, type: "official", desc: "公式戦 vs DEF" },
+  // 必要に応じて全日程を追加
+];
+
+// DOMロード後に年間スケジュール生成
+document.addEventListener("DOMContentLoaded", () => {
+  generateAnnualSchedule(annualEvents);
+});
