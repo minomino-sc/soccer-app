@@ -1,0 +1,58 @@
+body {
+  font-family: system-ui;
+  padding: 10px;
+  background: #f5f7fa;
+}
+
+h1 {
+  text-align: center;
+}
+
+.month {
+  margin-bottom: 40px;
+}
+
+.month h2 {
+  background: #2a8cff;
+  color: white;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.day {
+  background: white;
+  padding: 8px;
+  min-height: 60px;
+  border-radius: 6px;
+  font-size: 14px;
+  position: relative;
+  cursor: pointer;
+}
+
+.label {
+  font-size: 12px;
+  margin-top: 4px;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
+}
+
+.practice { background: green; }
+.official { background: blue; }
+.cup { background: orange; }
+.friendly { background: purple; }
+
+#eventDetail {
+  margin-top: 20px;
+  padding: 10px;
+  background: white;
+  border-radius: 6px;
+}
