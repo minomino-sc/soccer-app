@@ -111,3 +111,10 @@ h1 {
 #calendarLegend .legend {
   margin-right: 12px;
 }
+
+h1 {
+  white-space: nowrap;       /* 折り返さない */
+  overflow: hidden;          /* はみ出たら隠す */
+  text-overflow: ellipsis;   /* はみ出た部分を…に */
+  font-size: 18px;           /* お好みで調整 */
+}
