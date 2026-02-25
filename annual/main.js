@@ -25,6 +25,7 @@ let events = {
   "2026-05-03": { "A":[{type:"cup", text:"カップ戦 1回戦"}] }
 };
 
+// 月作成関数
 function createMonth(month, y) {
   const monthDiv = document.createElement("div");
   monthDiv.className = "month";
@@ -62,22 +63,22 @@ function createMonth(month, y) {
     if(holidays.includes(dateStr)) dayDiv.classList.add("holiday");
     dayDiv.innerHTML = `<div>${day}</div>`;
 
-    // チーム別に絵文字を表示
+    // イベントがある場合は絵文字を表示
     if(events[dateStr]){
       Object.keys(events[dateStr]).forEach(team=>{
         events[dateStr][team].forEach(ev=>{
           const label = document.createElement("div");
           label.className = "label";
-          label.textContent = typeMap[ev.type].emoji; // 絵文字のみ
+          label.textContent = typeMap[ev.type].emoji;
           dayDiv.appendChild(label);
         });
       });
-
-      // ポップアップ
-      dayDiv.addEventListener("click", ()=>{
-        showPopup(date);
-      });
     }
+
+    // ✅ 全てのセルにクリックイベントを追加
+    dayDiv.addEventListener("click", ()=>{
+        showPopup(dateStr);
+    });
 
     calendar.appendChild(dayDiv);
   }
@@ -91,14 +92,16 @@ for(let m=4; m<=12; m++) createMonth(m, year);
 // 1月〜3月 2027年
 for(let m=1; m<=3; m++) createMonth(m, year+1);
 
+// クリックでポップアップ非表示
 document.addEventListener("click", ()=>{ popup.style.display="none"; });
 
+// 管理者モード切替
 function toggleAdmin(){
   const panel = document.getElementById("adminPanel");
   panel.style.display = panel.style.display==="none"?"block":"none";
 }
 
-// 管理者モードでチーム別に追加
+// 管理者モードでイベント追加
 function addEvent(){
   const date = document.getElementById("adminDate").value;
   const team = document.getElementById("adminTeam").value;
@@ -123,7 +126,6 @@ function renderDay(date){
   const dayNumber = new Date(date).getDate();
   document.querySelectorAll(".day").forEach(dayDiv=>{
     if(dayDiv.querySelector("div")?.textContent === String(dayNumber)){
-      // 既存の絵文字を削除
       dayDiv.querySelectorAll(".label").forEach(l=>l.remove());
       if(events[date]){
         Object.keys(events[date]).forEach(team=>{
@@ -142,15 +144,19 @@ function renderDay(date){
 // ポップアップ表示
 function showPopup(date){
   let html = "";
-  Object.keys(events[date]||{}).forEach(team=>{
-    events[date][team].forEach((ev,index)=>{
-      html += `<div>
-        チーム${team} ${typeMap[ev.type].emoji} ${typeMap[ev.type].label} ${ev.text}
-        <button onclick="editEvent('${date}','${team}',${index})">編集</button>
-        <button onclick="deleteEvent('${date}','${team}',${index})">削除</button>
-      </div>`;
+  if(events[date]){
+    Object.keys(events[date]).forEach(team=>{
+      events[date][team].forEach((ev,index)=>{
+        html += `<div>
+          チーム${team} ${typeMap[ev.type].emoji} ${typeMap[ev.type].label} ${ev.text}
+          <button onclick="editEvent('${date}','${team}',${index})">編集</button>
+          <button onclick="deleteEvent('${date}','${team}',${index})">削除</button>
+        </div>`;
+      });
     });
-  });
+  } else {
+    html = "<div>イベントはありません</div>";
+  }
   popup.innerHTML = html;
   popup.style.display = "block";
 }
