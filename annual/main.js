@@ -32,13 +32,16 @@ function createMonth(month) {
   calendar.className = "calendar";
 
   const weekDays = ["日","月","火","水","木","金","土"];
-  weekDays.forEach(day=>{
-    const header = document.createElement("div");
-    header.textContent = day;
-    header.style.fontWeight = "bold";
-    header.style.textAlign = "center";
-    calendar.appendChild(header);
-  });
+weekDays.forEach((day,index)=>{
+  const header = document.createElement("div");
+  header.textContent = day;
+  header.className = "weekday-header";
+
+  if(index === 0) header.classList.add("sun");
+  if(index === 6) header.classList.add("sat");
+
+  calendar.appendChild(header);
+});
 
   const firstDay = new Date(year, month-1, 1).getDay();
   const daysInMonth = new Date(year, month, 0).getDate();
