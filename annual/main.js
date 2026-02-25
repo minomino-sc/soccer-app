@@ -74,7 +74,8 @@ function createMonth(month, y) {
       events[dateStr].forEach(ev=>{
         const label = document.createElement("div");
         label.className = "label";
-        label.textContent = typeMap[ev.type].label[0]; // 絵文字のみ
+        //label.textContent = typeMap[ev.type].label[0]; // 絵文字のみ
+        label.textContent = typeMap[ev.type].label; // 1文字でなく全体を使う
         dayDiv.appendChild(label);
       });
 
