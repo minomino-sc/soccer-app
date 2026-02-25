@@ -1,25 +1,12 @@
 // =============================
-// 祝日リスト（ここに追加）
+// 祝日リスト
 // =============================
 const holidays = [
-  "2026-04-29",
-  "2026-05-03",
-  "2026-05-04",
-  "2026-05-05",
-  "2026-07-20",
-  "2026-08-11",
-  "2026-09-21",
-  "2026-09-22",
-  "2026-09-23",
-  "2026-10-12",
-  "2026-11-03",
-  "2026-11-23",
-  "2027-01-01",
-  "2027-01-11",
-  "2027-02-11",
-  "2027-02-23",
-  "2027-03-21",
-  "2027-03-22"
+  "2026-04-29","2026-05-03","2026-05-04","2026-05-05",
+  "2026-07-20","2026-08-11","2026-09-21","2026-09-22",
+  "2026-09-23","2026-10-12","2026-11-03","2026-11-23",
+  "2027-01-01","2027-01-11","2027-02-11","2027-02-23",
+  "2027-03-21","2027-03-22"
 ];
 
 const year = 2026;
@@ -27,96 +14,95 @@ const container = document.getElementById("calendarContainer");
 const detail = document.getElementById("eventDetail");
 
 const typeMap = {
-  practice: { label: "🟢 練習", class: "practice" },
-  official: { label: "🔵 公式戦", class: "official" },
-  cup: { label: "🟡 カップ戦", class: "cup" },
-  friendly: { label: "🟣 交流戦", class: "friendly" }
+  practice: { label: "🟢 練習" },
+  official: { label: "🔵 公式戦" },
+  cup: { label: "🟡 カップ戦" },
+  friendly: { label: "🟣 交流戦" }
 };
 
-// ✅ 複数予定対応（配列）
+// 複数予定対応
 let events = {
-  "2026-04-05": [
-    { type: "practice", text: "練習 9:00〜12:00" },
-    { type: "official", text: "公式戦 vs ○○FC" }
+  "2026-04-05":[
+    {type:"practice", text:"練習 9:00〜12:00"},
+    {type:"official", text:"公式戦 vs ○○FC"}
   ],
-  "2026-05-03": [
-    { type: "cup", text: "カップ戦 1回戦" }
+  "2026-05-03":[
+    {type:"cup", text:"カップ戦 1回戦"}
   ]
 };
 
 function createMonth(month, y) {
-    const monthDiv = document.createElement("div");
-    monthDiv.className = "month";
+  const monthDiv = document.createElement("div");
+  monthDiv.className = "month";
 
-    const title = document.createElement("h2");
-    title.textContent = `${y}年 ${month}月`;
-    monthDiv.appendChild(title);
+  const title = document.createElement("h2");
+  title.textContent = `${y}年 ${month}月`;
+  monthDiv.appendChild(title);
 
-    const calendar = document.createElement("div");
-    calendar.className = "calendar";
+  const calendar = document.createElement("div");
+  calendar.className = "calendar";
 
-    const weekDays = ["日","月","火","水","木","金","土"];
-    weekDays.forEach((day,index)=>{
-      const header = document.createElement("div");
-      header.textContent = day;
-      header.className = "weekday-header";
-
-      if(index === 0) header.classList.add("sun");
-      if(index === 6) header.classList.add("sat");
-
-      calendar.appendChild(header);
-    });
-
-    const firstDay = new Date(y, month-1, 1).getDay();
-    const daysInMonth = new Date(y, month, 0).getDate();
-
-    for(let i=0;i<firstDay;i++){
-      calendar.appendChild(document.createElement("div"));
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(y, month-1, day);
-      const dayOfWeek = date.getDay();
-      const dateStr = `${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-
-      const dayDiv = document.createElement("div");
-      dayDiv.className = "day";
-
-      if(dayOfWeek === 0) dayDiv.classList.add("sunday");
-      if(dayOfWeek === 6) dayDiv.classList.add("saturday");
-      if (holidays.includes(dateStr)) dayDiv.classList.add("holiday");
-
-      dayDiv.innerHTML = `<div>${day}</div>`;
-
-      if (events[dateStr]) {
-        events[dateStr].forEach(ev=>{
-          const label = document.createElement("div");
-          label.className = `label ${typeMap[ev.type].class}`;
-    // textは非表示、色マークだけにする
-    label.textContent = typeMap[ev.type].label[0]; // 🟢🔵🟡🟣 の絵文字1文字だけ
-    dayDiv.appendChild(label);
+  const weekDays = ["日","月","火","水","木","金","土"];
+  weekDays.forEach((day,index)=>{
+    const header = document.createElement("div");
+    header.textContent = day;
+    header.className = "weekday-header";
+    if(index===0) header.classList.add("sunday");
+    if(index===6) header.classList.add("sat");
+    calendar.appendChild(header);
   });
-        
-        dayDiv.addEventListener("click", () => {
-          detail.innerHTML = events[dateStr]
-            .map(ev=>`<div>${typeMap[ev.type].label} ${ev.text}</div>`)
-            .join("");
-        });
-      }
 
-      calendar.appendChild(dayDiv);
+  const firstDay = new Date(y, month-1, 1).getDay();
+  const daysInMonth = new Date(y, month, 0).getDate();
+
+  // 空セル
+  for(let i=0;i<firstDay;i++) calendar.appendChild(document.createElement("div"));
+
+  for(let day=1; day<=daysInMonth; day++){
+    const date = new Date(y, month-1, day);
+    const dayOfWeek = date.getDay();
+    const dateStr = `${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "day";
+
+    if(dayOfWeek===0) dayDiv.classList.add("sunday");
+    if(dayOfWeek===6) dayDiv.classList.add("saturday");
+    if(holidays.includes(dateStr)) dayDiv.classList.add("holiday");
+
+    dayDiv.innerHTML = `<div>${day}</div>`;
+
+    // イベントマークだけ表示
+    if(events[dateStr]){
+      events[dateStr].forEach(ev=>{
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = typeMap[ev.type].label[0]; // 絵文字だけ
+        dayDiv.appendChild(label);
+      });
+
+      dayDiv.addEventListener("click", ()=>{
+        detail.innerHTML = events[dateStr]
+          .map(ev=>`<div>${typeMap[ev.type].label} ${ev.text}</div>`)
+          .join("");
+      });
     }
 
-    monthDiv.appendChild(calendar);
-    container.appendChild(monthDiv);
+    calendar.appendChild(dayDiv);
+  }
+
+  monthDiv.appendChild(calendar);
+  container.appendChild(monthDiv);
 }
 
-for (let m = 4; m <= 12; m++) createMonth(m, year);
-for (let m = 1; m <= 3; m++) createMonth(m, year + 1);
+// 4月〜12月 2026年
+for(let m=4; m<=12; m++) createMonth(m, year);
+// 1月〜3月 2027年
+for(let m=1; m<=3; m++) createMonth(m, year+1);
 
 function toggleAdmin(){
   const panel = document.getElementById("adminPanel");
-  panel.style.display = panel.style.display === "none" ? "block" : "none";
+  panel.style.display = panel.style.display==="none"?"block":"none";
 }
 
 function addEvent(){
@@ -124,9 +110,7 @@ function addEvent(){
   const type = document.getElementById("adminType").value;
   const text = document.getElementById("adminText").value;
 
-  if(!events[date]) events[date] = [];
-
-  events[date].push({type, text});
-
+  if(!events[date]) events[date]=[];
+  events[date].push({type,text});
   location.reload();
 }
