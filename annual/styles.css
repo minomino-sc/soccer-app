@@ -74,3 +74,26 @@ h1 {
 .day.saturday {
   background: #eef4ff;
 }
+
+/* 平日は黒 */
+.day {
+  color: black;
+}
+
+/* 日曜 */
+.day.sunday {
+  background: #ffecec;
+  color: red;
+}
+
+/* 土曜 */
+.day.saturday {
+  background: #eef4ff;
+  color: blue;
+}
+
+/* 祝日（後でJSで付与） */
+.day.holiday {
+  background: #ffecec;
+  color: red;
+}
