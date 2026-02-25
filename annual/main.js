@@ -111,8 +111,8 @@ for (let day = 1; day <= daysInMonth; day++) {
   container.appendChild(monthDiv);
 }
 
-for (let m = 4; m <= 12; m++) createMonth(m);
-for (let m = 1; m <= 3; m++) createMonth(m);
+for (let m = 4; m <= 12; m++) createMonth(m, year);
+for (let m = 1; m <= 3; m++) createMonth(m, year + 1);
 
 function toggleAdmin(){
   const panel = document.getElementById("adminPanel");
