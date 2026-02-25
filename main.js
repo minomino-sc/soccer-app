@@ -390,6 +390,75 @@ async function addYouTubeVideo(url){
 
 /* ========== ここまで part 1/2 ========== */
 
+/* ---------- 年間スケジュール描画関数 ---------- */
+function renderAnnualCalendar(matchesByDate = {}) {
+  const container = document.getElementById("annualCalendar");
+  if(!container) return;
+
+  container.innerHTML = "";
+
+  const startYear = 2026;  // 必要に応じて変更
+  const endYear = 2027;    // 翌年まで表示
+
+  for(let y = startYear; y <= endYear; y++){
+    for(let m = 4; m <= 12; m++){
+      renderMonthBlock(container, y, m, matchesByDate);
+    }
+    if(y === endYear){
+      for(let m = 1; m <= 3; m++){
+        renderMonthBlock(container, y, m, matchesByDate);
+      }
+    }
+  }
+}
+
+function renderMonthBlock(container, year, month, matchesByDate){
+  const monthDiv = document.createElement("div");
+  monthDiv.className = "month-block";
+
+  const header = document.createElement("div");
+  header.className = "month-header";
+  header.textContent = `${year}年 ${month}月`;
+  monthDiv.appendChild(header);
+
+  const weekHeader = document.createElement("div");
+  weekHeader.className = "week-header";
+  ["日","月","火","水","木","金","土"].forEach(d=>{
+    const h = document.createElement("div");
+    h.textContent = d;
+    weekHeader.appendChild(h);
+  });
+  monthDiv.appendChild(weekHeader);
+
+  const daysContainer = document.createElement("div");
+  daysContainer.className = "days-container";
+
+  const firstDay = new Date(year, month-1, 1).getDay();
+  const lastDate = new Date(year, month, 0).getDate();
+
+  for(let i=0;i<firstDay;i++){
+    const empty = document.createElement("div");
+    empty.className = "day-cell";
+    daysContainer.appendChild(empty);
+  }
+
+  for(let d=1; d<=lastDate; d++){
+    const cell = document.createElement("div");
+    cell.className = "day-cell";
+    cell.textContent = d;
+
+    const key = `${year}-${String(month).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    if(matchesByDate[key]){
+      cell.classList.add(`match-${matchesByDate[key]}`);
+    }
+
+    daysContainer.appendChild(cell);
+  }
+
+  monthDiv.appendChild(daysContainer);
+  container.appendChild(monthDiv);
+}
+
 /* main.js — Firestore 完全版（part 2/2）
    - 試合作成 / 読み込み / 描画 / 編集 / 削除
    - チーム参加（完全一致チェック）
