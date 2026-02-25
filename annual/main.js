@@ -92,10 +92,11 @@ function createMonth(month, y) {
         events[dateStr].forEach(ev=>{
           const label = document.createElement("div");
           label.className = `label ${typeMap[ev.type].class}`;
-          label.textContent = typeMap[ev.type].label;
-          dayDiv.appendChild(label);
-        });
-
+    // textは非表示、色マークだけにする
+    label.textContent = typeMap[ev.type].label[0]; // 🟢🔵🟡🟣 の絵文字1文字だけ
+    dayDiv.appendChild(label);
+  });
+        
         dayDiv.addEventListener("click", () => {
           detail.innerHTML = events[dateStr]
             .map(ev=>`<div>${typeMap[ev.type].label} ${ev.text}</div>`)
