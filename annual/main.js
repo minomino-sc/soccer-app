@@ -74,25 +74,19 @@ weekDays.forEach((day,index)=>{
     calendar.appendChild(document.createElement("div"));
   }
 
-  for (let day = 1; day <= daysInMonth; day++) {
+for (let day = 1; day <= daysInMonth; day++) {
 
     const date = new Date(year, month-1, day);
     const dayOfWeek = date.getDay();
     const dateStr = `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-if (holidays.includes(dateStr)) {
-  dayDiv.classList.add("holiday");
-}
-    
+
     const dayDiv = document.createElement("div");
     dayDiv.className = "day";
 
     if(dayOfWeek === 0) dayDiv.classList.add("sunday");
     if(dayOfWeek === 6) dayDiv.classList.add("saturday");
+    if (holidays.includes(dateStr)) dayDiv.classList.add("holiday");
 
-if (holidays.includes(dateStr)) {
-  dayDiv.classList.add("holiday");
-}
-  
     dayDiv.innerHTML = `<div>${day}</div>`;
 
     if (events[dateStr]) {
@@ -111,8 +105,8 @@ if (holidays.includes(dateStr)) {
     }
 
     calendar.appendChild(dayDiv);
-  }
-
+}
+  
   monthDiv.appendChild(calendar);
   container.appendChild(monthDiv);
 }
