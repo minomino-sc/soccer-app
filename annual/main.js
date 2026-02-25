@@ -89,6 +89,10 @@ if (holidays.includes(dateStr)) {
     if(dayOfWeek === 0) dayDiv.classList.add("sunday");
     if(dayOfWeek === 6) dayDiv.classList.add("saturday");
 
+if (holidays.includes(dateStr)) {
+  dayDiv.classList.add("holiday");
+}
+  
     dayDiv.innerHTML = `<div>${day}</div>`;
 
     if (events[dateStr]) {
