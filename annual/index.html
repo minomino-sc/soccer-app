@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>年間スケジュール</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* カレンダー基本スタイル */
+    .month { margin-bottom: 20px; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .weekday-header { font-weight: bold; text-align: center; }
+    .day { border: 1px solid #ccc; min-height: 40px; position: relative; text-align: center; padding-top: 4px; }
+    .sunday { color: red; }
+    .saturday { color: blue; }
+    .holiday { color: orange; }
+
+    /* イベント絵文字表示 */
+    .label { display: block; font-size: 16px; line-height: 1; background: none; }
+
+    /* 凡例 */
+    #calendarLegend { margin-bottom: 10px; font-size: 14px; }
+    #calendarLegend span { margin-right: 12px; }
+  </style>
 </head>
 <body>
 
@@ -24,16 +41,15 @@
   <button onclick="addEvent()">追加</button>
 </div>
 
-<!-- ここに凡例を追加 -->
+<!-- 凡例（文字のみ、塗り潰しなし） -->
 <div id="calendarLegend">
-  <span class="legend practice">🟢 練習</span>
-  <span class="legend official">🔵 公式戦</span>
-  <span class="legend cup">🟡 カップ戦</span>
-  <span class="legend friendly">🟣 交流戦</span>
+  <span>🟢 練習</span>
+  <span>🔵 公式戦</span>
+  <span>🟡 カップ戦</span>
+  <span>🟣 交流戦</span>
 </div>
-  
-<div id="calendarContainer"></div>
 
+<div id="calendarContainer"></div>
 <div id="eventDetail"></div>
 
 <script src="main.js"></script>
