@@ -93,6 +93,7 @@ async function applyTeamUI(showMainMenu = false){
     const btn = document.getElementById("btnBackLogin");
     if(btn) btn.style.display = "none";
 
+  } else {
   // ★ これを追加
 const portalMenu = document.getElementById("portalMenu");
 const team = getTeam();
@@ -105,9 +106,8 @@ if(portalMenu && team){
   } else {
     portalMenu.style.display = "none";
   }
-}     
-
-  } else {
+}  
+     
     // 管理者UI表示（動画追加・試合作成・スコア一覧など）
     if(teamSection) teamSection.style.display = "none";
     if(scoresSection) scoresSection.style.display = "block";
