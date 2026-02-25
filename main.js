@@ -102,6 +102,9 @@ async function applyTeamUI(showMainMenu = false){
     if(createMatchSection) createMatchSection.style.display = admin ? "block" : "none";
     if(backupSection) backupSection.style.display = admin ? "block" : "none";
 
+const portalMenu = document.getElementById("portalMenu");
+if(portalMenu) portalMenu.style.display = "block";
+ 
     await loadVideosFromFirestore();
     await loadScores();
 
