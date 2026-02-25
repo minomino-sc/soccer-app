@@ -2,7 +2,15 @@ const year = 2026;
 const container = document.getElementById("calendarContainer");
 const detail = document.getElementById("eventDetail");
 
-// サンプルデータ（あとでFirestoreやJSONに変更可）
+// 日本語表示用
+const typeMap = {
+  practice: { label: "🟢 練習", class: "practice" },
+  official: { label: "🔵 公式戦", class: "official" },
+  cup: { label: "🟡 カップ戦", class: "cup" },
+  friendly: { label: "🟣 交流戦", class: "friendly" }
+};
+
+// サンプルデータ
 const events = {
   "2026-04-05": { type: "practice", text: "練習 9:00〜12:00" },
   "2026-04-12": { type: "official", text: "公式戦 vs ○○FC" },
@@ -21,19 +29,36 @@ function createMonth(month) {
   const calendar = document.createElement("div");
   calendar.className = "calendar";
 
+  // ✅ 曜日ヘッダー
+  const weekDays = ["日","月","火","水","木","金","土"];
+  weekDays.forEach(day=>{
+    const header = document.createElement("div");
+    header.textContent = day;
+    header.style.fontWeight = "bold";
+    header.style.textAlign = "center";
+    calendar.appendChild(header);
+  });
+
+  const firstDay = new Date(year, month-1, 1).getDay();
   const daysInMonth = new Date(year, month, 0).getDate();
+
+  // 空白調整
+  for(let i=0;i<firstDay;i++){
+    const blank = document.createElement("div");
+    calendar.appendChild(blank);
+  }
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
 
     const dayDiv = document.createElement("div");
     dayDiv.className = "day";
-    dayDiv.textContent = day;
+    dayDiv.innerHTML = `<div>${day}</div>`;
 
     if (events[dateStr]) {
       const label = document.createElement("div");
-      label.className = `label ${events[dateStr].type}`;
-      label.textContent = events[dateStr].type;
+      label.className = `label ${typeMap[events[dateStr].type].class}`;
+      label.textContent = typeMap[events[dateStr].type].label;
       dayDiv.appendChild(label);
 
       dayDiv.addEventListener("click", () => {
