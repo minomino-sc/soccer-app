@@ -11,7 +11,7 @@ const holidays = [
 
 const year = 2026;
 const container = document.getElementById("calendarContainer");
-const detail = document.getElementById("eventDetail");
+const popup = document.getElementById("eventPopup");
 
 const typeMap = {
   practice: { label: "🟢 練習" },
@@ -20,7 +20,7 @@ const typeMap = {
   friendly: { label: "🟣 交流戦" }
 };
 
-// 複数予定対応
+// イベント例（複数対応）
 let events = {
   "2026-04-05":[
     {type:"practice", text:"練習 9:00〜12:00"},
@@ -48,14 +48,13 @@ function createMonth(month, y) {
     header.textContent = day;
     header.className = "weekday-header";
     if(index===0) header.classList.add("sunday");
-    if(index===6) header.classList.add("sat");
+    if(index===6) header.classList.add("saturday");
     calendar.appendChild(header);
   });
 
   const firstDay = new Date(y, month-1, 1).getDay();
   const daysInMonth = new Date(y, month, 0).getDate();
 
-  // 空セル
   for(let i=0;i<firstDay;i++) calendar.appendChild(document.createElement("div"));
 
   for(let day=1; day<=daysInMonth; day++){
@@ -65,26 +64,31 @@ function createMonth(month, y) {
 
     const dayDiv = document.createElement("div");
     dayDiv.className = "day";
-
     if(dayOfWeek===0) dayDiv.classList.add("sunday");
     if(dayOfWeek===6) dayDiv.classList.add("saturday");
     if(holidays.includes(dateStr)) dayDiv.classList.add("holiday");
-
     dayDiv.innerHTML = `<div>${day}</div>`;
 
-    // イベントマークだけ表示
+    // イベント絵文字だけ表示
     if(events[dateStr]){
       events[dateStr].forEach(ev=>{
         const label = document.createElement("div");
         label.className = "label";
-        label.textContent = typeMap[ev.type].label[0]; // 絵文字だけ
+        label.textContent = typeMap[ev.type].label[0]; // 絵文字のみ
         dayDiv.appendChild(label);
       });
 
-      dayDiv.addEventListener("click", ()=>{
-        detail.innerHTML = events[dateStr]
+      dayDiv.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const eventsHtml = events[dateStr]
           .map(ev=>`<div>${typeMap[ev.type].label} ${ev.text}</div>`)
           .join("");
+        popup.innerHTML = eventsHtml;
+        popup.style.display = "block";
+
+        // マウスクリック位置に表示
+        popup.style.top = (e.pageY + 10) + "px";
+        popup.style.left = (e.pageX + 10) + "px";
       });
     }
 
@@ -99,6 +103,11 @@ function createMonth(month, y) {
 for(let m=4; m<=12; m++) createMonth(m, year);
 // 1月〜3月 2027年
 for(let m=1; m<=3; m++) createMonth(m, year+1);
+
+// クリックでポップアップ非表示
+document.addEventListener("click", ()=>{
+  popup.style.display = "none";
+});
 
 function toggleAdmin(){
   const panel = document.getElementById("adminPanel");
