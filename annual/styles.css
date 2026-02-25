@@ -57,15 +57,6 @@ h1 {
   border-radius: 6px;
 }
 
-/* 曜日ヘッダー色 */
-.calendar div:nth-child(7n+1) { /* 日曜列 */
-  color: red;
-}
-
-.calendar div:nth-child(7n) { /* 土曜列 */
-  color: blue;
-}
-
 /* 日付セル土日背景 */
 .day.sunday {
   background: #ffecec;
@@ -96,4 +87,19 @@ h1 {
 .day.holiday {
   background: #ffecec;
   color: red;
+}
+
+/* 曜日ヘッダー */
+.weekday-header {
+  font-weight: bold;
+  text-align: center;
+  background: #eee;
+}
+
+.weekday-header.sun {
+  color: red;
+}
+
+.weekday-header.sat {
+  color: blue;
 }
