@@ -1439,3 +1439,9 @@ function renderCalendar(year = 2026) {
     calendarContainer.appendChild(dayCell);
   }
 }
+
+// --- 年間スケジュールを常に表示 ---
+const annualSection = document.getElementById("annualScheduleSection");
+if(annualSection) {
+  annualSection.style.display = "block";
+}
