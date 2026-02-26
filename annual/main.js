@@ -169,12 +169,27 @@ function showPopup(date){
   popup.style.display = "block";
 }
 
-async function editEvent(date,team,index){
-  const ev=events[date][team][index];
-  const newText=prompt("編集",ev.text);
-  if(newText!==null){
-    await db.collection("calendar_events").doc(ev.id).update({text:newText});
-  }
+async function editEvent(date, team, index){
+  const ev = events[date][team][index];
+
+  // 1. 内容を編集
+  const newText = prompt("内容を編集", ev.text);
+  if (newText === null) return;
+
+  // 2. 場所を編集
+  const newLocation = prompt("場所を編集", ev.location || "");
+  if (newLocation === null) return;
+
+  // 3. 時間を編集
+  const newTime = prompt("時間を編集", ev.time || "");
+  if (newTime === null) return;
+
+  // Firestore にまとめて更新
+  await db.collection("calendar_events").doc(ev.id).update({
+    text: newText,
+    location: newLocation,
+    time: newTime
+  });
 }
 
 async function deleteEvent(date,team,index){
