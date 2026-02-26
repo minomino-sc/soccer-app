@@ -37,8 +37,9 @@ teamArray.forEach(t=>{
   events[date][t].push({type,text,id:doc.id});
 });
       
-    renderCalendar();
   });
+
+    renderCalendar();
 
 function renderCalendar(){
   container.innerHTML="";
