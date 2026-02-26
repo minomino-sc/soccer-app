@@ -5,38 +5,34 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>年間スケジュール</title>
 <link rel="stylesheet" href="styles.css">
+
 <style>
-  body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-  h1 { margin-bottom: 10px; white-space: nowrap; }
-  button { margin-bottom: 10px; }
-  #adminPanel input, #adminPanel select, #adminPanel button { margin-right: 5px; }
-  #calendarLegend { margin-bottom: 15px; font-size: 14px; }
-  #calendarLegend span { margin-right: 12px; }
-  .month { margin-bottom: 25px; }
-  .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .weekday-header { font-weight: bold; text-align: center; }
-  .sunday { color: red; }
-  .saturday { color: blue; }
-  .day { border: 1px solid #ccc; min-height: 40px; text-align: center; padding-top: 4px; background: #fff; cursor: pointer; }
-  .holiday { color: orange; }
-  .label { display: block; font-size: 16px; line-height: 1; background: none; }
-  #eventPopup {
-    position: fixed;
-    top: 50%;
-    left: 20px;
-    transform: translateY(-50%);
-    background: #fff;
-    border: 1px solid #666;
-    padding: 8px 12px;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    font-size: 14px;
-    z-index: 1000;
-    display: none;
-    max-width: 300px;
-    max-height: 400px;
-    overflow-y: auto;
-  }
+body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+h1 { white-space: nowrap; }
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.weekday-header { font-weight: bold; text-align: center; }
+.sunday { color: red; }
+.saturday { color: blue; }
+.day { border: 1px solid #ccc; min-height: 45px; text-align: center; padding-top: 4px; background: #fff; cursor: pointer; }
+.holiday { color: orange; }
+.label { font-size: 16px; line-height: 1; }
+
+#eventPopup{
+  position: fixed;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  background:#fff;
+  border:1px solid #666;
+  padding:10px;
+  border-radius:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  display:none;
+  max-width:300px;
+  max-height:400px;
+  overflow-y:auto;
+  z-index:1000;
+}
 </style>
 </head>
 <body>
@@ -45,7 +41,7 @@
 
 <button onclick="toggleAdmin()">管理者モード</button>
 
-<div id="adminPanel" style="display:none; margin:20px 0;">
+<div id="adminPanel" style="display:none; margin:15px 0;">
   <input type="date" id="adminDate">
   <select id="adminTeam">
     <option value="A">チームA</option>
@@ -61,15 +57,29 @@
   <button onclick="addEvent()">追加</button>
 </div>
 
-<div id="calendarLegend">
-  <span>🟢 練習</span>
-  <span>🔵 公式戦</span>
-  <span>🟡 カップ戦</span>
-  <span>🟣 交流戦</span>
+<div>
+  🟢 練習　🔵 公式戦　🟡 カップ戦　🟣 交流戦
 </div>
 
 <div id="calendarContainer"></div>
 <div id="eventPopup"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "あなたのAPIキー",
+  authDomain: "あなたのauthDomain",
+  projectId: "あなたのprojectId",
+  storageBucket: "あなたのstorageBucket",
+  messagingSenderId: "あなたのmessagingSenderId",
+  appId: "あなたのappId"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
 
 <script src="main.js"></script>
 </body>
