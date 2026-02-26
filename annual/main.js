@@ -40,6 +40,7 @@ teamArray.forEach(t=>{
   });
 
     renderCalendar();
+  });   // ← ★ これが抜けてる！！
 
 function renderCalendar(){
   container.innerHTML="";
