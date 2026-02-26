@@ -151,7 +151,7 @@ function showPopup(date){
     Object.keys(events[date]).forEach(team => {
       events[date][team].forEach((ev,i) => {
 
-        // チームごとの淡い背景色
+        // チームごとの背景色
         let bgColor = "#f0f0f0"; // デフォルト
         if(team === "A") bgColor = "#d6e4ff"; // 薄青
         if(team === "B") bgColor = "#d4f4dd"; // 薄緑
@@ -162,10 +162,10 @@ function showPopup(date){
           display:flex;
           justify-content:space-between;
           align-items:flex-start;
-          padding:8px;
+          padding:10px;
           border-radius:6px;
           margin-bottom:6px;
-          background:${bgColor};
+          background:${bgColor};   /* ← 背景色を付ける */
         ">
           <div style="flex:1; line-height:1.4; min-width:0;">
             <span style="color:#000; font-weight:bold;">チーム${team === "AB" ? "A/B" : team}</span> 
