@@ -28,11 +28,13 @@ db.collection("calendar_events")
       const data = doc.data();
       const {date,team,type,text} = data;
 
-      if(!events[date]) events[date] = {};
-      if(!events[date][team]) events[date][team] = [];
+if(!events[date]) events[date] = {};
 
-      events[date][team].push({type,text,id:doc.id});
-    });
+team.forEach(t=>{
+  if(!events[date][t]) events[date][t] = [];
+  events[date][t].push({type,text,id:doc.id});
+});
+   
     renderCalendar();
   });
 
@@ -108,7 +110,8 @@ function toggleAdmin(){
 
 async function addEvent(){
   const date=adminDate.value;
-  const team=adminTeam.value;
+const teamSelect = document.getElementById("adminTeam");
+const team = Array.from(teamSelect.selectedOptions).map(opt => opt.value);
   const type=adminType.value;
   const text=adminText.value;
 
