@@ -148,11 +148,11 @@ async function addEvent(){
 function showPopup(date){
   let html = "";
   if(events[date]){
-    events[date].forEachTeam = Object.keys(events[date]);
+    // events[date].forEachTeam = Object.keys(events[date]); // ← 削除
     Object.keys(events[date]).forEach(team => {
       events[date][team].forEach((ev,i) => {
         // チームラベル色
-        let teamColor = "#666"; // デフォルト文字色
+        let teamColor = "#666"; 
         if(team === "A") teamColor = "#2a8cff";
         if(team === "B") teamColor = "#2ecc71";
         if(team === "AB") teamColor = "#a569bd";
@@ -192,7 +192,6 @@ function showPopup(date){
   popup.innerHTML = html;
   popup.style.display = "block";
 
-  // ポップアップ全体スタイル
   Object.assign(popup.style, {
     position: "fixed",
     top: "50%",
