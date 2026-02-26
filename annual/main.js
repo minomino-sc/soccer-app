@@ -117,21 +117,32 @@ function toggleAdmin(){
 }
 
 async function addEvent(){
-  const date=adminDate.value;
-
+  const date = document.getElementById("adminDate").value;
   const team = document.getElementById("adminTeam").value;
-  const type=adminType.value;
-  const text=adminText.value;
+  const type = document.getElementById("adminType").value;
+  const text = document.getElementById("adminText").value;
+  const location = document.getElementById("adminLocation").value;
+  const time = document.getElementById("adminTime").value;
 
-  if(!date||!text)return alert("入力してください");
+  if (!date || !text) {
+    alert("日付と内容は必須です");
+    return;
+  }
 
   await db.collection("calendar_events").add({
-    date,team,type,text,
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    date,
+    team,
+    type,
+    text,
+    location,  // 追加
+    time,      // 追加
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 
-  adminDate.value="";
-  adminText.value="";
+  adminDate.value = "";
+  adminText.value = "";
+  adminLocation.value = "";
+  adminTime.value = "";
 }
 
 function showPopup(date){
