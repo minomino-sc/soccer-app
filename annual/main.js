@@ -30,12 +30,8 @@ db.collection("calendar_events")
 
 if(!events[date]) events[date] = {};
 
-const teamArray = Array.isArray(team) ? team : [team];
-
-teamArray.forEach(t=>{
-  if(!events[date][t]) events[date][t] = [];
-  events[date][t].push({type,text,id:doc.id});
-});
+if(!events[date][team]) events[date][team] = [];
+events[date][team].push({type,text,id:doc.id});
       
   });
 
@@ -83,14 +79,16 @@ function createMonth(month,y){
     dDiv.innerHTML=`<div>${day}</div>`;
 
     if(events[dateStr]){
-      Object.keys(events[dateStr]).forEach(team=>{
-        events[dateStr][team].forEach(ev=>{
-          const l=document.createElement("div");
-          l.className="label";
-          l.textContent=typeMap[ev.type].emoji;
-          dDiv.appendChild(l);
-        });
-      });
+
+Object.values(events[dateStr]).forEach(teamEvents=>{
+  teamEvents.forEach(ev=>{
+    const l=document.createElement("div");
+    l.className="label";
+    l.textContent = typeMap[ev.type].emoji;
+    dDiv.appendChild(l);
+  });
+});
+      
     }
 
     dDiv.addEventListener("click",e=>{
@@ -114,8 +112,8 @@ function toggleAdmin(){
 
 async function addEvent(){
   const date=adminDate.value;
-const teamSelect = document.getElementById("adminTeam");
-const team = Array.from(teamSelect.selectedOptions).map(opt => opt.value);
+
+  const team = document.getElementById("adminTeam").value;
   const type=adminType.value;
   const text=adminText.value;
 
