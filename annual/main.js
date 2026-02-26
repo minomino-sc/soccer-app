@@ -148,31 +148,39 @@ async function addEvent(){
 function showPopup(date){
   let html = "";
   if(events[date]){
+    events[date].forEachTeam = Object.keys(events[date]);
     Object.keys(events[date]).forEach(team => {
       events[date][team].forEach((ev,i) => {
-        // チーム別背景色
-        let bgColor = "#fefefe";
-        if(team === "A") bgColor = "#e6f9e6";
-        if(team === "B") bgColor = "#e6f0fa";
-        if(team === "AB") bgColor = "#f3e6fa";
+        // チームラベル色
+        let teamColor = "#666"; // デフォルト文字色
+        if(team === "A") teamColor = "#2a8cff";
+        if(team === "B") teamColor = "#2ecc71";
+        if(team === "AB") teamColor = "#a569bd";
 
         html += `
         <div style="
-          margin-bottom: 12px;
-          padding: 10px 12px;
-          border-radius: 8px;
-          border: 1px solid #ccc;
-          background: ${bgColor};
-          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          padding:8px 0;
+          border-bottom:1px solid #eee;
         ">
-          <strong>チーム${team === "AB" ? "A/B" : team}</strong><br>
-          ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
-          <em>内容:</em> ${ev.text}<br>
-          <em>場所:</em> ${ev.location || "未設定"}<br>
-          <em>時間:</em> ${ev.time || "未設定"}<br>
-          <div style="margin-top:6px;">
-            <button style="margin-right:6px;" onclick="editEvent('${date}','${team}',${i})">✏️ 編集</button>
-            <button onclick="deleteEvent('${date}','${team}',${i})">🗑️ 削除</button>
+          <div style="line-height:1.4;">
+            <span style="color:${teamColor}; font-weight:bold;">チーム${team === "AB" ? "A/B" : team}</span> 
+            ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
+            <strong>内容:</strong> ${ev.text}<br>
+            <strong>場所:</strong> ${ev.location || "未設定"}<br>
+            <strong>時間:</strong> ${ev.time || "未設定"}
+          </div>
+          <div style="flex-shrink:0; margin-left:8px;">
+            <button style="
+              width:28px; height:28px; border-radius:50%; border:none; background:#fff;
+              box-shadow:0 1px 3px rgba(0,0,0,0.2); margin-bottom:4px; cursor:pointer;"
+              onclick="editEvent('${date}','${team}',${i})">✏️</button>
+            <button style="
+              width:28px; height:28px; border-radius:50%; border:none; background:#fff;
+              box-shadow:0 1px 3px rgba(0,0,0,0.2); cursor:pointer;"
+              onclick="deleteEvent('${date}','${team}',${i})">🗑️</button>
           </div>
         </div>`;
       });
@@ -191,11 +199,11 @@ function showPopup(date){
     left: "50%",
     transform: "translate(-50%, -50%)",
     background: "#fff",
-    borderRadius: "8px",
+    borderRadius: "10px",
     padding: "16px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
-    maxWidth: "360px",
-    maxHeight: "420px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+    maxWidth: "400px",
+    maxHeight: "450px",
     overflowY: "auto",
     zIndex: "1000"
   });
