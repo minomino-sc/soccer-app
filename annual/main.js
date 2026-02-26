@@ -30,11 +30,13 @@ db.collection("calendar_events")
 
 if(!events[date]) events[date] = {};
 
-team.forEach(t=>{
+const teamArray = Array.isArray(team) ? team : [team];
+
+teamArray.forEach(t=>{
   if(!events[date][t]) events[date][t] = [];
   events[date][t].push({type,text,id:doc.id});
 });
-   
+      
     renderCalendar();
   });
 
