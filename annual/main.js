@@ -148,11 +148,10 @@ async function addEvent(){
 function showPopup(date){
   let html = "";
   if(events[date]){
-    // events[date].forEachTeam = Object.keys(events[date]); // ← 削除
     Object.keys(events[date]).forEach(team => {
       events[date][team].forEach((ev,i) => {
         // チームラベル色
-        let teamColor = "#666"; 
+        let teamColor = "#666";
         if(team === "A") teamColor = "#2a8cff";
         if(team === "B") teamColor = "#2ecc71";
         if(team === "AB") teamColor = "#a569bd";
@@ -165,17 +164,17 @@ function showPopup(date){
           padding:8px 0;
           border-bottom:1px solid #eee;
         ">
-          <div style="line-height:1.4;">
+          <div style="flex:1; line-height:1.4; min-width:0;">
             <span style="color:${teamColor}; font-weight:bold;">チーム${team === "AB" ? "A/B" : team}</span> 
             ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
             <strong>内容:</strong> ${ev.text}<br>
             <strong>場所:</strong> ${ev.location || "未設定"}<br>
             <strong>時間:</strong> ${ev.time || "未設定"}
           </div>
-          <div style="flex-shrink:0; margin-left:8px;">
+          <div style="flex-shrink:0; display:flex; flex-direction:column; margin-left:8px; gap:4px;">
             <button style="
               width:28px; height:28px; border-radius:50%; border:none; background:#fff;
-              box-shadow:0 1px 3px rgba(0,0,0,0.2); margin-bottom:4px; cursor:pointer;"
+              box-shadow:0 1px 3px rgba(0,0,0,0.2); cursor:pointer;"
               onclick="editEvent('${date}','${team}',${i})">✏️</button>
             <button style="
               width:28px; height:28px; border-radius:50%; border:none; background:#fff;
@@ -192,24 +191,23 @@ function showPopup(date){
   popup.innerHTML = html;
   popup.style.display = "block";
 
-Object.assign(popup.style, {
-  position: "fixed",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  background: "#fff",
-  borderRadius: "10px",
-  padding: "16px",
-  boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
-  maxWidth: "90%",      // 画面幅の90%まで広げる
-  width: "450px",       // 最小横幅を450pxに設定
-  maxHeight: "80%",     // 高さは画面の80%まで
-  overflowY: "auto",
-  overflowX: "hidden",
-  zIndex: "1000",
-  wordBreak: "break-word" // 長い単語でも折り返す
-});
-  
+  Object.assign(popup.style, {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "#fff",
+    borderRadius: "10px",
+    padding: "16px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+    maxWidth: "90%",
+    width: "500px",       // 少し広く
+    maxHeight: "80%",
+    overflowY: "auto",
+    overflowX: "hidden",
+    zIndex: "1000",
+    wordBreak: "break-word"
+  });
 }
 
 async function editEvent(date, team, index){
