@@ -63,7 +63,7 @@ function createMonth(month, y) {
     if(holidays.includes(dateStr)) dayDiv.classList.add("holiday");
     dayDiv.innerHTML = `<div>${day}</div>`;
 
-    // イベントがある場合は絵文字を表示
+    // イベントがある場合は絵文字表示
     if(events[dateStr]){
       Object.keys(events[dateStr]).forEach(team=>{
         events[dateStr][team].forEach(ev=>{
@@ -76,7 +76,8 @@ function createMonth(month, y) {
     }
 
     // ✅ すべてのセルにクリックイベントを追加
-    dayDiv.addEventListener("click", ()=>{
+    dayDiv.addEventListener("click", (e)=>{
+        e.stopPropagation(); // ページクリックで閉じる処理を防ぐ
         showPopup(dateStr);
     });
 
@@ -92,7 +93,7 @@ for(let m=4; m<=12; m++) createMonth(m, year);
 // 1月〜3月 2027年
 for(let m=1; m<=3; m++) createMonth(m, year+1);
 
-// クリックでポップアップ非表示
+// ページクリックでポップアップ非表示
 document.addEventListener("click", ()=>{ popup.style.display="none"; });
 
 // 管理者モード切替
