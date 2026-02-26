@@ -150,28 +150,31 @@ function showPopup(date){
   if(events[date]){
     Object.keys(events[date]).forEach(team => {
       events[date][team].forEach((ev,i) => {
-        // チームラベル色
-        let teamColor = "#666";
-        if(team === "A") teamColor = "#2a8cff";
-        if(team === "B") teamColor = "#2ecc71";
-        if(team === "AB") teamColor = "#a569bd";
+
+        // チームごとの淡い背景色
+        let bgColor = "#f0f0f0"; // デフォルト
+        if(team === "A") bgColor = "#d6e4ff"; // 薄青
+        if(team === "B") bgColor = "#d4f4dd"; // 薄緑
+        if(team === "AB") bgColor = "#e8d6f0"; // 薄紫
 
         html += `
         <div style="
           display:flex;
           justify-content:space-between;
           align-items:flex-start;
-          padding:8px 0;
-          border-bottom:1px solid #eee;
+          padding:8px;
+          border-radius:6px;
+          margin-bottom:6px;
+          background:${bgColor};
         ">
           <div style="flex:1; line-height:1.4; min-width:0;">
-            <span style="color:${teamColor}; font-weight:bold;">チーム${team === "AB" ? "A/B" : team}</span> 
+            <span style="color:#000; font-weight:bold;">チーム${team === "AB" ? "A/B" : team}</span> 
             ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
             <strong>内容:</strong> ${ev.text}<br>
             <strong>場所:</strong> ${ev.location || "未設定"}<br>
             <strong>時間:</strong> ${ev.time || "未設定"}
           </div>
-          <div style="flex-shrink:0; display:flex; flex-direction:column; margin-left:8px; gap:4px;">
+          <div style="flex-shrink:0; display:flex; flex-direction:column; gap:4px; margin-left:8px;">
             <button style="
               width:28px; height:28px; border-radius:50%; border:none; background:#fff;
               box-shadow:0 1px 3px rgba(0,0,0,0.2); cursor:pointer;"
@@ -201,7 +204,7 @@ function showPopup(date){
     padding: "16px",
     boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
     maxWidth: "90%",
-    width: "500px",       // 少し広く
+    width: "500px",
     maxHeight: "80%",
     overflowY: "auto",
     overflowX: "hidden",
