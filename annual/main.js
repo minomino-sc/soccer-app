@@ -150,23 +150,55 @@ function showPopup(date){
   if(events[date]){
     Object.keys(events[date]).forEach(team => {
       events[date][team].forEach((ev,i) => {
+        // チーム別背景色
+        let bgColor = "#fefefe";
+        if(team === "A") bgColor = "#e6f9e6";
+        if(team === "B") bgColor = "#e6f0fa";
+        if(team === "AB") bgColor = "#f3e6fa";
+
         html += `
-        <div style="margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:4px;">
+        <div style="
+          margin-bottom: 12px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+          background: ${bgColor};
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        ">
           <strong>チーム${team === "AB" ? "A/B" : team}</strong><br>
           ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
-          内容: ${ev.text}<br>
-          場所: ${ev.location || "未設定"}<br>
-          時間: ${ev.time || "未設定"}<br>
-          <button onclick="editEvent('${date}','${team}',${i})">編集</button>
-          <button onclick="deleteEvent('${date}','${team}',${i})">削除</button>
+          <em>内容:</em> ${ev.text}<br>
+          <em>場所:</em> ${ev.location || "未設定"}<br>
+          <em>時間:</em> ${ev.time || "未設定"}<br>
+          <div style="margin-top:6px;">
+            <button style="margin-right:6px;" onclick="editEvent('${date}','${team}',${i})">✏️ 編集</button>
+            <button onclick="deleteEvent('${date}','${team}',${i})">🗑️ 削除</button>
+          </div>
         </div>`;
       });
     });
   } else {
-    html = "イベントはありません";
+    html = "<div>イベントはありません</div>";
   }
+
   popup.innerHTML = html;
   popup.style.display = "block";
+
+  // ポップアップ全体スタイル
+  Object.assign(popup.style, {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "#fff",
+    borderRadius: "8px",
+    padding: "16px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+    maxWidth: "360px",
+    maxHeight: "420px",
+    overflowY: "auto",
+    zIndex: "1000"
+  });
 }
 
 async function editEvent(date, team, index){
