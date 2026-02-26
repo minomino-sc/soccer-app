@@ -192,20 +192,24 @@ function showPopup(date){
   popup.innerHTML = html;
   popup.style.display = "block";
 
-  Object.assign(popup.style, {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    background: "#fff",
-    borderRadius: "10px",
-    padding: "16px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
-    maxWidth: "400px",
-    maxHeight: "450px",
-    overflowY: "auto",
-    zIndex: "1000"
-  });
+Object.assign(popup.style, {
+  position: "fixed",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  background: "#fff",
+  borderRadius: "10px",
+  padding: "16px",
+  boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+  maxWidth: "90%",      // 画面幅の90%まで広げる
+  width: "450px",       // 最小横幅を450pxに設定
+  maxHeight: "80%",     // 高さは画面の80%まで
+  overflowY: "auto",
+  overflowX: "hidden",
+  zIndex: "1000",
+  wordBreak: "break-word" // 長い単語でも折り返す
+});
+  
 }
 
 async function editEvent(date, team, index){
