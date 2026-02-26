@@ -135,7 +135,11 @@ function showPopup(date){
       events[date][team].forEach((ev,i)=>{
         html+=`
         <div>
-          チーム${team} ${typeMap[ev.type].emoji} ${typeMap[ev.type].label} ${ev.text}
+チーム${team === "AB" ? "A/B" : team}
+${typeMap[ev.type].emoji}
+${typeMap[ev.type].label}
+${ev.text}
+       
           <button onclick="editEvent('${date}','${team}',${i})">編集</button>
           <button onclick="deleteEvent('${date}','${team}',${i})">削除</button>
         </div>`;
