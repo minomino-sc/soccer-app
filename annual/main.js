@@ -22,21 +22,27 @@ let events = {};
 // 🔥 Firestoreリアルタイム同期
 db.collection("calendar_events")
   .orderBy("createdAt","asc")
-  .onSnapshot(snapshot=>{
+  .onSnapshot(snapshot => {
     events = {};
-    snapshot.forEach(doc=>{
+    snapshot.forEach(doc => {
       const data = doc.data();
-      const {date,team,type,text} = data;
+      const {date, team, type, text, location, time} = data; // ← location と time を追加
 
-if(!events[date]) events[date] = {};
+      if (!events[date]) events[date] = {};
+      if (!events[date][team]) events[date][team] = [];
 
-if(!events[date][team]) events[date][team] = [];
-events[date][team].push({type,text,id:doc.id});
-      
-  });
+      // 既存の type/text に加えて location/time も格納
+      events[date][team].push({
+        type,
+        text,
+        location,
+        time,
+        id: doc.id
+      });
+    });
 
     renderCalendar();
-  });   // ← ★ これが抜けてる！！
+  });
 
 function renderCalendar(){
   container.innerHTML="";
@@ -129,27 +135,27 @@ async function addEvent(){
 }
 
 function showPopup(date){
-  let html="";
+  let html = "";
   if(events[date]){
-    Object.keys(events[date]).forEach(team=>{
-      events[date][team].forEach((ev,i)=>{
-        html+=`
-        <div>
-チーム${team === "AB" ? "A/B" : team}
-${typeMap[ev.type].emoji}
-${typeMap[ev.type].label}
-${ev.text}
-       
+    Object.keys(events[date]).forEach(team => {
+      events[date][team].forEach((ev,i) => {
+        html += `
+        <div style="margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:4px;">
+          <strong>チーム${team === "AB" ? "A/B" : team}</strong><br>
+          ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
+          内容: ${ev.text}<br>
+          場所: ${ev.location || "未設定"}<br>
+          時間: ${ev.time || "未設定"}<br>
           <button onclick="editEvent('${date}','${team}',${i})">編集</button>
           <button onclick="deleteEvent('${date}','${team}',${i})">削除</button>
         </div>`;
       });
     });
-  }else{
-    html="イベントはありません";
+  } else {
+    html = "イベントはありません";
   }
-  popup.innerHTML=html;
-  popup.style.display="block";
+  popup.innerHTML = html;
+  popup.style.display = "block";
 }
 
 async function editEvent(date,team,index){
