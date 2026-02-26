@@ -75,7 +75,7 @@ function createMonth(month, y) {
       });
     }
 
-    // ✅ 全てのセルにクリックイベントを追加
+    // ✅ すべてのセルにクリックイベントを追加
     dayDiv.addEventListener("click", ()=>{
         showPopup(dateStr);
     });
