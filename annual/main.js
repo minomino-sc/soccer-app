@@ -208,11 +208,11 @@ function showPopup(date){
             <button style="
               width:28px; height:28px; border-radius:50%; border:none; background:#fff;
               box-shadow:0 1px 3px rgba(0,0,0,0.2); cursor:pointer;"
-              onclick="editEvent('${date}','${team}',${i})">✏️</button>
+              onclick="editEvent(event,'${date}','${team}',${i})">✏️</button>
             <button style="
               width:28px; height:28px; border-radius:50%; border:none; background:#fff;
               box-shadow:0 1px 3px rgba(0,0,0,0.2); cursor:pointer;"
-              onclick="deleteEvent('${date}','${team}',${i})">🗑️</button>
+              onclick="deleteEvent(event,'${date}','${team}',${i})">🗑️</button>
           </div>
         </div>`;
       });
