@@ -243,8 +243,9 @@ function showPopup(date){
   });
 }
 
-async function editEvent(date, team, index){
-  event.stopPropagation();  // ← 追加 
+async function editEvent(e, date, team, index){
+  e.stopPropagation();
+
   const ev = events[date][team][index];
 
   popup.innerHTML = `
