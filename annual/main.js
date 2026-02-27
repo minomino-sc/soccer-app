@@ -308,10 +308,15 @@ async function saveEdit(id){
   popup.style.display = "none";
 }
 
-async function deleteEvent(date,team,index){
-  event.stopPropagation();  // ← 追加
-  const ev=events[date][team][index];
+async function deleteEvent(e, date, team, index){
+  e.stopPropagation();
+
+  const ev = events[date][team][index];
+
   if(confirm("削除しますか？")){
     await db.collection("calendar_events").doc(ev.id).delete();
+
+    // 🔥 削除後にポップアップを再描画
+    showPopup(date);
   }
 }
