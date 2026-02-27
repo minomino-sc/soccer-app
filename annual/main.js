@@ -7,13 +7,13 @@ const params = new URLSearchParams(window.location.search);
 // パラメータがあればボタンを表示
 if (params.get("from") === "video") {
   backBtn.style.display = "inline-block";
-}
 
-// 戻るボタンクリック時の挙動
-backBtn.addEventListener("click", () => {
-  // 常に親システムに戻す
-  window.location.href = "video.html"; 
-});
+  // 戻るボタンクリック時の挙動
+  backBtn.addEventListener("click", () => {
+    // GitHub Pages 上の動画共有システムのURLに戻す
+    window.location.href = "https://minomino-sc.github.io/soccer-app/video/";
+  });
+}
 
 const holidays = [
   "2026-04-29","2026-05-03","2026-05-04","2026-05-05",
