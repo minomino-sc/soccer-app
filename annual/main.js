@@ -241,24 +241,65 @@ function showPopup(date){
 async function editEvent(date, team, index){
   const ev = events[date][team][index];
 
-  // 1. 内容を編集
-  const newText = prompt("内容を編集", ev.text);
-  if (newText === null) return;
+  popup.innerHTML = `
+    <div class="edit-box">
+      <h3>✏️ イベント編集</h3>
 
-  // 2. 場所を編集
-  const newLocation = prompt("場所を編集", ev.location || "");
-  if (newLocation === null) return;
+      <label>チーム</label>
+      <select id="editTeam">
+        <option value="A">チームA</option>
+        <option value="B">チームB</option>
+        <option value="AB">チームA/B</option>
+        <option value="Z">その他</option>
+      </select>
 
-  // 3. 時間を編集
-  const newTime = prompt("時間を編集", ev.time || "");
-  if (newTime === null) return;
+      <label>種別</label>
+      <select id="editType">
+        <option value="practice">練習</option>
+        <option value="official">公式戦</option>
+        <option value="cup">カップ戦</option>
+        <option value="friendly">交流戦</option>
+        <option value="etc">その他</option>
+      </select>
 
-  // Firestore にまとめて更新
-  await db.collection("calendar_events").doc(ev.id).update({
+      <label>内容</label>
+      <input type="text" id="editText" value="${ev.text}">
+
+      <label>場所</label>
+      <input type="text" id="editLocation" value="${ev.location || ""}">
+
+      <label>時間</label>
+      <input type="text" id="editTime" value="${ev.time || ""}">
+
+      <div class="edit-buttons">
+        <button class="save-btn" onclick="saveEdit('${ev.id}')">保存</button>
+        <button class="cancel-btn" onclick="popup.style.display='none'">キャンセル</button>
+      </div>
+    </div>
+  `;
+
+  popup.style.display = "block";
+
+  document.getElementById("editTeam").value = team;
+  document.getElementById("editType").value = ev.type;
+}
+
+async function saveEdit(id){
+  const newTeam = document.getElementById("editTeam").value;
+  const newType = document.getElementById("editType").value;
+  const newText = document.getElementById("editText").value;
+  const newLocation = document.getElementById("editLocation").value;
+  const newTime = document.getElementById("editTime").value;
+
+  await db.collection("calendar_events").doc(id).update({
+    team: newTeam,
+    type: newType,
     text: newText,
     location: newLocation,
     time: newTime
   });
+
+  popup.style.display = "none";
 }
 
 async function deleteEvent(date,team,index){
