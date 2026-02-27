@@ -174,6 +174,7 @@ function showPopup(date){
         if(team === "A") bgColor = "#d6e4ff"; // 薄青
         if(team === "B") bgColor = "#d4f4dd"; // 薄緑
         if(team === "AB") bgColor = "#e8d6f0"; // 薄紫
+        if(team === "Z") bgColor = "#ffe0e0"; // ← 追加
 
         html += `
         <div style="
