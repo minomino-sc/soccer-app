@@ -127,9 +127,9 @@ Object.values(events[dateStr]).forEach(teamEvents=>{
   container.appendChild(monthDiv);
 }
 
-//document.addEventListener("click",()=>popup.style.display="none");
 document.addEventListener("click", (e) => {
-  if (!popup.contains(e.target)) {
+  // popupの外 かつ dayセルでもない場合のみ閉じる
+  if (!popup.contains(e.target) && !e.target.closest(".day")) {
     popup.style.display = "none";
   }
 });
@@ -244,6 +244,7 @@ function showPopup(date){
 }
 
 async function editEvent(date, team, index){
+  event.stopPropagation();  // ← 追加 
   const ev = events[date][team][index];
 
   popup.innerHTML = `
@@ -308,6 +309,7 @@ async function saveEdit(id){
 }
 
 async function deleteEvent(date,team,index){
+  event.stopPropagation();  // ← 追加
   const ev=events[date][team][index];
   if(confirm("削除しますか？")){
     await db.collection("calendar_events").doc(ev.id).delete();
