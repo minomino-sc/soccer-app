@@ -1,3 +1,24 @@
+// 戻るボタン
+const backBtn = document.getElementById("backBtn");
+
+// ページ読み込み時に履歴をチェック
+window.addEventListener("DOMContentLoaded", () => {
+  // 親システムから遷移してきた場合にのみ表示
+  if (document.referrer.includes("login.html") || document.referrer.includes("video.html")) {
+    backBtn.style.display = "inline-block";
+  }
+});
+
+// 戻るボタンクリック時の挙動
+backBtn.addEventListener("click", () => {
+  if (document.referrer) {
+    window.location.href = document.referrer;
+  } else {
+    // 履歴がない場合は安全に親システムに遷移
+    window.location.href = "video.html";
+  }
+});
+
 const holidays = [
   "2026-04-29","2026-05-03","2026-05-04","2026-05-05",
   "2026-07-20","2026-08-11","2026-09-21","2026-09-22",
