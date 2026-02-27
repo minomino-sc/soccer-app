@@ -127,7 +127,12 @@ Object.values(events[dateStr]).forEach(teamEvents=>{
   container.appendChild(monthDiv);
 }
 
-document.addEventListener("click",()=>popup.style.display="none");
+//document.addEventListener("click",()=>popup.style.display="none");
+document.addEventListener("click", (e) => {
+  if (!popup.contains(e.target)) {
+    popup.style.display = "none";
+  }
+});
 
 function toggleAdmin(){
   const p=document.getElementById("adminPanel");
