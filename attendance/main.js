@@ -1,3 +1,20 @@
+// 戻るボタン
+const backBtn = document.getElementById("backBtn");
+
+// URL パラメータ取得
+const params = new URLSearchParams(window.location.search);
+
+// パラメータがあればボタンを表示
+if (params.get("from") === "video") {
+  backBtn.style.display = "inline-block";
+
+  // 戻るボタンクリック時の挙動
+  backBtn.addEventListener("click", () => {
+    // GitHub Pages 上の動画共有システムのログイン後トップに戻す
+    window.location.href = "https://minomino-sc.github.io/soccer-app/";
+  });
+}
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
