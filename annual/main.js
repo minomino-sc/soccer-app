@@ -187,7 +187,13 @@ function showPopup(date){
           background:${bgColor};   /* ← 背景色を付ける */
         ">
           <div style="flex:1; line-height:1.4; min-width:0;">
-            <span style="color:#000; font-weight:bold;">チーム${team === "AB" ? "A/B" : team}</span> 
+            <span style="color:#000; font-weight:bold;">
+  ${team === "A" ? "チームA"
+    : team === "B" ? "チームB"
+    : team === "AB" ? "チームA/B"
+    : team === "Z" ? "その他"
+    : `チーム${team}`}
+</span>      
             ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
             <strong>内容:</strong> ${ev.text}<br>
             <strong>場所:</strong> ${ev.location || "未設定"}<br>
