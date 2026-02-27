@@ -11,7 +11,7 @@ if (params.get("from") === "video") {
   // 戻るボタンクリック時の挙動
   backBtn.addEventListener("click", () => {
     // GitHub Pages 上の動画共有システムのURLに戻す
-    window.location.href = "https://minomino-sc.github.io/soccer-app/video/";
+    window.location.href = "https://minomino-sc.github.io/soccer-app/";
   });
 }
 
