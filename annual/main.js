@@ -31,7 +31,8 @@ const typeMap = {
   practice:{emoji:"🟢",label:"練習"},
   official:{emoji:"🔵",label:"公式戦"},
   cup:{emoji:"🟡",label:"カップ戦"},
-  friendly:{emoji:"🟣",label:"交流戦"}
+  friendly:{emoji:"🟣",label:"交流戦"},
+  etc:{emoji:"🔴",label:"その他"}
 };
 
 let events = {};
