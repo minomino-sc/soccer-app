@@ -1,22 +1,18 @@
 // 戻るボタン
 const backBtn = document.getElementById("backBtn");
 
-// ページ読み込み時に履歴をチェック
-window.addEventListener("DOMContentLoaded", () => {
-  // 親システムから遷移してきた場合にのみ表示
-  if (document.referrer.includes("login.html") || document.referrer.includes("video.html")) {
-    backBtn.style.display = "inline-block";
-  }
-});
+// URL パラメータ取得
+const params = new URLSearchParams(window.location.search);
+
+// パラメータがあればボタンを表示
+if (params.get("from") === "video") {
+  backBtn.style.display = "inline-block";
+}
 
 // 戻るボタンクリック時の挙動
 backBtn.addEventListener("click", () => {
-  if (document.referrer) {
-    window.location.href = document.referrer;
-  } else {
-    // 履歴がない場合は安全に親システムに遷移
-    window.location.href = "video.html";
-  }
+  // 常に親システムに戻す
+  window.location.href = "video.html"; 
 });
 
 const holidays = [
