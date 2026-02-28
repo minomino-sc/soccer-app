@@ -312,5 +312,20 @@ window._firebaseFns = { collection, addDoc, setDoc, doc, getDocs, getDoc, update
 import './main.js';
 </script>
 
+<!-- ここに履歴クリア用スクリプトを追加 -->
+<script>
+document.getElementById("clearHistoryBtn")?.addEventListener("click", ()=>{
+  // 入力をクリア
+  document.getElementById("teamNameInput").value = "";
+  document.getElementById("inviteCodeInput").value = "";
+
+  // 履歴候補も消す
+  const suggestions = document.querySelectorAll(".suggestions");
+  suggestions.forEach(el => el.innerHTML = "");
+
+  alert("チーム名・招待コードの履歴をクリアしました");
+});
+</script>
+
 </body>
 </html>
