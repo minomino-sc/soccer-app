@@ -39,10 +39,6 @@
     <div class="row">
       <button id="btnJoin" class="btn primary">登録 ／ ログイン</button>
     </div>
-    <div class="row" style="margin-top:6px;">
-      <button id="clearHistoryBtn" type="button" class="btn danger" style="width:100%;">履歴をクリア</button>
-    </div>
-  
     <p class="muted small">招待コードを使ってチーム共有できます。完全無料の YouTube 限定公開方式です。</p>
   </section>
 
@@ -310,21 +306,6 @@ window._firebaseFns = { collection, addDoc, setDoc, doc, getDocs, getDoc, update
 
 // Firebase 初期化後に main.js を module として読み込む
 import './main.js';
-</script>
-
-<!-- ここに履歴クリア用スクリプトを追加 -->
-<script>
-document.getElementById("clearHistoryBtn")?.addEventListener("click", ()=>{
-  // 入力をクリア
-  document.getElementById("teamNameInput").value = "";
-  document.getElementById("inviteCodeInput").value = "";
-
-  // 履歴候補も消す
-  const suggestions = document.querySelectorAll(".suggestions");
-  suggestions.forEach(el => el.innerHTML = "");
-
-  alert("チーム名・招待コードの履歴をクリアしました");
-});
 </script>
 
 </body>
