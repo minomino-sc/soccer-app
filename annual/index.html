@@ -35,48 +35,54 @@ h1 { white-space: nowrap; }
 }
 </style>
 </head>
+
 <body>
+  
+<div class="header-fixed">
 
-<h1>📅 2026年度 年間スケジュール</h1>
+  <h1>📅 2026年度 年間スケジュール</h1>
 
-<!-- 親システムに戻るボタン -->
-<button id="backBtn" style="display:none; margin-bottom:12px;">← 戻る</button>
+  <!-- 親システムに戻るボタン -->
+  <button id="backBtn" style="display:none; margin-bottom:12px;">← 戻る</button>
 
-<button onclick="toggleAdmin()">管理者モード</button>
+  <button onclick="toggleAdmin()">管理者モード</button>
 
-<div id="adminPanel" style="display:none; margin:15px 0;">
-  <input type="date" id="adminDate">
-<select id="adminTeam">
-  <option value="A">チームA</option>
-  <option value="B">チームB</option>
-  <option value="AB">チームA/B</option>
-  <option value="Z">その他</option>
-</select>
+  <div id="adminPanel" style="display:none; margin:15px 0;">
+    <input type="date" id="adminDate">
+    <select id="adminTeam">
+      <option value="A">チームA</option>
+      <option value="B">チームB</option>
+      <option value="AB">チームA/B</option>
+      <option value="Z">その他</option>
+    </select>
 
-  <select id="adminType">
-    <option value="practice">練習</option>
-    <option value="official">公式戦</option>
-    <option value="cup">カップ戦</option>
-    <option value="friendly">交流戦</option>
-    <option value="etc">その他</option>
-  </select>
-  <input type="text" id="adminText" placeholder="内容">
-  <input type="text" id="adminLocation" placeholder="場所（例：〇〇グラウンド）">
-  <input type="text" id="adminTime" placeholder="時間（例：18:00〜20:00）">  
-  <button onclick="addEvent()">追加</button>
-</div>
+    <select id="adminType">
+      <option value="practice">練習</option>
+      <option value="official">公式戦</option>
+      <option value="cup">カップ戦</option>
+      <option value="friendly">交流戦</option>
+      <option value="etc">その他</option>
+    </select>
 
-<div id="calendarLegend">
-  <span>🟢練習</span>
-  <span>🔵公式戦</span>
-  <span>🟡カップ戦</span>
-  <span>🟣交流戦</span>
-  <span>🔴その他</span>
-</div>
+    <input type="text" id="adminText" placeholder="内容">
+    <input type="text" id="adminLocation" placeholder="場所（例：〇〇グラウンド）">
+    <input type="text" id="adminTime" placeholder="時間（例：18:00〜20:00）">
+    <button onclick="addEvent()">追加</button>
+  </div>
+
+  <div id="calendarLegend">
+    <span>🟢練習</span>
+    <span>🔵公式戦</span>
+    <span>🟡カップ戦</span>
+    <span>🟣交流戦</span>
+    <span>🔴その他</span>
+  </div>
+
+</div> <!-- ← ここで閉じる -->
 
 <div id="calendarContainer"></div>
 <div id="eventPopup"></div>
-
+  
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
