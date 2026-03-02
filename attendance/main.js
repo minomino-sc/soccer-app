@@ -284,8 +284,8 @@ if (teams.length > 0) {
 }
 
 const typeLabel =
-  e.type === "match" ? "⚽試" :
-  e.type === "practice" ? "⚽練" :
+  e.type === "match" ? "試合" :
+  e.type === "practice" ? "練習" :
   e.type === "futsal_match" ? "🥅試" :
   e.type === "futsal_practice" ? "🥅練" :
   "";
