@@ -206,27 +206,37 @@ const monthEvents = events
     e._date.getFullYear() === current.getFullYear() &&
     e._date.getMonth() === current.getMonth()
   )
-  .sort((a, b) => {
 
-    // ① 日付順
-    if (a._date.getTime() !== b._date.getTime()) {
-      return a._date - b._date;
-    }
+.sort((a, b) => {
 
-    // ② 同日なら A を左に
-    const getTeam = e =>
-      Array.isArray(e.targetTeams)
-        ? e.targetTeams[0]
-        : e.targetTeam || "";
+  // ① 日付順
+  if (a._date.getTime() !== b._date.getTime()) {
+    return a._date - b._date;
+  }
 
-    const ta = getTeam(a);
-    const tb = getTeam(b);
+  // ② 競技順（サッカー → フットサル）
+  const isFutsalA = a.type.startsWith("futsal");
+  const isFutsalB = b.type.startsWith("futsal");
 
-    if (ta === "A" && tb !== "A") return -1;
-    if (tb === "A" && ta !== "A") return 1;
+  if (isFutsalA !== isFutsalB) {
+    return isFutsalA ? 1 : -1; 
+    // サッカー(false)を左、フットサル(true)を右
+  }
 
-    return 0;
-  });
+  // ③ 同競技ならチームAを左（←ここは維持）
+  const getTeam = e =>
+    Array.isArray(e.targetTeams)
+      ? e.targetTeams[0]
+      : e.targetTeam || "";
+
+  const ta = getTeam(a);
+  const tb = getTeam(b);
+
+  if (ta === "A" && tb !== "A") return -1;
+  if (tb === "A" && ta !== "A") return 1;
+
+  return 0;
+});
 
   /* ★ チーム集計（PDF用） */
   calcTeamSummary(monthEvents);
