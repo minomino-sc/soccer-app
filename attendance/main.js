@@ -110,14 +110,17 @@ function renderStats(players, monthEvents, logsCache) {
 
       const isCount = (s === "present");
 
-      if (e.type === "practice") {
-        if (s !== "special" && s !== "school") prT++;
-        if (isCount) prH++;
-      }
-      if (e.type === "match") {
-        if (s !== "special" && s !== "school") maT++;
-        if (isCount) maH++;
-      }
+      // 練習（サッカー＋フットサル）
+if (e.type === "practice" || e.type === "futsal_practice") {
+  if (s !== "special" && s !== "school") prT++;
+  if (isCount) prH++;
+}
+
+// 試合（サッカー＋フットサル）
+if (e.type === "match" || e.type === "futsal_match") {
+  if (s !== "special" && s !== "school") maT++;
+  if (isCount) maH++;
+}
     });
 
     const tot = prT + maT;
@@ -153,8 +156,16 @@ function calcTeamSummary(monthEvents) {
 
     teams.forEach(t => {
       if (!summary[t]) return;
-      if (e.type === "practice") summary[t].practice++;
-      if (e.type === "match") summary[t].match++;
+
+      // 練習（サッカー＋フットサル）
+      if (e.type === "practice" || e.type === "futsal_practice") {
+        summary[t].practice++;
+      }
+
+      // 試合（サッカー＋フットサル）
+      if (e.type === "match" || e.type === "futsal_match") {
+        summary[t].match++;
+      }
     });
   });
 
