@@ -186,7 +186,6 @@ async function render() {
         const data = d.data();
         return { id: d.id, ...data, _date: toDate(data.date) };
       })
-      .filter(e => e.type !== "holiday")
       .sort((a, b) => a._date - b._date);
   }
 
@@ -273,13 +272,20 @@ if (teams.length > 0) {
   teamText = "<br><small>" + colored.join(" / ") + "</small>";
 }
 
-    return (
-      "<th class='" + e.type + "'>" +
-        e._date.getDate() + "<br>" +
-        (e.type === "match" ? "試合" : "練習") +
-        teamText +
-      "</th>"
-    );
+const typeLabel =
+  e.type === "match" ? "サッカー試合" :
+  e.type === "practice" ? "サッカー練習" :
+  e.type === "futsal_match" ? "フットサル試合" :
+  e.type === "futsal_practice" ? "フットサル練習" :
+  "";
+
+return (
+  "<th class='" + e.type + "'>" +
+    e._date.getDate() + "<br>" +
+    typeLabel +
+    teamText +
+  "</th>"
+);    
   }).join("");
   table.appendChild(trH);
 
