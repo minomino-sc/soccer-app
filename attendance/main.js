@@ -284,10 +284,10 @@ if (teams.length > 0) {
 }
 
 const typeLabel =
-  e.type === "match" ? "サッカー試合" :
-  e.type === "practice" ? "サッカー練習" :
-  e.type === "futsal_match" ? "フットサル試合" :
-  e.type === "futsal_practice" ? "フットサル練習" :
+  e.type === "match" ? "⚽試" :
+  e.type === "practice" ? "⚽練" :
+  e.type === "futsal_match" ? "🥅試" :
+  e.type === "futsal_practice" ? "🥅練" :
   "";
 
 return (
