@@ -385,6 +385,22 @@ async function addYouTubeVideo(url){
     const { collection, addDoc } = window._firebaseFns;
     const videosCol = collection(db,"videos");
 
+// ★ ここ追加！！
+const { query, where, getDocs } = window._firebaseFns;
+
+const q = query(
+  videosCol,
+  where("teamName","==",team.teamName),
+  where("inviteCode","==",team.inviteCode),
+  where("id","==",id)
+);
+
+const snap = await getDocs(q);
+
+if(!snap.empty){
+  return alert("この動画は既に追加されています（Firestore）");
+}
+ 
     const payload = {
       id, url, title,
       teamName: team.teamName,
