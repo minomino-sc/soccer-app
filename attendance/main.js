@@ -412,3 +412,5 @@ window.exportCSV = function () {
   a.click();
   URL.revokeObjectURL(url);
 };
+
+window.events = events;
