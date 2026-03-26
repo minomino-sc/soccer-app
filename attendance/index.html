@@ -206,6 +206,7 @@ h2{
   <button id="nextMonth">▶</button>
   <button onclick="exportCSV()">CSV出力</button>
   <button id="exportMonthlyPdf">📘 月まとめPDF</button>
+  <button id="exportYearPdf">📙 年まとめPDF</button>
 </div>
 
 <div class="legend">
@@ -296,5 +297,83 @@ document.getElementById("exportMonthlyPdf").addEventListener("click", () => {
 });
 </script>
 
+<!-- ↓↓↓ ここに追加 ↓↓↓ -->
+<script>
+document.getElementById("exportYearPdf").addEventListener("click", async () => {
+
+  const from = prompt("開始年月（例：2026-01）");
+  const to   = prompt("終了年月（例：2026-12）");
+
+  if (!from || !to) return;
+
+  const fromDate = new Date(from + "-01");
+  const toDate   = new Date(to + "-31");
+
+  const yearEvents = window.events.filter(e =>
+    e._date && e._date >= fromDate && e._date <= toDate
+  );
+
+  if (yearEvents.length === 0) {
+    alert("対象データがありません");
+    return;
+  }
+
+  const summary = {
+    A: { practice: 0, match: 0 },
+    B: { practice: 0, match: 0 }
+  };
+
+  yearEvents.forEach(e => {
+    let teams = [];
+
+    if (Array.isArray(e.targetTeams)) {
+      teams = e.targetTeams;
+    } else if (typeof e.targetTeam === "string") {
+      teams = [e.targetTeam];
+    }
+
+    teams.forEach(t => {
+      if (!summary[t]) return;
+
+      if (e.type === "practice" || e.type === "futsal_practice") {
+        summary[t].practice++;
+      }
+
+      if (e.type === "match" || e.type === "futsal_match") {
+        summary[t].match++;
+      }
+    });
+  });
+
+  const cover = document.createElement("div");
+  cover.id = "pdfCover";
+  cover.innerHTML = `
+    <h1>⚽ 箕谷サッカークラブ</h1>
+    <h2>${from} 〜 ${to} 出席率まとめ</h2>
+    <p><strong>練習回数</strong><br>
+      箕谷A：${summary.A.practice} 回 ／ 箕谷B：${summary.B.practice} 回
+    </p>
+    <p><strong>試合回数</strong><br>
+      箕谷A：${summary.A.match} 回 ／ 箕谷B：${summary.B.match} 回
+    </p>
+    <p>作成日：${new Date().toLocaleDateString("ja-JP")}</p>
+  `;
+
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(cover);
+  wrapper.appendChild(document.getElementById("statsPdfArea").cloneNode(true));
+
+  html2pdf()
+    .set({
+      margin:[8,8,10,8],
+      filename:`${from}_${to}_出席率まとめ.pdf`,
+      html2canvas:{ scale:2 },
+      jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
+    })
+    .from(wrapper)
+    .save();
+});
+</script>
+  
 </body>
 </html>
