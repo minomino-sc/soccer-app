@@ -418,7 +418,7 @@ window.players.forEach(p => {
 
   const wrapper = document.createElement("div");
   wrapper.appendChild(cover);
-  wrapper.appendChild(document.getElementById("statsPdfArea").cloneNode(true));
+  wrapper.appendChild(statsWrap);
 
   html2pdf()
     .set({
