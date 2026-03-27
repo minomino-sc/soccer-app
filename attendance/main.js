@@ -548,6 +548,9 @@ async function exportYearPdf() {
       箕谷A：${summary.A.match} 回 ／ 箕谷B：${summary.B.match} 回
     </p>
     <p>作成日：${new Date().toLocaleDateString("ja-JP")}</p>
+  <div class="pdf-note">
+    ※ トレセン・学校行事は出席率の算出対象外です
+  </div> 
   `;
 
   const wrapper = document.createElement("div");
