@@ -374,7 +374,29 @@ window.players.forEach(p => {
     prH, prT, maH, maT
   });
 });
-  
+
+const statsHtml = statsData.map(s => {
+  const prRate = s.prT ? Math.round(s.prH / s.prT * 100) : 0;
+  const maRate = s.maT ? Math.round(s.maH / s.maT * 100) : 0;
+  const totT = s.prT + s.maT;
+  const totH = s.prH + s.maH;
+  const totRate = totT ? Math.round(totH / totT * 100) : 0;
+
+  return `
+    <div class="statsCard">
+      <strong>${s.name}</strong><br>
+      練習：${s.prH}/${s.prT}（${prRate}%）<br>
+      試合：${s.maH}/${s.maT}（${maRate}%）<br>
+      合計：${totH}/${totT}（${totRate}%）
+    </div>
+  `;
+}).join("");
+
+const yearStatsHtml = `<div class="stats">${statsHtml}</div>`;
+
+const yearStatsDiv = document.createElement("div");
+yearStatsDiv.innerHTML = yearStatsHtml;
+
   const summary = {
     A: { practice: 0, match: 0 },
     B: { practice: 0, match: 0 }
@@ -418,7 +440,7 @@ window.players.forEach(p => {
 
   const wrapper = document.createElement("div");
   wrapper.appendChild(cover);
-  wrapper.appendChild(statsWrap);
+  wrapper.appendChild(yearStatsDiv);
 
   html2pdf()
     .set({
