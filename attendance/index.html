@@ -306,12 +306,22 @@ document.getElementById("exportYearPdf").addEventListener("click", async () => {
 
   if (!from || !to) return;
 
-  const fromDate = new Date(from + "-01");
-  const toDate   = new Date(to + "-31");
+/* ★ここ追加 */
+if (!window.events || window.events.length === 0) {
+  alert("データ読込中です。少し待ってから再実行してください");
+  return;
+}
 
-  const yearEvents = window.events.filter(e =>
-    e._date && e._date >= fromDate && e._date <= toDate
-  );
+/* ★ここ修正 */
+const fromDate = new Date(from + "-01T00:00:00");
+
+const toTmp = new Date(to + "-01T00:00:00");
+const toDate = new Date(toTmp.getFullYear(), toTmp.getMonth() + 1, 0);
+
+/* そのまま */
+const yearEvents = window.events.filter(e =>
+  e._date && e._date >= fromDate && e._date <= toDate
+);
 
   if (yearEvents.length === 0) {
     alert("対象データがありません");
