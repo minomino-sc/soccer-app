@@ -367,6 +367,8 @@ return (
   });
 
   renderStats(players, monthEvents, logsCache);
+  window.events = events;
+  
   rendering = false;
 }
 
@@ -412,5 +414,3 @@ window.exportCSV = function () {
   a.click();
   URL.revokeObjectURL(url);
 };
-
-window.events = events;
