@@ -368,6 +368,7 @@ return (
 
   renderStats(players, monthEvents, logsCache);
   window.events = events;
+  window.players = players; // ←これ追加しろ
   
   rendering = false;
 }
