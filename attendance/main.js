@@ -415,3 +415,152 @@ window.exportCSV = function () {
   a.click();
   URL.revokeObjectURL(url);
 };
+
+document.getElementById("exportYearPdf").addEventListener("click", exportYearPdf);
+
+async function exportYearPdf() {
+
+  const from = prompt("開始年月（例：2026-01）");
+  const to   = prompt("終了年月（例：2026-12）");
+  if (!from || !to) return;
+
+  if (!events || events.length === 0) {
+    alert("データ読込中です。少し待ってください");
+    return;
+  }
+
+  // 期間
+  const fromDate = new Date(from + "-01T00:00:00");
+  const toTmp = new Date(to + "-01T00:00:00");
+  const toDate = new Date(toTmp.getFullYear(), toTmp.getMonth() + 1, 0);
+
+  // 対象イベント
+  const yearEvents = events.filter(e =>
+    e._date && e._date >= fromDate && e._date <= toDate
+  );
+
+  if (yearEvents.length === 0) {
+    alert("対象データがありません");
+    return;
+  }
+
+  // ===== ログ取得（←ここが重要：main.jsなら使える）=====
+  const snap = await getDocs(collection(db, "attendance_logs"));
+
+  const logsCache = {};
+  snap.forEach(doc => {
+    const d = doc.data();
+    const key = `${d.eventId}_${d.playerId}`;
+    const t = d.createdAt?.toMillis?.() ?? 0;
+
+    if (!logsCache[key] || t > logsCache[key].time) {
+      logsCache[key] = { status: d.status, time: t };
+    }
+  });
+
+  // ===== 個人成績 =====
+  const statsData = [];
+
+  players.forEach(p => {
+    let prH = 0, prT = 0, maH = 0, maT = 0;
+
+    yearEvents.forEach(e => {
+      const key = `${e.id}_${p.id}`;
+      const s = logsCache[key]?.status;
+
+      if (!s || s === "skip") return;
+
+      const isCount = (s === "present");
+
+      if (e.type === "practice" || e.type === "futsal_practice") {
+        if (s !== "special" && s !== "school") prT++;
+        if (isCount) prH++;
+      }
+
+      if (e.type === "match" || e.type === "futsal_match") {
+        if (s !== "special" && s !== "school") maT++;
+        if (isCount) maH++;
+      }
+    });
+
+    statsData.push({ name: p.name, prH, prT, maH, maT });
+  });
+
+  // ===== HTML生成 =====
+  const statsHtml = statsData.map(s => {
+    const prRate = s.prT ? Math.round(s.prH / s.prT * 100) : 0;
+    const maRate = s.maT ? Math.round(s.maH / s.maT * 100) : 0;
+    const totT = s.prT + s.maT;
+    const totH = s.prH + s.maH;
+    const totRate = totT ? Math.round(totH / totT * 100) : 0;
+
+    return `
+      <div class="statsCard">
+        <strong>${s.name}</strong><br>
+        練習：${s.prH}/${s.prT}（${prRate}%）<br>
+        試合：${s.maH}/${s.maT}（${maRate}%）<br>
+        合計：${totH}/${totT}（${totRate}%）
+      </div>
+    `;
+  }).join("");
+
+  const statsWrap = document.createElement("div");
+  statsWrap.innerHTML = `<div class="stats">${statsHtml}</div>`;
+
+  // ===== チーム集計 =====
+  const summary = {
+    A: { practice: 0, match: 0 },
+    B: { practice: 0, match: 0 }
+  };
+
+  yearEvents.forEach(e => {
+    let teams = [];
+
+    if (Array.isArray(e.targetTeams)) {
+      teams = e.targetTeams;
+    } else if (typeof e.targetTeam === "string") {
+      teams = [e.targetTeam];
+    }
+
+    teams.forEach(t => {
+      if (!summary[t]) return;
+
+      if (e.type === "practice" || e.type === "futsal_practice") {
+        summary[t].practice++;
+      }
+
+      if (e.type === "match" || e.type === "futsal_match") {
+        summary[t].match++;
+      }
+    });
+  });
+
+  // ===== カバー =====
+  const cover = document.createElement("div");
+  cover.id = "pdfCover";
+  cover.innerHTML = `
+    <h1>⚽ 箕谷サッカークラブ</h1>
+    <h2>${from} 〜 ${to} 出席率まとめ</h2>
+    <p><strong>練習回数</strong><br>
+      箕谷A：${summary.A.practice} 回 ／ 箕谷B：${summary.B.practice} 回
+    </p>
+    <p><strong>試合回数</strong><br>
+      箕谷A：${summary.A.match} 回 ／ 箕谷B：${summary.B.match} 回
+    </p>
+    <p>作成日：${new Date().toLocaleDateString("ja-JP")}</p>
+  `;
+
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(cover);
+  wrapper.appendChild(statsWrap);
+
+  html2pdf()
+    .set({
+      margin:[8,8,10,8],
+      filename:`${from}_${to}_出席率まとめ.pdf`,
+      html2canvas:{ scale:2 },
+      jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
+    })
+    .from(wrapper)
+    .save();
+}
