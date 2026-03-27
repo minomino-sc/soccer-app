@@ -322,12 +322,59 @@ const toDate = new Date(toTmp.getFullYear(), toTmp.getMonth() + 1, 0);
 const yearEvents = window.events.filter(e =>
   e._date && e._date >= fromDate && e._date <= toDate
 );
-
+  
   if (yearEvents.length === 0) {
     alert("対象データがありません");
     return;
   }
 
+/* ★ここに追加（ログ取得） */
+const snap = await getDocs(collection(db, "attendance_logs"));
+
+const logsCache = {};
+
+snap.forEach(doc => {
+  const d = doc.data();
+  const key = `${d.eventId}_${d.playerId}`;
+  const t = d.createdAt?.toMillis?.() ?? 0;
+
+  if (!logsCache[key] || t > logsCache[key].time) {
+    logsCache[key] = { status: d.status, time: t };
+  }
+});
+
+/* ↓このあとに summary や 個人成績 */
+const statsData = [];
+
+window.players.forEach(p => {
+
+  let prH = 0, prT = 0, maH = 0, maT = 0;
+
+  yearEvents.forEach(e => {
+    const key = `${e.id}_${p.id}`;
+    const s = logsCache[key]?.status;
+
+    if (!s || s === "skip") return;
+
+    const isCount = (s === "present");
+
+    if (e.type === "practice" || e.type === "futsal_practice") {
+      if (s !== "special" && s !== "school") prT++;
+      if (isCount) prH++;
+    }
+
+    if (e.type === "match" || e.type === "futsal_match") {
+      if (s !== "special" && s !== "school") maT++;
+      if (isCount) maH++;
+    }
+  });
+
+  statsData.push({
+    name: p.name,
+    prH, prT, maH, maT
+  });
+});
+  
   const summary = {
     A: { practice: 0, match: 0 },
     B: { practice: 0, match: 0 }
