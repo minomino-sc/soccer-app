@@ -123,8 +123,9 @@ h1{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
+import { getFirestore, doc, getDoc, setDoc, increment } 
+from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+ 
 // あなたのFirebase設定
 const firebaseConfig = {
   apiKey: "★★★★★",
@@ -139,9 +140,9 @@ const db = getFirestore(app);
 const ref = doc(db, "app", "menu");
 
 try {
-  await updateDoc(ref, {
-    views: increment(1)
-  });
+ await setDoc(ref, {
+  views: increment(1)
+}, { merge: true });
 
   const snap = await getDoc(ref);
   const count = snap.data().views;
