@@ -44,7 +44,7 @@ db.collection("calendar_events")
     events = {};
     snapshot.forEach(doc => {
       const data = doc.data();
-      const {date, team, type, text, location, time} = data; // ← location と time を追加
+      const {date, team, type, text, location, time, driveUrl} = data; // ← location と time を追加
 
       if (!events[date]) events[date] = {};
       if (!events[date][team]) events[date][team] = [];
@@ -55,6 +55,7 @@ db.collection("calendar_events")
         text,
         location,
         time,
+        driveUrl, // ←追加
         id: doc.id
       });
     });
