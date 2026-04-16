@@ -146,6 +146,7 @@ async function addEvent(){
   const text = document.getElementById("adminText").value;
   const location = document.getElementById("adminLocation").value;
   const time = document.getElementById("adminTime").value;
+  const driveUrl = document.getElementById("adminDrive").value;
 
   if (!date || !text) {
     alert("日付と内容は必須です");
@@ -159,6 +160,7 @@ async function addEvent(){
     text,
     location,  // 追加
     time,      // 追加
+    driveUrl, // ←追加
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 
