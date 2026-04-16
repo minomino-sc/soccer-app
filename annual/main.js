@@ -207,7 +207,7 @@ function showPopup(date){
             ${typeMap[ev.type].emoji} ${typeMap[ev.type].label}<br>
             <strong>内容:</strong> ${ev.text}<br>
             <strong>場所:</strong> ${ev.location || "未設定"}<br>
-            <strong>時間:</strong> ${ev.time || "未設定"}
+            <strong>時間:</strong> ${ev.time || "未設定"}<br>
 
 ${ev.driveUrl ? `
   <a href="${ev.driveUrl}" target="_blank"
