@@ -214,8 +214,6 @@ function showPopup(date){
             <strong>場所:</strong> ${ev.location || "未設定"}<br>
             <strong>時間:</strong> ${ev.time || "未設定"}<br>
 
-<strong>時間:</strong> ${ev.time || "未設定"}<br>
-
 <div style="margin-top:6px;">
 ${(ev.driveUrls || []).map((url, index) => `
   <a href="${url}" target="_blank"
@@ -233,7 +231,8 @@ ${(ev.driveUrls || []).map((url, index) => `
     📄 資料${index + 1}
   </a>
 `).join("")}
-   
+ </div>
+ 
           </div>
           <div style="flex-shrink:0; display:flex; flex-direction:column; gap:4px; margin-left:8px;">
             <button style="
