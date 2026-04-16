@@ -209,7 +209,3 @@ h1 {
 #adminPanel textarea {
   min-height: 60px;     /* ↓ 小さくする（80 → 60） */
 }
-
-#adminPanel input[type="date"] {
-  width: 100%;
-}
