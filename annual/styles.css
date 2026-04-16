@@ -137,11 +137,15 @@ h1 {
 }
 
 .edit-box input,
+.edit-box textarea,
 .edit-box select {
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .edit-buttons {
