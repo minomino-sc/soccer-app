@@ -231,7 +231,6 @@ ${(ev.driveUrls || []).map((url, index) => `
     📄 資料${index + 1}
   </a>
 `).join("")}
- </div>
  
           </div>
           <div style="flex-shrink:0; display:flex; flex-direction:column; gap:4px; margin-left:8px;">
