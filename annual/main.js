@@ -157,17 +157,17 @@ async function addEvent(){
     return;
   }
 
-  await db.collection("calendar_events").add({
-    date,
-    team,
-    type,
-    text,
-    location,  // 追加
-    time,      // 追加
-    driveUrls, // ←追加
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
+await db.collection("calendar_events").add({
+  date: date,
+  team: team,
+  type: type,
+  text: text,
+  location: location,
+  time: time,
+  driveUrls: driveUrls, // ←明示する
+  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+});
+  
 // リセット（これが正解）
 document.getElementById("adminDate").value = "";
 document.getElementById("adminText").value = "";
