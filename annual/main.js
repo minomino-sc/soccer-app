@@ -147,7 +147,9 @@ async function addEvent(){
   const text = document.getElementById("adminText").value;
   const location = document.getElementById("adminLocation").value;
   const time = document.getElementById("adminTime").value;
-  const driveUrls = document.getElementById("adminFileUrl").value
+const raw = document.getElementById("adminFileUrl").value || "";
+
+const driveUrls = raw
   .split("\n")
   .map(v => v.trim())
   .filter(v => v !== "");
