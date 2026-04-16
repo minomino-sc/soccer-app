@@ -39,7 +39,7 @@ let events = {};
 
 // 🔥 Firestoreリアルタイム同期
 db.collection("calendar_events")
-  .orderBy("createdAt","asc")
+  //.orderBy("createdAt","asc")
   .onSnapshot(snapshot => {
     events = {};
     snapshot.forEach(doc => {
