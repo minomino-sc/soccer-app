@@ -206,6 +206,23 @@ function showPopup(date){
             <strong>内容:</strong> ${ev.text}<br>
             <strong>場所:</strong> ${ev.location || "未設定"}<br>
             <strong>時間:</strong> ${ev.time || "未設定"}
+
+${ev.driveUrl ? `
+  <a href="${ev.driveUrl}" target="_blank"
+    style="
+      display:inline-block;
+      margin-top:6px;
+      padding:4px 8px;
+      background:#2a8cff;
+      color:#fff;
+      border-radius:4px;
+      text-decoration:none;
+      font-size:12px;
+    ">
+    📄 資料を見る
+  </a>
+` : ""}
+            
           </div>
           <div style="flex-shrink:0; display:flex; flex-direction:column; gap:4px; margin-left:8px;">
             <button style="
