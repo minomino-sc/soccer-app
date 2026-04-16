@@ -196,9 +196,9 @@ h1 {
 #adminPanel select {
   display: block;
   width: 100%;
-  margin-top: 6px;
-  margin-bottom: 10px;
-  padding: 6px;
+  margin-top: 4px;      /* ↓ 少し詰める */
+  margin-bottom: 6px;   /* ↓ 少し詰める */
+  padding: 4px 6px;     /* ↓ 高さをコンパクトに */
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 14px;
@@ -207,5 +207,5 @@ h1 {
 }
 
 #adminPanel textarea {
-  min-height: 80px;
+  min-height: 60px;     /* ↓ 小さくする（80 → 60） */
 }
