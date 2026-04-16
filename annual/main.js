@@ -147,7 +147,7 @@ async function addEvent(){
   const text = document.getElementById("adminText").value;
   const location = document.getElementById("adminLocation").value;
   const time = document.getElementById("adminTime").value;
-  const driveUrl = document.getElementById("adminDrive").value;
+  const driveUrl = document.getElementById("adminFileUrl").value;
 
   if (!date || !text) {
     alert("日付と内容は必須です");
