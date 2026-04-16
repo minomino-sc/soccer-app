@@ -300,6 +300,10 @@ async function editEvent(e, date, team, index){
       <label>時間</label>
       <input type="text" id="editTime" value="${ev.time || ""}">
 
+// 👇 ここに追加
+<label>資料URL</label>
+<input type="text" id="editDriveUrl" value="${ev.driveUrl || ""}">
+
       <div class="edit-buttons">
         <button class="save-btn" onclick="saveEdit('${ev.id}')">保存</button>
         <button class="cancel-btn" onclick="popup.style.display='none'">キャンセル</button>
