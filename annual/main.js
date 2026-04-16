@@ -323,6 +323,7 @@ async function saveEdit(id){
   const newText = document.getElementById("editText").value;
   const newLocation = document.getElementById("editLocation").value;
   const newTime = document.getElementById("editTime").value;
+  const newDriveUrl = document.getElementById("editDriveUrl").value;
 
   await db.collection("calendar_events").doc(id).update({
     team: newTeam,
@@ -330,6 +331,7 @@ async function saveEdit(id){
     text: newText,
     location: newLocation,
     time: newTime
+    driveUrl: newDriveUrl // ← これ追加
   });
 
   popup.style.display = "none";
