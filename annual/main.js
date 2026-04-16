@@ -300,7 +300,6 @@ async function editEvent(e, date, team, index){
       <label>時間</label>
       <input type="text" id="editTime" value="${ev.time || ""}">
 
-// 👇 ここに追加
 <label>資料URL</label>
 <input type="text" id="editDriveUrl" value="${ev.driveUrl || ""}">
 
