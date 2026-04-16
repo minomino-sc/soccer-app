@@ -165,10 +165,12 @@ async function addEvent(){
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 
-  adminDate.value = "";
-  adminText.value = "";
-  adminLocation.value = "";
-  adminTime.value = "";
+// リセット（これが正解）
+document.getElementById("adminDate").value = "";
+document.getElementById("adminText").value = "";
+document.getElementById("adminLocation").value = "";
+document.getElementById("adminTime").value = "";
+document.getElementById("adminFileUrl").value = "";
 }
 
 function showPopup(date){
