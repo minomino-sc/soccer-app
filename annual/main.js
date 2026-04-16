@@ -329,8 +329,8 @@ async function saveEdit(id){
     type: newType,
     text: newText,
     location: newLocation,
-    time: newTime
-    driveUrl: newDriveUrl // ← これ追加
+    time: newTime,
+    driveUrl: newDriveUrl
   });
 
   popup.style.display = "none";
