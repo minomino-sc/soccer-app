@@ -148,6 +148,9 @@ async function addEvent(){
   const location = document.getElementById("adminLocation").value;
   const time = document.getElementById("adminTime").value;
   const driveUrl = document.getElementById("adminFileUrl").value;
+  .split("\n")
+  .map(v => v.trim())
+  .filter(v => v !== "");
 
   if (!date || !text) {
     alert("日付と内容は必須です");
@@ -161,7 +164,7 @@ async function addEvent(){
     text,
     location,  // 追加
     time,      // 追加
-    driveUrl, // ←追加
+    driveUrls, // ←追加
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 
@@ -301,7 +304,7 @@ async function editEvent(e, date, team, index){
       <input type="text" id="editTime" value="${ev.time || ""}">
 
 <label>資料URL</label>
-<input type="text" id="editDriveUrl" value="${ev.driveUrl || ""}">
+<textarea id="editDriveUrls">${(ev.driveUrls || []).join("\n")}</textarea>
 
       <div class="edit-buttons">
         <button class="save-btn" onclick="saveEdit('${ev.id}')">保存</button>
@@ -322,7 +325,10 @@ async function saveEdit(id){
   const newText = document.getElementById("editText").value;
   const newLocation = document.getElementById("editLocation").value;
   const newTime = document.getElementById("editTime").value;
-  const newDriveUrl = document.getElementById("editDriveUrl").value;
+  const newDriveUrls = document.getElementById("editDriveUrls").value
+  .split("\n")
+  .map(v => v.trim())
+  .filter(v => v !== "");
 
   await db.collection("calendar_events").doc(id).update({
     team: newTeam,
@@ -330,7 +336,7 @@ async function saveEdit(id){
     text: newText,
     location: newLocation,
     time: newTime,
-    driveUrl: newDriveUrl
+    driveUrls: newDriveUrls
   });
 
   popup.style.display = "none";
