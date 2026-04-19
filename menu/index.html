@@ -72,6 +72,65 @@ h1{
   display:block;
   margin-bottom:10px;
 }
+ 
+/* =========================
+   Instagram フッター（完成版）
+========================= */
+
+.footer-insta{
+  text-align:center;
+  margin-top:20px;
+  opacity:0.8;
+}
+
+/* 上の細いライン */
+.insta-line{
+  width:60%;
+  height:1px;
+  margin:0 auto 12px;
+  background:rgba(255,255,255,0.3);
+}
+
+/* リンク全体 */
+.footer-insta a{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  color:#ccc;
+  transition:0.3s;
+}
+
+/* チーム名 */
+.team-name{
+  font-size:14px;
+  font-weight:bold;
+  letter-spacing:1px;
+}
+
+/* FOLLOW US */
+.follow-text{
+  font-size:11px;
+  letter-spacing:2px;
+}
+
+/* アイコン */
+.insta-icon{
+  font-size:14px;
+}
+
+/* タップ時 */
+.footer-insta a:active{
+  transform:scale(0.95);
+}
+
+/* ホバーでインスタ風グラデーション */
+.footer-insta a:hover{
+  background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+} 
+
 </style>
 </head>
 
