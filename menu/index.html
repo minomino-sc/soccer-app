@@ -74,36 +74,35 @@ h1{
 }
  
 /* =========================
-   Instagram フッター（完成版）
+   Instagram フッター（改善版）
 ========================= */
 
 .footer-insta{
   text-align:center;
-  margin-top:20px;
-  opacity:0.8;
+  margin-top:40px;   /* ←ここでしっかり離す */
+  padding-bottom:20px;
 }
 
-/* 上の細いライン */
+/* 上のライン */
 .insta-line{
-  width:60%;
+  width:50%;
   height:1px;
-  margin:0 auto 12px;
-  background:rgba(255,255,255,0.3);
+  margin:0 auto 20px;  /* ←下に余白 */
+  background:rgba(255,255,255,0.2);
 }
 
-/* リンク全体 */
+/* リンク */
 .footer-insta a{
   display:inline-flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
   text-decoration:none;
-  color:#ccc;
-  transition:0.3s;
+  color:#fff;   /* ←白に変更（青っぽさ消す） */
 }
 
 /* チーム名 */
 .team-name{
-  font-size:14px;
+  font-size:16px;
   font-weight:bold;
   letter-spacing:1px;
 }
@@ -111,25 +110,25 @@ h1{
 /* FOLLOW US */
 .follow-text{
   font-size:11px;
+  opacity:0.7;   /* ←控えめにする */
   letter-spacing:2px;
 }
 
 /* アイコン */
 .insta-icon{
-  font-size:14px;
+  font-size:16px;
+  opacity:0.8;
 }
 
-/* タップ時 */
+/* タップ */
 .footer-insta a:active{
   transform:scale(0.95);
 }
 
-/* ホバーでインスタ風グラデーション */
+/* ホバー（スマホでも一応効く） */
 .footer-insta a:hover{
-  background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-} 
+  opacity:0.7;
+}
 
 </style>
 </head>
