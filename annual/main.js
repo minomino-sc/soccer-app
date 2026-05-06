@@ -65,12 +65,18 @@ db.collection("calendar_events")
 
 function renderCalendar(){
   container.innerHTML="";
+
   for(let m=4;m<=12;m++) createMonth(m,year);
   for(let m=1;m<=3;m++) createMonth(m,year+1);
+
+  scrollToCurrentMonth();
 }
 
 function createMonth(month,y){
   const monthDiv=document.createElement("div");
+
+  monthDiv.id = `month-${y}-${month}`;
+
   const title=document.createElement("h2");
   title.textContent=`${y}年 ${month}月`;
   monthDiv.appendChild(title);
@@ -355,4 +361,25 @@ async function deleteEvent(e, date, team, index){
     // 🔥 削除後にポップアップを再描画
     showPopup(date);
   }
+  
 }
+    
+function scrollToCurrentMonth(){
+
+  const now = new Date();
+
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const target = document.getElementById(
+    `month-${currentYear}-${currentMonth}`
+  );
+
+  if(target){
+    target.scrollIntoView({
+      behavior: "auto",
+      block: "start"
+    });
+  }
+}
+  
