@@ -382,4 +382,10 @@ function scrollToCurrentMonth(){
     });
   }
 }
-  
+
+function toggleLegend(){
+  const box = document.getElementById("legendBox");
+
+  box.style.display =
+    box.style.display === "none" ? "block" : "none";
+}
