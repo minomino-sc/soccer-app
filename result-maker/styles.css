@@ -4,7 +4,7 @@ body{
 
   display:flex;
   justify-content:center;
-  align-items:flex-start;
+align-items:center;
 
   overflow:auto;
 }
@@ -21,7 +21,7 @@ body{
 
   transform-origin:top center;
 
-  transform:scale(0.36);
+  transform:scale(0.58);
 }
 
 /* =====================
