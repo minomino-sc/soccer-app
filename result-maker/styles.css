@@ -1,1 +1,212 @@
+body{
+  margin:0;
+  background:#111;
+  font-family:sans-serif;
 
+  display:flex;
+  justify-content:center;
+
+  padding:20px;
+}
+
+/* ポスター全体 */
+#poster{
+  width:1080px;
+  height:1350px;
+
+  background:#000;
+
+  position:relative;
+
+  overflow:hidden;
+}
+
+/* =====================
+   上部
+===================== */
+
+.top-area{
+  position:relative;
+  width:100%;
+  height:42%;
+}
+
+.top-photo{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+/* エンブレム */
+.logo{
+  position:absolute;
+
+  top:30px;
+  left:30px;
+
+  width:140px;
+  height:140px;
+
+  object-fit:cover;
+
+  border-radius:50%;
+
+  background:#fff;
+}
+
+/* 大会名 */
+.tournament{
+  position:absolute;
+
+  top:40px;
+  left:200px;
+
+  color:#fff;
+
+  font-size:42px;
+  font-weight:bold;
+
+  text-shadow:0 4px 10px rgba(0,0,0,0.7);
+}
+
+/* 日付 */
+.date{
+  position:absolute;
+
+  top:100px;
+  left:200px;
+
+  color:#fff;
+
+  font-size:60px;
+  font-weight:900;
+
+  text-shadow:0 4px 10px rgba(0,0,0,0.7);
+}
+
+/* =====================
+   中央
+===================== */
+
+.center-area{
+  position:absolute;
+
+  top:36%;
+  left:0;
+
+  width:100%;
+  height:33%;
+
+  background:rgba(0,0,0,0.82);
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+
+  z-index:5;
+}
+
+/* 試合結果 */
+.title{
+  color:#fff;
+
+  font-size:90px;
+  font-weight:900;
+
+  margin-bottom:10px;
+}
+
+/* VS */
+.vs-label{
+  color:#fff;
+
+  font-size:40px;
+  font-weight:bold;
+}
+
+/* 相手 */
+.opponent{
+  color:#fff;
+
+  font-size:58px;
+  font-weight:bold;
+
+  margin-bottom:20px;
+}
+
+/* WIN */
+.result{
+  font-size:120px;
+  font-weight:900;
+
+  transform:rotate(-8deg);
+
+  margin-bottom:10px;
+}
+
+/* 勝ち */
+.win{
+  color:#ffd700;
+}
+
+/* 負け */
+.lose{
+  color:#ff4d4d;
+}
+
+/* 引き分け */
+.draw{
+  color:#ddd;
+}
+
+/* スコア */
+.score{
+  color:#fff;
+
+  font-size:220px;
+  font-weight:900;
+
+  line-height:1;
+
+  text-shadow:0 8px 20px rgba(0,0,0,0.6);
+}
+
+/* =====================
+   下部
+===================== */
+
+.bottom-area{
+  position:absolute;
+
+  bottom:0;
+  left:0;
+
+  width:100%;
+  height:35%;
+}
+
+.bottom-photo{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+}
+
+/* 下情報 */
+.info-box{
+  position:absolute;
+
+  bottom:40px;
+  left:40px;
+
+  color:#fff;
+
+  font-size:48px;
+  font-weight:bold;
+
+  line-height:1.8;
+
+  text-shadow:0 4px 10px rgba(0,0,0,0.7);
+}
