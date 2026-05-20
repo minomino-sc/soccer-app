@@ -11,8 +11,9 @@ body{
 
 /* ポスター全体 */
 #poster{
-  width:1080px;
-  height:1350px;
+  width:min(100vw,1080px);
+
+  aspect-ratio:1080 / 1350;
 
   background:#000;
 
