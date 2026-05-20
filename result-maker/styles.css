@@ -321,3 +321,31 @@ body{
 
   z-index:10;
 }
+
+#brush-blue,
+#white-light {
+  z-index: 1;
+}
+
+#gradient {
+  z-index: 2;
+}
+
+.top-photo {
+  z-index: 3;
+}
+
+.logo {
+  z-index: 20;
+}
+
+.title,
+.date,
+.vs-label,
+.opponent,
+.result,
+.score,
+.scorer,
+.record {
+  z-index: 30;
+}
