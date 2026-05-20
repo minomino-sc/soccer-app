@@ -1,33 +1,27 @@
 body{
   margin:0;
   background:#111;
-  font-family:sans-serif;
-
   display:flex;
   justify-content:center;
-
-  padding:0px;
+  font-family:sans-serif;
 }
 
-/* ポスター全体 */
 #poster{
-  width:min(100vw,1080px);
-
-  height:auto;
-
-  aspect-ratio:1080 / 1350;
-
-  background:#000;
-
   position:relative;
+
+  width:min(100vw,1080px);
+  aspect-ratio:1080/1350;
+
+  background:#fff;
 
   overflow:hidden;
 }
 
 /* =====================
-   上部
+   上写真
 ===================== */
-.top-area{
+
+.top-photo{
   position:absolute;
 
   top:0;
@@ -35,184 +29,225 @@ body{
 
   width:100%;
   height:42%;
-}
-
-.top-photo{
-  width:100%;
-  height:100%;
 
   object-fit:cover;
 }
 
-/* エンブレム */
+/* =====================
+   エンブレム
+===================== */
+
 .logo{
   position:absolute;
 
-  top:30px;
-  left:30px;
+  top:25px;
+  left:25px;
 
   width:140px;
-  height:140px;
 
-  object-fit:cover;
-
-  border-radius:50%;
-
-  background:#fff;
+  z-index:10;
 }
 
-/* 大会名 */
+/* =====================
+   大会名
+===================== */
+
 .tournament{
   position:absolute;
 
-  top:40px;
-  left:200px;
+  top:500px;
+  right:40px;
 
+  background:#c40000;
   color:#fff;
+
+  padding:10px 24px;
 
   font-size:42px;
   font-weight:bold;
 
-  text-shadow:0 4px 10px rgba(0,0,0,0.7);
+  border-radius:10px;
+
+  z-index:20;
 }
 
-/* 日付 */
+/* =====================
+   試合結果
+===================== */
+
+.title{
+  position:absolute;
+
+  left:40px;
+  top:560px;
+
+  color:#0b2c84;
+
+  font-size:120px;
+  font-weight:900;
+
+  z-index:20;
+}
+
+/* =====================
+   日付
+===================== */
+
 .date{
   position:absolute;
 
-  top:100px;
-  left:200px;
-
-  color:#fff;
-
-  font-size:60px;
-  font-weight:900;
-
-  text-shadow:0 4px 10px rgba(0,0,0,0.7);
-}
-
-/* =====================
-   中央
-===================== */
-
-.center-area{
-  position:absolute;
-
-  top:34%;
-  left:0;
-
-  width:100%;
-  height:38%;
-
-  background:rgba(0,0,0,0.82);
-
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-
-  z-index:5;
-}
-
-/* 試合結果 */
-.title{
-  color:#fff;
-
-  font-size:64px;
-  font-weight:900;
-
-  margin-bottom:10px;
-}
-
-/* VS */
-.vs-label{
-  color:#fff;
-
-  font-size:40px;
-  font-weight:bold;
-}
-
-/* 相手 */
-.opponent{
-  color:#fff;
-
-  font-size:58px;
-  font-weight:bold;
-
-  margin-bottom:20px;
-}
-
-/* WIN */
-.result{
-  font-size:90px;
-  font-weight:900;
-
-  transform:rotate(-8deg);
-
-  margin-bottom:10px;
-}
-
-/* 勝ち */
-.win{
-  color:#ffd700;
-}
-
-/* 負け */
-.lose{
-  color:#ff4d4d;
-}
-
-/* 引き分け */
-.draw{
-  color:#ddd;
-}
-
-/* スコア */
-.score{
-  color:#fff;
-
-  font-size:180px;
-  font-weight:900;
-
-  line-height:1;
-
-  text-shadow:0 8px 20px rgba(0,0,0,0.6);
-}
-
-/* =====================
-   下部
-===================== */
-
-.bottom-area{
-  position:absolute;
-
-  bottom:0;
-  left:0;
-
-  width:100%;
-  height:28%;
-}
-
-.bottom-photo{
-  width:100%;
-  height:100%;
-
-  object-fit:cover;
-}
-
-/* 下情報 */
-.info-box{
-  position:absolute;
-
-  bottom:40px;
   left:40px;
+  top:760px;
 
+  background:#0b2c84;
   color:#fff;
+
+  padding:10px 20px;
+
+  border-radius:10px;
 
   font-size:48px;
   font-weight:bold;
 
-  line-height:1.8;
+  z-index:20;
+}
 
-  text-shadow:0 4px 10px rgba(0,0,0,0.7);
+/* =====================
+   VS
+===================== */
+
+.vs-label{
+  position:absolute;
+
+  left:320px;
+  top:790px;
+
+  font-size:52px;
+  font-weight:bold;
+
+  color:#0b2c84;
+
+  z-index:20;
+}
+
+/* =====================
+   相手
+===================== */
+
+.opponent{
+  position:absolute;
+
+  left:420px;
+  top:780px;
+
+  font-size:58px;
+  font-weight:bold;
+
+  color:#0b2c84;
+
+  z-index:20;
+}
+
+/* =====================
+   WIN
+===================== */
+
+.result{
+  position:absolute;
+
+  left:60px;
+  top:860px;
+
+  font-size:150px;
+  font-weight:900;
+
+  transform:rotate(-8deg);
+
+  z-index:20;
+}
+
+.win{
+  color:#d4a000;
+}
+
+/* =====================
+   スコア
+===================== */
+
+.score{
+  position:absolute;
+
+  right:60px;
+  top:820px;
+
+  font-size:260px;
+  font-weight:900;
+
+  color:#0b2c84;
+
+  line-height:1;
+
+  z-index:20;
+}
+
+/* =====================
+   円陣写真
+===================== */
+
+.bottom-photo{
+  position:absolute;
+
+  left:40px;
+  bottom:70px;
+
+  width:360px;
+  height:260px;
+
+  object-fit:cover;
+
+  z-index:10;
+}
+
+/* =====================
+   得点者
+===================== */
+
+.scorer{
+  position:absolute;
+
+  left:40px;
+  bottom:20px;
+
+  font-size:36px;
+  font-weight:bold;
+
+  color:#0b2c84;
+
+  z-index:20;
+}
+
+/* =====================
+   通算成績
+===================== */
+
+.record{
+  position:absolute;
+
+  right:40px;
+  bottom:40px;
+
+  background:#fff;
+
+  border:6px solid #0b2c84;
+
+  border-radius:20px;
+
+  padding:20px 30px;
+
+  font-size:42px;
+  font-weight:bold;
+
+  color:#0b2c84;
+
+  z-index:20;
 }
