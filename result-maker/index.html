@@ -1,101 +1,92 @@
 <!doctype html>
 <html lang="ja">
-
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>試合結果</title>
+<title>試合結果ポスター</title>
 
-<style>
+<link rel="stylesheet" href="style.css">
 
-body{
-  margin:0;
-  background:#111;
-  display:flex;
-  justify-content:center;
-  padding:20px;
-  font-family:sans-serif;
-}
-
-#poster{
-  width:1080px;
-  height:1350px;
-
-  border-radius:20px;
-  overflow:hidden;
-  position:relative;
-}
-
-.bg{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-
-  position:absolute;
-  inset:0;
-  z-index:0;
-}
-
-.title{
-  color:white;
-  font-size:120px;
-  font-weight:bold;
-  text-align:center;
-  margin-top:100px;
-
-  position:relative;
-  z-index:1;
-}
-
-.score{
-  color:#fff;
-  font-size:220px;
-  font-weight:bold;
-  text-align:center;
-  margin-top:80px;
-
-  position:relative;
-  z-index:1;
-}
-
-.win{
-  color:gold;
-  font-size:140px;
-  font-weight:bold;
-  text-align:center;
-  transform:rotate(-8deg);
-  margin-top:30px;
-
-  position:relative;
-  z-index:1;
-}
-
-</style>
 </head>
 
 <body>
 
 <div id="poster">
 
-<img
-src="https://raw.githubusercontent.com/minomino-sc/soccer-app/main/result-maker/IMG_4575.jpeg"
-class="bg"
->
+  <!-- 上部 -->
+  <div class="top-area">
 
-<div class="title">
-試合結果
+    <img
+      src="assets/IMG_4575.jpeg"
+      class="top-photo"
+    >
+
+    <img
+      src="assets/IMG_2508.jpeg"
+      class="logo"
+    >
+
+    <div class="tournament">
+      神戸市北地区1A
+    </div>
+
+    <div class="date">
+      5/17 SUN
+    </div>
+
+  </div>
+
+  <!-- 中央 -->
+  <div class="center-area">
+
+    <div class="title">
+      試合結果
+    </div>
+
+    <div class="vs-label">
+      VS
+    </div>
+
+    <div class="opponent">
+      夢野の丘SC-B
+    </div>
+
+    <div class="result win">
+      WIN!
+    </div>
+
+    <div class="score">
+      1-0
+    </div>
+
+  </div>
+
+  <!-- 下部 -->
+  <div class="bottom-area">
+
+    <img
+      src="assets/IMG_4994.jpeg"
+      class="bottom-photo"
+    >
+
+    <div class="info-box">
+
+      <div class="scorer">
+        得点者　リョウタ
+      </div>
+
+      <div class="record">
+        通算成績　5勝3敗
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
 
-<div class="score">
-1-0
-</div>
-
-<div class="win">
-WIN!
-</div>
-
-</div>
+<script src="main.js"></script>
 
 </body>
 </html>
