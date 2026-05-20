@@ -276,7 +276,7 @@ body{
   left:-80px;
   width:600px;
   height:400px;
-  background:rgba(42,140,255,0.25);
+  background: rgba(42,140,255,0.55);
   filter:blur(40px);
   border-radius:50%;
 }
@@ -287,7 +287,7 @@ body{
   right:-200px;
   width:500px;
   height:500px;
-  background:rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.35);
   filter:blur(60px);
   border-radius:50%;
 }
@@ -297,8 +297,8 @@ body{
   inset:0;
   background:linear-gradient(
     to bottom,
-    rgba(0,0,0,0.15),
-    rgba(0,0,0,0.55)
+    rgba(0,0,0,0.05),
+    rgba(0,0,0,0.35)
   );
 }
 
