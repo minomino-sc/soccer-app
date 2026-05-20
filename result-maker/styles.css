@@ -98,11 +98,11 @@ body{
 .center-area{
   position:absolute;
 
-  top:42%;
+  top:34%;
   left:0;
 
   width:100%;
-  height:23%;
+  height:38%;
 
   background:rgba(0,0,0,0.82);
 
@@ -118,7 +118,7 @@ body{
 .title{
   color:#fff;
 
-  font-size:90px;
+  font-size:64px;
   font-weight:900;
 
   margin-bottom:10px;
@@ -144,7 +144,7 @@ body{
 
 /* WIN */
 .result{
-  font-size:120px;
+  font-size:90px;
   font-weight:900;
 
   transform:rotate(-8deg);
@@ -171,7 +171,7 @@ body{
 .score{
   color:#fff;
 
-  font-size:220px;
+  font-size:180px;
   font-weight:900;
 
   line-height:1;
@@ -190,7 +190,7 @@ body{
   left:0;
 
   width:100%;
-  height:35%;
+  height:28%;
 }
 
 .bottom-photo{
