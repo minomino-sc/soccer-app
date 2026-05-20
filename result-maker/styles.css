@@ -1,20 +1,27 @@
 body{
   margin:0;
   background:#111;
+
   display:flex;
   justify-content:center;
-  font-family:sans-serif;
+  align-items:flex-start;
+
+  overflow:auto;
 }
 
 #poster{
   position:relative;
 
-  width:min(100vw,1080px);
-  aspect-ratio:1080/1350;
+  width:1080px;
+  height:1350px;
 
   background:#fff;
 
   overflow:hidden;
+
+  transform-origin:top center;
+
+  transform:scale(0.36);
 }
 
 /* =====================
