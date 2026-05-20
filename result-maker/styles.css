@@ -27,9 +27,12 @@ body{
 /* =====================
    上部
 ===================== */
-
 .top-area{
-  position:relative;
+  position:absolute;
+
+  top:0;
+  left:0;
+
   width:100%;
   height:42%;
 }
@@ -95,11 +98,11 @@ body{
 .center-area{
   position:absolute;
 
-  top:36%;
+  top:42%;
   left:0;
 
   width:100%;
-  height:33%;
+  height:23%;
 
   background:rgba(0,0,0,0.82);
 
