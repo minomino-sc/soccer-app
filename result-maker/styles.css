@@ -121,6 +121,10 @@ body{
   top:800px;
   right:70px;
 
+  display:flex;
+  justify-content:center;
+  gap:40px;
+
   color:#0b2c84;
 
   font-size:210px;
