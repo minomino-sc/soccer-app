@@ -50,13 +50,15 @@ body{
 .date{
   position:absolute;
 
-  top:790px;
-  left:58px;
+  top:792px;
+  left:52px;
 
   color:#fff;
 
-  font-size:48px;
+  font-size:54px;
   font-weight:bold;
+
+  line-height:1.1;
 
   z-index:30;
 }
@@ -68,12 +70,14 @@ body{
 .opponent{
   position:absolute;
 
-  top:870px;
-  left:430px;
+  top:822px;
+  left:300px;
+
+  width:420px;
 
   color:#0b2c84;
 
-  font-size:58px;
+  font-size:44px;
   font-weight:bold;
 
   z-index:30;
@@ -86,10 +90,10 @@ body{
 .result{
   position:absolute;
 
-  top:980px;
-  left:60px;
+  top:900px;
+  left:70px;
 
-  font-size:130px;
+  font-size:120px;
   font-weight:900;
 
   transform:rotate(-8deg);
@@ -116,12 +120,12 @@ body{
 .score{
   position:absolute;
 
-  top:930px;
-  right:60px;
+  top:800px;
+  right:70px;
 
   color:#0b2c84;
 
-  font-size:240px;
+  font-size:210px;
   font-weight:900;
 
   line-height:1;
@@ -136,11 +140,11 @@ body{
 .bottom-photo{
   position:absolute;
 
-  left:40px;
-  bottom:80px;
+  left:205px;
+  bottom:110px;
 
-  width:430px;
-  height:300px;
+  width:300px;
+  height:220px;
 
   object-fit:cover;
 
@@ -154,12 +158,12 @@ body{
 .scorer{
   position:absolute;
 
-  left:115px;
-  bottom:72px;
+  left:78px;
+  bottom:118px;
 
   color:#0b2c84;
 
-  font-size:34px;
+  font-size:28px;
   font-weight:bold;
 
   z-index:30;
@@ -172,12 +176,12 @@ body{
 .record{
   position:absolute;
 
-  right:95px;
-  bottom:120px;
+  right:70px;
+  bottom:108px;
 
   color:#0b2c84;
 
-  font-size:54px;
+  font-size:44px;
   font-weight:bold;
 
   z-index:30;
