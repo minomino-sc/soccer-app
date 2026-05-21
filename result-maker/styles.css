@@ -201,16 +201,16 @@ body{
 .tournament{
   position:absolute;
 
-  top:712px;
-  right:88px;
+  top:680px;
+  right:85px;
 
-  width:310px;
+  width:320px;
 
   text-align:center;
 
-  color:#fff;
+  color:#1e90ff;
 
-  font-size:40px;
+  font-size:42px;
   font-weight:bold;
 
   transform:rotate(-5deg);
