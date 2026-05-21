@@ -36,67 +36,11 @@ body{
   left:0;
 
   width:100%;
-  height:44%;
+  height:500px;
 
   object-fit:cover;
-}
 
-/* =====================
-   エンブレム
-===================== */
-
-.logo{
-  position:absolute;
-
-  top:30px;
-  left:30px;
-
-  width:120px;
-
-  z-index:20;
-}
-
-/* =====================
-   大会名
-===================== */
-
-.tournament{
-  position:absolute;
-
-  top:540px;
-  right:40px;
-
-  background:#c40000;
-  color:#fff;
-
-  padding:12px 28px;
-
-  border-radius:10px;
-
-  font-size:42px;
-  font-weight:bold;
-
-  z-index:30;
-}
-
-/* =====================
-   試合結果
-===================== */
-
-.title{
-  position:absolute;
-
-  top:610px;
-  left:40px;
-
-  color:#0b2c84;
-
-  font-size:110px;
-  font-weight:900;
-
-  line-height:1;
-
-  z-index:30;
+  z-index:2;
 }
 
 /* =====================
@@ -107,34 +51,11 @@ body{
   position:absolute;
 
   top:790px;
-  left:40px;
+  left:58px;
 
-  background:#0b2c84;
   color:#fff;
 
-  padding:10px 22px;
-
-  border-radius:10px;
-
   font-size:48px;
-  font-weight:bold;
-
-  z-index:30;
-}
-
-/* =====================
-   VS
-===================== */
-
-.vs-label{
-  position:absolute;
-
-  top:885px;
-  left:320px;
-
-  color:#0b2c84;
-
-  font-size:52px;
   font-weight:bold;
 
   z-index:30;
@@ -233,8 +154,8 @@ body{
 .scorer{
   position:absolute;
 
-  left:40px;
-  bottom:30px;
+  left:115px;
+  bottom:72px;
 
   color:#0b2c84;
 
@@ -251,16 +172,8 @@ body{
 .record{
   position:absolute;
 
-  right:40px;
-  bottom:70px;
-
-  background:#fff;
-
-  border:6px solid #0b2c84;
-
-  border-radius:20px;
-
-  padding:20px 30px;
+  right:95px;
+  bottom:120px;
 
   color:#0b2c84;
 
@@ -268,25 +181,6 @@ body{
   font-weight:bold;
 
   z-index:30;
-}
-
-.top-photo {
-  z-index: 2;
-}
-
-.logo {
-  z-index: 20;
-}
-
-.title,
-.date,
-.vs-label,
-.opponent,
-.result,
-.score,
-.scorer,
-.record {
-  z-index: 30;
 }
 
 #template{
