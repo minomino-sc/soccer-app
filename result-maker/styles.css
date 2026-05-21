@@ -32,11 +32,11 @@ body{
 .top-photo{
   position:absolute;
 
-  top:0;
-  left:0;
+  top:86px;
+  left:45px;
 
-  width:100%;
-  height:500px;
+  width:990px;
+  height:455px;
 
   object-fit:cover;
 
@@ -70,14 +70,12 @@ body{
 .opponent{
   position:absolute;
 
-  top:822px;
-  left:300px;
-
-  width:420px;
+  top:820px;
+  left:365px;
 
   color:#0b2c84;
 
-  font-size:44px;
+  font-size:58px;
   font-weight:bold;
 
   z-index:30;
@@ -90,10 +88,10 @@ body{
 .result{
   position:absolute;
 
-  top:900px;
-  left:70px;
+  top:925px;
+  left:55px;
 
-  font-size:120px;
+  font-size:130px;
   font-weight:900;
 
   transform:rotate(-8deg);
@@ -140,11 +138,11 @@ body{
 .bottom-photo{
   position:absolute;
 
-  left:205px;
-  bottom:110px;
+  left:190px;
+  bottom:98px;
 
-  width:300px;
-  height:220px;
+  width:330px;
+  height:245px;
 
   object-fit:cover;
 
@@ -159,11 +157,11 @@ body{
   position:absolute;
 
   left:78px;
-  bottom:118px;
+  bottom:112px;
 
   color:#0b2c84;
 
-  font-size:28px;
+  font-size:34px;
   font-weight:bold;
 
   z-index:30;
@@ -198,4 +196,24 @@ body{
   object-fit:cover;
 
   z-index:1;
+}
+
+.tournament{
+  position:absolute;
+
+  top:712px;
+  right:88px;
+
+  width:310px;
+
+  text-align:center;
+
+  color:#fff;
+
+  font-size:40px;
+  font-weight:bold;
+
+  transform:rotate(-5deg);
+
+  z-index:30;
 }
