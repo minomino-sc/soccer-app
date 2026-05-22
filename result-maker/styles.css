@@ -72,12 +72,12 @@ body{
 .opponent{
   position:absolute;
 
-  top:820px;
-  left:365px;
+  top:800px;
+  left:380px;
 
   color:#0b2c84;
 
-  font-size:58px;
+  font-size:50px;
   font-weight:bold;
 
   z-index:30;
