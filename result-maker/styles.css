@@ -166,12 +166,12 @@ body{
 .scorer{
   position:absolute;
 
-  left:60px;
+  left:40px;
   bottom:160px;
 
   color:#0b2c84;
 
-  font-size:34px;
+  font-size:25px;
   font-weight:bold;
 
   z-index:30;
