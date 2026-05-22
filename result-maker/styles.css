@@ -92,7 +92,7 @@ body{
 .result{
   position:absolute;
 
-  top:900px;
+  top:890px;
   left:190px;
 
   font-size:130px;
@@ -184,8 +184,8 @@ body{
 .record{
   position:absolute;
 
-  right:70px;
-  bottom:108px;
+  right:90px;
+  bottom:80px;
 
   color:#0b2c84;
 
