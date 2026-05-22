@@ -92,7 +92,7 @@ body{
 .result{
   position:absolute;
 
-  top:880px;
+  top:870px;
   left:190px;
 
   font-size:130px;
@@ -166,8 +166,8 @@ body{
 .scorer{
   position:absolute;
 
-  left:100px;
-  bottom:px;160
+  left:60px;
+  bottom:160px;
 
   color:#0b2c84;
 
