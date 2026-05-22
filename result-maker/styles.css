@@ -166,8 +166,8 @@ body{
 .scorer{
   position:absolute;
 
-  left:100px;
-  bottom:100px;
+  left:60px;
+  bottom:140px;
 
   color:#0b2c84;
 
@@ -184,8 +184,8 @@ body{
 .record{
   position:absolute;
 
-  right:90px;
-  bottom:80px;
+  right:50px;
+  bottom:140px;
 
   color:#0b2c84;
 
