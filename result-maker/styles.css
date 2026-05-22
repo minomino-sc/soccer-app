@@ -81,6 +81,8 @@ body{
   font-weight:bold;
 
   z-index:30;
+
+  transform: rotate(-5deg);
 }
 
 /* =====================
@@ -135,6 +137,8 @@ body{
   line-height:1;
 
   z-index:30;
+  
+  transform: rotate(5deg);
 }
 
 /* =====================
