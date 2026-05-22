@@ -82,7 +82,7 @@ body{
 
   z-index:30;
 
-  transform: rotate(-5deg);
+  transform: rotate(-3deg);
 }
 
 /* =====================
@@ -138,7 +138,7 @@ body{
 
   z-index:30;
   
-  transform: rotate(5deg);
+  transform: rotate(2deg);
 }
 
 /* =====================
