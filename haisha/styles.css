@@ -9,9 +9,6 @@ color:#fff;
 padding:20px;
 }
 
-.overlay{
-padding:20px;
-
 /* ←ここに入れる（ここがベスト） */
 .form-card{
   max-width:500px;
@@ -39,8 +36,12 @@ input, select{
   border-radius:12px;
   font-size:16px;
   box-sizing:border-box;
+
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
 }
- 
+  
 h1{
 text-align:center;
 margin-bottom:20px;
