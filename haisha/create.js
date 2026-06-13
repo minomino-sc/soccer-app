@@ -1,7 +1,7 @@
 document
-.getElementById(“saveBtn”)
-.addEventListener(“click”, () => {
+  .getElementById("saveBtn")
+  .addEventListener("click", () => {
 
-alert("保存機能は次で実装します");
+    alert("保存機能は次で実装します");
 
-});
+  });
