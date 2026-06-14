@@ -77,7 +77,7 @@ async function loadEvent(id) {
       </div>
 
       <div class="event-meta">
-        ⏰ 回答締切：${data.deadline ?? ""}
+        ⏰ 回答締切：${formatDateTime(data.deadline)}
       </div>
 
     </div>
