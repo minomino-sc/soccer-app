@@ -109,3 +109,29 @@ font-size:14px;
   background: rgba(255,255,255,0.05);
   border-radius: 12px;
 }
+
+/* =========================
+   過去イベントスタイル
+========================= */
+.event-card.past {
+  opacity: 0.45;
+  filter: grayscale(100%);
+  background: rgba(255,255,255,0.04);
+}
+
+.event-card.past .event-title {
+  color: #aaa;
+}
+
+.event-card.past .event-team {
+  color: #6aa9ff;
+  opacity: 0.6;
+}
+
+.event-card.past .event-meta {
+  opacity: 0.6;
+}
+
+.event-card.past .event-status {
+  opacity: 0.6;
+}
