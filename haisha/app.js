@@ -88,6 +88,13 @@ async function render() {
     const card = document.createElement("div");
     card.className = "event-card";
 
+// =========================
+// 詳細画面へ
+// =========================
+card.addEventListener("click", () => {
+  window.location.href = `event.html?id=${docSnap.id}`;
+});
+    
     if (isPast) {
       card.classList.add("past");
     }
@@ -116,16 +123,22 @@ async function render() {
     // =========================
     // 編集
     // =========================
-    card.querySelector(".edit-btn").addEventListener("click", () => {
-      localStorage.setItem("editId", docSnap.id);
-      window.location.href = "create.html";
-    });
+card.querySelector(".edit-btn").addEventListener("click", (e) => {
+
+  e.stopPropagation();
+
+  localStorage.setItem("editId", docSnap.id);
+  window.location.href = "create.html";
+
+});
 
     // =========================
     // 削除
     // =========================
-    card.querySelector(".delete-btn").addEventListener("click", async () => {
+card.querySelector(".delete-btn").addEventListener("click", async (e) => {
 
+  e.stopPropagation();
+      
       if (!confirm("削除していいですか？")) return;
 
       await deleteDoc(doc(db, "car_dispatch_events", docSnap.id));
