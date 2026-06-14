@@ -142,3 +142,15 @@ font-size:14px;
 .event-card.past .event-status {
   opacity: 0.6;
 }
+
+.menu-card{
+  margin-top:12px;
+}
+
+.menu-card .event-title{
+  font-size:18px;
+}
+
+.menu-card:active{
+  transform:scale(0.98);
+}
