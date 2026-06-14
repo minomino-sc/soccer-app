@@ -15,15 +15,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   // =========================
   // キャンセルボタン
   // =========================
-  const cancelBtn = document.getElementById("cancelBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 
-if (cancelBtn) {
+if (!cancelBtn) {
+  console.error("cancelBtnが見つからない");
+} else {
   cancelBtn.addEventListener("click", () => {
+    console.log("cancel clicked");
     localStorage.removeItem("editId");
     window.location.href = "index.html";
   });
 }
-
+  
   // =========================
   // 編集ならデータ取得
   // =========================
