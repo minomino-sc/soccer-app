@@ -96,3 +96,9 @@ font-weight:bold;
 margin-top:10px;
 font-size:14px;
 }
+
+.event-meta {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
