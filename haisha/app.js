@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const q = query(
       collection(db, "car_dispatch_events"),
-      orderBy("createdAt", "desc")
+      orderBy("date", "asc")
     );
 
     const snapshot = await getDocs(q);
