@@ -36,20 +36,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       const card = document.createElement("div");
       card.className = "event-card";
 
-      card.innerHTML = `
-        <div class="event-date">${data.date ?? ""}</div>
-        <div class="event-title">${data.title ?? ""}</div>
-        <div class="event-team">${data.target ?? ""}</div>
+card.innerHTML = `
+  <div class="event-date">📅 ${data.date ?? ""}</div>
 
-        <div class="event-status">
-          回答締切：${data.deadline ?? ""}
-        </div>
+  <div class="event-title">${data.title ?? ""}</div>
 
-        <div class="event-actions">
-          <button class="edit-btn" data-id="${docSnap.id}">編集</button>
-          <button class="delete-btn" data-id="${docSnap.id}">削除</button>
-        </div>
-      `;
+  <div class="event-team">👥 ${data.target ?? ""}</div>
+
+  <div class="event-meta">
+    📍 集合場所：${data.meetingPlace ?? ""}
+  </div>
+
+  <div class="event-meta">
+    🕒 集合時間：${data.meetingTime ?? ""}
+  </div>
+
+  <div class="event-meta">
+    🚗 出発時間：${data.departureTime ?? ""}
+  </div>
+
+  <div class="event-status">
+    ⏰ 回答締切：${data.deadline ?? ""}
+  </div>
+
+  <div class="event-actions">
+    <button class="edit-btn" data-id="${docSnap.id}">編集</button>
+    <button class="delete-btn" data-id="${docSnap.id}">削除</button>
+  </div>
+`;      
 
       card.querySelector(".edit-btn").addEventListener("click", () => {
   const id = docSnap.id;
