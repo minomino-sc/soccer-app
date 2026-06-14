@@ -20,6 +20,7 @@ const id = params.get("id");
 
 if (!id) {
 
+
   document.getElementById("eventDetail").innerHTML = `
   <div class="event-card">
 
