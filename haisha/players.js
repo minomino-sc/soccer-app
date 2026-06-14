@@ -44,3 +44,14 @@ export const COACH_B = [
   "入江コーチ",
   "西川コーチ"
 ];
+
+// =========================
+// 苗字取得
+// =========================
+export function getFamilyName(name) {
+
+  if (!name) return "";
+
+  return name.split(" ")[0];
+
+}
