@@ -51,12 +51,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       `;
 
-card.querySelector(".edit-btn").addEventListener("click", (e) => {
-  const id = e.target.dataset.id;
+      card.querySelector(".edit-btn").addEventListener("click", () => {
+  const id = docSnap.id;
 
   localStorage.setItem("editId", id);
   window.location.href = "create.html";
-});
+});    
 
       // =========================
       // 削除処理（ここに追加）
