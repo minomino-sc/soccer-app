@@ -10,6 +10,12 @@ import {
 
 console.log("haisha loaded");
 
+// 👇ここに追加
+function formatDateTime(value) {
+  if (!value) return "";
+  return value.replace("T", " ");
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
 
   const createBtn = document.getElementById("createBtn");
@@ -56,7 +62,7 @@ card.innerHTML = `
   </div>
 
   <div class="event-status">
-    ⏰ 回答締切：${data.deadline ?? ""}
+    ⏰ 回答締切：${formatDateTime(data.deadline)}
   </div>
 
   <div class="event-actions">
