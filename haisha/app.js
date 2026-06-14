@@ -61,16 +61,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       // =========================
       // 削除処理（ここに追加）
       // =========================
-      card.querySelector(".delete-btn").addEventListener("click", async (e) => {
-        const id = e.target.dataset.id;
+      card.querySelector(".delete-btn").addEventListener("click", async () => {
 
-        if (!confirm("削除していい？")) return;
+  const id = docSnap.id;
 
-        await deleteDoc(doc(db, "car_dispatch_events", id));
+  if (!confirm("削除していいですか？")) return;
 
-        alert("削除しました");
-        location.reload();
-      });
+  await deleteDoc(doc(db, "car_dispatch_events", id));
+
+  alert("削除しました");
+  location.reload();
+});  
 
       list.appendChild(card);
     });
