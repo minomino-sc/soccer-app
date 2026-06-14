@@ -21,10 +21,66 @@ const id = params.get("id");
 if (!id) {
 
   document.getElementById("eventDetail").innerHTML = `
-    <div class="event-card">
-      IDがありません
+  <div class="event-card">
+
+    <div class="event-title">
+      ${data.title ?? ""}
     </div>
-  `;
+
+    <div class="event-meta">
+      📅 ${data.date ?? ""}
+    </div>
+
+    <div class="event-meta">
+      👥 ${data.target ?? ""}
+    </div>
+
+    <div class="event-meta">
+      📍 会場：${data.venue ?? ""}
+    </div>
+
+    <div class="event-meta">
+      🏫 集合場所：${data.meetingPlace ?? ""}
+    </div>
+
+    <div class="event-meta">
+      🕒 集合時間：${data.meetingTime ?? ""}
+    </div>
+
+    <div class="event-meta">
+      🚗 出発時間：${data.departureTime ?? ""}
+    </div>
+
+    <div class="event-meta">
+      🏁 解散予定：${data.dismissTime ?? ""}
+    </div>
+
+    <div class="event-meta">
+      ⏰ 回答締切：${formatDateTime(data.deadline)}
+    </div>
+
+  </div>
+
+  <div class="event-card menu-card">
+    <div class="event-title">👨‍👩‍👧‍👦 保護者回答</div>
+    <div class="event-meta">回答数 0 / 0</div>
+  </div>
+
+  <div class="event-card menu-card">
+    <div class="event-title">🧑‍🏫 コーチ回答</div>
+    <div class="event-meta">回答数 0 / 0</div>
+  </div>
+
+  <div class="event-card menu-card">
+    <div class="event-title">🧑 試合当番</div>
+    <div class="event-meta">未設定</div>
+  </div>
+
+  <div class="event-card menu-card">
+    <div class="event-title">🚗 配車作成</div>
+    <div class="event-meta">未作成</div>
+  </div>
+`;
 
 } else {
 
