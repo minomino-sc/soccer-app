@@ -98,11 +98,11 @@ async function loadEvent(id) {
 
     </div>
 
-    <div class="event-card menu-card">
-      <div class="event-title">👨‍👩‍👧‍👦 保護者回答</div>
-      <div class="event-meta">回答数 0 / 0</div>
-    </div>
-
+<div class="event-card menu-card" id="parentMenu">
+  <div class="event-title">👨‍👩‍👧‍👦 保護者回答</div>
+  <div class="event-meta">回答数 0 / 0</div>
+</div>
+    
     <div class="event-card menu-card">
       <div class="event-title">🧑‍🏫 コーチ回答</div>
       <div class="event-meta">回答数 0 / 0</div>
@@ -119,4 +119,14 @@ async function loadEvent(id) {
     </div>
 
   `;
+
+  document
+  .getElementById("parentMenu")
+  .addEventListener("click", () => {
+
+    window.location.href =
+      `parent.html?id=${id}`;
+
+  });
+  
 }
