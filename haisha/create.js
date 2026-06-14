@@ -13,6 +13,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const editId = localStorage.getItem("editId");
 
   // =========================
+  // キャンセルボタン
+  // =========================
+  const cancelBtn = document.getElementById("cancelBtn");
+
+if (cancelBtn) {
+  cancelBtn.addEventListener("click", () => {
+    localStorage.removeItem("editId");
+    window.location.href = "index.html";
+  });
+}
+
+  // =========================
   // 編集ならデータ取得
   // =========================
   if (editId) {
