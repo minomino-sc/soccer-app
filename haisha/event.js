@@ -6,6 +6,19 @@ import {
 
 console.log("event loaded");
 
+// =========================
+// 日時フォーマット
+// =========================
+function formatDateTime(value) {
+
+  if (!value) return "";
+
+  const d = new Date(value);
+
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+
+}
+
 // URLの ?id= を取得
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
