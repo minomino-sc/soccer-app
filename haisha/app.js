@@ -12,18 +12,12 @@ console.log("haisha loaded");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // =========================
-  // 新規作成ボタン
-  // =========================
   const createBtn = document.getElementById("createBtn");
 
   createBtn.addEventListener("click", () => {
     window.location.href = "create.html";
   });
 
-  // =========================
-  // Firestore読み込み
-  // =========================
   const list = document.getElementById("eventList");
 
   try {
@@ -36,8 +30,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     list.innerHTML = "";
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
       const card = document.createElement("div");
       card.className = "event-card";
@@ -46,10 +40,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div class="event-date">${data.date ?? ""}</div>
         <div class="event-title">${data.title ?? ""}</div>
         <div class="event-team">${data.target ?? ""}</div>
+
         <div class="event-status">
           回答締切：${data.deadline ?? ""}
         </div>
+
+        <div class="event-actions">
+          <button class="edit-btn" data-id="${docSnap.id}">編集</button>
+          <button class="delete-btn" data-id="${docSnap.id}">削除</button>
+        </div>
       `;
+
+      // =========================
+      // 削除処理（ここに追加）
+      // =========================
+      card.querySelector(".delete-btn").addEventListener("click", async (e) => {
+        const id = e.target.dataset.id;
+
+        if (!confirm("削除していい？")) return;
+
+        await deleteDoc(doc(db, "car_dispatch_events", id));
+
+        alert("削除しました");
+        location.reload();
+      });
 
       list.appendChild(card);
     });
