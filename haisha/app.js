@@ -10,12 +10,22 @@ import {
 
 console.log("haisha loaded");
 
-// 👇ここに追加
+// =========================
+// 日付フォーマット
+// =========================
 function formatDateTime(value) {
   if (!value) return "";
   return value.replace("T", " ");
 }
 
+// =========================
+// 状態（タブ管理）
+// =========================
+let showPast = false;
+
+// =========================
+// DOM読み込み後
+// =========================
 document.addEventListener("DOMContentLoaded", async () => {
 
   const createBtn = document.getElementById("createBtn");
@@ -24,75 +34,106 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "create.html";
   });
 
-  const list = document.getElementById("eventList");
+  // タブ
+  const tabUpcoming = document.getElementById("tabUpcoming");
+  const tabPast = document.getElementById("tabPast");
 
-  try {
-    const q = query(
-      collection(db, "car_dispatch_events"),
-      orderBy("date", "asc")
-    );
-
-    const snapshot = await getDocs(q);
-
-    list.innerHTML = "";
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      const card = document.createElement("div");
-      card.className = "event-card";
-
-card.innerHTML = `
-
-  <div class="event-date">📅 ${data.date ?? ""}</div>
-
-  <div class="event-title">${data.title ?? ""}</div>
-
-  <div class="event-team">👥 ${data.target ?? ""}</div>
-
-  <div class="event-block">
-    <div class="event-meta">📍 集合：${data.meetingPlace ?? ""}</div>
-    <div class="event-meta">🕒 集合：${data.meetingTime ?? ""}</div>
-    <div class="event-meta">🚗 出発：${data.departureTime ?? ""}</div>
-  </div>
-
-  <div class="event-status">
-    ⏰ 締切：${formatDateTime(data.deadline)}
-  </div>
-
-  <div class="event-actions">
-    <button class="edit-btn" data-id="${docSnap.id}">編集</button>
-    <button class="delete-btn" data-id="${docSnap.id}">削除</button>
-  </div>
-`;
-    
-      card.querySelector(".edit-btn").addEventListener("click", () => {
-  const id = docSnap.id;
-
-  localStorage.setItem("editId", id);
-  window.location.href = "create.html";
-});    
-
-      // =========================
-      // 削除処理（ここに追加）
-      // =========================
-      card.querySelector(".delete-btn").addEventListener("click", async () => {
-
-  const id = docSnap.id;
-
-  if (!confirm("削除していいですか？")) return;
-
-  await deleteDoc(doc(db, "car_dispatch_events", id));
-
-  alert("削除しました");
-  location.reload();
-});  
-
-      list.appendChild(card);
+  if (tabUpcoming) {
+    tabUpcoming.addEventListener("click", () => {
+      showPast = false;
+      render();
     });
-
-  } catch (error) {
-    console.error("読み込み失敗:", error);
   }
 
+  if (tabPast) {
+    tabPast.addEventListener("click", () => {
+      showPast = true;
+      render();
+    });
+  }
+
+  // 初回表示
+  await render();
 });
+
+// =========================
+// 描画関数
+// =========================
+async function render() {
+
+  const list = document.getElementById("eventList");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  const q = query(
+    collection(db, "car_dispatch_events"),
+    orderBy("date", "asc")
+  );
+
+  const snapshot = await getDocs(q);
+
+  const now = new Date();
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    const eventDate = new Date(data.date);
+    const isPast = eventDate < now;
+
+    // タブフィルタ
+    if (!showPast && isPast) return;
+    if (showPast && !isPast) return;
+
+    const card = document.createElement("div");
+    card.className = "event-card";
+
+    if (isPast) {
+      card.classList.add("past");
+    }
+
+    card.innerHTML = `
+      <div class="event-date">📅 ${data.date ?? ""}</div>
+      <div class="event-title">${data.title ?? ""}</div>
+      <div class="event-team">👥 ${data.target ?? ""}</div>
+
+      <div class="event-block">
+        <div class="event-meta">📍 集合：${data.meetingPlace ?? ""}</div>
+        <div class="event-meta">🕒 集合：${data.meetingTime ?? ""}</div>
+        <div class="event-meta">🚗 出発：${data.departureTime ?? ""}</div>
+      </div>
+
+      <div class="event-status">
+        ⏰ 締切：${formatDateTime(data.deadline)}
+      </div>
+
+      <div class="event-actions">
+        <button class="edit-btn" data-id="${docSnap.id}">編集</button>
+        <button class="delete-btn" data-id="${docSnap.id}">削除</button>
+      </div>
+    `;
+
+    // =========================
+    // 編集
+    // =========================
+    card.querySelector(".edit-btn").addEventListener("click", () => {
+      localStorage.setItem("editId", docSnap.id);
+      window.location.href = "create.html";
+    });
+
+    // =========================
+    // 削除
+    // =========================
+    card.querySelector(".delete-btn").addEventListener("click", async () => {
+
+      if (!confirm("削除していいですか？")) return;
+
+      await deleteDoc(doc(db, "car_dispatch_events", docSnap.id));
+
+      alert("削除しました");
+      render();
+    });
+
+    list.appendChild(card);
+  });
+}
