@@ -126,8 +126,8 @@ async function loadAnswers() {
     if (data.meetingType === "集合場所集合") {
       meetingCount++;
     }
-
-    if (data.canDrive === "可能") {
+    
+    if (data.canDrive === "○") {
       driveYes++;
       totalSeats +=
         Number(data.capacity || 0);
