@@ -211,15 +211,6 @@ async function loadEvent(id) {
       </div>
     </div>
 
-    <div class="event-card menu-card" id="parentMenu">
-      <div class="event-title">
-        👨‍👩‍👧‍👦 保護者回答
-      </div>
-      <div class="event-meta">
-        回答数 ${answered} / ${total}
-      </div>
-    </div>
-
     <div class="event-card menu-card" id="answerListBtn">
       <div class="event-title">
         📝 保護者回答一覧
