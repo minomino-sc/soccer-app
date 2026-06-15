@@ -147,11 +147,11 @@ async function loadEvent(id) {
       </div>
     </div>
 
-    <div class="event-card menu-card">
-      <div class="event-title">🧑‍🏫 コーチ回答</div>
-      <div class="event-meta">未対応</div>
-    </div>
-
+<div class="event-card menu-card" id="coachMenu">
+  <div class="event-title">🧑‍🏫 コーチ回答</div>
+  <div class="event-meta">回答する</div>
+</div>
+    
     <div class="event-card menu-card">
       <div class="event-title">🧑 試合当番</div>
       <div class="event-meta">未設定</div>
@@ -176,6 +176,18 @@ async function loadEvent(id) {
 
     });
 
+// =========================
+// コーチ回答へ遷移
+// =========================
+document
+  .getElementById("coachMenu")
+  .addEventListener("click", () => {
+
+    window.location.href =
+      `coach.html?id=${id}`;
+
+  });
+  
   // =========================
   // 回答一覧へ遷移
   // =========================
