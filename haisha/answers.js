@@ -1,10 +1,13 @@
 import { db } from "./firebase.js";
+import { TEAM_A, TEAM_B } from "./players.js";
+
 import {
   collection,
   query,
   where,
   getDocs,
-  orderBy
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =========================
@@ -32,46 +35,129 @@ async function loadAnswers() {
   const list = document.getElementById("answerList");
   list.innerHTML = "読み込み中...";
 
+  // =========================
+  // イベント取得
+  // =========================
+  const eventRef = doc(
+    db,
+    "car_dispatch_events",
+    eventId
+  );
+
+  const eventSnap = await getDoc(eventRef);
+
+  if (!eventSnap.exists()) {
+
+    list.innerHTML = "イベントが見つかりません";
+    return;
+
+  }
+
+  const eventData = eventSnap.data();
+
+  // =========================
+  // 対象選手取得
+  // =========================
+  let targetPlayers = [];
+
+  if (eventData.target === "箕谷A") {
+    targetPlayers = TEAM_A;
+  }
+
+  if (eventData.target === "箕谷B") {
+    targetPlayers = TEAM_B;
+  }
+
+  if (eventData.target === "箕谷A/B") {
+    targetPlayers = [...TEAM_A, ...TEAM_B];
+  }
+
+  // =========================
+  // 回答取得
+  // =========================
   const q = query(
     collection(db, "parent_answers"),
-    where("eventId", "==", eventId),
+    where("eventId", "==", eventId)
   );
 
   const snap = await getDocs(q);
 
-  if (snap.empty) {
-    list.innerHTML = "まだ回答がありません";
-    return;
-  }
+  const answeredPlayers = [];
 
   let html = "";
 
-  snap.forEach(docSnap => {
+  if (!snap.empty) {
 
-    const data = docSnap.data();
+    snap.forEach(docSnap => {
 
-    html += `
-      <div class="event-card">
+      const data = docSnap.data();
 
-        <div class="event-title">
-          ${data.playerName}
+      answeredPlayers.push(data.playerName);
+
+      html += `
+        <div class="event-card">
+
+          <div class="event-title">
+            ${data.playerName}
+          </div>
+
+          <div class="event-meta">
+            出欠：${data.attendance}
+          </div>
+
+          <div class="event-meta">
+            備考：${data.note || "なし"}
+          </div>
+
+          <div class="event-meta">
+            時刻：${new Date(
+              data.createdAt
+            ).toLocaleString()}
+          </div>
+
         </div>
+      `;
 
-        <div class="event-meta">
-          出欠：${data.attendance}
-        </div>
+    });
 
-        <div class="event-meta">
-          備考：${data.note || "なし"}
-        </div>
+  }
 
-        <div class="event-meta">
-          時刻：${new Date(data.createdAt).toLocaleString()}
-        </div>
+  // =========================
+  // 未回答者計算
+  // =========================
+  const notAnswered =
+    targetPlayers.filter(
+      player =>
+        !answeredPlayers.includes(player)
+    );
 
+  // =========================
+  // 未回答者表示
+  // =========================
+  html += `
+    <div class="event-card">
+
+      <div class="event-title">
+        ⚠️ 未回答者 (${notAnswered.length})
       </div>
-    `;
-  });
+
+      ${
+        notAnswered.length > 0
+          ? notAnswered.map(name => `
+              <div class="event-meta">
+                ${name}
+              </div>
+            `).join("")
+          : `
+              <div class="event-meta">
+                全員回答済み
+              </div>
+            `
+      }
+
+    </div>
+  `;
 
   list.innerHTML = html;
+
 }
