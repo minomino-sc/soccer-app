@@ -211,12 +211,39 @@ async function loadEvent(id) {
       </div>
     </div>
 
+    <div class="event-card menu-card" id="parentMenu">
+      <div class="event-title">
+        👨‍👩‍👧‍👦 保護者回答
+      </div>
+      <div class="event-meta">
+        回答数 ${answered} / ${total}
+      </div>
+    </div>
+
+    <div class="event-card menu-card" id="answerListBtn">
+      <div class="event-title">
+        📝 保護者回答一覧
+      </div>
+      <div class="event-meta">
+        保護者回答を見る
+      </div>
+    </div>
+
     <div class="event-card menu-card" id="coachMenu">
       <div class="event-title">
         🧑‍🏫 コーチ回答
       </div>
       <div class="event-meta">
         回答数 ${coachAnswered} / ${coachTotal}
+      </div>
+    </div>
+
+    <div class="event-card menu-card" id="coachAnswerListBtn">
+      <div class="event-title">
+        📝 コーチ回答一覧
+      </div>
+      <div class="event-meta">
+        コーチ回答を見る
       </div>
     </div>
 
