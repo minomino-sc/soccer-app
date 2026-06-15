@@ -126,14 +126,22 @@ async function loadAnswers() {
     if (data.meetingType === "集合場所集合") {
       meetingCount++;
     }
-    
-    if (data.canDrive === "○") {
-      driveYes++;
-      totalSeats +=
-        Number(data.capacity || 0);
-    } else {
-      driveNo++;
-    }
+
+if (
+  data.canDrive === "○" ||
+  data.canDrive === "◯"
+) {
+
+  driveYes++;
+
+  totalSeats +=
+    Number(data.capacity || 0);
+
+} else {
+
+  driveNo++;
+
+}
 
     html += `
       <div class="event-card">
