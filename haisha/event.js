@@ -302,4 +302,26 @@ async function loadEvent(id) {
 
   }
 
+  // =========================
+  // コーチ回答一覧
+  // =========================
+  const coachAnswerListBtn =
+    document.getElementById(
+      "coachAnswerListBtn"
+    );
+
+  if (coachAnswerListBtn) {
+
+    coachAnswerListBtn.addEventListener(
+      "click",
+      () => {
+
+        window.location.href =
+          `coach-answers.html?id=${id}`;
+
+      }
+    );
+
+  }
+
 }
