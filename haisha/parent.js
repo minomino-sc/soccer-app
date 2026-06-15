@@ -3,14 +3,17 @@ import { TEAM_A, TEAM_B } from "./players.js";
 
 import {
   collection,
-  addDoc,
   doc,
-  getDoc
+  getDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(window.location.search);
 const eventId = params.get("id");
 
+// =========================
+// IDチェック
+// =========================
 if (!eventId) {
 
   document.getElementById("parentForm").innerHTML =
@@ -22,6 +25,9 @@ if (!eventId) {
 
 }
 
+// =========================
+// フォーム表示
+// =========================
 async function loadForm() {
 
   const eventRef = doc(db, "car_dispatch_events", eventId);
@@ -86,20 +92,28 @@ async function loadForm() {
     .addEventListener("click", saveAnswer);
 }
 
+// =========================
+// 保存処理（ここが最重要修正部分）
+// =========================
 async function saveAnswer() {
+
+  const playerName = document.getElementById("player").value;
+  const attendance = document.getElementById("attendance").value;
+  const note = document.getElementById("note").value;
 
   const answer = {
     eventId,
-    playerName: document.getElementById("player").value,
-    attendance: document.getElementById("attendance").value,
-    note: document.getElementById("note").value,
+    playerName,
+    attendance,
+    note,
     createdAt: Date.now()
   };
 
   try {
 
-    await addDoc(
-      collection(db, "parent_answers"),
+    // ⭐1人1回答（上書き保存）
+    await setDoc(
+      doc(db, "parent_answers", `${eventId}_${playerName}`),
       answer
     );
 
