@@ -1,8 +1,14 @@
 import { db } from "./firebase.js";
 import {
   doc,
-  getDoc
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { TEAM_A, TEAM_B } from "./players.js";
 
 console.log("event loaded");
 
@@ -12,6 +18,29 @@ console.log("event loaded");
 function formatDateTime(value) {
   if (!value) return "";
   return value.replace("T", " ");
+}
+
+// =========================
+// 回答数取得
+// =========================
+async function getAnswerCount(eventId) {
+  const q = query(
+    collection(db, "parent_answers"),
+    where("eventId", "==", eventId)
+  );
+
+  const snap = await getDocs(q);
+  return snap.size;
+}
+
+// =========================
+// 対象人数取得（改善ポイント）
+// =========================
+function getTotalPlayers(target) {
+  if (target === "箕谷A") return TEAM_A.length;
+  if (target === "箕谷B") return TEAM_B.length;
+  if (target === "箕谷A/B") return TEAM_A.length + TEAM_B.length;
+  return 0;
 }
 
 // URLの ?id= を取得
@@ -56,6 +85,19 @@ async function loadEvent(id) {
 
   const data = snap.data();
 
+  // =========================
+  // 回答数取得
+  // =========================
+  const answered = await getAnswerCount(id);
+
+  // =========================
+  // 分母（改善版：固定廃止）
+  // =========================
+  const total = getTotalPlayers(data.target);
+
+  // =========================
+  // 画面描画
+  // =========================
   document.getElementById("eventDetail").innerHTML = `
     
     <div class="event-card">
@@ -98,14 +140,16 @@ async function loadEvent(id) {
 
     </div>
 
-<div class="event-card menu-card" id="parentMenu">
-  <div class="event-title">👨‍👩‍👧‍👦 保護者回答</div>
-  <div class="event-meta">回答数 0 / 0</div>
-</div>
-    
+    <div class="event-card menu-card" id="parentMenu">
+      <div class="event-title">👨‍👩‍👧‍👦 保護者回答</div>
+      <div class="event-meta" id="answerCount">
+        回答数 ${answered} / ${total}
+      </div>
+    </div>
+
     <div class="event-card menu-card">
       <div class="event-title">🧑‍🏫 コーチ回答</div>
-      <div class="event-meta">回答数 0 / 0</div>
+      <div class="event-meta">未対応</div>
     </div>
 
     <div class="event-card menu-card">
@@ -120,13 +164,15 @@ async function loadEvent(id) {
 
   `;
 
+  // =========================
+  // 保護者回答へ遷移
+  // =========================
   document
-  .getElementById("parentMenu")
-  .addEventListener("click", () => {
+    .getElementById("parentMenu")
+    .addEventListener("click", () => {
 
-    window.location.href =
-      `parent.html?id=${id}`;
+      window.location.href =
+        `parent.html?id=${id}`;
 
-  });
-  
+    });
 }
