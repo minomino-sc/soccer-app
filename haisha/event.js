@@ -175,4 +175,9 @@ async function loadEvent(id) {
         `parent.html?id=${id}`;
 
     });
+
+document.getElementById("answerListBtn").addEventListener("click", () => {
+  window.location.href = `answers.html?id=${id}`;
+});
+  
 }
