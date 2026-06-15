@@ -84,6 +84,9 @@ async function loadAnswers() {
 
   const answeredPlayers = [];
 
+  let attendCount = 0;
+  let absentCount = 0;
+
   let html = "";
 
   if (!snap.empty) {
@@ -93,6 +96,14 @@ async function loadAnswers() {
       const data = docSnap.data();
 
       answeredPlayers.push(data.playerName);
+
+      if (data.attendance === "参加") {
+        attendCount++;
+      }
+
+      if (data.attendance === "欠席") {
+        absentCount++;
+      }
 
       html += `
         <div class="event-card">
@@ -130,6 +141,50 @@ async function loadAnswers() {
       player =>
         !answeredPlayers.includes(player)
     );
+
+  const totalPlayers = targetPlayers.length;
+
+  const answerRate =
+    totalPlayers > 0
+      ? Math.round(
+          (answeredPlayers.length / totalPlayers) * 100
+        )
+      : 0;
+
+  // =========================
+  // 回答状況
+  // =========================
+  html =
+  `
+    <div class="event-card">
+
+      <div class="event-title">
+        📊 回答状況
+      </div>
+
+      <div class="event-meta">
+        回答済み ${answeredPlayers.length} / ${totalPlayers}
+      </div>
+
+      <div class="event-meta">
+        回答率 ${answerRate}%
+      </div>
+
+      <div class="event-meta">
+        🟢 参加 ${attendCount}名
+      </div>
+
+      <div class="event-meta">
+        🔴 欠席 ${absentCount}名
+      </div>
+
+      <div class="event-meta">
+        ⚠️ 未回答 ${notAnswered.length}名
+      </div>
+
+    </div>
+  `
+  + html;
 
   // =========================
   // 未回答者表示
