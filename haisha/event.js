@@ -176,8 +176,21 @@ async function loadEvent(id) {
 
     });
 
-document.getElementById("answerListBtn").addEventListener("click", () => {
-  window.location.href = `answers.html?id=${id}`;
-});
-  
+  // =========================
+  // 回答一覧へ遷移
+  // =========================
+  const answerListBtn =
+    document.getElementById("answerListBtn");
+
+  if (answerListBtn) {
+
+    answerListBtn.addEventListener("click", () => {
+
+      window.location.href =
+        `answers.html?id=${id}`;
+
+    });
+
+  }
+
 }
