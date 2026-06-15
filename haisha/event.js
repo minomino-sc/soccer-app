@@ -8,7 +8,12 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { TEAM_A, TEAM_B } from "./players.js";
+import {
+  TEAM_A,
+  TEAM_B,
+  COACH_A,
+  COACH_B
+} from "./players.js";
 
 console.log("event loaded");
 
@@ -21,29 +26,78 @@ function formatDateTime(value) {
 }
 
 // =========================
-// 回答数取得
+// 保護者回答数取得
 // =========================
 async function getAnswerCount(eventId) {
+
   const q = query(
     collection(db, "parent_answers"),
     where("eventId", "==", eventId)
   );
 
   const snap = await getDocs(q);
+
   return snap.size;
 }
 
 // =========================
-// 対象人数取得（改善ポイント）
+// コーチ回答数取得
+// =========================
+async function getCoachAnswerCount(eventId) {
+
+  const q = query(
+    collection(db, "coach_answers"),
+    where("eventId", "==", eventId)
+  );
+
+  const snap = await getDocs(q);
+
+  return snap.size;
+}
+
+// =========================
+// 対象選手数取得
 // =========================
 function getTotalPlayers(target) {
-  if (target === "箕谷A") return TEAM_A.length;
-  if (target === "箕谷B") return TEAM_B.length;
-  if (target === "箕谷A/B") return TEAM_A.length + TEAM_B.length;
+
+  if (target === "箕谷A") {
+    return TEAM_A.length;
+  }
+
+  if (target === "箕谷B") {
+    return TEAM_B.length;
+  }
+
+  if (target === "箕谷A/B") {
+    return TEAM_A.length + TEAM_B.length;
+  }
+
   return 0;
 }
 
+// =========================
+// 対象コーチ数取得
+// =========================
+function getTotalCoaches(target) {
+
+  if (target === "箕谷A") {
+    return COACH_A.length;
+  }
+
+  if (target === "箕谷B") {
+    return COACH_B.length;
+  }
+
+  if (target === "箕谷A/B") {
+    return COACH_A.length + COACH_B.length;
+  }
+
+  return 0;
+}
+
+// =========================
 // URLの ?id= を取得
+// =========================
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
@@ -69,8 +123,11 @@ if (!id) {
 // =========================
 async function loadEvent(id) {
 
-  const ref = doc(db, "car_dispatch_events", id);
-  const snap = await getDoc(ref);
+  const ref =
+    doc(db, "car_dispatch_events", id);
+
+  const snap =
+    await getDoc(ref);
 
   if (!snap.exists()) {
 
@@ -88,18 +145,23 @@ async function loadEvent(id) {
   // =========================
   // 回答数取得
   // =========================
-  const answered = await getAnswerCount(id);
+  const answered =
+    await getAnswerCount(id);
 
-  // =========================
-  // 分母（改善版：固定廃止）
-  // =========================
-  const total = getTotalPlayers(data.target);
+  const coachAnswered =
+    await getCoachAnswerCount(id);
+
+  const total =
+    getTotalPlayers(data.target);
+
+  const coachTotal =
+    getTotalCoaches(data.target);
 
   // =========================
   // 画面描画
   // =========================
   document.getElementById("eventDetail").innerHTML = `
-    
+
     <div class="event-card">
 
       <div class="event-title">
@@ -141,31 +203,45 @@ async function loadEvent(id) {
     </div>
 
     <div class="event-card menu-card" id="parentMenu">
-      <div class="event-title">👨‍👩‍👧‍👦 保護者回答</div>
-      <div class="event-meta" id="answerCount">
+      <div class="event-title">
+        👨‍👩‍👧‍👦 保護者回答
+      </div>
+      <div class="event-meta">
         回答数 ${answered} / ${total}
       </div>
     </div>
 
-<div class="event-card menu-card" id="coachMenu">
-  <div class="event-title">🧑‍🏫 コーチ回答</div>
-  <div class="event-meta">回答する</div>
-</div>
-    
-    <div class="event-card menu-card">
-      <div class="event-title">🧑 試合当番</div>
-      <div class="event-meta">未設定</div>
+    <div class="event-card menu-card" id="coachMenu">
+      <div class="event-title">
+        🧑‍🏫 コーチ回答
+      </div>
+      <div class="event-meta">
+        回答数 ${coachAnswered} / ${coachTotal}
+      </div>
     </div>
 
     <div class="event-card menu-card">
-      <div class="event-title">🚗 配車作成</div>
-      <div class="event-meta">未作成</div>
+      <div class="event-title">
+        🧑 試合当番
+      </div>
+      <div class="event-meta">
+        未設定
+      </div>
+    </div>
+
+    <div class="event-card menu-card">
+      <div class="event-title">
+        🚗 配車作成
+      </div>
+      <div class="event-meta">
+        未作成
+      </div>
     </div>
 
   `;
 
   // =========================
-  // 保護者回答へ遷移
+  // 保護者回答
   // =========================
   document
     .getElementById("parentMenu")
@@ -176,32 +252,35 @@ async function loadEvent(id) {
 
     });
 
-// =========================
-// コーチ回答へ遷移
-// =========================
-document
-  .getElementById("coachMenu")
-  .addEventListener("click", () => {
-
-    window.location.href =
-      `coach.html?id=${id}`;
-
-  });
-  
   // =========================
-  // 回答一覧へ遷移
+  // コーチ回答
+  // =========================
+  document
+    .getElementById("coachMenu")
+    .addEventListener("click", () => {
+
+      window.location.href =
+        `coach.html?id=${id}`;
+
+    });
+
+  // =========================
+  // 回答一覧
   // =========================
   const answerListBtn =
     document.getElementById("answerListBtn");
 
   if (answerListBtn) {
 
-    answerListBtn.addEventListener("click", () => {
+    answerListBtn.addEventListener(
+      "click",
+      () => {
 
-      window.location.href =
-        `answers.html?id=${id}`;
+        window.location.href =
+          `answers.html?id=${id}`;
 
-    });
+      }
+    );
 
   }
 
