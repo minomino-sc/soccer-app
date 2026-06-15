@@ -21,6 +21,9 @@ if (!eventId) {
 
 }
 
+// =========================
+// フォーム表示
+// =========================
 async function loadForm() {
 
   const eventRef =
@@ -69,30 +72,50 @@ async function loadForm() {
       <div class="form-group">
         <label>出欠</label>
         <select id="attendance">
-          <option>参加</option>
-          <option>欠席</option>
+          <option value="参加">参加</option>
+          <option value="欠席">欠席</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label>集合方法</label>
-        <select id="meetingType">
-          <option>集合場所集合</option>
-          <option>現地集合</option>
-        </select>
-      </div>
+      <div id="detailArea">
 
-      <div class="form-group">
-        <label>送迎可能</label>
-        <select id="canDrive">
-          <option>○</option>
-          <option>×</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label>集合方法</label>
+          <select id="meetingType">
+            <option value="集合場所集合">
+              集合場所集合
+            </option>
+            <option value="現地集合">
+              現地集合
+            </option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label>乗車人数</label>
-        <input id="capacity" type="number" value="0">
+        <div id="driveArea">
+
+          <div class="form-group">
+            <label>送迎可能</label>
+            <select id="canDrive">
+              <option value="○">○</option>
+              <option value="×">×</option>
+            </select>
+          </div>
+
+          <div id="capacityArea">
+
+            <div class="form-group">
+              <label>乗車人数</label>
+              <input
+                id="capacity"
+                type="number"
+                min="0"
+                value="0">
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
       <button
@@ -106,29 +129,126 @@ async function loadForm() {
     </div>
   `;
 
+  const attendance =
+    document.getElementById("attendance");
+
+  const meetingType =
+    document.getElementById("meetingType");
+
+  const canDrive =
+    document.getElementById("canDrive");
+
+  function updateForm() {
+
+    const detailArea =
+      document.getElementById("detailArea");
+
+    const driveArea =
+      document.getElementById("driveArea");
+
+    const capacityArea =
+      document.getElementById("capacityArea");
+
+    // 欠席
+    if (attendance.value === "欠席") {
+
+      detailArea.style.display = "none";
+      return;
+
+    }
+
+    detailArea.style.display = "block";
+
+    // 現地集合
+    if (meetingType.value === "現地集合") {
+
+      driveArea.style.display = "none";
+      return;
+
+    }
+
+    driveArea.style.display = "block";
+
+    // 送迎不可
+    if (canDrive.value === "×") {
+
+      capacityArea.style.display = "none";
+      return;
+
+    }
+
+    capacityArea.style.display = "block";
+  }
+
+  attendance.addEventListener(
+    "change",
+    updateForm
+  );
+
+  meetingType.addEventListener(
+    "change",
+    updateForm
+  );
+
+  canDrive.addEventListener(
+    "change",
+    updateForm
+  );
+
+  updateForm();
+
   document
     .getElementById("saveBtn")
-    .addEventListener("click", saveAnswer);
+    .addEventListener(
+      "click",
+      saveAnswer
+    );
 }
 
+// =========================
+// 保存
+// =========================
 async function saveAnswer() {
 
   const coachName =
     document.getElementById("coachName").value;
 
+  const attendance =
+    document.getElementById("attendance").value;
+
+  let meetingType = "";
+  let canDrive = "";
+  let capacity = 0;
+
+  if (attendance === "参加") {
+
+    meetingType =
+      document.getElementById("meetingType").value;
+
+    if (meetingType === "集合場所集合") {
+
+      canDrive =
+        document.getElementById("canDrive").value;
+
+      if (canDrive === "○") {
+
+        capacity = Number(
+          document.getElementById("capacity").value
+        );
+
+      }
+
+    }
+
+  }
+
   const answer = {
     eventId,
     coachName,
-    attendance:
-      document.getElementById("attendance").value,
-    meetingType:
-      document.getElementById("meetingType").value,
-    canDrive:
-      document.getElementById("canDrive").value,
-    capacity:
-      Number(
-        document.getElementById("capacity").value
-      ),
+    attendance,
+    meetingType,
+    canDrive,
+    capacity,
     createdAt: Date.now()
   };
 
@@ -154,4 +274,5 @@ async function saveAnswer() {
     alert("保存に失敗しました");
 
   }
+
 }
