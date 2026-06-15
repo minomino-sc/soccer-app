@@ -35,7 +35,6 @@ async function loadAnswers() {
   const q = query(
     collection(db, "parent_answers"),
     where("eventId", "==", eventId),
-    orderBy("createdAt", "desc")
   );
 
   const snap = await getDocs(q);
