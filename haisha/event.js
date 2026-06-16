@@ -75,6 +75,20 @@ async function getDuty(eventId) {
 }
 
 // =========================
+// 試合当番表示名
+// =========================
+function formatDutyName(name) {
+
+  if (!name) return "未設定";
+
+  const parts =
+    name.trim().split(/\s+/);
+
+  return parts[0] + "さん";
+
+}
+
+// =========================
 // 対象選手数取得
 // =========================
 function getTotalPlayers(target) {
@@ -177,27 +191,25 @@ let dutyText = "未設定";
 
 if (duty) {
 
-  if (data.target === "箕谷A") {
+if (data.target === "箕谷A") {
 
-    dutyText =
-      duty.teamA || "未設定";
+  dutyText =
+    formatDutyName(duty.teamA);
 
-  }
+}
 
-  else if (data.target === "箕谷B") {
+else if (data.target === "箕谷B") {
 
-    dutyText =
-      duty.teamB || "未設定";
+  dutyText =
+    formatDutyName(duty.teamB);
 
-  }
+}
 
-  else {
+else {
 
-    dutyText =
-      `A：${duty.teamA || "-"}<br>
-       B：${duty.teamB || "-"}`;
-
-  }
+  dutyText =
+    `A：${formatDutyName(duty.teamA)}<br>
+     B：${formatDutyName(duty.teamB)}`;
 
 }
   
