@@ -252,16 +252,34 @@ async function saveAnswer() {
     createdAt: Date.now()
   };
 
+const answerRef =
+  doc(
+    db,
+    "coach_answers",
+    `${eventId}_${coachName}`
+  );
+
+const existing =
+  await getDoc(answerRef);
+
+if (existing.exists()) {
+
+  const ok = confirm(
+    "既に回答済みです。\n回答内容を更新しますか？"
+  );
+
+  if (!ok) {
+    return;
+  }
+
+}
+  
   try {
 
-    await setDoc(
-      doc(
-        db,
-        "coach_answers",
-        `${eventId}_${coachName}`
-      ),
-      answer
-    );
+await setDoc(
+  answerRef,
+  answer
+);
 
     alert("回答を保存しました");
 
