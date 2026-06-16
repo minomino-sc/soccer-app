@@ -238,7 +238,7 @@ async function loadEvent(id) {
       </div>
     </div>
 
-    <div class="event-card menu-card">
+    <div class="event-card menu-card" id="dutyMenu">
       <div class="event-title">
         🧑 試合当番
       </div>
