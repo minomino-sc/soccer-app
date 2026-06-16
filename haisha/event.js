@@ -213,6 +213,8 @@ else {
 
 }
   
+} // ← ★ここを追加（これが抜けてる）
+  
   const total =
     getTotalPlayers(data.target);
 
