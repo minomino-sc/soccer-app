@@ -316,8 +316,21 @@ else {
     📝 試合当番回答
   </div>
   <div class="event-meta">
+    回答する
+  </div>
+</div>
+
+<div class="event-card menu-card"
+     id="dutyAnswerListBtn">
+
+  <div class="event-title">
+    📋 試合当番回答一覧
+  </div>
+
+  <div class="event-meta">
     試合当番回答を見る
   </div>
+
 </div>
 
     <div class="event-card menu-card">
@@ -379,6 +392,18 @@ document
 
   }); 
 
+// =========================
+// 試合当番回答一覧
+// =========================
+document
+  .getElementById("dutyAnswerListBtn")
+  .addEventListener("click", () => {
+
+    window.location.href =
+      `duty-answers.html?id=${id}`;
+
+  });
+  
   // =========================
   // 回答一覧
   // =========================
