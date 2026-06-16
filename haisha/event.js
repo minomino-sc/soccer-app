@@ -316,7 +316,7 @@ else {
     📝 試合当番回答
   </div>
   <div class="event-meta">
-    回答する
+    試合当番回答を見る
   </div>
 </div>
 
