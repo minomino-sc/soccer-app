@@ -316,7 +316,7 @@ else {
     📝 試合当番回答
   </div>
   <div class="event-meta">
-    回答する
+    回答数 ${dutyAnswered} / ${dutyTotal}
   </div>
 </div>
 
