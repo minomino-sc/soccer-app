@@ -311,6 +311,15 @@ else {
   </div>
 </div>
 
+<div class="event-card menu-card" id="dutyAnswerMenu">
+  <div class="event-title">
+    📝 試合当番回答
+  </div>
+  <div class="event-meta">
+    回答する
+  </div>
+</div>
+
     <div class="event-card menu-card">
       <div class="event-title">
         🚗 配車作成
@@ -357,6 +366,18 @@ document
       `duty.html?id=${id}`;
 
   });
+
+ // =========================
+// 試合当番回答
+// =========================
+document
+  .getElementById("dutyAnswerMenu")
+  .addEventListener("click", () => {
+
+    window.location.href =
+      `duty-answer.html?id=${id}`;
+
+  }); 
 
   // =========================
   // 回答一覧
