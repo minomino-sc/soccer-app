@@ -109,14 +109,36 @@ async function saveAnswer() {
     createdAt: Date.now()
   };
 
+const answerRef =
+  doc(
+    db,
+    "parent_answers",
+    `${eventId}_${playerName}`
+  );
+
+const existing =
+  await getDoc(answerRef);
+
+if (existing.exists()) {
+
+  const ok = confirm(
+    "既に回答済みです。\n回答内容を更新しますか？"
+  );
+
+  if (!ok) {
+    return;
+  }
+
+}
+ 
   try {
 
     // ⭐1人1回答（上書き保存）
-    await setDoc(
-      doc(db, "parent_answers", `${eventId}_${playerName}`),
-      answer
-    );
-
+await setDoc(
+  answerRef,
+  answer
+);
+  
     alert("回答を保存しました");
 
     window.history.back();
