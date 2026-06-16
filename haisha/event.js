@@ -56,6 +56,23 @@ async function getCoachAnswerCount(eventId) {
 }
 
 // =========================
+// 試合当番回答数取得
+// =========================
+async function getDutyAnswer(eventId) {
+
+  const q = query(
+    collection(db, "duty_answers"),
+    where("eventId", "==", eventId)
+  );
+
+  const snap =
+    await getDocs(q);
+
+  return snap.size;
+
+}
+
+// =========================
 // 試合当番取得
 // =========================
 async function getDuty(eventId) {
@@ -187,6 +204,21 @@ async function loadEvent(id) {
 const duty =
   await getDuty(id);
 
+const dutyAnswered =
+  await getDutyAnswer(id);
+
+let dutyTotal = 0;
+
+if (data.target === "箕谷A") {
+  dutyTotal = 1;
+}
+else if (data.target === "箕谷B") {
+  dutyTotal = 1;
+}
+else if (data.target === "箕谷A/B") {
+  dutyTotal = 2;
+}
+  
 let dutyText = "未設定";
 
 if (duty) {
