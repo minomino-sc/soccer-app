@@ -1,1 +1,202 @@
+import { db } from "./firebase.js";
 
+import {
+  TEAM_A,
+  TEAM_B
+} from "./players.js";
+
+import {
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// =========================
+// URL
+// =========================
+const params =
+  new URLSearchParams(window.location.search);
+
+const eventId =
+  params.get("id");
+
+loadForm();
+
+// =========================
+// 画面作成
+// =========================
+async function loadForm() {
+
+  const eventRef =
+    doc(db,
+      "car_dispatch_events",
+      eventId);
+
+  const eventSnap =
+    await getDoc(eventRef);
+
+  if (!eventSnap.exists()) {
+
+    document.getElementById(
+      "dutyForm"
+    ).innerHTML =
+      "イベントなし";
+
+    return;
+  }
+
+  const eventData =
+    eventSnap.data();
+
+  let html = "";
+
+  if (eventData.target === "箕谷A") {
+
+    html = `
+      <div class="form-group">
+
+        <label>
+          試合当番
+        </label>
+
+        <select id="teamA">
+
+          ${TEAM_A.map(
+            p =>
+            `<option>${p}</option>`
+          ).join("")}
+
+        </select>
+
+      </div>
+
+      <button id="saveBtn"
+              class="save-btn">
+
+        保存
+
+      </button>
+    `;
+  }
+
+  if (eventData.target === "箕谷B") {
+
+    html = `
+      <div class="form-group">
+
+        <label>
+          試合当番
+        </label>
+
+        <select id="teamB">
+
+          ${TEAM_B.map(
+            p =>
+            `<option>${p}</option>`
+          ).join("")}
+
+        </select>
+
+      </div>
+
+      <button id="saveBtn"
+              class="save-btn">
+
+        保存
+
+      </button>
+    `;
+  }
+
+  if (eventData.target === "箕谷A/B") {
+
+    html = `
+      <div class="form-group">
+
+        <label>
+          Aチーム
+        </label>
+
+        <select id="teamA">
+
+          ${TEAM_A.map(
+            p =>
+            `<option>${p}</option>`
+          ).join("")}
+
+        </select>
+
+      </div>
+
+      <div class="form-group">
+
+        <label>
+          Bチーム
+        </label>
+
+        <select id="teamB">
+
+          ${TEAM_B.map(
+            p =>
+            `<option>${p}</option>`
+          ).join("")}
+
+        </select>
+
+      </div>
+
+      <button id="saveBtn"
+              class="save-btn">
+
+        保存
+
+      </button>
+    `;
+  }
+
+  document.getElementById(
+    "dutyForm"
+  ).innerHTML = html;
+
+  document
+    .getElementById("saveBtn")
+    .addEventListener(
+      "click",
+      saveDuty
+    );
+}
+
+// =========================
+// 保存
+// =========================
+async function saveDuty() {
+
+  const teamA =
+    document.getElementById("teamA")
+      ?.value || "";
+
+  const teamB =
+    document.getElementById("teamB")
+      ?.value || "";
+
+  await setDoc(
+    doc(
+      db,
+      "match_duties",
+      eventId
+    ),
+    {
+      eventId,
+      teamA,
+      teamB,
+      updatedAt:
+        Date.now()
+    }
+  );
+
+  alert(
+    "試合当番を保存しました"
+  );
+
+  history.back();
+}
