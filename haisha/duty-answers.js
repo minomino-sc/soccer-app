@@ -89,6 +89,12 @@ async function loadAnswers() {
           乗車人数：${data.capacity || 0}
         </div>
 
+        <div class="event-meta">
+  時刻：${new Date(
+    data.createdAt
+  ).toLocaleString()}
+</div>
+
       </div>
     `;
 
