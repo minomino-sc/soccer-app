@@ -304,20 +304,35 @@ async function saveAnswer() {
 
   };
 
+const answerRef =
+  doc(
+    db,
+    "duty_answers",
+    `${eventId}_${dutyName}`
+  );
+
+const existing =
+  await getDoc(answerRef);
+
+if (existing.exists()) {
+
+  const ok = confirm(
+    "既に回答済みです。\n回答内容を更新しますか？"
+  );
+
+  if (!ok) {
+    return;
+  }
+
+}
+  
   try {
 
-    await setDoc(
-
-      doc(
-        db,
-        "duty_answers",
-        `${eventId}_${dutyName}`
-      ),
-
-      answer
-
-    );
-
+await setDoc(
+  answerRef,
+  answer
+);    
+    
     alert(
       "回答を保存しました"
     );
