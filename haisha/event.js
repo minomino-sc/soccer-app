@@ -282,6 +282,18 @@ async function loadEvent(id) {
 
     });
 
+// =========================
+// 試合当番設定
+// =========================
+document
+  .getElementById("dutyMenu")
+  .addEventListener("click", () => {
+
+    window.location.href =
+      `duty.html?id=${id}`;
+
+  });
+
   // =========================
   // 回答一覧
   // =========================
