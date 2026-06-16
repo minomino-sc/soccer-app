@@ -29,6 +29,20 @@ if (!eventId) {
 }
 
 // =========================
+// 試合当番表示名
+// =========================
+function formatDutyName(name) {
+
+  if (!name) return "";
+
+  const parts =
+    name.trim().split(/\s+/);
+
+  return parts[0] + "さん";
+
+}
+
+// =========================
 // フォーム表示
 // =========================
 async function loadForm() {
@@ -150,7 +164,7 @@ async function loadForm() {
         <select id="dutyName">
           ${dutyMembers.map(name => `
             <option value="${name}">
-              ${name}
+              ${formatDutyName(name)}
             </option>
           `).join("")}
         </select>
