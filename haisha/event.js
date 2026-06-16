@@ -56,6 +56,25 @@ async function getCoachAnswerCount(eventId) {
 }
 
 // =========================
+// 試合当番取得
+// =========================
+async function getDuty(eventId) {
+
+  const ref =
+    doc(db, "match_duties", eventId);
+
+  const snap =
+    await getDoc(ref);
+
+  if (!snap.exists()) {
+    return null;
+  }
+
+  return snap.data();
+
+}
+
+// =========================
 // 対象選手数取得
 // =========================
 function getTotalPlayers(target) {
@@ -151,6 +170,37 @@ async function loadEvent(id) {
   const coachAnswered =
     await getCoachAnswerCount(id);
 
+const duty =
+  await getDuty(id);
+
+let dutyText = "未設定";
+
+if (duty) {
+
+  if (data.target === "箕谷A") {
+
+    dutyText =
+      duty.teamA || "未設定";
+
+  }
+
+  else if (data.target === "箕谷B") {
+
+    dutyText =
+      duty.teamB || "未設定";
+
+  }
+
+  else {
+
+    dutyText =
+      `A：${duty.teamA || "-"}<br>
+       B：${duty.teamB || "-"}`;
+
+  }
+
+}
+  
   const total =
     getTotalPlayers(data.target);
 
@@ -239,13 +289,13 @@ async function loadEvent(id) {
     </div>
 
     <div class="event-card menu-card" id="dutyMenu">
-      <div class="event-title">
-        🧑 試合当番
-      </div>
-      <div class="event-meta">
-        未設定
-      </div>
-    </div>
+  <div class="event-title">
+    🧑 試合当番
+  </div>
+  <div class="event-meta">
+    ${dutyText}
+  </div>
+</div>
 
     <div class="event-card menu-card">
       <div class="event-title">
