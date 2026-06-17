@@ -19,11 +19,11 @@ function formatDateTime(value) {
 }
 
 // =========================
-// 状態（タブ管理）
+// 状態
 // =========================
 let showPast = false;
 
-// URLから初期状態を復元
+// URL同期
 function syncStateFromURL() {
   const params = new URLSearchParams(location.search);
   showPast = params.get("tab") === "past";
@@ -56,11 +56,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tabUpcoming = document.getElementById("tabUpcoming");
   const tabPast = document.getElementById("tabPast");
 
-  // 予定タブ
+  // 予定
   if (tabUpcoming) {
     tabUpcoming.addEventListener("click", () => {
       showPast = false;
-
       history.replaceState(null, "", "?tab=upcoming");
 
       updateTabUI();
@@ -68,11 +67,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // 過去タブ
+  // 過去
   if (tabPast) {
     tabPast.addEventListener("click", () => {
       showPast = true;
-
       history.replaceState(null, "", "?tab=past");
 
       updateTabUI();
@@ -80,31 +78,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // 初期同期
+  // 初期状態
   syncStateFromURL();
   updateTabUI();
 
-  // 初回表示
+  // 初回描画（必ず1回）
   await render();
 });
 
 // =========================
-// 戻る対策（超重要）
+// 戻る対策（安定版）
 // =========================
 window.addEventListener("pageshow", async () => {
   syncStateFromURL();
   updateTabUI();
+
+  // ★重要：戻る時も必ず再描画
   await render();
 });
 
 // =========================
-// 描画関数
+// 描画
 // =========================
 async function render() {
 
   const list = document.getElementById("eventList");
   if (!list) return;
 
+  // ★重複防止（必須）
   list.innerHTML = "";
 
   const q = query(
@@ -129,7 +130,6 @@ async function render() {
     const card = document.createElement("div");
     card.className = "event-card";
 
-    // 詳細画面へ
     card.addEventListener("click", () => {
       window.location.href = `event.html?id=${docSnap.id}`;
     });
