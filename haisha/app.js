@@ -72,11 +72,18 @@ async function render() {
     orderBy("date", "asc")
   );
 
-  const snapshot = await getDocs(q);
+const snapshot = await getDocs(q);
 
-  const now = new Date();
+alert(`Firestore件数=${snapshot.size}`);
 
-  snapshot.forEach((docSnap) => {
+const now = new Date();
+
+alert("forEach開始");
+
+snapshot.forEach((docSnap) => {
+
+  alert(`処理中=${docSnap.id}`);
+  
     const data = docSnap.data();
 
     const eventDate = new Date(data.date);
