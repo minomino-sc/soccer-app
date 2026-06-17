@@ -11,18 +11,11 @@ import {
 const params = new URLSearchParams(window.location.search);
 const eventId = params.get("id");
 
-// =========================
-// IDチェック
-// =========================
 if (!eventId) {
-
   document.getElementById("parentForm").innerHTML =
     "イベントIDがありません";
-
 } else {
-
   loadForm();
-
 }
 
 // =========================
@@ -34,10 +27,8 @@ async function loadForm() {
   const eventSnap = await getDoc(eventRef);
 
   if (!eventSnap.exists()) {
-
     document.getElementById("parentForm").innerHTML =
       "イベントが見つかりません";
-
     return;
   }
 
@@ -45,17 +36,9 @@ async function loadForm() {
 
   let players = [];
 
-  if (eventData.target === "箕谷A") {
-    players = TEAM_A;
-  }
-
-  if (eventData.target === "箕谷B") {
-    players = TEAM_B;
-  }
-
-  if (eventData.target === "箕谷A/B") {
-    players = [...TEAM_A, ...TEAM_B];
-  }
+  if (eventData.target === "箕谷A") players = TEAM_A;
+  if (eventData.target === "箕谷B") players = TEAM_B;
+  if (eventData.target === "箕谷A/B") players = [...TEAM_A, ...TEAM_B];
 
   document.getElementById("parentForm").innerHTML = `
     <div class="form-card">
@@ -75,13 +58,15 @@ async function loadForm() {
         </select>
       </div>
 
-<div class="form-group">
-  <label>集合方法</label>
-  <select id="meetingType">
-    <option value="pickup">集合場所に集合</option>
-    <option value="onsite">現地集合</option>
-  </select>
-</div>
+      <div id="meetingWrap">
+        <div class="form-group">
+          <label>集合方法</label>
+          <select id="meetingType">
+            <option value="pickup">集合場所に集合</option>
+            <option value="onsite">現地集合</option>
+          </select>
+        </div>
+      </div>
 
       <div class="form-group">
         <label>備考</label>
@@ -95,78 +80,72 @@ async function loadForm() {
     </div>
   `;
 
+  const attendanceEl = document.getElementById("attendance");
+  const meetingWrap = document.getElementById("meetingWrap");
+
+  // =========================
+  // ★ここが今回の本体
+  // =========================
+  function updateUI() {
+    if (attendanceEl.value === "欠席") {
+      meetingWrap.style.display = "none";
+    } else {
+      meetingWrap.style.display = "block";
+    }
+  }
+
+  attendanceEl.addEventListener("change", updateUI);
+  updateUI();
+
   document
     .getElementById("saveBtn")
     .addEventListener("click", saveAnswer);
 }
 
 // =========================
-// 保存処理（ここが最重要修正部分）
+// 保存処理
 // =========================
 async function saveAnswer() {
 
-const playerEl = document.getElementById("player");
-const attendanceEl = document.getElementById("attendance");
-const noteEl = document.getElementById("note");
-const meetingEl = document.getElementById("meetingType");
+  const playerName = document.getElementById("player").value;
+  const attendance = document.getElementById("attendance").value;
+  const note = document.getElementById("note").value;
 
-if (!playerEl || !attendanceEl || !noteEl || !meetingEl) {
-  alert("フォームの読み込みに失敗しました");
-  return;
-}
+  let meetingType = "";
 
-const playerName = playerEl.value;
-const attendance = attendanceEl.value;
-const note = noteEl.value;
-const meetingType = meetingEl.value;
+  // ★欠席なら送らない
+  if (attendance === "参加") {
+    meetingType = document.getElementById("meetingType").value;
+  }
 
-const answer = {
-  eventId,
-  playerName,
-  attendance,
-  note,
-  meetingType,   // ★追加
-  createdAt: Date.now()
-};
+  const answer = {
+    eventId,
+    playerName,
+    attendance,
+    note,
+    meetingType,
+    createdAt: Date.now()
+  };
 
-const answerRef =
-  doc(
+  const answerRef = doc(
     db,
     "parent_answers",
     `${eventId}_${playerName}`
   );
 
-const existing =
-  await getDoc(answerRef);
+  const existing = await getDoc(answerRef);
 
-if (existing.exists()) {
-
-  const ok = confirm(
-    "既に回答済みです。\n回答内容を更新しますか？"
-  );
-
-  if (!ok) {
-    return;
+  if (existing.exists()) {
+    const ok = confirm("既に回答済みです。\n更新しますか？");
+    if (!ok) return;
   }
 
-}
- 
   try {
-
-    // ⭐1人1回答（上書き保存）
-await setDoc(
-  answerRef,
-  answer
-);
-  
+    await setDoc(answerRef, answer);
     alert("回答を保存しました");
-
     window.history.back();
-
   } catch (e) {
-
     console.error(e);
     alert("保存に失敗しました");
-
   }
 }
