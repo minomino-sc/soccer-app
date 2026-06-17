@@ -153,3 +153,7 @@ await render();
     list.appendChild(card);
   });
 }
+
+window.addEventListener("pageshow", async () => {
+  await render();
+});
