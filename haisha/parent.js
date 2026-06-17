@@ -146,7 +146,7 @@ await setDoc(answerRef, answer);
 alert("回答を保存しました");
 
 // 状態付きで戻る
-window.location.href = `event.html?tab=upcoming&id=${eventId}`;
+    window.location.href = `./event.html?id=${eventId}`;
     
   } catch (e) {
     console.error(e);
