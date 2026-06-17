@@ -19,51 +19,12 @@ function formatDateTime(value) {
 }
 
 // =========================
-// URL状態（唯一の正）
+// 状態（タブ管理）
 // =========================
-function isPastMode() {
-  const params = new URLSearchParams(location.search);
-  return params.get("tab") === "past";
-}
+let showPast = false;
 
 // =========================
-// タブUI更新
-// =========================
-function updateTabUI() {
-  const tabUpcoming = document.getElementById("tabUpcoming");
-  const tabPast = document.getElementById("tabPast");
-
-  if (!tabUpcoming || !tabPast) return;
-
-  const showPast = isPastMode();
-
-  tabUpcoming.classList.toggle("active", !showPast);
-  tabPast.classList.toggle("active", showPast);
-}
-
-// =========================
-// DOM準備待ち（重要）
-// =========================
-function waitForDOM() {
-  return new Promise((resolve) => {
-    if (document.getElementById("eventList")) {
-      resolve();
-      return;
-    }
-
-    const observer = new MutationObserver(() => {
-      if (document.getElementById("eventList")) {
-        observer.disconnect();
-        resolve();
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
-}
-
-// =========================
-// 初期化
+// DOM読み込み後
 // =========================
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -73,55 +34,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "create.html";
   });
 
+  // タブ
   const tabUpcoming = document.getElementById("tabUpcoming");
   const tabPast = document.getElementById("tabPast");
 
   if (tabUpcoming) {
     tabUpcoming.addEventListener("click", () => {
-      history.replaceState(null, "", "?tab=upcoming");
-      updateTabUI();
+      showPast = false;
       render();
     });
   }
 
   if (tabPast) {
     tabPast.addEventListener("click", () => {
-      history.replaceState(null, "", "?tab=past");
-      updateTabUI();
+      showPast = true;
       render();
     });
   }
 
-  updateTabUI();
-
-  // ★DOM完全安定後に描画
-  await waitForDOM();
-  requestAnimationFrame(() => {
-    render();
-  });
+  // 初回表示
+  await render();
 });
 
 // =========================
-// 戻る対応（UIのみ）
-// =========================
-window.addEventListener("pageshow", () => {
-  updateTabUI();
-
-  // ★戻る時も描画保証（軽く遅延）
-  requestAnimationFrame(() => {
-    render();
-  });
-});
-
-// =========================
-// 描画
+// 描画関数
 // =========================
 async function render() {
 
   const list = document.getElementById("eventList");
   if (!list) return;
 
-  // 二重防止
   list.innerHTML = "";
 
   const q = query(
@@ -132,7 +74,6 @@ async function render() {
   const snapshot = await getDocs(q);
 
   const now = new Date();
-  const showPast = isPastMode();
 
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
@@ -140,19 +81,23 @@ async function render() {
     const eventDate = new Date(data.date);
     const isPast = eventDate < now;
 
+    // タブフィルタ
     if (!showPast && isPast) return;
     if (showPast && !isPast) return;
 
     const card = document.createElement("div");
     card.className = "event-card";
 
+// =========================
+// 詳細画面へ
+// =========================
+card.addEventListener("click", () => {
+  window.location.href = `event.html?id=${docSnap.id}`;
+});
+    
     if (isPast) {
       card.classList.add("past");
     }
-
-    card.addEventListener("click", () => {
-      window.location.href = `event.html?id=${docSnap.id}`;
-    });
 
     card.innerHTML = `
       <div class="event-date">📅 ${data.date ?? ""}</div>
@@ -170,24 +115,35 @@ async function render() {
       </div>
 
       <div class="event-actions">
-        <button class="edit-btn">編集</button>
-        <button class="delete-btn">削除</button>
+        <button class="edit-btn" data-id="${docSnap.id}">編集</button>
+        <button class="delete-btn" data-id="${docSnap.id}">削除</button>
       </div>
     `;
 
-    card.querySelector(".edit-btn").addEventListener("click", (e) => {
-      e.stopPropagation();
-      localStorage.setItem("editId", docSnap.id);
-      window.location.href = "create.html";
-    });
+    // =========================
+    // 編集
+    // =========================
+card.querySelector(".edit-btn").addEventListener("click", (e) => {
 
-    card.querySelector(".delete-btn").addEventListener("click", async (e) => {
-      e.stopPropagation();
+  e.stopPropagation();
 
+  localStorage.setItem("editId", docSnap.id);
+  window.location.href = "create.html";
+
+});
+
+    // =========================
+    // 削除
+    // =========================
+card.querySelector(".delete-btn").addEventListener("click", async (e) => {
+
+  e.stopPropagation();
+      
       if (!confirm("削除していいですか？")) return;
 
       await deleteDoc(doc(db, "car_dispatch_events", docSnap.id));
 
+      alert("削除しました");
       render();
     });
 
