@@ -39,25 +39,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tabUpcoming = document.getElementById("tabUpcoming");
   const tabPast = document.getElementById("tabPast");
 
-if (tabUpcoming) {
-  tabUpcoming.addEventListener("click", () => {
-    showPast = false;
+  // タブUI更新
+  function updateTabUI() {
+    if (!tabUpcoming || !tabPast) return;
 
-    history.replaceState(null, "", "?tab=upcoming");
+    tabUpcoming.classList.toggle("active", !showPast);
+    tabPast.classList.toggle("active", showPast);
+  }
 
-    render();
-  });
-}
+  // 予定タブ
+  if (tabUpcoming) {
+    tabUpcoming.addEventListener("click", () => {
+      showPast = false;
 
-if (tabPast) {
-  tabPast.addEventListener("click", () => {
-    showPast = true;
+      history.replaceState(null, "", "?tab=upcoming");
 
-    history.replaceState(null, "", "?tab=past");
+      updateTabUI();
+      render();
+    });
+  }
 
-    render();
-  });
-}
+  // 過去タブ
+  if (tabPast) {
+    tabPast.addEventListener("click", () => {
+      showPast = true;
+
+      history.replaceState(null, "", "?tab=past");
+
+      updateTabUI();
+      render();
+    });
+  }
+
+  // 初期UI反映（重要）
+  updateTabUI();
 
   // 初回表示
   await render();
@@ -88,20 +103,18 @@ async function render() {
     const eventDate = new Date(data.date);
     const isPast = eventDate < now;
 
-    // タブフィルタ
-    if (!showPast && isPast) return;
-    if (showPast && !isPast) return;
+    // フィルタ
+    if (!showPast && isPast) return;   // 予定のみ
+    if (showPast && !isPast) return;   // 過去のみ
 
     const card = document.createElement("div");
     card.className = "event-card";
 
-// =========================
-// 詳細画面へ
-// =========================
-card.addEventListener("click", () => {
-  window.location.href = `event.html?id=${docSnap.id}`;
-});
-    
+    // 詳細画面へ
+    card.addEventListener("click", () => {
+      window.location.href = `event.html?id=${docSnap.id}`;
+    });
+
     if (isPast) {
       card.classList.add("past");
     }
@@ -127,25 +140,17 @@ card.addEventListener("click", () => {
       </div>
     `;
 
-    // =========================
     // 編集
-    // =========================
-card.querySelector(".edit-btn").addEventListener("click", (e) => {
+    card.querySelector(".edit-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      localStorage.setItem("editId", docSnap.id);
+      window.location.href = "create.html";
+    });
 
-  e.stopPropagation();
-
-  localStorage.setItem("editId", docSnap.id);
-  window.location.href = "create.html";
-
-});
-
-    // =========================
     // 削除
-    // =========================
-card.querySelector(".delete-btn").addEventListener("click", async (e) => {
+    card.querySelector(".delete-btn").addEventListener("click", async (e) => {
+      e.stopPropagation();
 
-  e.stopPropagation();
-      
       if (!confirm("削除していいですか？")) return;
 
       await deleteDoc(doc(db, "car_dispatch_events", docSnap.id));
