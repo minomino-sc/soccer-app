@@ -198,5 +198,6 @@ async function saveDuty() {
     "試合当番を保存しました"
   );
 
-  history.back();
+ window.location.href = `./event.html?id=${eventId}`;
+  
 }
