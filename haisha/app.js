@@ -21,8 +21,26 @@ function formatDateTime(value) {
 // =========================
 // 状態（タブ管理）
 // =========================
-const params = new URLSearchParams(location.search);
-let showPast = params.get("tab") === "past";
+let showPast = false;
+
+// URLから初期状態を復元
+function syncStateFromURL() {
+  const params = new URLSearchParams(location.search);
+  showPast = params.get("tab") === "past";
+}
+
+// =========================
+// タブUI更新
+// =========================
+function updateTabUI() {
+  const tabUpcoming = document.getElementById("tabUpcoming");
+  const tabPast = document.getElementById("tabPast");
+
+  if (!tabUpcoming || !tabPast) return;
+
+  tabUpcoming.classList.toggle("active", !showPast);
+  tabPast.classList.toggle("active", showPast);
+}
 
 // =========================
 // DOM読み込み後
@@ -35,17 +53,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "create.html";
   });
 
-  // タブ
   const tabUpcoming = document.getElementById("tabUpcoming");
   const tabPast = document.getElementById("tabPast");
-
-  // タブUI更新
-  function updateTabUI() {
-    if (!tabUpcoming || !tabPast) return;
-
-    tabUpcoming.classList.toggle("active", !showPast);
-    tabPast.classList.toggle("active", showPast);
-  }
 
   // 予定タブ
   if (tabUpcoming) {
@@ -71,10 +80,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // 初期UI反映（重要）
+  // 初期同期
+  syncStateFromURL();
   updateTabUI();
 
   // 初回表示
+  await render();
+});
+
+// =========================
+// 戻る対策（超重要）
+// =========================
+window.addEventListener("pageshow", async () => {
+  syncStateFromURL();
+  updateTabUI();
   await render();
 });
 
@@ -104,8 +123,8 @@ async function render() {
     const isPast = eventDate < now;
 
     // フィルタ
-    if (!showPast && isPast) return;   // 予定のみ
-    if (showPast && !isPast) return;   // 過去のみ
+    if (!showPast && isPast) return;
+    if (showPast && !isPast) return;
 
     const card = document.createElement("div");
     card.className = "event-card";
@@ -135,8 +154,8 @@ async function render() {
       </div>
 
       <div class="event-actions">
-        <button class="edit-btn" data-id="${docSnap.id}">編集</button>
-        <button class="delete-btn" data-id="${docSnap.id}">削除</button>
+        <button class="edit-btn">編集</button>
+        <button class="delete-btn">削除</button>
       </div>
     `;
 
