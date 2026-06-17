@@ -90,6 +90,10 @@ async function loadAnswers() {
         </div>
 
         <div class="event-meta">
+  備考：${data.note || "なし"}
+</div>
+
+        <div class="event-meta">
   時刻：${new Date(
     data.createdAt
   ).toLocaleString()}
