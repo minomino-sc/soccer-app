@@ -295,7 +295,7 @@ await setDoc(
 
     alert("回答を保存しました");
 
-    window.history.back();
+    window.location.href = `./event.html?id=${eventId}`;
 
   } catch (e) {
 
