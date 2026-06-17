@@ -75,6 +75,14 @@ async function loadForm() {
         </select>
       </div>
 
+<div class="form-group">
+  <label>集合方法</label>
+  <select id="meetingType">
+    <option value="pickup">集合場所に集合</option>
+    <option value="onsite">現地集合</option>
+  </select>
+</div>
+
       <div class="form-group">
         <label>備考</label>
         <input id="note" type="text">
@@ -97,18 +105,29 @@ async function loadForm() {
 // =========================
 async function saveAnswer() {
 
-  const playerName = document.getElementById("player").value;
-const attendance = document.getElementById("attendance").value;
-const note = document.getElementById("note").value;
-const meetingType = document.getElementById("meetingType").value;
-  
-  const answer = {
-    eventId,
-    playerName,
-    attendance,
-    note,
-    createdAt: Date.now()
-  };
+const playerEl = document.getElementById("player");
+const attendanceEl = document.getElementById("attendance");
+const noteEl = document.getElementById("note");
+const meetingEl = document.getElementById("meetingType");
+
+if (!playerEl || !attendanceEl || !noteEl || !meetingEl) {
+  alert("フォームの読み込みに失敗しました");
+  return;
+}
+
+const playerName = playerEl.value;
+const attendance = attendanceEl.value;
+const note = noteEl.value;
+const meetingType = meetingEl.value;
+
+const answer = {
+  eventId,
+  playerName,
+  attendance,
+  note,
+  meetingType,   // ★追加
+  createdAt: Date.now()
+};
 
 const answerRef =
   doc(
