@@ -141,10 +141,13 @@ card.querySelector(".delete-btn").addEventListener("click", async (e) => {
       
       if (!confirm("削除していいですか？")) return;
 
-      await deleteDoc(doc(db, "car_dispatch_events", docSnap.id));
+  await deleteDoc(
+  doc(db, "car_dispatch_events", docSnap.id)
+);
 
-      alert("削除しました");
-      render();
+alert("削除しました");
+
+await render();
     });
 
     list.appendChild(card);
