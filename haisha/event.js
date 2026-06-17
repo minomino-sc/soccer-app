@@ -195,17 +195,17 @@ async function loadEvent(id) {
   // =========================
   // 回答数取得
   // =========================
-  const answered =
-    await getAnswerCount(id);
-
-  const coachAnswered =
-    await getCoachAnswerCount(id);
-
-const duty =
-  await getDuty(id);
-
-const dutyAnswered =
-  await getDutyAnswer(id);
+const [
+  answered,
+  coachAnswered,
+  duty,
+  dutyAnswered
+] = await Promise.all([
+  getAnswerCount(id),
+  getCoachAnswerCount(id),
+  getDuty(id),
+  getDutyAnswer(id)
+]);  
 
 let dutyTotal = 0;
 
