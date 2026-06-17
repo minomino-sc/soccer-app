@@ -112,17 +112,17 @@ async function loadForm() {
                 value="0">
             </div>
 
-            <div class="form-group">
+          </div>
+
+                  </div>
+
+                      <div class="form-group">
   <label>備考</label>
 
   <input
     id="note"
     type="text">
 </div>
-
-          </div>
-
-        </div>
 
       </div>
 
