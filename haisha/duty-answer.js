@@ -204,6 +204,18 @@ async function loadForm() {
 
       </div>
 
+      <div class="form-group">
+
+  <label>
+    備考
+  </label>
+
+  <input
+    id="note"
+    type="text">
+
+</div>
+
       <button
         id="saveBtn"
         class="save-btn">
@@ -289,20 +301,21 @@ async function saveAnswer() {
 
   }
 
+const note =
+  document.getElementById(
+    "note"
+  ).value;
+
   const answer = {
 
-    eventId,
+  eventId,
+  dutyName,
+  canDrive,
+  capacity,
+  note,
+  createdAt: Date.now()
 
-    dutyName,
-
-    canDrive,
-
-    capacity,
-
-    createdAt:
-      Date.now()
-
-  };
+};
 
 const answerRef =
   doc(
