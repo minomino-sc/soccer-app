@@ -21,7 +21,8 @@ function formatDateTime(value) {
 // =========================
 // 状態（タブ管理）
 // =========================
-let showPast = false;
+const params = new URLSearchParams(location.search);
+let showPast = params.get("tab") === "past";
 
 // =========================
 // DOM読み込み後
@@ -38,19 +39,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tabUpcoming = document.getElementById("tabUpcoming");
   const tabPast = document.getElementById("tabPast");
 
-  if (tabUpcoming) {
-    tabUpcoming.addEventListener("click", () => {
-      showPast = false;
-      render();
-    });
-  }
+if (tabUpcoming) {
+  tabUpcoming.addEventListener("click", () => {
+    showPast = false;
 
-  if (tabPast) {
-    tabPast.addEventListener("click", () => {
-      showPast = true;
-      render();
-    });
-  }
+    history.replaceState(null, "", "?tab=upcoming");
+
+    render();
+  });
+}
+
+if (tabPast) {
+  tabPast.addEventListener("click", () => {
+    showPast = true;
+
+    history.replaceState(null, "", "?tab=past");
+
+    render();
+  });
+}
 
   // 初回表示
   await render();
