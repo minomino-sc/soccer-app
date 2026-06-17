@@ -8,7 +8,8 @@ import {
 import {
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =========================
@@ -179,6 +180,24 @@ async function saveDuty() {
     document.getElementById("teamB")
       ?.value || "";
 
+  const dutyRef =
+  doc(db, "match_duties", eventId);
+
+const oldDutySnap =
+  await getDoc(dutyRef);
+
+let oldTeamA = "";
+let oldTeamB = "";
+
+if (oldDutySnap.exists()) {
+
+  const oldData =
+    oldDutySnap.data();
+
+  oldTeamA = oldData.teamA || "";
+  oldTeamB = oldData.teamB || "";
+}
+
   await setDoc(
     doc(
       db,
@@ -194,6 +213,38 @@ async function saveDuty() {
     }
   );
 
+// =========================
+// 旧試合当番回答削除
+// =========================
+
+// Aチーム変更
+if (
+  oldTeamA &&
+  oldTeamA !== teamA
+) {
+  await deleteDoc(
+    doc(
+      db,
+      "duty_answers",
+      `${eventId}_${oldTeamA}`
+    )
+  );
+}
+
+// Bチーム変更
+if (
+  oldTeamB &&
+  oldTeamB !== teamB
+) {
+  await deleteDoc(
+    doc(
+      db,
+      "duty_answers",
+      `${eventId}_${oldTeamB}`
+    )
+  );
+}
+  
   alert(
     "試合当番を保存しました"
   );
