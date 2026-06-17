@@ -19,14 +19,11 @@ function formatDateTime(value) {
 }
 
 // =========================
-// 状態
+// URL状態（唯一の正）
 // =========================
-let showPast = false;
-
-// URL同期
-function syncStateFromURL() {
+function isPastMode() {
   const params = new URLSearchParams(location.search);
-  showPast = params.get("tab") === "past";
+  return params.get("tab") === "past";
 }
 
 // =========================
@@ -37,6 +34,8 @@ function updateTabUI() {
   const tabPast = document.getElementById("tabPast");
 
   if (!tabUpcoming || !tabPast) return;
+
+  const showPast = isPastMode();
 
   tabUpcoming.classList.toggle("active", !showPast);
   tabPast.classList.toggle("active", showPast);
@@ -56,45 +55,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tabUpcoming = document.getElementById("tabUpcoming");
   const tabPast = document.getElementById("tabPast");
 
-  // 予定
+  // 予定タブ
   if (tabUpcoming) {
     tabUpcoming.addEventListener("click", () => {
-      showPast = false;
       history.replaceState(null, "", "?tab=upcoming");
-
       updateTabUI();
       render();
     });
   }
 
-  // 過去
+  // 過去タブ
   if (tabPast) {
     tabPast.addEventListener("click", () => {
-      showPast = true;
       history.replaceState(null, "", "?tab=past");
-
       updateTabUI();
       render();
     });
   }
 
-  // 初期状態
-  syncStateFromURL();
+  // 初期表示
   updateTabUI();
-
-  // 初回描画（必ず1回）
   await render();
 });
 
 // =========================
-// 戻る対策（安定版）
+// 戻る対応（UIのみ更新）
 // =========================
-window.addEventListener("pageshow", async () => {
-  syncStateFromURL();
+window.addEventListener("pageshow", () => {
   updateTabUI();
-
-  // ★重要：戻る時も必ず再描画
-  await render();
 });
 
 // =========================
@@ -105,7 +93,7 @@ async function render() {
   const list = document.getElementById("eventList");
   if (!list) return;
 
-  // ★重複防止（必須）
+  // ★二重表示防止
   list.innerHTML = "";
 
   const q = query(
@@ -116,6 +104,7 @@ async function render() {
   const snapshot = await getDocs(q);
 
   const now = new Date();
+  const showPast = isPastMode();
 
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
@@ -130,13 +119,13 @@ async function render() {
     const card = document.createElement("div");
     card.className = "event-card";
 
-    card.addEventListener("click", () => {
-      window.location.href = `event.html?id=${docSnap.id}`;
-    });
-
     if (isPast) {
       card.classList.add("past");
     }
+
+    card.addEventListener("click", () => {
+      window.location.href = `event.html?id=${docSnap.id}`;
+    });
 
     card.innerHTML = `
       <div class="event-date">📅 ${data.date ?? ""}</div>
@@ -174,7 +163,6 @@ async function render() {
 
       await deleteDoc(doc(db, "car_dispatch_events", docSnap.id));
 
-      alert("削除しました");
       render();
     });
 
