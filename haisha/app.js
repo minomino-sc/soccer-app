@@ -42,7 +42,28 @@ function updateTabUI() {
 }
 
 // =========================
-// DOM読み込み後
+// DOM準備待ち（重要）
+// =========================
+function waitForDOM() {
+  return new Promise((resolve) => {
+    if (document.getElementById("eventList")) {
+      resolve();
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      if (document.getElementById("eventList")) {
+        observer.disconnect();
+        resolve();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+}
+
+// =========================
+// 初期化
 // =========================
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -55,7 +76,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tabUpcoming = document.getElementById("tabUpcoming");
   const tabPast = document.getElementById("tabPast");
 
-  // 予定タブ
   if (tabUpcoming) {
     tabUpcoming.addEventListener("click", () => {
       history.replaceState(null, "", "?tab=upcoming");
@@ -64,7 +84,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // 過去タブ
   if (tabPast) {
     tabPast.addEventListener("click", () => {
       history.replaceState(null, "", "?tab=past");
@@ -73,16 +92,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // 初期表示
   updateTabUI();
-  await render();
+
+  // ★DOM完全安定後に描画
+  await waitForDOM();
+  requestAnimationFrame(() => {
+    render();
+  });
 });
 
 // =========================
-// 戻る対応（UIのみ更新）
+// 戻る対応（UIのみ）
 // =========================
 window.addEventListener("pageshow", () => {
   updateTabUI();
+
+  // ★戻る時も描画保証（軽く遅延）
+  requestAnimationFrame(() => {
+    render();
+  });
 });
 
 // =========================
@@ -93,7 +121,7 @@ async function render() {
   const list = document.getElementById("eventList");
   if (!list) return;
 
-  // ★二重表示防止
+  // 二重防止
   list.innerHTML = "";
 
   const q = query(
@@ -112,7 +140,6 @@ async function render() {
     const eventDate = new Date(data.date);
     const isPast = eventDate < now;
 
-    // フィルタ
     if (!showPast && isPast) return;
     if (showPast && !isPast) return;
 
@@ -148,14 +175,12 @@ async function render() {
       </div>
     `;
 
-    // 編集
     card.querySelector(".edit-btn").addEventListener("click", (e) => {
       e.stopPropagation();
       localStorage.setItem("editId", docSnap.id);
       window.location.href = "create.html";
     });
 
-    // 削除
     card.querySelector(".delete-btn").addEventListener("click", async (e) => {
       e.stopPropagation();
 
