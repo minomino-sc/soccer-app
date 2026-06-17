@@ -116,6 +116,15 @@ async function loadAnswers() {
             出欠：${data.attendance}
           </div>
 
+<div class="event-meta">
+  集合方法：
+  ${
+    data.meetingType === "pickup"
+      ? "集合場所集合"
+      : "現地集合"
+  }
+</div>
+          
           <div class="event-meta">
             備考：${data.note || "なし"}
           </div>
