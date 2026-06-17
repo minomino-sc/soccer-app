@@ -46,11 +46,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (tabPast) {
-    tabPast.addEventListener("click", () => {
-      showPast = true;
-      render();
-    });
-  }
+  tabPast.addEventListener("click", () => {
+    showPast = true;
+
+    alert(`過去タブ showPast=${showPast}`);
+
+    render();
+  });
+}
 
   // 初回表示
   await render();
@@ -60,6 +63,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 // 描画関数
 // =========================
 async function render() {
+
+  alert(`render開始 showPast=${showPast}`);
 
   const list = document.getElementById("eventList");
   if (!list) return;
@@ -72,6 +77,8 @@ async function render() {
   );
 
   const snapshot = await getDocs(q);
+
+  alert(`Firestore件数=${snapshot.size}`);
 
   const now = new Date();
 
