@@ -141,9 +141,13 @@ async function saveAnswer() {
   }
 
   try {
-    await setDoc(answerRef, answer);
-    alert("回答を保存しました");
-    window.history.back();
+await setDoc(answerRef, answer);
+
+alert("回答を保存しました");
+
+// 状態付きで戻る
+window.location.href = `list.html?tab=upcoming&id=${eventId}`;
+    
   } catch (e) {
     console.error(e);
     alert("保存に失敗しました");
