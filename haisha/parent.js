@@ -98,9 +98,10 @@ async function loadForm() {
 async function saveAnswer() {
 
   const playerName = document.getElementById("player").value;
-  const attendance = document.getElementById("attendance").value;
-  const note = document.getElementById("note").value;
-
+const attendance = document.getElementById("attendance").value;
+const note = document.getElementById("note").value;
+const meetingType = document.getElementById("meetingType").value;
+  
   const answer = {
     eventId,
     playerName,
