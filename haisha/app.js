@@ -81,14 +81,6 @@ async function render() {
 
     const eventDate = new Date(data.date);
     const isPast = eventDate < now;
-
-alert(
-  `${data.title}
-date=${data.date}
-eventDate=${eventDate}
-isPast=${isPast}
-showPast=${showPast}`
-);
     
     // タブフィルタ
     if (!showPast && isPast) return;
