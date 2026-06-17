@@ -49,8 +49,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   tabPast.addEventListener("click", () => {
     showPast = true;
 
-    alert(`過去タブ showPast=${showPast}`);
-
     render();
   });
 }
@@ -64,8 +62,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 // =========================
 async function render() {
 
-  alert(`render開始 showPast=${showPast}`);
-
   const list = document.getElementById("eventList");
   if (!list) return;
 
@@ -77,8 +73,6 @@ async function render() {
   );
 
   const snapshot = await getDocs(q);
-
-  alert(`Firestore件数=${snapshot.size}`);
 
   const now = new Date();
 
