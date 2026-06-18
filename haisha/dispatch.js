@@ -2,7 +2,11 @@ import { db } from "./firebase.js";
 
 import {
   doc,
-  getDoc
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params =
@@ -35,11 +39,67 @@ else {
   const data =
     snap.data();
 
+  // =========================
+  // 保護者回答
+  // =========================
+  const parentSnap =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "parent_answers"
+        ),
+        where(
+          "eventId",
+          "==",
+          id
+        )
+      )
+    );
+
+  // =========================
+  // コーチ回答
+  // =========================
+  const coachSnap =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "coach_answers"
+        ),
+        where(
+          "eventId",
+          "==",
+          id
+        )
+      )
+    );
+
+  // =========================
+  // 試合当番回答
+  // =========================
+  const dutySnap =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "duty_answers"
+        ),
+        where(
+          "eventId",
+          "==",
+          id
+        )
+      )
+    );
+
   document.getElementById(
     "dispatchArea"
   ).innerHTML = `
 
-    <h2>${data.title}</h2>
+    <h2>
+      ${data.title}
+    </h2>
 
     <div>
       日付：${data.date}
@@ -47,6 +107,23 @@ else {
 
     <div>
       対象：${data.target}
+    </div>
+
+    <hr>
+
+    <div>
+      保護者回答：
+      ${parentSnap.size}
+    </div>
+
+    <div>
+      コーチ回答：
+      ${coachSnap.size}
+    </div>
+
+    <div>
+      試合当番回答：
+      ${dutySnap.size}
     </div>
 
   `;
