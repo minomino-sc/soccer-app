@@ -85,32 +85,56 @@ if (tabPast) {
 // =========================
 async function render() {
 
+  alert("render開始");
+
   const list = document.getElementById("eventList");
-  if (!list) return;
+
+  alert("eventList取得");
+
+  if (!list) {
+
+    alert("eventListがnull");
+
+    return;
+
+  }
 
   list.innerHTML = "";
+
+  alert("Firestore取得前");
 
   const q = query(
     collection(db, "car_dispatch_events"),
     orderBy("date", "asc")
   );
 
-const snapshot = await getDocs(q);
+  const snapshot =
+    await getDocs(q);
 
-const now = new Date();
+  alert("Firestore取得後");
 
-snapshot.forEach((docSnap) => {
-  
+  const now = new Date();
+
+  snapshot.forEach((docSnap) => {
+
     const data = docSnap.data();
 
-    const eventDate = new Date(data.date);
-    const isPast = eventDate < now;
-    
-    // タブフィルタ
+    const eventDate =
+      new Date(data.date);
+
+    const isPast =
+      eventDate < now;
+
+    // ↓ここ追加
+    alert(
+      `処理中\n${data.title}`
+    );
+
     if (!showPast && isPast) return;
     if (showPast && !isPast) return;
 
-    const card = document.createElement("div");
+    const card =
+      document.createElement("div");
     card.className = "event-card";
 
 // =========================
