@@ -365,14 +365,19 @@ else {
 
 </div>
 
-    <div class="event-card menu-card">
-      <div class="event-title">
-        🚗 配車作成
-      </div>
-      <div class="event-meta">
-        未作成
-      </div>
-    </div>
+<div
+  class="event-card menu-card"
+  id="dispatchMenu">
+
+  <div class="event-title">
+    🚗 配車作成
+  </div>
+
+  <div class="event-meta">
+    未作成
+  </div>
+
+</div>
 
   `;
 
@@ -478,4 +483,16 @@ document
 
   }
 
+// =========================
+// 配車作成
+// =========================
+document
+  .getElementById("dispatchMenu")
+  .addEventListener("click", () => {
+
+    window.location.href =
+      `dispatch.html?id=${id}`;
+
+  });
+  
 }
