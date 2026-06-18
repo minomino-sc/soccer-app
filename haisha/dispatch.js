@@ -17,7 +17,7 @@ const params =
 const id =
   params.get("id");
 
-const snap =
+const eventSnap =
   await getDoc(
     doc(
       db,
@@ -26,7 +26,7 @@ const snap =
     )
   );
 
-if (!snap.exists()) {
+if (!eventSnap.exists()) {
 
   document.getElementById(
     "dispatchArea"
@@ -36,8 +36,8 @@ if (!snap.exists()) {
 }
 else {
 
-  const data =
-    snap.data();
+  const eventData =
+    eventSnap.data();
 
   // =========================
   // 保護者回答
@@ -93,39 +93,97 @@ else {
       )
     );
 
-  document.getElementById(
-    "dispatchArea"
-  ).innerHTML = `
+  let html = `
 
     <h2>
-      ${data.title}
+      ${eventData.title}
     </h2>
 
     <div>
-      日付：${data.date}
+      日付：${eventData.date}
     </div>
 
     <div>
-      対象：${data.target}
+      対象：${eventData.target}
     </div>
 
     <hr>
 
     <div>
-      保護者回答：
-      ${parentSnap.size}
+      保護者回答：${parentSnap.size}
     </div>
 
     <div>
-      コーチ回答：
-      ${coachSnap.size}
+      コーチ回答：${coachSnap.size}
     </div>
 
     <div>
-      試合当番回答：
-      ${dutySnap.size}
+      試合当番回答：${dutySnap.size}
     </div>
+
+    <hr>
+
+    <h3>保護者回答</h3>
 
   `;
+
+  parentSnap.forEach((docSnap) => {
+
+    const a =
+      docSnap.data();
+
+    html += `
+      <div>
+        ${a.playerName ?? ""}
+        ／送迎=${a.canDrive ?? ""}
+        ／人数=${a.capacity ?? ""}
+      </div>
+    `;
+
+  });
+
+  html += `
+    <hr>
+    <h3>コーチ回答</h3>
+  `;
+
+  coachSnap.forEach((docSnap) => {
+
+    const a =
+      docSnap.data();
+
+    html += `
+      <div>
+        ${a.name ?? ""}
+        ／送迎=${a.canDrive ?? ""}
+        ／人数=${a.capacity ?? ""}
+      </div>
+    `;
+
+  });
+
+  html += `
+    <hr>
+    <h3>試合当番回答</h3>
+  `;
+
+  dutySnap.forEach((docSnap) => {
+
+    const a =
+      docSnap.data();
+
+    html += `
+      <div>
+        ${a.name ?? ""}
+        ／送迎=${a.canDrive ?? ""}
+        ／人数=${a.capacity ?? ""}
+      </div>
+    `;
+
+  });
+
+  document.getElementById(
+    "dispatchArea"
+  ).innerHTML = html;
 
 }
