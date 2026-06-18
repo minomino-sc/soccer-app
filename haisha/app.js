@@ -51,7 +51,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 if (tabPast) {
   tabPast.addEventListener("click", async () => {
 
-    alert("過去ボタン押下");
+  alert("過去ボタン押下");
+
+  try {
 
     showPast = true;
 
@@ -61,7 +63,17 @@ if (tabPast) {
 
     alert("render後");
 
-  });
+  } catch (e) {
+
+    alert(
+      "renderエラー\n\n" +
+      e.message
+    );
+
+  }
+
+});
+
 }  
 
   // 初回表示
