@@ -49,31 +49,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 }
 
 if (tabPast) {
-  tabPast.addEventListener("click", async () => {
 
-  alert("過去ボタン押下");
-
-  try {
+  tabPast.addEventListener("click", () => {
 
     showPast = true;
 
-    alert("render前");
-
-    await render();
-
-    alert("render後");
-
-  } catch (e) {
-
-    alert(
-      "renderエラー\n\n" +
-      e.message
-    );
-
-  }
-
-});
-
+    render();
+  });
 }  
 
   // 初回表示
@@ -85,56 +67,32 @@ if (tabPast) {
 // =========================
 async function render() {
 
-  alert("render開始");
-
   const list = document.getElementById("eventList");
-
-  alert("eventList取得");
-
-  if (!list) {
-
-    alert("eventListがnull");
-
-    return;
-
-  }
+  if (!list) return;
 
   list.innerHTML = "";
-
-  alert("Firestore取得前");
 
   const q = query(
     collection(db, "car_dispatch_events"),
     orderBy("date", "asc")
   );
 
-  const snapshot =
-    await getDocs(q);
+const snapshot = await getDocs(q);
 
-  alert("Firestore取得後");
+const now = new Date();
 
-  const now = new Date();
-
-  snapshot.forEach((docSnap) => {
-
+snapshot.forEach((docSnap) => {
+  
     const data = docSnap.data();
 
-    const eventDate =
-      new Date(data.date);
-
-    const isPast =
-      eventDate < now;
-
-    // ↓ここ追加
-    alert(
-      `処理中\n${data.title}`
-    );
-
+    const eventDate = new Date(data.date);
+    const isPast = eventDate < now;
+    
+    // タブフィルタ
     if (!showPast && isPast) return;
     if (showPast && !isPast) return;
 
-    const card =
-      document.createElement("div");
+    const card = document.createElement("div");
     card.className = "event-card";
 
 // =========================
@@ -202,3 +160,14 @@ await render();
     list.appendChild(card);
   });
 }
+
+// ←ここから追加
+window.addEventListener("pageshow", (event) => {
+
+  if (event.persisted) {
+
+    location.reload();
+
+  }
+
+});
