@@ -49,14 +49,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 }
 
 if (tabPast) {
-  tabPast.addEventListener("click", () => {
+  tabPast.addEventListener("click", async () => {
+
     alert("過去ボタン押下");
 
     showPast = true;
 
-    render();
+    alert("render前");
+
+    await render();
+
+    alert("render後");
+
   });
-}
+}  
 
   // 初回表示
   await render();
