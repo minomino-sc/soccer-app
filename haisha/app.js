@@ -39,14 +39,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tabPast = document.getElementById("tabPast");
 
   if (tabUpcoming) {
-    tabUpcoming.addEventListener("click", () => {
-      showPast = false;
-      render();
-    });
-  }
+  tabUpcoming.addEventListener("click", () => {
+    alert("予定ボタン押下");
 
-  if (tabPast) {
+    showPast = false;
+
+    render();
+  });
+}
+
+if (tabPast) {
   tabPast.addEventListener("click", () => {
+    alert("過去ボタン押下");
+
     showPast = true;
 
     render();
@@ -74,15 +79,9 @@ async function render() {
 
 const snapshot = await getDocs(q);
 
-alert(`Firestore件数=${snapshot.size}`);
-
 const now = new Date();
 
-alert("forEach開始");
-
 snapshot.forEach((docSnap) => {
-
-  alert(`処理中=${docSnap.id}`);
   
     const data = docSnap.data();
 
