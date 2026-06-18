@@ -40,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (tabUpcoming) {
   tabUpcoming.addEventListener("click", () => {
-    alert("予定ボタン押下");
 
     showPast = false;
 
