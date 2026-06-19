@@ -125,7 +125,7 @@ else {
         );
 
       drivers.push({
-        priority: 2,
+        priority: 1,
         name: a.coachName,
         seats
       });
@@ -155,7 +155,7 @@ else {
         a.dutyName.split(" ")[0];
 
       drivers.push({
-        priority: 1,
+        priority: 2,
         name: `${family}さん号`,
         seats
       });
@@ -275,48 +275,134 @@ else {
 
   html += `
 
-    <hr>
+  <hr>
 
-    <h3>
-      ドライバー一覧
-    </h3>
+  <h3>
+    ドライバー一覧
+  </h3>
+
+`;
+
+
+// =========================
+// 自動配車
+// =========================
+let playerIndex = 0;
+
+drivers.forEach(driver => {
+
+  driver.players = [];
+
+  for (
+    let i = 0;
+    i < driver.seats;
+    i++
+  ) {
+
+    if (
+      playerIndex >=
+      targetPlayers.length
+    ) {
+      break;
+    }
+
+    driver.players.push(
+      targetPlayers[playerIndex]
+    );
+
+    playerIndex++;
+
+  }
+
+});
+
+html += `
+
+  <hr>
+
+  <h3>
+    配車表
+  </h3>
+
+`;
+
+drivers.forEach(driver => {
+
+  html += `
+
+    <div
+      style="
+        border:1px solid #555;
+        padding:10px;
+        margin-bottom:15px;
+      ">
+
+      <div>
+        🚗 ${driver.name}
+      </div>
 
   `;
 
-  drivers.forEach(driver => {
+  if (
+    driver.players.length === 0
+  ) {
 
     html += `
-
       <div>
-        ${driver.name}
-        （${driver.seats}席）
+        配車なし
       </div>
-
     `;
+  }
+  else {
 
-  });
+    driver.players.forEach(player => {
+
+      html += `
+        <div>
+          ・${player}
+        </div>
+      `;
+
+    });
+
+  }
+
+  html += `
+    </div>
+  `;
+
+});
+
+const remainPlayers =
+  targetPlayers.slice(
+    playerIndex
+  );
+
+if (
+  remainPlayers.length > 0
+) {
 
   html += `
 
     <hr>
 
     <h3>
-      配車対象選手
+      🚨 配車できなかった選手
     </h3>
 
   `;
 
-  targetPlayers.forEach(player => {
+  remainPlayers.forEach(player => {
 
     html += `
-
       <div>
         ${player}
       </div>
-
     `;
 
   });
+
+}
 
   document.getElementById(
     "dispatchArea"
