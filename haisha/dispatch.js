@@ -103,37 +103,7 @@ else {
   // =========================
   const drivers = [];
 
-  // 試合当番優先
-  dutySnap.forEach((docSnap) => {
-
-    const a =
-      docSnap.data();
-
-    if (
-      a.canDrive === "○" ||
-      a.canDrive === "◯"
-    ) {
-
-      const seats =
-        Math.max(
-          Number(a.capacity || 0) - 1,
-          0
-        );
-
-      const family =
-        a.dutyName.split(" ")[0];
-
-      drivers.push({
-        priority: 1,
-        name: `${family}さん号`,
-        seats
-      });
-
-    }
-
-  });
-
-  // コーチ
+    // コーチ
   coachSnap.forEach((docSnap) => {
 
     const a =
@@ -157,6 +127,36 @@ else {
       drivers.push({
         priority: 2,
         name: a.coachName,
+        seats
+      });
+
+    }
+
+  });
+
+  // 試合当番優先
+  dutySnap.forEach((docSnap) => {
+
+    const a =
+      docSnap.data();
+
+    if (
+      a.canDrive === "○" ||
+      a.canDrive === "◯"
+    ) {
+
+      const seats =
+        Math.max(
+          Number(a.capacity || 0) - 1,
+          0
+        );
+
+      const family =
+        a.dutyName.split(" ")[0];
+
+      drivers.push({
+        priority: 1,
+        name: `${family}さん号`,
         seats
       });
 
