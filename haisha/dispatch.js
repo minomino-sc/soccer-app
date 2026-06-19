@@ -93,6 +93,33 @@ else {
       )
     );
 
+dutySnap.forEach((docSnap) => {
+
+  alert(
+    "DUTY\n\n" +
+    JSON.stringify(
+      docSnap.data(),
+      null,
+      2
+    )
+  );
+
+});
+
+coachSnap.forEach((docSnap) => {
+
+  alert(
+    "COACH\n\n" +
+    JSON.stringify(
+      docSnap.data(),
+      null,
+      2
+    )
+  );
+
+});
+
+  
   // =========================
   // 配車対象人数
   // 参加 ＋ 集合場所集合
