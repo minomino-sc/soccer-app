@@ -134,7 +134,7 @@ else {
 
   });
 
-  // 試合当番優先
+  // 試合当番
   dutySnap.forEach((docSnap) => {
 
     const a =
