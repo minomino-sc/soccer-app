@@ -120,6 +120,19 @@ coachSnap.forEach((docSnap) => {
 });
 
   
+parentSnap.forEach((docSnap) => {
+
+  alert(
+    "PARENT\n\n" +
+    JSON.stringify(
+      docSnap.data(),
+      null,
+      2
+    )
+  );
+
+});
+  
   // =========================
   // 配車対象人数
   // 参加 ＋ 集合場所集合
