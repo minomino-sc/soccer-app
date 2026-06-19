@@ -45,15 +45,8 @@ else {
   const parentSnap =
     await getDocs(
       query(
-        collection(
-          db,
-          "parent_answers"
-        ),
-        where(
-          "eventId",
-          "==",
-          id
-        )
+        collection(db, "parent_answers"),
+        where("eventId", "==", id)
       )
     );
 
@@ -63,15 +56,8 @@ else {
   const coachSnap =
     await getDocs(
       query(
-        collection(
-          db,
-          "coach_answers"
-        ),
-        where(
-          "eventId",
-          "==",
-          id
-        )
+        collection(db, "coach_answers"),
+        where("eventId", "==", id)
       )
     );
 
@@ -81,63 +67,15 @@ else {
   const dutySnap =
     await getDocs(
       query(
-        collection(
-          db,
-          "duty_answers"
-        ),
-        where(
-          "eventId",
-          "==",
-          id
-        )
+        collection(db, "duty_answers"),
+        where("eventId", "==", id)
       )
     );
 
-dutySnap.forEach((docSnap) => {
-
-  alert(
-    "DUTY\n\n" +
-    JSON.stringify(
-      docSnap.data(),
-      null,
-      2
-    )
-  );
-
-});
-
-coachSnap.forEach((docSnap) => {
-
-  alert(
-    "COACH\n\n" +
-    JSON.stringify(
-      docSnap.data(),
-      null,
-      2
-    )
-  );
-
-});
-
-  
-parentSnap.forEach((docSnap) => {
-
-  alert(
-    "PARENT\n\n" +
-    JSON.stringify(
-      docSnap.data(),
-      null,
-      2
-    )
-  );
-
-});
-  
   // =========================
-  // 配車対象人数
-  // 参加 ＋ 集合場所集合
+  // 配車対象選手
   // =========================
-  let needCount = 0;
+  const targetPlayers = [];
 
   parentSnap.forEach((docSnap) => {
 
@@ -149,18 +87,23 @@ parentSnap.forEach((docSnap) => {
       a.meetingType === "pickup"
     ) {
 
-      needCount++;
+      targetPlayers.push(
+        a.playerName
+      );
 
     }
 
   });
 
-  // =========================
-  // 利用可能座席
-  // capacityは運転手含む
-  // =========================
-  let seatCount = 0;
+  const needCount =
+    targetPlayers.length;
 
+  // =========================
+  // ドライバー一覧
+  // =========================
+  const drivers = [];
+
+  // 試合当番優先
   dutySnap.forEach((docSnap) => {
 
     const a =
@@ -171,55 +114,94 @@ parentSnap.forEach((docSnap) => {
       a.canDrive === "◯"
     ) {
 
-      seatCount +=
+      const seats =
         Math.max(
-          Number(
-            a.capacity || 0
-          ) - 1,
+          Number(a.capacity || 0) - 1,
           0
         );
+
+      const family =
+        a.dutyName.split(" ")[0];
+
+      drivers.push({
+        priority: 1,
+        name: `${family}さん号`,
+        seats
+      });
 
     }
 
   });
 
+  // コーチ
   coachSnap.forEach((docSnap) => {
 
     const a =
       docSnap.data();
 
     if (
-      a.canDrive === "○" ||
-      a.canDrive === "◯"
+      a.attendance === "参加" &&
+      a.meetingType === "集合場所集合" &&
+      (
+        a.canDrive === "○" ||
+        a.canDrive === "◯"
+      )
     ) {
 
-      seatCount +=
+      const seats =
         Math.max(
-          Number(
-            a.capacity || 0
-          ) - 1,
+          Number(a.capacity || 0) - 1,
           0
         );
+
+      drivers.push({
+        priority: 2,
+        name: a.coachName,
+        seats
+      });
 
     }
 
   });
 
+  drivers.sort(
+    (a, b) =>
+      a.priority - b.priority
+  );
+
+  // =========================
+  // 総座席数
+  // =========================
+  let seatCount = 0;
+
+  drivers.forEach(driver => {
+
+    seatCount +=
+      driver.seats;
+
+  });
+
+  // =========================
+  // 配車不足判定
+  // =========================
   const shortage =
     Math.max(
-      needCount -
-      seatCount,
+      needCount - seatCount,
       0
     );
 
   // =========================
-  // 画面表示
+  // 画面
   // =========================
   let html = `
 
     <h2>
-      ${eventData.title}
+      🚗 配車作成
     </h2>
+
+    <h3>
+      ${eventData.title}
+    </h3>
 
     <div>
       日付：
@@ -249,9 +231,7 @@ parentSnap.forEach((docSnap) => {
 
   `;
 
-  if (
-    shortage > 0
-  ) {
+  if (shortage > 0) {
 
     html += `
 
@@ -297,22 +277,46 @@ parentSnap.forEach((docSnap) => {
 
     <hr>
 
-    <div>
-      保護者回答：
-      ${parentSnap.size}
-    </div>
-
-    <div>
-      コーチ回答：
-      ${coachSnap.size}
-    </div>
-
-    <div>
-      試合当番回答：
-      ${dutySnap.size}
-    </div>
+    <h3>
+      ドライバー一覧
+    </h3>
 
   `;
+
+  drivers.forEach(driver => {
+
+    html += `
+
+      <div>
+        ${driver.name}
+        （${driver.seats}席）
+      </div>
+
+    `;
+
+  });
+
+  html += `
+
+    <hr>
+
+    <h3>
+      配車対象選手
+    </h3>
+
+  `;
+
+  targetPlayers.forEach(player => {
+
+    html += `
+
+      <div>
+        ${player}
+      </div>
+
+    `;
+
+  });
 
   document.getElementById(
     "dispatchArea"
