@@ -20,6 +20,11 @@ import {
 
 import { storage } from "./firebase.js";
 
+// ★★★ デバッグ表示（ここに追加）★★★
+document.getElementById("dispatchArea").innerHTML =
+  "JS起動した";
+// ★★★ デバッグ表示（ここに追加）★★★
+
 const params =
   new URLSearchParams(
     window.location.search
