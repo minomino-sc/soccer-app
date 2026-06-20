@@ -469,15 +469,25 @@ document
   .getElementById("pdfBtn")
   .addEventListener("click", async () => {
 
-    const target =
+    // PDF用エリアにコピー
+    const original =
       document.getElementById("dispatchArea");
 
+    const pdfArea =
+      document.getElementById("pdfArea");
+
+    pdfArea.innerHTML = original.innerHTML;
+
+    // 一時的に表示（重要）
+    pdfArea.style.display = "block";
+
     const canvas =
-      await html2canvas(target, {
+      await html2canvas(pdfArea, {
         scale: 2,
-        useCORS: true,
-        backgroundColor: "#000"
+        backgroundColor: "#ffffff"
       });
+
+    pdfArea.style.display = "none";
 
     const imgData =
       canvas.toDataURL("image/png");
@@ -493,14 +503,38 @@ document
     const pdfHeight =
       (canvas.height * pdfWidth) / canvas.width;
 
+    let heightLeft = pdfHeight;
+    let position = 0;
+
     pdf.addImage(
       imgData,
       "PNG",
       0,
-      0,
+      position,
       pdfWidth,
       pdfHeight
     );
+
+    heightLeft -= 297;
+
+    // 🔥 ページ分割
+    while (heightLeft > 0) {
+
+      position = heightLeft - pdfHeight;
+
+      pdf.addPage();
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        position,
+        pdfWidth,
+        pdfHeight
+      );
+
+      heightLeft -= 297;
+    }
 
     pdf.save(
       `配車表_${new Date().toISOString().slice(0,10)}.pdf`
