@@ -1,6 +1,8 @@
-console.log("SCRIPT LOADED");
+console.log("A");
 
 import { db } from "./firebase.js";
+
+console.log("B");
 
 // ★ここに追加（グローバル変数）
 let latestPdfUrl = "";
