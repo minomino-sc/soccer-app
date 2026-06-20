@@ -374,8 +374,8 @@ else {
   </div>
 
   <div class="event-meta">
-    未作成
-  </div>
+  ${data.dispatchCreated ? "作成済み ✅" : "未作成"}
+</div>
 
 </div>
 
