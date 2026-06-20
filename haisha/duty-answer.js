@@ -186,6 +186,26 @@ async function loadForm() {
         </select>
       </div>
 
+        <div class="form-group">
+
+  <label>
+    試合道具積載可能
+  </label>
+
+  <select id="canCarryEquipment">
+
+    <option value="○">
+      ○
+    </option>
+
+    <option value="×">
+      ×
+    </option>
+
+  </select>
+
+</div>
+
       <div id="capacityArea">
 
         <div class="form-group">
@@ -287,6 +307,11 @@ async function saveAnswer() {
       "canDrive"
     ).value;
 
+  const canCarryEquipment =
+  document.getElementById(
+    "canCarryEquipment"
+  ).value;
+
   let capacity = 0;
 
   if (
@@ -306,11 +331,12 @@ const note =
     "note"
   ).value;
 
-  const answer = {
+const answer = {
 
   eventId,
   dutyName,
   canDrive,
+  canCarryEquipment,
   capacity,
   note,
   createdAt: Date.now()
