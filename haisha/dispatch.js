@@ -297,50 +297,48 @@ drivers.forEach(driver => {
 // =========================
 // 自動配車（均等割り）
 // =========================
-const activeDrivers =
-  drivers.filter(
-    driver => driver.seats > 0
-  );
-
-const perDriver =
-  activeDrivers.length === 0
-    ? 0
-    : Math.ceil(
-        targetPlayers.length /
-        activeDrivers.length
-      );
+drivers.forEach(driver => {
+  driver.players = [];
+});
 
 let playerIndex = 0;
 
-activeDrivers.forEach(driver => {
-
-  driver.players = [];
-
-  for (
-  let i = 0;
-  i < Math.min(
-    perDriver,
-    driver.seats
-  );
-  i++
+while (
+  playerIndex < targetPlayers.length
 ) {
+
+  let assigned = false;
+
+  drivers.forEach(driver => {
 
     if (
       playerIndex >=
       targetPlayers.length
     ) {
-      break;
+      return;
     }
 
-    driver.players.push(
-      targetPlayers[playerIndex]
-    );
+    if (
+      driver.players.length <
+      driver.seats
+    ) {
 
-    playerIndex++;
+      driver.players.push(
+        targetPlayers[playerIndex]
+      );
 
+      playerIndex++;
+      assigned = true;
+
+    }
+
+  });
+
+  if (!assigned) {
+    break;
   }
 
-});
+}
 
 // 配車なしドライバー対策
 drivers.forEach(driver => {
