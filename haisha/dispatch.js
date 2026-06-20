@@ -273,7 +273,7 @@ else {
 
   }
 
-  html += `
+html += `
 
   <hr>
 
@@ -282,6 +282,17 @@ else {
   </h3>
 
 `;
+
+drivers.forEach(driver => {
+
+  html += `
+    <div>
+      🚗 ${driver.name}
+      （${driver.seats}席）
+    </div>
+  `;
+
+});
 
 // =========================
 // 自動配車（均等割り）
@@ -306,10 +317,13 @@ activeDrivers.forEach(driver => {
   driver.players = [];
 
   for (
-    let i = 0;
-    i < perDriver;
-    i++
-  ) {
+  let i = 0;
+  i < Math.min(
+    perDriver,
+    driver.seats
+  );
+  i++
+) {
 
     if (
       playerIndex >=
@@ -358,9 +372,28 @@ drivers.forEach(driver => {
         margin-bottom:15px;
       ">
 
-      <div>
-        🚗 ${driver.name}
-      </div>
+<div
+  style="
+    font-weight:bold;
+    margin-bottom:8px;
+  ">
+  🚗 ${driver.name}
+</div>
+
+<div>
+  定員：${driver.seats}名
+</div>
+
+<div>
+  乗車：${driver.players.length}名
+</div>
+
+<div>
+  空席：
+  ${driver.seats - driver.players.length}席
+</div>
+
+<hr>
 
   `;
 
@@ -376,21 +409,23 @@ drivers.forEach(driver => {
   }
   else {
 
-    driver.players.forEach(player => {
+  driver.players.forEach(
+    (player, index) => {
 
       html += `
         <div>
-          ・${player}
+          ${index + 1}．${player}
         </div>
       `;
 
-    });
+    }
+  );
 
-  }
+}
 
-  html += `
-    </div>
-  `;
+html += `
+  </div>
+`;
 
 });
 
