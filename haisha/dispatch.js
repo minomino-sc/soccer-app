@@ -28,6 +28,11 @@ const params =
 const id =
   params.get("id");
 
+// ★ここに追加（ここがベスト）
+console.log("START");
+console.log("ID:", id);
+// ★ここに追加（ここがベスト）
+
 const eventSnap =
   await getDoc(
     doc(
