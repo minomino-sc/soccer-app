@@ -54,6 +54,9 @@ async function loadAnswers() {
   let driveNo = 0;
   let totalSeats = 0;
 
+  let equipmentYes = 0;
+  let equipmentNo = 0;
+
   let html = "";
 
   snap.forEach(docSnap => {
@@ -61,6 +64,7 @@ async function loadAnswers() {
     const data =
       docSnap.data();
 
+    // 送迎集計
     if (data.canDrive === "○") {
 
       driveYes++;
@@ -71,6 +75,17 @@ async function loadAnswers() {
     } else {
 
       driveNo++;
+
+    }
+
+    // 試合道具集計
+    if (data.canCarryEquipment === "○") {
+
+      equipmentYes++;
+
+    } else {
+
+      equipmentNo++;
 
     }
 
@@ -90,14 +105,18 @@ async function loadAnswers() {
         </div>
 
         <div class="event-meta">
-  備考：${data.note || "なし"}
-</div>
+          🎒試合道具：${data.canCarryEquipment || "×"}
+        </div>
 
         <div class="event-meta">
-  時刻：${new Date(
-    data.createdAt
-  ).toLocaleString()}
-</div>
+          備考：${data.note || "なし"}
+        </div>
+
+        <div class="event-meta">
+          時刻：${new Date(
+            data.createdAt
+          ).toLocaleString()}
+        </div>
 
       </div>
     `;
@@ -122,6 +141,14 @@ async function loadAnswers() {
 
       <div class="event-meta">
         🪑総乗車可能人数 ${totalSeats}
+      </div>
+
+      <div class="event-meta">
+        🎒試合道具積載可能 ${equipmentYes}
+      </div>
+
+      <div class="event-meta">
+        ❌試合道具積載不可 ${equipmentNo}
       </div>
 
     </div>
