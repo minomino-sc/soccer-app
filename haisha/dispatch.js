@@ -1,8 +1,5 @@
 import { db } from "./firebase.js";
 
-// ★ここに追加（グローバル変数）
-let latestPdfUrl = "";
-
 import {
   doc,
   getDoc,
@@ -12,19 +9,6 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
-import { storage } from "./firebase.js";
-
-// ★★★ デバッグ表示（ここに追加）★★★
-document.getElementById("dispatchArea").innerHTML =
-  "JS起動した";
-// ★★★ デバッグ表示（ここに追加）★★★
-
 const params =
   new URLSearchParams(
     window.location.search
@@ -32,21 +16,6 @@ const params =
 
 const id =
   params.get("id");
-
-// ★★★ デバッグ表示（ここに追加）★★★
-function debug(msg) {
-  const el = document.getElementById("dispatchArea");
-  if (el) {
-    el.innerHTML += `<div style="color:yellow;font-size:12px;">${msg}</div>`;
-  }
-}
-
-debug("① スクリプト開始");
-
-debug("② URL = " + window.location.href);
-debug("③ id = " + id);
-// ★★★ デバッグ表示（ここに追加）★★★
-
 
 const eventSnap =
   await getDoc(
@@ -500,6 +469,7 @@ document
   .getElementById("pdfBtn")
   .addEventListener("click", async () => {
 
+    // PDF用エリアにコピー
     const original =
       document.getElementById("dispatchArea");
 
@@ -507,11 +477,17 @@ document
       document.getElementById("pdfArea");
 
     pdfArea.innerHTML = original.innerHTML;
-    pdfArea.style.display = "block";
 
-    pdfArea.querySelectorAll("*").forEach(el => {
-      el.style.color = "#000000";
-    });
+    // 一時的に表示（重要）
+    pdfArea.style.display = "block";
+   
+// ★追加（これが今回の修正）
+
+pdfArea.querySelectorAll("*").forEach(el => {
+
+  el.style.color = "#000000";
+
+});
 
     const canvas =
       await html2canvas(pdfArea, {
@@ -538,36 +514,35 @@ document
     let heightLeft = pdfHeight;
     let position = 0;
 
-    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+    pdf.addImage(
+      imgData,
+      "PNG",
+      0,
+      position,
+      pdfWidth,
+      pdfHeight
+    );
 
     heightLeft -= 297;
 
+    // 🔥 ページ分割
     while (heightLeft > 0) {
+
       position = heightLeft - pdfHeight;
+
       pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        position,
+        pdfWidth,
+        pdfHeight
+      );
+
       heightLeft -= 297;
     }
-
-    // =========================
-    // 🔥 Firebase Storageアップロード（ここが正しい位置）
-    // =========================
-    const fileName =
-      `car_dispatch_${id}_${Date.now()}.pdf`;
-
-    const pdfBlob =
-      pdf.output("blob");
-
-    const storageRef =
-      ref(storage, `dispatch_pdf/${fileName}`);
-
-    await uploadBytes(storageRef, pdfBlob);
-
-    latestPdfUrl =
-      await getDownloadURL(storageRef);
-
-// ★追加
-document.getElementById("lineBtn").disabled = false;
 
     pdf.save(
       `配車表_${new Date().toISOString().slice(0,10)}.pdf`
@@ -579,16 +554,14 @@ document
   .getElementById("lineBtn")
   .addEventListener("click", () => {
 
-    if (!latestPdfUrl) {
-      alert("先にPDFを作成してください");
-      return;
-    }
-
     const text =
-      `🚗 配車表はこちら\n${latestPdfUrl}`;
+      document.getElementById("dispatchArea").innerText;
+
+    const encoded =
+      encodeURIComponent(text);
 
     const url =
-      `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
+      `https://line.me/R/msg/text/?${encoded}`;
 
     window.open(url, "_blank");
 
