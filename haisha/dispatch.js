@@ -481,6 +481,14 @@ document
     // 一時的に表示（重要）
     pdfArea.style.display = "block";
 
+// ★追加（これが今回の修正）
+
+pdfArea.querySelectorAll("*").forEach(el => {
+
+  el.style.color = "#000000";
+
+});
+
     const canvas =
       await html2canvas(pdfArea, {
         scale: 2,
