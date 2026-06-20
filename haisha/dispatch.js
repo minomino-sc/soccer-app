@@ -40,6 +40,22 @@ else {
     eventSnap.data();
 
   // =========================
+// 試合道具の積載先
+// =========================
+let equipmentText = "試合当番の車";
+
+switch (eventData.equipmentCarrier) {
+  case "coach":
+    equipmentText = "コーチの車";
+    break;
+
+  case "duty":
+  default:
+    equipmentText = "試合当番の車";
+    break;
+}
+
+  // =========================
   // 保護者回答
   // =========================
   const parentSnap =
@@ -202,6 +218,11 @@ else {
     <h3>
       ${eventData.title}
     </h3>
+
+    <div>
+  🎒 試合道具：
+  ${equipmentText}
+</div>
 
     <div>
       日付：
