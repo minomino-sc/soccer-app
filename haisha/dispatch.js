@@ -464,3 +464,46 @@ if (
     html;
 
 }
+
+document
+  .getElementById("pdfBtn")
+  .addEventListener("click", async () => {
+
+    const target =
+      document.getElementById("dispatchArea");
+
+    const canvas =
+      await html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#000"
+      });
+
+    const imgData =
+      canvas.toDataURL("image/png");
+
+    const { jsPDF } = window.jspdf;
+
+    const pdf =
+      new jsPDF("p", "mm", "a4");
+
+    const pdfWidth =
+      pdf.internal.pageSize.getWidth();
+
+    const pdfHeight =
+      (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(
+      imgData,
+      "PNG",
+      0,
+      0,
+      pdfWidth,
+      pdfHeight
+    );
+
+    pdf.save(
+      `配車表_${new Date().toISOString().slice(0,10)}.pdf`
+    );
+
+  });
