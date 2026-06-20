@@ -283,19 +283,31 @@ else {
 
 `;
 
+// =========================
+// 自動配車（均等割り）
+// =========================
+const activeDrivers =
+  drivers.filter(
+    driver => driver.seats > 0
+  );
 
-// =========================
-// 自動配車
-// =========================
+const perDriver =
+  activeDrivers.length === 0
+    ? 0
+    : Math.ceil(
+        targetPlayers.length /
+        activeDrivers.length
+      );
+
 let playerIndex = 0;
 
-drivers.forEach(driver => {
+activeDrivers.forEach(driver => {
 
   driver.players = [];
 
   for (
     let i = 0;
-    i < driver.seats;
+    i < perDriver;
     i++
   ) {
 
@@ -312,6 +324,15 @@ drivers.forEach(driver => {
 
     playerIndex++;
 
+  }
+
+});
+
+// 配車なしドライバー対策
+drivers.forEach(driver => {
+
+  if (!driver.players) {
+    driver.players = [];
   }
 
 });
