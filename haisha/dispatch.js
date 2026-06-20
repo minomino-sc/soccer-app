@@ -480,7 +480,7 @@ document
 
     // 一時的に表示（重要）
     pdfArea.style.display = "block";
-
+   
 // ★追加（これが今回の修正）
 
 pdfArea.querySelectorAll("*").forEach(el => {
@@ -547,5 +547,22 @@ pdfArea.querySelectorAll("*").forEach(el => {
     pdf.save(
       `配車表_${new Date().toISOString().slice(0,10)}.pdf`
     );
+
+  });
+
+document
+  .getElementById("lineBtn")
+  .addEventListener("click", () => {
+
+    const text =
+      document.getElementById("dispatchArea").innerText;
+
+    const encoded =
+      encodeURIComponent(text);
+
+    const url =
+      `https://line.me/R/msg/text/?${encoded}`;
+
+    window.open(url, "_blank");
 
   });
