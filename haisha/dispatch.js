@@ -1,8 +1,4 @@
-console.log("A");
-
 import { db } from "./firebase.js";
-
-console.log("B");
 
 // ★ここに追加（グローバル変数）
 let latestPdfUrl = "";
@@ -31,11 +27,6 @@ const params =
 
 const id =
   params.get("id");
-
-// ★ここに追加（ここがベスト）
-console.log("START");
-console.log("ID:", id);
-// ★ここに追加（ここがベスト）
 
 const eventSnap =
   await getDoc(
