@@ -105,7 +105,7 @@ async function loadAnswers() {
         </div>
 
         <div class="event-meta">
-          🎒試合道具：${data.canCarryEquipment || "×"}
+          試合道具：${data.canCarryEquipment || "×"}
         </div>
 
         <div class="event-meta">
