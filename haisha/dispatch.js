@@ -1,3 +1,5 @@
+console.log("SCRIPT LOADED");
+
 import { db } from "./firebase.js";
 
 // ★ここに追加（グローバル変数）
