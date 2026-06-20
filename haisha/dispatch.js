@@ -28,6 +28,21 @@ const params =
 const id =
   params.get("id");
 
+// ★★★ デバッグ表示（ここに追加）★★★
+function debug(msg) {
+  const el = document.getElementById("dispatchArea");
+  if (el) {
+    el.innerHTML += `<div style="color:yellow;font-size:12px;">${msg}</div>`;
+  }
+}
+
+debug("① スクリプト開始");
+
+debug("② URL = " + window.location.href);
+debug("③ id = " + id);
+// ★★★ デバッグ表示（ここに追加）★★★
+
+
 const eventSnap =
   await getDoc(
     doc(
