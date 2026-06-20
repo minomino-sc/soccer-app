@@ -3,10 +3,6 @@ import { db } from "./firebase.js";
 // ★ここに追加（グローバル変数）
 let latestPdfUrl = "";
 
-// ★ここに追加（LINEボタン初期状態を無効化）
-const lineBtn = document.getElementById("lineBtn");
-lineBtn.disabled = true;
-
 import {
   doc,
   getDoc,
