@@ -3,6 +3,10 @@ import { db } from "./firebase.js";
 // ★ここに追加（グローバル変数）
 let latestPdfUrl = "";
 
+// ★ここに追加（LINEボタン初期状態を無効化）
+const lineBtn = document.getElementById("lineBtn");
+lineBtn.disabled = true;
+
 import {
   doc,
   getDoc,
@@ -545,6 +549,9 @@ document
 
     latestPdfUrl =
       await getDownloadURL(storageRef);
+
+// ★追加
+document.getElementById("lineBtn").disabled = false;
 
     pdf.save(
       `配車表_${new Date().toISOString().slice(0,10)}.pdf`
