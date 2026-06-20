@@ -373,10 +373,6 @@ else {
     🚗 配車作成
   </div>
 
-  <div class="event-meta">
-  ${data.dispatchCreated ? "作成済み ✅" : "未作成"}
-</div>
-
 </div>
 
   `;
