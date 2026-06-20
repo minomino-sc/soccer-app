@@ -1,6 +1,13 @@
 import { db } from "./firebase.js";
 
 import {
+  TEAM_A,
+  TEAM_B,
+  COACH_A,
+  COACH_B
+} from "./players.js";
+
+import {
   doc,
   getDoc,
   collection,
@@ -38,22 +45,6 @@ else {
 
   const eventData =
     eventSnap.data();
-
-  // =========================
-// 試合道具の積載先
-// =========================
-let equipmentText = "試合当番の車";
-
-switch (eventData.equipmentCarrier) {
-  case "coach":
-    equipmentText = "コーチの車";
-    break;
-
-  case "duty":
-  default:
-    equipmentText = "試合当番の車";
-    break;
-}
 
   // =========================
   // 保護者回答
@@ -119,67 +110,122 @@ switch (eventData.equipmentCarrier) {
   // =========================
   const drivers = [];
 
-    // コーチ
-  coachSnap.forEach((docSnap) => {
+// コーチ
+coachSnap.forEach((docSnap) => {
 
-    const a =
-      docSnap.data();
+  const a =
+    docSnap.data();
 
-    if (
-      a.attendance === "参加" &&
-      a.meetingType === "集合場所集合" &&
-      (
-        a.canDrive === "○" ||
-        a.canDrive === "◯"
-      )
-    ) {
-
-      const seats =
-        Math.max(
-          Number(a.capacity || 0) - 1,
-          0
-        );
-
-      drivers.push({
-        priority: 1,
-        name: a.coachName,
-        seats
-      });
-
-    }
-
-  });
-
-  // 試合当番
-  dutySnap.forEach((docSnap) => {
-
-    const a =
-      docSnap.data();
-
-    if (
+  if (
+    a.attendance === "参加" &&
+    a.meetingType === "集合場所集合" &&
+    (
       a.canDrive === "○" ||
       a.canDrive === "◯"
+    )
+  ) {
+
+    const seats =
+      Math.max(
+        Number(a.capacity || 0) - 1,
+        0
+      );
+
+    let team = "";
+
+    if (
+      COACH_A.includes(
+        a.coachName
+      )
     ) {
+      team = "箕谷A";
+    }
 
-      const seats =
-        Math.max(
-          Number(a.capacity || 0) - 1,
-          0
-        );
+    if (
+      COACH_B.includes(
+        a.coachName
+      )
+    ) {
+      team = "箕谷B";
+    }
 
-      const family =
-        a.dutyName.split(" ")[0];
+    drivers.push({
+      priority: 1,
+      team,
+      name: a.coachName,
+      seats
+    });
 
-      drivers.push({
-        priority: 2,
-        name: `${family}さん号`,
-        seats
-      });
+  }
+
+});
+
+// 試合当番
+dutySnap.forEach((docSnap) => {
+
+  const a =
+    docSnap.data();
+
+  if (
+    a.canDrive === "○" ||
+    a.canDrive === "◯"
+  ) {
+
+    const seats =
+      Math.max(
+        Number(a.capacity || 0) - 1,
+        0
+      );
+
+    const family =
+      a.dutyName.split(" ")[0];
+
+    let team = "";
+
+    if (
+      eventData.target === "箕谷A"
+    ) {
+      team = "箕谷A";
+    }
+    else if (
+      eventData.target === "箕谷B"
+    ) {
+      team = "箕谷B";
+    }
+    else {
+
+      if (
+        TEAM_A.includes(
+          a.dutyName
+        )
+      ) {
+        team = "箕谷A";
+      }
+
+      if (
+        TEAM_B.includes(
+          a.dutyName
+        )
+      ) {
+        team = "箕谷B";
+      }
 
     }
 
-  });
+    drivers.push({
+      priority: 2,
+      team,
+      dutyName: a.dutyName,
+      canCarryEquipment:
+        a.canCarryEquipment || "×",
+      name: `${family}さん号`,
+      seats
+    });
 
+  }
+
+});
+  
   drivers.sort(
     (a, b) =>
       a.priority - b.priority
@@ -218,11 +264,6 @@ switch (eventData.equipmentCarrier) {
     <h3>
       ${eventData.title}
     </h3>
-
-    <div>
-  🎒 試合道具：
-  ${equipmentText}
-</div>
 
     <div>
       日付：
@@ -370,6 +411,95 @@ drivers.forEach(driver => {
 
 });
 
+// =========================
+// 試合道具割当
+// =========================
+drivers.forEach(driver => {
+  driver.equipment = [];
+});
+
+// A
+const dutyA =
+  drivers.find(
+    d =>
+      d.priority === 2 &&
+      d.team === "箕谷A"
+  );
+
+if (dutyA) {
+
+  if (
+    dutyA.canCarryEquipment === "○"
+  ) {
+
+    dutyA.equipment.push("A");
+
+  } else {
+
+    const aCoaches =
+      drivers
+        .filter(
+          d =>
+            d.priority === 1 &&
+            d.team === "箕谷A"
+        )
+        .sort(
+          (a, b) =>
+            a.players.length -
+            b.players.length
+        );
+
+    if (aCoaches.length) {
+      aCoaches[0]
+        .equipment
+        .push("A");
+    }
+
+  }
+
+}
+
+// B
+const dutyB =
+  drivers.find(
+    d =>
+      d.priority === 2 &&
+      d.team === "箕谷B"
+  );
+
+if (dutyB) {
+
+  if (
+    dutyB.canCarryEquipment === "○"
+  ) {
+
+    dutyB.equipment.push("B");
+
+  } else {
+
+    const bCoaches =
+      drivers
+        .filter(
+          d =>
+            d.priority === 1 &&
+            d.team === "箕谷B"
+        )
+        .sort(
+          (a, b) =>
+            a.players.length -
+            b.players.length
+        );
+
+    if (bCoaches.length) {
+      bCoaches[0]
+        .equipment
+        .push("B");
+    }
+
+  }
+
+}  
+  
 html += `
 
   <hr>
@@ -442,6 +572,29 @@ drivers.forEach(driver => {
 
 }
 
+if (
+  driver.equipment &&
+  driver.equipment.length
+) {
+
+  html += `
+
+    <hr>
+
+    <div
+      style="
+        font-weight:bold;
+      ">
+
+      ※試合道具
+      （${driver.equipment.join("・")}）
+
+    </div>
+
+  `;
+
+}
+  
 html += `
   </div>
 `;
