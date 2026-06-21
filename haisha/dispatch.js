@@ -772,60 +772,87 @@ document
   .getElementById("pdfBtn")
   .addEventListener("click", async () => {
 
-    const pdfArea =
-      document.getElementById("pdfArea");
-
+    // PDF用エリアにコピー
     const original =
       document.getElementById("dispatchArea");
 
+    const pdfArea =
+      document.getElementById("pdfArea");
+
     pdfArea.innerHTML = original.innerHTML;
 
+    // 一時的に表示（重要）
     pdfArea.style.display = "block";
+   
+// ★追加（これが今回の修正）
 
-    pdfArea.querySelectorAll("*").forEach(el => {
-      el.style.color = "#000000";
-    });
+pdfArea.querySelectorAll("*").forEach(el => {
 
-    const canvas = await html2canvas(pdfArea, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      windowWidth: pdfArea.scrollWidth,
-      windowHeight: pdfArea.scrollHeight
-    });
+  el.style.color = "#000000";
+
+});
+
+    const canvas =
+      await html2canvas(pdfArea, {
+        scale: 2,
+        backgroundColor: "#ffffff"
+      });
 
     pdfArea.style.display = "none";
 
-    const imgData = canvas.toDataURL("image/png");
+    const imgData =
+      canvas.toDataURL("image/png");
 
-const { jsPDF } = window.jspdf;
+    const { jsPDF } = window.jspdf;
 
-const pdf = new jsPDF("p", "mm", "a4");
+    const pdf =
+      new jsPDF("p", "mm", "a4");
 
-const pageWidth = pdf.internal.pageSize.getWidth();
-const pageHeight = pdf.internal.pageSize.getHeight();
+    const pdfWidth =
+      pdf.internal.pageSize.getWidth();
 
-// canvasをA4比率に強制縮小
-const ratio = Math.min(
-  pageWidth / canvas.width,
-  pageHeight / canvas.height
-);
+    const pdfHeight =
+      (canvas.height * pdfWidth) / canvas.width;
 
-const imgWidth = canvas.width * ratio;
-const imgHeight = canvas.height * ratio;
+    let heightLeft = pdfHeight;
+    let position = 0;
 
-pdf.addImage(
-  imgData,
-  "PNG",
-  (pageWidth - imgWidth) / 2,
-  0,
-  imgWidth,
-  imgHeight
-);
+    pdf.addImage(
+      imgData,
+      "PNG",
+      0,
+      position,
+      pdfWidth,
+      pdfHeight
+    );
 
-pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-    
-});    
-    
+    heightLeft -= 297;
+
+    // 🔥 ページ分割
+    while (heightLeft > 0) {
+
+      position = heightLeft - pdfHeight;
+
+      pdf.addPage();
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        position,
+        pdfWidth,
+        pdfHeight
+      );
+
+      heightLeft -= 297;
+    }
+
+    pdf.save(
+      `配車表_${new Date().toISOString().slice(0,10)}.pdf`
+    );
+
+  });
+
 document
   .getElementById("lineBtn")
   .addEventListener("click", () => {
