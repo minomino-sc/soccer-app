@@ -138,18 +138,15 @@ if (data.returnTrip === "×") {
 ${
   data.attendance === "欠席"
     ? ""
-    : `
-      <div class="event-meta">
-        復路：
-        ${
+    : `<div class="event-meta">
+        復路：${
           data.returnTrip === "○"
             ? "乗る"
             : data.returnTrip === "×"
               ? "乗らない"
               : "未設定"
         }
-      </div>
-    `
+      </div>`
 }
          
           <div class="event-meta">
