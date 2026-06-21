@@ -370,10 +370,6 @@ for (const coach of coachDrivers) {
 
   <hr>
 
-  <h3>配車判定</h3>
-
-  <hr>
-
   <h3>集合情報</h3>
 
   <div>⏰ 集合時間：${eventData.meetingTime || "未設定"}</div>
