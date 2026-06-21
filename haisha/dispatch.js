@@ -243,6 +243,20 @@ activeDrivers.push(
   ...dutyDrivers
 );
 
+const firstCoach =
+  coachDrivers[0];
+
+if (firstCoach) {
+
+  activeDrivers.push(
+    firstCoach
+  );
+
+  capacity +=
+    firstCoach.seats;
+
+}
+
 // コーチを座席数順で並べる
 const coachDrivers =
   drivers
@@ -261,7 +275,7 @@ let capacity =
     0
   );
 
-for (const coach of coachDrivers) {
+  for (const coach of coachDrivers.slice(1)) {
 
   if (
     capacity >= needCount
