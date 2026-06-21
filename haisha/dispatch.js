@@ -797,36 +797,31 @@ document
 
     const imgData = canvas.toDataURL("image/png");
 
-    const { jsPDF } = window.jspdf;
+const { jsPDF } = window.jspdf;
 
-    const pdf = new jsPDF("p", "mm", "a4");
+const pdf = new jsPDF("p", "mm", "a4");
 
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+const pdfWidth = pdf.internal.pageSize.getWidth();
 
-    const ratio = Math.min(
-      pdfWidth / canvas.width,
-      pageHeight / canvas.height
-    );
+// ★横幅基準で1枚に強制縮小
+const imgWidth = pdfWidth;
+const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    const imgWidth = canvas.width * ratio;
-    const imgHeight = canvas.height * ratio;
+pdf.addImage(
+  imgData,
+  "PNG",
+  0,
+  0,
+  imgWidth,
+  imgHeight
+);
 
-    pdf.addImage(
-      imgData,
-      "PNG",
-      (pdfWidth - imgWidth) / 2,
-      10,
-      imgWidth,
-      imgHeight
-    );
-
-    pdf.save(
-      `配車表_${new Date().toISOString().slice(0,10)}.pdf`
-    );
-
-  });
-
+pdf.save(
+  `配車表_${new Date().toISOString().slice(0,10)}.pdf`
+);
+    
+});    
+    
 document
   .getElementById("lineBtn")
   .addEventListener("click", () => {
