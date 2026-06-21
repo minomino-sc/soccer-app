@@ -86,6 +86,8 @@ async function loadAnswers() {
 
   let attendCount = 0;
   let absentCount = 0;
+  let returnTripYes = 0;
+let returnTripNo = 0;
 
   let html = "";
 
@@ -105,6 +107,14 @@ async function loadAnswers() {
         absentCount++;
       }
 
+if (data.returnTrip === "○") {
+  returnTripYes++;
+}
+
+if (data.returnTrip === "×") {
+  returnTripNo++;
+}
+      
       html += `
         <div class="event-card">
 
@@ -124,7 +134,18 @@ async function loadAnswers() {
       : "現地集合"
   }
 </div>
-          
+
+<div class="returnWrap event-meta">
+  復路：
+  ${
+    data.returnTrip === "○"
+      ? "乗る"
+      : data.returnTrip === "×"
+        ? "乗らない"
+        : "未設定"
+  }
+</div>
+  
           <div class="event-meta">
             備考：${data.note || "なし"}
           </div>
@@ -186,6 +207,14 @@ async function loadAnswers() {
       <div class="event-meta">
         🔴 欠席 ${absentCount}名
       </div>
+
+      <div class="event-meta">
+  🔁 復路希望（○） ${returnTripYes}名
+</div>
+
+<div class="event-meta">
+  🚫 復路なし（×） ${returnTripNo}名
+</div>
 
       <div class="event-meta">
         ⚠️ 未回答 ${notAnswered.length}名
