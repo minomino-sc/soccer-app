@@ -124,7 +124,15 @@ dutySnap.forEach((docSnap) => {
   const a = docSnap.data();
 
   if (a.dutyName) {
-    dutyList.push(a.dutyName);
+
+const name =
+  a.dutyName
+    .replace(/　/g, " ")
+    .trim()
+    .split(" ")[0];
+
+dutyList.push(`${name}さん`);
+    
   }
 
 });  
