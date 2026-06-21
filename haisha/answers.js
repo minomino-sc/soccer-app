@@ -136,7 +136,14 @@ if (data.returnTrip === "×") {
 </div>
 
 <div class="event-meta">
-  復路：${data.returnTrip === "○" ? "乗る" : "乗らない"}
+  復路：
+  ${
+    data.returnTrip === "○"
+      ? "乗る"
+      : data.returnTrip === "×"
+        ? "乗らない"
+        : "未設定"
+  }
 </div>
           
           <div class="event-meta">
