@@ -68,7 +68,7 @@ async function loadForm() {
         </div>
       </div>
 
-<div class="form-group">
+<div id="returnTripWrap" class="form-group">
   <label>復路希望</label>
   <select id="returnTrip">
     <option value="○">○</option>
