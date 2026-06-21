@@ -231,6 +231,12 @@ dutySnap.forEach((docSnap) => {
       a.priority - b.priority
   );
 
+  const assignDrivers =
+  [...drivers].sort(
+    (a, b) =>
+      b.priority - a.priority
+  );
+
   // =========================
   // 総座席数
   // =========================
@@ -363,6 +369,12 @@ drivers.forEach(driver => {
   driver.players = [];
 });
 
+const assignDrivers =
+  [...drivers].sort(
+    (a, b) =>
+      b.priority - a.priority
+  );
+
 let playerIndex = 0;
 
 while (
@@ -371,7 +383,7 @@ while (
 
   let assigned = false;
 
-  drivers.forEach(driver => {
+  assignDrivers.forEach(driver => {
 
     if (
       playerIndex >=
