@@ -347,6 +347,13 @@ html += `
 
 drivers.forEach(driver => {
 
+  if (
+    driver.players &&
+    driver.players.length === 0
+  ) {
+    return;
+  }
+
   html += `
     <div>
       🚗 ${driver.name}
@@ -518,6 +525,16 @@ html += `
 
 drivers.forEach(driver => {
 
+  if (
+    driver.players.length === 0 &&
+    (
+      !driver.equipment ||
+      driver.equipment.length === 0
+    )
+  ) {
+    return;
+  }
+    
   html += `
 
     <div
