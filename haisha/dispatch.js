@@ -353,30 +353,45 @@ for (const coach of coachDrivers) {
   // 画面
   // =========================
   let html = `
+  <h2>🚗 配車作成</h2>
 
-    <h2>
-      🚗 配車作成
-    </h2>
+  <h3>${eventData.title}</h3>
 
-    <h3>
-      ${eventData.title}
-    </h3>
+  <div>日付：${eventData.date}</div>
+  <div>対象：${eventData.target}</div>
 
-    <div>
-      日付：
-      ${eventData.date}
-    </div>
+  <hr>
 
-    <div>
-      対象：
-      ${eventData.target}
-    </div>
+  <h3>配車判定</h3>
 
-    <hr>
+  <hr>
 
-    <h3>
-      配車判定
-    </h3>
+  <h3>集合情報</h3>
+
+  <div>⏰ 集合時間：${eventData.meetingTime || "未設定"}</div>
+  <div>📍 集合場所：${eventData.meetingPlace || "未設定"}</div>
+
+  <hr>
+
+  <h3>欠席者</h3>
+  ${absentPlayers.length === 0
+    ? "<div>なし</div>"
+    : absentPlayers.map(n => `<div>❌ ${n}</div>`).join("")
+  }
+
+  <hr>
+
+  <h3>試合当番</h3>
+  ${dutyList.length === 0
+    ? "<div>未設定</div>"
+    : dutyList.map(n => `<div>🧑‍✈️ ${n}</div>`).join("")
+  }
+
+  <hr>
+
+  <div>配車対象：${needCount}名</div>
+  <div>利用可能座席：${seatCount}席</div>
+`;
 
 html += `
   <hr>
