@@ -90,17 +90,17 @@ async function loadForm() {
 
   const attendanceEl = document.getElementById("attendance");
   const meetingWrap = document.getElementById("meetingWrap");
+const returnTripWrap = document.getElementById("returnTripWrap");
 
-  // =========================
-  // ★ここが今回の本体
-  // =========================
-  function updateUI() {
-    if (attendanceEl.value === "欠席") {
-      meetingWrap.style.display = "none";
-    } else {
-      meetingWrap.style.display = "block";
-    }
+function updateUI() {
+  if (attendanceEl.value === "欠席") {
+    meetingWrap.style.display = "none";
+    returnTripWrap.style.display = "none";
+  } else {
+    meetingWrap.style.display = "block";
+    returnTripWrap.style.display = "block";
   }
+}
 
   attendanceEl.addEventListener("change", updateUI);
   updateUI();
