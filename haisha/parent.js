@@ -68,6 +68,14 @@ async function loadForm() {
         </div>
       </div>
 
+<div class="form-group">
+  <label>復路希望</label>
+  <select id="returnTrip">
+    <option value="○">○</option>
+    <option value="×">×</option>
+  </select>
+</div>
+
       <div class="form-group">
         <label>備考</label>
         <input id="note" type="text">
@@ -109,6 +117,8 @@ async function saveAnswer() {
 
   const playerName = document.getElementById("player").value;
   const attendance = document.getElementById("attendance").value;
+  const returnTrip =
+  document.getElementById("returnTrip").value;
   const note = document.getElementById("note").value;
 
   let meetingType = "";
@@ -118,14 +128,15 @@ async function saveAnswer() {
     meetingType = document.getElementById("meetingType").value;
   }
 
-  const answer = {
-    eventId,
-    playerName,
-    attendance,
-    note,
-    meetingType,
-    createdAt: Date.now()
-  };
+const answer = {
+  eventId,
+  playerName,
+  attendance,
+  note,
+  meetingType,
+  returnTrip,   // ★追加
+  createdAt: Date.now()
+};
 
   const answerRef = doc(
     db,
