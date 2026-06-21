@@ -231,12 +231,6 @@ dutySnap.forEach((docSnap) => {
       a.priority - b.priority
   );
 
-  const assignDrivers =
-  [...drivers].sort(
-    (a, b) =>
-      b.priority - a.priority
-  );
-
   // =========================
   // 総座席数
   // =========================
