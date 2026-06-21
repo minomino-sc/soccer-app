@@ -100,6 +100,9 @@ async function loadAnswers() {
   let localCount = 0;
   let meetingCount = 0;
 
+  let returnTripYes = 0;
+let returnTripNo = 0;
+
   let driveYes = 0;
   let driveNo = 0;
 
@@ -127,6 +130,14 @@ async function loadAnswers() {
       meetingCount++;
     }
 
+if (data.returnTrip === "○") {
+  returnTripYes++;
+}
+
+if (data.returnTrip === "×") {
+  returnTripNo++;
+}
+    
 if (
   data.canDrive === "○" ||
   data.canDrive === "◯"
@@ -157,6 +168,16 @@ if (
         <div class="event-meta">
           集合方法：${data.meetingType || "-"}
         </div>
+
+        <div class="event-meta">
+  復路：${
+    data.returnTrip === "○"
+      ? "乗る"
+      : data.returnTrip === "×"
+        ? "乗らない"
+        : "-"
+  }
+</div>
 
         <div class="event-meta">
           送迎：${data.canDrive || "-"}
@@ -239,6 +260,14 @@ if (
       <div class="event-meta">
         🏫集合場所集合 ${meetingCount}
       </div>
+
+<div class="event-meta">
+  🔁復路希望（○） ${returnTripYes}
+</div>
+
+<div class="event-meta">
+  🚫復路なし（×） ${returnTripNo}
+</div>
 
       <br>
 
