@@ -490,13 +490,13 @@ activeDrivers.forEach(driver => {
 // =========================
 // 試合道具割当
 // =========================
-drivers.forEach(driver => {
+activeDrivers.forEach(driver => {
   driver.equipment = [];
 });
 
 // A
 const dutyA =
-  drivers.find(
+  activeDrivers.find(
     d =>
       d.priority === 2 &&
       d.team === "箕谷A"
@@ -512,9 +512,8 @@ if (dutyA) {
 
   } else {
 
-    const aCoaches =
-      drivers
-        .filter(
+const aCoaches =
+  activeDrivers.filter(
           d =>
             d.priority === 1 &&
             d.team === "箕谷A"
@@ -537,7 +536,7 @@ if (dutyA) {
 
 // B
 const dutyB =
-  drivers.find(
+  activeDrivers.find(
     d =>
       d.priority === 2 &&
       d.team === "箕谷B"
@@ -553,9 +552,8 @@ if (dutyB) {
 
   } else {
 
-    const bCoaches =
-      drivers
-        .filter(
+const bCoaches =
+  activeDrivers.filter(
           d =>
             d.priority === 1 &&
             d.team === "箕谷B"
