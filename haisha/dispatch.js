@@ -243,20 +243,6 @@ activeDrivers.push(
   ...dutyDrivers
 );
 
-const firstCoach =
-  coachDrivers[0];
-
-if (firstCoach) {
-
-  activeDrivers.push(
-    firstCoach
-  );
-
-  capacity +=
-    firstCoach.seats;
-
-}
-
 // コーチを座席数順で並べる
 const coachDrivers =
   drivers
@@ -275,7 +261,23 @@ let capacity =
     0
   );
 
-  for (const coach of coachDrivers.slice(1)) {
+// ★最低1台はコーチ採用
+const firstCoach =
+  coachDrivers[0];
+
+if (firstCoach) {
+
+  activeDrivers.push(
+    firstCoach
+  );
+
+  capacity +=
+    firstCoach.seats;
+
+}
+
+// ★2台目以降は必要な時だけ
+for (const coach of coachDrivers.slice(1)) {
 
   if (
     capacity >= needCount
@@ -283,13 +285,15 @@ let capacity =
     break;
   }
 
-  activeDrivers.push(coach);
+  activeDrivers.push(
+    coach
+  );
 
   capacity +=
     coach.seats;
 
 }
-  
+ 
   // =========================
   // 総座席数
   // =========================
