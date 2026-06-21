@@ -231,17 +231,62 @@ dutySnap.forEach((docSnap) => {
       a.priority - b.priority
   );
 
+const activeDrivers = [];
+
+// 試合当番を先に採用
+const dutyDrivers =
+  drivers.filter(
+    d => d.priority === 2
+  );
+
+activeDrivers.push(
+  ...dutyDrivers
+);
+
+// コーチを座席数順で並べる
+const coachDrivers =
+  drivers
+    .filter(
+      d => d.priority === 1
+    )
+    .sort(
+      (a, b) =>
+        b.seats - a.seats
+    );
+
+let capacity =
+  dutyDrivers.reduce(
+    (sum, d) =>
+      sum + d.seats,
+    0
+  );
+
+for (const coach of coachDrivers) {
+
+  if (
+    capacity >= needCount
+  ) {
+    break;
+  }
+
+  activeDrivers.push(coach);
+
+  capacity +=
+    coach.seats;
+
+}
+  
   // =========================
   // 総座席数
   // =========================
   let seatCount = 0;
 
-  drivers.forEach(driver => {
+  activeDrivers.forEach(driver => {
 
-    seatCount +=
-      driver.seats;
+  seatCount +=
+    driver.seats;
 
-  });
+});
 
   // =========================
   // 配車不足判定
@@ -344,8 +389,8 @@ html += `
   </h3>
 
 `;
-
-drivers.forEach(driver => {
+  
+activeDrivers.forEach(driver => {
 
   if (
     driver.players &&
@@ -366,12 +411,12 @@ drivers.forEach(driver => {
 // =========================
 // 自動配車（均等割り）
 // =========================
-drivers.forEach(driver => {
+activeDrivers.forEach(driver => {
   driver.players = [];
 });
 
 const assignDrivers =
-  [...drivers].sort(
+  [...activeDrivers].sort(
     (a, b) =>
       b.priority - a.priority
   );
@@ -416,14 +461,14 @@ while (
 }
 
 // 配車なしドライバー対策
-drivers.forEach(driver => {
+activeDrivers.forEach(driver => {
 
   if (!driver.players) {
     driver.players = [];
   }
 
 });
-
+  
 // =========================
 // 試合道具割当
 // =========================
@@ -522,8 +567,8 @@ html += `
   </h3>
 
 `;
-
-drivers.forEach(driver => {
+  
+activeDrivers.forEach(driver => {
 
   if (
     driver.players.length === 0 &&
