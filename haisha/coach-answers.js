@@ -241,8 +241,6 @@ if (
         回答率 ${rate}%
       </div>
 
-      <br>
-
       <div class="event-meta">
         🟢参加 ${attendCount}
       </div>
@@ -250,8 +248,6 @@ if (
       <div class="event-meta">
         🔴欠席 ${absentCount}
       </div>
-
-      <br>
 
       <div class="event-meta">
         📍現地集合 ${localCount}
@@ -269,8 +265,6 @@ if (
   🚫復路なし（×） ${returnTripNo}
 </div>
 
-      <br>
-
       <div class="event-meta">
         🚗送迎可能 ${driveYes}
       </div>
@@ -278,8 +272,6 @@ if (
       <div class="event-meta">
         ❌送迎不可 ${driveNo}
       </div>
-
-      <br>
 
       <div class="event-meta">
         🪑総乗車可能人数
