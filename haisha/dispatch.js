@@ -527,10 +527,10 @@ activeDrivers.forEach(driver => {
 // =========================
 // 試合道具割当
 // =========================
-drivers.forEach(driver => {
+activeDrivers.forEach(driver => {
   driver.equipment = [];
 });
-
+  
 // A
 const dutyA =
   activeDrivers.find(
