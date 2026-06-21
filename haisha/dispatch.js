@@ -801,24 +801,28 @@ const { jsPDF } = window.jspdf;
 
 const pdf = new jsPDF("p", "mm", "a4");
 
-const pdfWidth = pdf.internal.pageSize.getWidth();
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
 
-// ★横幅基準で1枚に強制縮小
-const imgWidth = pdfWidth;
-const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+// canvasをA4比率に強制縮小
+const ratio = Math.min(
+  pageWidth / canvas.width,
+  pageHeight / canvas.height
+);
+
+const imgWidth = canvas.width * ratio;
+const imgHeight = canvas.height * ratio;
 
 pdf.addImage(
   imgData,
   "PNG",
-  0,
+  (pageWidth - imgWidth) / 2,
   0,
   imgWidth,
   imgHeight
 );
 
-pdf.save(
-  `配車表_${new Date().toISOString().slice(0,10)}.pdf`
-);
+pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
     
 });    
     
