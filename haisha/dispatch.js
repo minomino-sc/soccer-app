@@ -261,39 +261,49 @@ let capacity =
     0
   );
 
-// ★最低1台はコーチ採用
-const firstCoach =
-  coachDrivers[0];
+// =========================
+// A/B別コーチ最低1台保証
+// =========================
 
-if (firstCoach) {
+// Aチーム
+const coachesA =
+  coachDrivers.filter(d => d.team === "箕谷A");
 
-  activeDrivers.push(
-    firstCoach
-  );
+if (coachesA.length > 0) {
+  activeDrivers.push(coachesA[0]);
+  capacity += coachesA[0].seats;
+}
 
-  capacity +=
-    firstCoach.seats;
+// Bチーム
+const coachesB =
+  coachDrivers.filter(d => d.team === "箕谷B");
+
+if (coachesB.length > 0) {
+  activeDrivers.push(coachesB[0]);
+  capacity += coachesB[0].seats;
+}
+
+// =========================
+// 残りコーチ（A/Bで使ってない分）
+// =========================
+
+// すでに使ったコーチを記録
+const usedCoaches = new Set([
+  ...(coachesA[0] ? [coachesA[0]] : []),
+  ...(coachesB[0] ? [coachesB[0]] : [])
+]);
+
+for (const coach of coachDrivers) {
+
+  if (usedCoaches.has(coach)) continue;
+
+  if (capacity >= needCount) break;
+
+  activeDrivers.push(coach);
+  capacity += coach.seats;
 
 }
 
-// ★2台目以降は必要な時だけ
-for (const coach of coachDrivers.slice(1)) {
-
-  if (
-    capacity >= needCount
-  ) {
-    break;
-  }
-
-  activeDrivers.push(
-    coach
-  );
-
-  capacity +=
-    coach.seats;
-
-}
- 
   // =========================
   // 総座席数
   // =========================
