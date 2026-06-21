@@ -79,19 +79,31 @@ async function loadForm() {
 
       <div id="detailArea">
 
-        <div class="form-group">
-          <label>集合方法</label>
-          <select id="meetingType">
-            <option value="集合場所集合">
-              集合場所集合
-            </option>
-            <option value="現地集合">
-              現地集合
-            </option>
-          </select>
-        </div>
+<div class="form-group">
+  <label>集合方法</label>
+  <select id="meetingType">
+    <option value="集合場所集合">
+      集合場所集合
+    </option>
+    <option value="現地集合">
+      現地集合
+    </option>
+  </select>
+</div>
 
-        <div id="driveArea">
+<div id="returnTripArea">
+
+  <div class="form-group">
+    <label>復路希望</label>
+    <select id="returnTrip">
+      <option value="○">○</option>
+      <option value="×">×</option>
+    </select>
+  </div>
+
+</div>
+
+<div id="driveArea">
 
           <div class="form-group">
             <label>送迎可能</label>
@@ -115,7 +127,7 @@ async function loadForm() {
           </div>
 
                   </div>
-
+               
                       <div class="form-group">
   <label>備考</label>
 
@@ -225,13 +237,18 @@ async function saveAnswer() {
     document.getElementById("attendance").value;
 
   let meetingType = "";
+  let returnTrip = "";
   let canDrive = "";
   let capacity = 0;
 
-  if (attendance === "参加") {
 
-    meetingType =
-      document.getElementById("meetingType").value;
+if (attendance === "参加") {
+
+  meetingType =
+    document.getElementById("meetingType").value;
+
+  returnTrip =
+    document.getElementById("returnTrip").value;
 
     if (meetingType === "集合場所集合") {
 
@@ -258,11 +275,12 @@ const answer = {
   coachName,
   attendance,
   meetingType,
+  returnTrip,
   canDrive,
   capacity,
   note,
   createdAt: Date.now()
-};
+};  
 
 const answerRef =
   doc(
