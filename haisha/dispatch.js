@@ -456,7 +456,7 @@ activeDrivers.forEach(driver => {
 
   html += `
     <div>
-      🚗 ${driver.name}
+    🚗 ${driver.name.replace("さん号", "さん")}
       （${driver.seats}席）
     </div>
   `;
