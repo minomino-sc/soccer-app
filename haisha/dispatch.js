@@ -361,7 +361,7 @@ for (const coach of coachDrivers) {
   // 画面
   // =========================
   let html = `
-  <h2>🚗 配車作成</h2>
+  <h2>🚗 配車表</h2>
 
   <h3>${eventData.title}</h3>
 
@@ -448,7 +448,7 @@ html += `
   <hr>
 
   <h3>
-    配車可能一覧
+    配車一覧
   </h3>
 
 `;
