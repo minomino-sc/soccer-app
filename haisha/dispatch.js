@@ -490,7 +490,7 @@ activeDrivers.forEach(driver => {
 // =========================
 // 試合道具割当
 // =========================
-activeDrivers.forEach(driver => {
+drivers.forEach(driver => {
   driver.equipment = [];
 });
 
