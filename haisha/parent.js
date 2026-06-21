@@ -115,18 +115,18 @@ async function loadForm() {
 // =========================
 async function saveAnswer() {
 
-  const playerName = document.getElementById("player").value;
-  const attendance = document.getElementById("attendance").value;
-  const returnTrip =
-  document.getElementById("returnTrip").value;
-  const note = document.getElementById("note").value;
+const playerName = document.getElementById("player").value;
+const attendance = document.getElementById("attendance").value;
+const note = document.getElementById("note").value;
 
-  let meetingType = "";
+let meetingType = "";
+let returnTrip = "";
 
-  // ★欠席なら送らない
-  if (attendance === "参加") {
-    meetingType = document.getElementById("meetingType").value;
-  }
+// 欠席なら送らない
+if (attendance === "参加") {
+  meetingType = document.getElementById("meetingType").value;
+  returnTrip = document.getElementById("returnTrip").value;
+}
 
 const answer = {
   eventId,
