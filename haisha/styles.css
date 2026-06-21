@@ -154,3 +154,7 @@ font-size:14px;
 .menu-card:active{
   transform:scale(0.98);
 }
+
+#returnTrip {
+  max-width: 220px;
+}
