@@ -393,60 +393,6 @@ for (const coach of coachDrivers) {
   <div>利用可能座席：${seatCount}席</div>
 `;
 
-html += `
-  <hr>
-
-  <h3>集合情報</h3>
-
-  <div>
-    ⏰ 集合時間：${eventData.meetingTime || "未設定"}
-  </div>
-
-  <div>
-    📍 集合場所：${eventData.meetingPlace || "未設定"}
-  </div>
-`;
-
-html += `
-  <hr>
-
-  <h3>欠席者</h3>
-`;
-
-if (absentPlayers.length === 0) {
-  html += `<div>なし</div>`;
-} else {
-  absentPlayers.forEach(name => {
-    html += `<div>❌ ${name}</div>`;
-  });
-}
-
-html += `
-  <hr>
-
-  <h3>試合当番</h3>
-`;
-
-if (dutyList.length === 0) {
-  html += `<div>未設定</div>`;
-} else {
-  dutyList.forEach(name => {
-    html += `<div>🧑‍✈️ ${name}</div>`;
-  });
-}
-    
-    <div>
-      配車対象：
-      ${needCount}名
-    </div>
-
-    <div>
-      利用可能座席：
-      ${seatCount}席
-    </div>
-
-  `;
-
   if (shortage > 0) {
 
     html += `
