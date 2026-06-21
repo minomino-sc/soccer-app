@@ -127,7 +127,7 @@ coachSnap.forEach((docSnap) => {
 
     const seats =
       Math.max(
-        Number(a.capacity || 0) - 1,
+        Number(a.capacity || 0) - 2,
         0
       );
 
@@ -173,7 +173,7 @@ dutySnap.forEach((docSnap) => {
 
     const seats =
       Math.max(
-        Number(a.capacity || 0) - 1,
+        Number(a.capacity || 0) - 2,
         0
       );
 
