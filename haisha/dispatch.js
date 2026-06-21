@@ -786,16 +786,17 @@ document
       el.style.color = "#000000";
     });
 
-    const canvas = await html2canvas(pdfArea, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      windowWidth: pdfArea.scrollWidth,
-      windowHeight: pdfArea.scrollHeight
-    });
+const canvas = await html2canvas(pdfArea, {
+  scale: 2,
+  backgroundColor: "#ffffff",
+  useCORS: true,
+  windowWidth: pdfArea.scrollWidth,
+  windowHeight: pdfArea.scrollHeight
+});
 
-    pdfArea.style.display = "none";
+pdfArea.style.display = "none";
 
-    const imgData = canvas.toDataURL("image/png");
+const imgData = canvas.toDataURL("image/png");
 
 const { jsPDF } = window.jspdf;
 
@@ -804,26 +805,26 @@ const pdf = new jsPDF("p", "mm", "a4");
 const pageWidth = pdf.internal.pageSize.getWidth();
 const pageHeight = pdf.internal.pageSize.getHeight();
 
-// canvasをA4比率に強制縮小
-const ratio = Math.min(
-  pageWidth / canvas.width,
-  pageHeight / canvas.height
+const margin = 10;
+
+const usableWidth = pageWidth - margin * 2;
+const usableHeight = pageHeight - margin * 2;
+
+const scale = Math.min(
+  usableWidth / canvas.width,
+  usableHeight / canvas.height
 );
 
-const imgWidth = canvas.width * ratio;
-const imgHeight = canvas.height * ratio;
+const imgWidth = canvas.width * scale;
+const imgHeight = canvas.height * scale;
 
-pdf.addImage(
-  imgData,
-  "PNG",
-  (pageWidth - imgWidth) / 2,
-  0,
-  imgWidth,
-  imgHeight
-);
+const x = (pageWidth - imgWidth) / 2;
+const y = margin;
+
+pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
 
 pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-    
+       
 });    
     
 document
