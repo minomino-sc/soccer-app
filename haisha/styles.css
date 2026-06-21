@@ -156,5 +156,6 @@ font-size:14px;
 }
 
 #returnTrip {
+  width: 100%;
   max-width: 220px;
 }
