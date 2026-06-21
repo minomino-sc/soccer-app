@@ -68,14 +68,6 @@ async function loadForm() {
         </div>
       </div>
 
-<div id="returnTripWrap" class="form-group">
-  <label>復路希望</label>
-  <select id="returnTrip">
-    <option value="○">○</option>
-    <option value="×">×</option>
-  </select>
-</div>
-
       <div class="form-group">
         <label>備考</label>
         <input id="note" type="text">
@@ -90,17 +82,17 @@ async function loadForm() {
 
   const attendanceEl = document.getElementById("attendance");
   const meetingWrap = document.getElementById("meetingWrap");
-const returnTripWrap = document.getElementById("returnTripWrap");
 
-function updateUI() {
-  if (attendanceEl.value === "欠席") {
-    meetingWrap.style.display = "none";
-    returnTripWrap.style.display = "none";
-  } else {
-    meetingWrap.style.display = "block";
-    returnTripWrap.style.display = "block";
+  // =========================
+  // ★ここが今回の本体
+  // =========================
+  function updateUI() {
+    if (attendanceEl.value === "欠席") {
+      meetingWrap.style.display = "none";
+    } else {
+      meetingWrap.style.display = "block";
+    }
   }
-}
 
   attendanceEl.addEventListener("change", updateUI);
   updateUI();
@@ -115,28 +107,25 @@ function updateUI() {
 // =========================
 async function saveAnswer() {
 
-const playerName = document.getElementById("player").value;
-const attendance = document.getElementById("attendance").value;
-const note = document.getElementById("note").value;
+  const playerName = document.getElementById("player").value;
+  const attendance = document.getElementById("attendance").value;
+  const note = document.getElementById("note").value;
 
-let meetingType = "";
-let returnTrip = "";
+  let meetingType = "";
 
-// 欠席なら送らない
-if (attendance === "参加") {
-  meetingType = document.getElementById("meetingType").value;
-  returnTrip = document.getElementById("returnTrip").value;
-}
+  // ★欠席なら送らない
+  if (attendance === "参加") {
+    meetingType = document.getElementById("meetingType").value;
+  }
 
-const answer = {
-  eventId,
-  playerName,
-  attendance,
-  note,
-  meetingType,
-  returnTrip,   // ★追加
-  createdAt: Date.now()
-};
+  const answer = {
+    eventId,
+    playerName,
+    attendance,
+    note,
+    meetingType,
+    createdAt: Date.now()
+  };
 
   const answerRef = doc(
     db,
