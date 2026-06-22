@@ -186,6 +186,26 @@ async function loadForm() {
         </select>
       </div>
 
+<div class="form-group">
+
+  <label>
+    復路希望
+  </label>
+
+  <select id="returnTrip">
+
+    <option value="○">
+      ○
+    </option>
+
+    <option value="×">
+      ×
+    </option>
+
+  </select>
+
+</div>
+
         <div class="form-group">
 
   <label>
@@ -326,6 +346,11 @@ async function saveAnswer() {
 
   }
 
+const returnTrip =
+  document.getElementById(
+    "returnTrip"
+  ).value;
+ 
 const note =
   document.getElementById(
     "note"
@@ -336,6 +361,7 @@ const answer = {
   eventId,
   dutyName,
   canDrive,
+  returnTrip,
   canCarryEquipment,
   capacity,
   note,
