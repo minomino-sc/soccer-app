@@ -74,11 +74,22 @@ if (!cancelBtn) {
 
     try {
 
-      if (editId) {
-        await updateDoc(doc(db, "car_dispatch_events", editId), event);
-        localStorage.removeItem("editId");
-        alert("更新しました");
-      } else {
+if (editId) {
+
+  await updateDoc(
+    doc(db, "car_dispatch_events", editId),
+    event
+  );
+
+  localStorage.removeItem("editId");
+
+  alert("更新しました");
+
+  window.location.href = "index.html";
+
+  return;
+
+} else {
         
 const docRef =
   await addDoc(
