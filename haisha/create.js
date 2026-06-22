@@ -80,12 +80,18 @@ if (!cancelBtn) {
         alert("更新しました");
       } else {
 
-    await addDoc(
+await addDoc(
   collection(db, "car_dispatch_events"),
   event
 );
 
-const message =
+const ok = confirm(
+  "保存しました。\nLINEで通知しますか？"
+);
+
+if (ok) {
+
+  const message =
 `【新規イベント】
 ${event.title}
 
@@ -94,9 +100,15 @@ ${event.title}
 
 回答をお願いします`;
 
-window.location.href =
-  `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+  location.href =
+    `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
 
+  return;
+}
+
+window.location.href =
+  "index.html";
+        
 alert("保存しました");
 
       }
