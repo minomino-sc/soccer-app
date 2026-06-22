@@ -120,12 +120,45 @@ card.addEventListener("click", () => {
         ⏰ 締切：${formatDateTime(data.deadline)}
       </div>
 
-      <div class="event-actions">
-        <button class="edit-btn" data-id="${docSnap.id}">編集</button>
-        <button class="delete-btn" data-id="${docSnap.id}">削除</button>
-      </div>
+<div class="event-actions">
+  <button class="line-btn" data-id="${docSnap.id}">LINE送信</button>
+  <button class="edit-btn" data-id="${docSnap.id}">編集</button>
+  <button class="delete-btn" data-id="${docSnap.id}">削除</button>
+</div>
+
     `;
 
+// =========================
+// LINE送信
+// =========================
+card.querySelector(".line-btn").addEventListener("click", (e) => {
+
+  e.stopPropagation();
+
+  const url =
+    `https://minomino-sc.github.io/soccer-app/haisha/event.html?id=${docSnap.id}`;
+
+  const message =
+`お疲れ様です。
+
+イベントを登録しましたので、コーチ出欠の回答をお願いします。
+また、役員さん経由で部員の出欠回答、試合当番回答を依頼いただくようお願いします。
+
+${data.title}
+${data.date}
+
+対象：${data.target}
+
+出欠回答はこちら
+${url}`;
+
+  window.open(
+    `https://line.me/R/msg/text/?${encodeURIComponent(message)}`,
+    "_blank"
+  );
+
+});
+  
     // =========================
     // 編集
     // =========================
