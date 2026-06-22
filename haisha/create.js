@@ -79,9 +79,6 @@ if (!cancelBtn) {
         localStorage.removeItem("editId");
         alert("更新しました");
       } else {
-
-
-
         
 const docRef =
   await addDoc(
@@ -112,17 +109,17 @@ const ok = confirm(
 
 if (ok) {
 
-  window.location.href =
-    `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
-
-  return;
+  window.open(
+    `https://line.me/R/msg/text/?${encodeURIComponent(message)}`,
+    "_blank"
+  );
 
 }
 
-      }
-
-      window.location.href = "index.html";
-
+window.location.href = "index.html";
+        
+}
+        
     } catch (error) {
       console.error(error);
       alert("保存に失敗しました");
