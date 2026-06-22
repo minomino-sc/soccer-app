@@ -79,8 +79,8 @@ if (!cancelBtn) {
         localStorage.removeItem("editId");
         alert("更新しました");
       } else {
-  
-await addDoc(
+
+    await addDoc(
   collection(db, "car_dispatch_events"),
   event
 );
@@ -94,9 +94,8 @@ ${event.title}
 
 回答をお願いします`;
 
-window.open(
-  `https://line.me/R/msg/text/?${encodeURIComponent(message)}`
-);
+window.location.href =
+  `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
 
 alert("保存しました");
 
