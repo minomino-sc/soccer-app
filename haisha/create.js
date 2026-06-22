@@ -106,12 +106,18 @@ ${event.date}
 出欠回答はこちら
 ${url}`;
 
-window.location.href =
-  `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+const ok = confirm(
+  "保存しました。\nLINEで通知しますか？"
+);
 
-return;
-        
-alert("保存しました");
+if (ok) {
+
+  window.location.href =
+    `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+
+  return;
+
+}
 
       }
 
