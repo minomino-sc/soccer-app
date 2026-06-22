@@ -101,7 +101,7 @@ ${event.date}
 対象：${event.target}
 
 出欠回答はこちら
-${url}`;
+${https://minomino-sc.github.io/soccer-app/haisha/}`;
 
 window.location.href =
   `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
