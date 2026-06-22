@@ -91,41 +91,12 @@ if (editId) {
 
 } else {
         
-const docRef =
-  await addDoc(
-    collection(db, "car_dispatch_events"),
-    event
-  );
-
-const url =
-  `https://minomino-sc.github.io/soccer-app/haisha/event.html?id=${docRef.id}`;
-
-const message =
-`お疲れ様です。
-
-イベントを新規登録しましたので、コーチ出欠の回答をお願いします。
-また、役員さん経由で部員の出欠回答、試合当番回答を依頼いただくようお願いします。
-
-${event.title}
-${event.date}
-
-対象：${event.target}
-
-出欠回答はこちら
-${url}`;
-
-const ok = confirm(
-  "保存しました。\nLINEで通知しますか？"
+await addDoc(
+  collection(db, "car_dispatch_events"),
+  event
 );
 
-if (ok) {
-
-  window.open(
-    `https://line.me/R/msg/text/?${encodeURIComponent(message)}`,
-    "_blank"
-  );
-
-}
+alert("保存しました");
 
 window.location.href = "index.html";
         
