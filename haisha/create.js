@@ -79,8 +79,27 @@ if (!cancelBtn) {
         localStorage.removeItem("editId");
         alert("更新しました");
       } else {
-        await addDoc(collection(db, "car_dispatch_events"), event);
-        alert("保存しました");
+  
+await addDoc(
+  collection(db, "car_dispatch_events"),
+  event
+);
+
+const message =
+`【新規イベント】
+${event.title}
+
+日時：${event.date}
+対象：${event.target}
+
+回答をお願いします`;
+
+window.open(
+  `https://line.me/R/msg/text/?${encodeURIComponent(message)}`
+);
+
+alert("保存しました");
+
       }
 
       window.location.href = "index.html";
