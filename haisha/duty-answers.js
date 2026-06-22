@@ -53,6 +53,8 @@ async function loadAnswers() {
   let driveYes = 0;
   let driveNo = 0;
   let totalSeats = 0;
+  let returnTripYes = 0;
+let returnTripNo = 0;
 
   let equipmentYes = 0;
   let equipmentNo = 0;
@@ -63,6 +65,14 @@ async function loadAnswers() {
 
     const data =
       docSnap.data();
+
+    if (data.returnTrip === "○") {
+  returnTripYes++;
+}
+
+if (data.returnTrip === "×") {
+  returnTripNo++;
+}
 
     // 送迎集計
     if (data.canDrive === "○") {
@@ -100,6 +110,16 @@ async function loadAnswers() {
           送迎：${data.canDrive}
         </div>
 
+<div class="event-meta">
+  復路：${
+    data.returnTrip === "○"
+      ? "乗る"
+      : data.returnTrip === "×"
+        ? "乗らない"
+        : "-"
+  }
+</div>
+        
         <div class="event-meta">
           乗車人数：${data.capacity || 0}
         </div>
@@ -143,6 +163,14 @@ async function loadAnswers() {
         🪑総乗車可能人数 ${totalSeats}
       </div>
 
+<div class="event-meta">
+  🔁復路希望（○） ${returnTripYes}
+</div>
+
+<div class="event-meta">
+  🚫復路なし（×） ${returnTripNo}
+</div>
+      
       <div class="event-meta">
         🎒試合道具積載可能 ${equipmentYes}
       </div>
