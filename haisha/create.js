@@ -80,6 +80,9 @@ if (!cancelBtn) {
         alert("更新しました");
       } else {
 
+
+
+        
 const docRef =
   await addDoc(
     collection(db, "car_dispatch_events"),
@@ -87,7 +90,7 @@ const docRef =
   );
 
 const url =
-  `https://xxxxx.web.app/event.html?id=${docRef.id}`;
+  `https://minomino-sc.github.io/soccer-app/haisha/event.html?id=${docRef.id}`;
 
 const message =
 `お疲れ様です。
@@ -101,10 +104,12 @@ ${event.date}
 対象：${event.target}
 
 出欠回答はこちら
-${https://minomino-sc.github.io/soccer-app/haisha/}`;
+${url}`;
 
 window.location.href =
   `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+
+return;
         
 alert("保存しました");
 
