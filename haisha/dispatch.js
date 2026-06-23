@@ -103,9 +103,62 @@ targetPlayers.push({
 
   });
 
-  const needCount =
-    targetPlayers.length;
-  
+// =========================
+// 配車対象コーチ
+// =========================
+
+coachSnap.forEach((docSnap) => {
+
+  const a =
+    docSnap.data();
+
+if (
+  a.attendance === "参加" &&
+  a.meetingType === "集合場所集合" &&
+  (
+    a.canDrive !== "○" &&
+    a.canDrive !== "◯"
+  )
+) {
+
+    targetPlayers.push({
+      name: a.coachName,
+      returnTrip: false
+    });
+
+  }
+
+});
+
+// =========================
+// 配車対象試合当番
+// =========================
+
+dutySnap.forEach((docSnap) => {
+
+  const a =
+    docSnap.data();
+
+  if (
+    a.canDrive !== "○" &&
+    a.canDrive !== "◯"
+  ) {
+
+    const family =
+      a.dutyName
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
+
+    targetPlayers.push({
+      name: `${family}さん`,
+      returnTrip: false
+    });
+
+  }
+
+});
+    
 const returnTripTargets = [];
 
 // 保護者
@@ -174,6 +227,9 @@ dutySnap.forEach((docSnap) => {
   }
 
 });
+
+  const needCount =
+    targetPlayers.length;  
 
 const absentPlayers = [];
 
