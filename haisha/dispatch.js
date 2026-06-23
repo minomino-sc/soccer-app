@@ -847,6 +847,39 @@ activeDrivers.forEach(driver => {
 }
 
 if (
+  driver.returnPlayers &&
+  driver.returnPlayers.length
+) {
+
+  html += `
+    <hr>
+
+    <div style="font-weight:bold;">
+      【復路】
+    </div>
+  `;
+
+  driver.returnPlayers.forEach(
+    (name, index) => {
+
+      html += `
+        <div>
+          ${index + 1}．${name}
+        </div>
+      `;
+
+    }
+  );
+
+}
+
+
+
+
+
+
+  
+if (
   driver.equipment &&
   driver.equipment.length
 ) {
