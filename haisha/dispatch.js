@@ -105,11 +105,6 @@ targetPlayers.push({
 
   const needCount =
     targetPlayers.length;
-
-
-
-
-
   
 const returnTripTargets = [];
 
@@ -168,13 +163,6 @@ dutySnap.forEach((docSnap) => {
   }
 
 });
-
-
-
-
-
-  
-  
 
 const absentPlayers = [];
 
@@ -547,6 +535,10 @@ activeDrivers.forEach(driver => {
   driver.players = [];
 });
 
+activeDrivers.forEach(driver => {
+  driver.returnPlayers = [];
+});
+  
 const assignDrivers =
   [...activeDrivers].sort(
     (a, b) =>
@@ -600,6 +592,90 @@ activeDrivers.forEach(driver => {
   }
 
 });
+
+// =========================
+// 復路配車
+// =========================
+
+returnTripTargets.forEach(person => {
+
+  // コーチ
+  if (person.type === "coach") {
+
+    const coachCar =
+      activeDrivers.find(
+        d => d.priority === 1
+      );
+
+    if (coachCar) {
+      coachCar.returnPlayers.push(person.name);
+    }
+
+  }
+
+  // 試合当番
+  else if (person.type === "duty") {
+
+    const dutyCar =
+      activeDrivers.find(
+        d =>
+          d.priority === 2 &&
+          d.dutyName === person.name
+      );
+
+    if (dutyCar) {
+
+      dutyCar.returnPlayers.push(person.name);
+
+    } else {
+
+      const coachCar =
+        activeDrivers.find(
+          d => d.priority === 1
+        );
+
+      if (coachCar) {
+        coachCar.returnPlayers.push(person.name);
+      }
+
+    }
+
+  }
+
+  // 部員
+  else if (person.type === "player") {
+
+    const dutyCar =
+      activeDrivers.find(
+        d => d.priority === 2
+      );
+
+    if (
+      dutyCar &&
+      dutyCar.returnPlayers.length <
+      dutyCar.seats
+    ) {
+
+      dutyCar.returnPlayers.push(person.name);
+
+    } else {
+
+      const coachCar =
+        activeDrivers.find(
+          d => d.priority === 1
+        );
+
+      if (coachCar) {
+        coachCar.returnPlayers.push(person.name);
+      }
+
+    }
+
+  }
+
+});
+
+  
   
 // =========================
 // 試合道具割当
