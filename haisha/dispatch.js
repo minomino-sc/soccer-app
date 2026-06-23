@@ -155,9 +155,20 @@ dutySnap.forEach((docSnap) => {
     a.returnTrip === "○"
   ) {
 
+    const family =
+      a.dutyName
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
+
     returnTripTargets.push({
       type: "duty",
-      name: a.dutyName
+
+      // 内部判定用
+      dutyName: a.dutyName,
+
+      // 画面表示用
+      displayName: `${family}さん`
     });
 
   }
@@ -614,33 +625,39 @@ returnTripTargets.forEach(person => {
   }
 
   // 試合当番
-  else if (person.type === "duty") {
+else if (person.type === "duty") {
 
-    const dutyCar =
+  const dutyCar =
+    activeDrivers.find(
+      d =>
+        d.priority === 2 &&
+        d.dutyName === person.dutyName
+    );
+
+  if (dutyCar) {
+
+    dutyCar.returnPlayers.push(
+      person.displayName
+    );
+
+  } else {
+
+    const coachCar =
       activeDrivers.find(
-        d =>
-          d.priority === 2 &&
-          d.dutyName === person.name
+        d => d.priority === 1
       );
 
-    if (dutyCar) {
+    if (coachCar) {
 
-      dutyCar.returnPlayers.push(person.name);
-
-    } else {
-
-      const coachCar =
-        activeDrivers.find(
-          d => d.priority === 1
-        );
-
-      if (coachCar) {
-        coachCar.returnPlayers.push(person.name);
-      }
+      coachCar.returnPlayers.push(
+        person.displayName
+      );
 
     }
 
   }
+
+}
 
   // 部員
   else if (person.type === "player") {
