@@ -106,10 +106,74 @@ targetPlayers.push({
   const needCount =
     targetPlayers.length;
 
-const returnTripPlayers =
-  targetPlayers.filter(
-    p => p.returnTrip
-  );
+
+
+
+
+  
+const returnTripTargets = [];
+
+// 保護者
+parentSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (
+    a.attendance === "参加" &&
+    a.returnTrip === "○"
+  ) {
+
+    returnTripTargets.push({
+      type: "player",
+      name: a.playerName
+    });
+
+  }
+
+});
+
+// コーチ
+coachSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (
+    a.attendance === "参加" &&
+    a.returnTrip === "○"
+  ) {
+
+    returnTripTargets.push({
+      type: "coach",
+      name: a.coachName
+    });
+
+  }
+
+});
+
+// 試合当番
+dutySnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (
+    a.returnTrip === "○"
+  ) {
+
+    returnTripTargets.push({
+      type: "duty",
+      name: a.dutyName
+    });
+
+  }
+
+});
+
+
+
+
+
+  
   
 
 const absentPlayers = [];
@@ -402,7 +466,7 @@ for (const coach of coachDrivers) {
 
 <div>配車対象：${needCount}名</div>
 <div>利用可能座席：${seatCount}席</div>
-<div>復路希望：${returnTripPlayers.length}名</div>
+<div>復路希望：${returnTripTargets.length}名</div>
 
 `;
 
