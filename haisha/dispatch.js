@@ -94,9 +94,10 @@ else {
       a.meetingType === "pickup"
     ) {
 
-      targetPlayers.push(
-        a.playerName
-      );
+targetPlayers.push({
+  name: a.playerName,
+  returnTrip: a.returnTrip === "○"
+});
 
     }
 
@@ -104,6 +105,12 @@ else {
 
   const needCount =
     targetPlayers.length;
+
+const returnTripPlayers =
+  targetPlayers.filter(
+    p => p.returnTrip
+  );
+  
 
 const absentPlayers = [];
 
@@ -393,8 +400,10 @@ for (const coach of coachDrivers) {
 
   <hr>
 
-  <div>配車対象：${needCount}名</div>
-  <div>利用可能座席：${seatCount}席</div>
+<div>配車対象：${needCount}名</div>
+<div>利用可能座席：${seatCount}席</div>
+<div>復路希望：${returnTripPlayers.length}名</div>
+
 `;
 
   if (shortage > 0) {
@@ -518,7 +527,7 @@ while (
   }
 
 }
-
+  
 // 配車なしドライバー対策
 activeDrivers.forEach(driver => {
 
@@ -688,7 +697,7 @@ activeDrivers.forEach(driver => {
 
       html += `
         <div>
-          ${index + 1}．${player}
+          ${index + 1}．${player.name}
         </div>
       `;
 
@@ -749,7 +758,7 @@ if (
 
     html += `
       <div>
-        ${player}
+        ${player.name}
       </div>
     `;
 
