@@ -562,10 +562,6 @@ margin-bottom:20px;
 
   <hr>
 
-<div>配車対象：${needCount}名</div>
-<div>利用可能座席：${seatCount}席</div>
-<div>復路希望：${returnTripTargets.length}名</div>
-
 `;
 
   if (shortage > 0) {
@@ -609,35 +605,7 @@ margin-bottom:20px;
     `;
 
   }
-
-html += `
-
-  <hr>
-
-  <h3>
-    配車一覧
-  </h3>
-
-`;
   
-activeDrivers.forEach(driver => {
-
-  if (
-    driver.players &&
-    driver.players.length === 0
-  ) {
-    return;
-  }
-
-  html += `
-    <div>
-    🚗 ${driver.name.replace("さん号", "さん")}
-      （${driver.seats}席）
-    </div>
-  `;
-
-});
-
 // =========================
 // 自動配車（均等割り）
 // =========================
