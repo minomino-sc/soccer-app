@@ -864,11 +864,55 @@ border-collapse:collapse;
 ">
 
 <tr>
-<th>号車</th>
-<th>定員</th>
-<th>乗車</th>
-<th>空席</th>
-<th>試合道具</th>
+<th
+style="
+border:1px solid #ccc;
+padding:6px;
+background:#f5f5f5;
+"
+>
+号車
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:6px;
+background:#f5f5f5;
+"
+>
+定員
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:6px;
+background:#f5f5f5;
+"
+>
+乗車
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:6px;
+background:#f5f5f5;
+"
+>
+空席
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:6px;
+background:#f5f5f5;
+"
+>
+試合道具
+</th>
 </tr>
 
 `;
@@ -888,7 +932,15 @@ activeDrivers.forEach(driver => {
 html += `
 
 <tr>
-<td>${driver.name}</td>
+<td
+style="
+border:1px solid #ccc;
+padding:6px;
+"
+>
+${driver.name}
+</td>
+
 <td>${driver.seats}</td>
 <td>${driver.players.length}</td>
 <td>${driver.seats - driver.players.length}</td>
