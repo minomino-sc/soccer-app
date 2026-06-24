@@ -931,7 +931,11 @@ activeDrivers.forEach(driver => {
 
 html += `
 
+
+
+
 <tr>
+
 <td
 style="
 border:1px solid #ccc;
@@ -941,14 +945,48 @@ padding:6px;
 ${driver.name}
 </td>
 
-<td>${driver.seats}</td>
-<td>${driver.players.length}</td>
-<td>${driver.seats - driver.players.length}</td>
-<td>
+<td
+style="
+border:1px solid #ccc;
+padding:6px;
+text-align:center;
+"
+>
+${driver.seats}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:6px;
+text-align:center;
+"
+>
+${driver.players.length}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:6px;
+text-align:center;
+"
+>
+${driver.seats - driver.players.length}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:6px;
+text-align:center;
+"
+>
 ${driver.equipment
   ? driver.equipment.join("・")
   : ""}
 </td>
+
 </tr>
 
 `;
@@ -968,10 +1006,47 @@ border-collapse:collapse;
 ">
 
 <tr>
-<th>No</th>
-<th>氏名</th>
-<th>役割</th>
-<th>復路</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+No
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+氏名
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+役割
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+復路
+</th>
+
 </tr>
 
 `;
@@ -988,12 +1063,47 @@ ${player.returnTrip
   : ""}
 "
 >
-<td>${index + 1}</td>
-<td>${player.name}</td>
-<td>${player.role}</td>
-<td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+text-align:center;
+"
+>
+${index + 1}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+"
+>
+${player.name}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+text-align:center;
+"
+>
+${player.role}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+text-align:center;
+font-weight:bold;
+"
+>
 ${player.returnTrip ? "復路" : ""}
 </td>
+
 </tr>
 
 `;
