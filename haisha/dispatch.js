@@ -846,18 +846,30 @@ const bCoaches =
 
   }
 
-}  
-  
+}
+
 html += `
 
-  <hr>
+<hr>
 
-  <h3>
-    配車表
-  </h3>
+<h3>配車表</h3>
+
+<table
+style="
+width:100%;
+border-collapse:collapse;
+">
+
+<tr>
+<th>号車</th>
+<th>定員</th>
+<th>乗車</th>
+<th>空席</th>
+<th>試合道具</th>
+</tr>
 
 `;
-  
+ 
 activeDrivers.forEach(driver => {
 
   if (
@@ -869,128 +881,32 @@ activeDrivers.forEach(driver => {
   ) {
     return;
   }
-    
-  html += `
 
-    <div
-      style="
-        border:1px solid #555;
-        padding:10px;
-        margin-bottom:15px;
-      ">
-
-<div
-  style="
-    font-weight:bold;
-    margin-bottom:8px;
-  ">
-  🚗 ${driver.name}
-</div>
-
-<div>
-  定員：${driver.seats}名
-</div>
-
-<div>
-  乗車：${driver.players.length}名
-</div>
-
-<div>
-  空席：
-  ${driver.seats - driver.players.length}席
-</div>
-
-<hr>
-
-  `;
-
-  if (
-    driver.players.length === 0
-  ) {
-
-    html += `
-      <div>
-        配車なし
-      </div>
-    `;
-  }
-  else {
-
-  driver.players.forEach(
-    (player, index) => {
-
-      html += `
-        <div>
-          ${index + 1}．${player.name}
-        </div>
-      `;
-
-    }
-  );
-
-}
-
-if (
-  driver.returnPlayers &&
-  driver.returnPlayers.length
-) {
-
-  html += `
-    <hr>
-
-    <div style="font-weight:bold;">
-      【復路】
-    </div>
-  `;
-
-  driver.returnPlayers.forEach(
-    (name, index) => {
-
-      html += `
-        <div>
-          ${index + 1}．${name}
-        </div>
-      `;
-
-    }
-  );
-
-}
-
-
-
-
-
-
-  
-if (
-  driver.equipment &&
-  driver.equipment.length
-) {
-
-  html += `
-
-    <hr>
-
-    <div
-      style="
-        font-weight:bold;
-      ">
-
-      ※試合道具
-      （${driver.equipment.join("・")}）
-
-    </div>
-
-  `;
-
-}
-  
 html += `
-  </div>
+
+<tr>
+<td>${driver.name}</td>
+<td>${driver.seats}</td>
+<td>${driver.players.length}</td>
+<td>${driver.seats - driver.players.length}</td>
+<td>
+${driver.equipment
+  ? driver.equipment.join("・")
+  : ""}
+</td>
+</tr>
+
 `;
 
 });
+
+// ←ここ追加
+
+html += `
+
+</table>
+
+`;
 
 const remainPlayers =
   targetPlayers.slice(
