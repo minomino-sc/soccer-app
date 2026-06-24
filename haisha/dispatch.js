@@ -761,9 +761,7 @@ else if (person.type === "duty") {
   }
 
 });
-
-  
-  
+    
 // =========================
 // 試合道具割当
 // =========================
@@ -850,17 +848,26 @@ const bCoaches =
   }
 
 }
+ 
+activeDrivers.forEach(driver => {
+
+  if (
+    driver.players.length === 0 &&
+    (
+      !driver.equipment ||
+      driver.equipment.length === 0
+    )
+  ) {
+    return;
+  }
 
 html += `
-
-<hr>
-
-<h3>配車表</h3>
 
 <table
 style="
 width:100%;
 border-collapse:collapse;
+margin-bottom:20px;
 ">
 
 <tr>
@@ -913,26 +920,12 @@ background:#f5f5f5;
 >
 試合道具
 </th>
+
 </tr>
 
 `;
- 
-activeDrivers.forEach(driver => {
-
-  if (
-    driver.players.length === 0 &&
-    (
-      !driver.equipment ||
-      driver.equipment.length === 0
-    )
-  ) {
-    return;
-  }
-
+  
 html += `
-
-
-
 
 <tr>
 
@@ -1123,14 +1116,6 @@ ${player.returnTrip ? "復路" : ""}
 }
   
 });
-
-// ←ここ追加
-
-html += `
-
-</table>
-
-`;
 
 const remainPlayers =
   targetPlayers.slice(
