@@ -487,21 +487,64 @@ for (const coach of coachDrivers) {
   // 画面
   // =========================
   let html = `
-  <h2>🚗 配車表</h2>
 
-  <h3>${eventData.title}</h3>
+<h2>🚗 配車表</h2>
 
-  <div>日付：${eventData.date}</div>
-  <div>対象：${eventData.target}</div>
+<table
+style="
+width:100%;
+border-collapse:collapse;
+margin-bottom:20px;
+">
 
-  <hr>
+<tr>
+<td>試合名</td>
+<td>${eventData.title}</td>
+</tr>
 
-  <h3>集合情報</h3>
+<tr>
+<td>対象</td>
+<td>${eventData.target}</td>
+</tr>
 
-  <div>⏰ 集合時間：${eventData.meetingTime || "未設定"}</div>
-  <div>📍 集合場所：${eventData.meetingPlace || "未設定"}</div>
+<tr>
+<td>開催日</td>
+<td>${eventData.date}</td>
+</tr>
 
-  <hr>
+<tr>
+<td>集合時間</td>
+<td>${eventData.meetingTime || "未設定"}</td>
+</tr>
+
+<tr>
+<td>集合場所</td>
+<td>${eventData.meetingPlace || "未設定"}</td>
+</tr>
+
+<tr>
+<td>試合当番</td>
+<td>${dutyList.join("・") || "未設定"}</td>
+</tr>
+
+<tr>
+<td>配車対象</td>
+<td>${needCount}名</td>
+</tr>
+
+<tr>
+<td>利用可能座席</td>
+<td>${seatCount}席</td>
+</tr>
+
+<tr>
+<td>復路希望</td>
+<td>${returnTripTargets.length}名</td>
+</tr>
+
+</table>
+
+<hr>
 
   <h3>欠席者</h3>
   ${absentPlayers.length === 0
