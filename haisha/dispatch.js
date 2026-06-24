@@ -96,6 +96,7 @@ else {
 
 targetPlayers.push({
   name: a.playerName,
+  role: "選手",
   returnTrip: a.returnTrip === "○"
 });
 
@@ -121,10 +122,11 @@ if (
   )
 ) {
 
-    targetPlayers.push({
-      name: a.coachName,
-      returnTrip: false
-    });
+targetPlayers.push({
+  name: a.coachName,
+  role: "コーチ",
+  returnTrip: false
+});
 
   }
 
@@ -150,10 +152,11 @@ dutySnap.forEach((docSnap) => {
         .trim()
         .split(" ")[0];
 
-    targetPlayers.push({
-      name: `${family}さん`,
-      returnTrip: false
-    });
+targetPlayers.push({
+  name: `${family}さん`,
+  role: "試合当番",
+  returnTrip: false
+});
 
   }
 
@@ -898,6 +901,59 @@ ${driver.equipment
 
 `;
 
+if (driver.players.length > 0) {
+
+  html += `
+
+<tr>
+<td colspan="5">
+
+<table
+style="
+width:100%;
+margin-top:5px;
+border-collapse:collapse;
+">
+
+<tr>
+<th>No</th>
+<th>氏名</th>
+<th>役割</th>
+<th>復路</th>
+</tr>
+
+`;
+
+  driver.players.forEach(
+    (player, index) => {
+
+      html += `
+
+<tr>
+<td>${index + 1}</td>
+<td>${player.name}</td>
+<td>${player.role}</td>
+<td>
+${player.returnTrip ? "○" : ""}
+</td>
+</tr>
+
+`;
+
+    }
+  );
+
+  html += `
+
+</table>
+
+</td>
+</tr>
+
+`;
+
+}
+  
 });
 
 // ←ここ追加
