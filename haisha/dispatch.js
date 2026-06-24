@@ -863,124 +863,30 @@ activeDrivers.forEach(driver => {
 
 html += `
 
-<table
+<h3
 style="
-width:100%;
-border-collapse:collapse;
-margin-bottom:20px;
-">
-
-<tr>
-<th
-style="
-border:1px solid #ccc;
-padding:6px;
-background:#f5f5f5;
+margin-top:20px;
+margin-bottom:5px;
 "
 >
-号車
-</th>
+🚗 ${driver.name}
+</h3>
 
-<th
+<div
 style="
-border:1px solid #ccc;
-padding:6px;
-background:#f5f5f5;
+margin-bottom:10px;
+font-weight:bold;
 "
 >
-定員
-</th>
-
-<th
-style="
-border:1px solid #ccc;
-padding:6px;
-background:#f5f5f5;
-"
->
-乗車
-</th>
-
-<th
-style="
-border:1px solid #ccc;
-padding:6px;
-background:#f5f5f5;
-"
->
-空席
-</th>
-
-<th
-style="
-border:1px solid #ccc;
-padding:6px;
-background:#f5f5f5;
-"
->
-試合道具
-</th>
-
-</tr>
-
-`;
-  
-html += `
-
-<tr>
-
-<td
-style="
-border:1px solid #ccc;
-padding:6px;
-"
->
-${driver.name}
-</td>
-
-<td
-style="
-border:1px solid #ccc;
-padding:6px;
-text-align:center;
-"
->
-${driver.seats}
-</td>
-
-<td
-style="
-border:1px solid #ccc;
-padding:6px;
-text-align:center;
-"
->
-${driver.players.length}
-</td>
-
-<td
-style="
-border:1px solid #ccc;
-padding:6px;
-text-align:center;
-"
->
-${driver.seats - driver.players.length}
-</td>
-
-<td
-style="
-border:1px solid #ccc;
-padding:6px;
-text-align:center;
-"
->
-${driver.equipment
-  ? driver.equipment.join("・")
-  : ""}
-</td>
-
-</tr>
+定員：${driver.seats}名 ／
+乗車：${driver.players.length}名 ／
+空席：${driver.seats - driver.players.length}名 ／
+試合道具：${
+  driver.equipment.length
+    ? driver.equipment.join("・")
+    : "－"
+}
+</div>
 
 `;
 
