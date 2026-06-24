@@ -924,24 +924,30 @@ border-collapse:collapse;
 
 `;
 
-  driver.players.forEach(
-    (player, index) => {
+driver.players.forEach(
+  (player, index) => {
 
-      html += `
+    html += `
 
-<tr>
+<tr
+style="
+${player.returnTrip
+  ? "background:#fff3a0;"
+  : ""}
+"
+>
 <td>${index + 1}</td>
 <td>${player.name}</td>
 <td>${player.role}</td>
 <td>
-${player.returnTrip ? "○" : ""}
+${player.returnTrip ? "復路" : ""}
 </td>
 </tr>
 
 `;
 
-    }
-  );
+  }
+);
 
   html += `
 
