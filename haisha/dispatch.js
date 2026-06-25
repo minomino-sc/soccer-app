@@ -1108,6 +1108,41 @@ if (
 
 }
 
+html += `
+
+<hr>
+
+<h3>
+復路配車一覧
+</h3>
+
+`;
+
+activeDrivers.forEach(driver => {
+
+  if (
+    !driver.returnPlayers ||
+    driver.returnPlayers.length === 0
+  ) {
+    return;
+  }
+
+  html += `
+
+<div>
+🚗 ${driver.name}：
+${driver.returnPlayers.join("／")}
+</div>
+
+`;
+
+});
+
+document.getElementById(
+  "dispatchArea"
+).innerHTML =
+  html;  
+
   document.getElementById(
     "dispatchArea"
   ).innerHTML =
