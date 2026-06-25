@@ -863,19 +863,32 @@ activeDrivers.forEach(driver => {
 
 html += `
 
-<h3
-style="
-margin-top:20px;
-margin-bottom:5px;
-"
->
-🚗 ${driver.name}
-</h3>
+
+
 
 <div
 style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:20px;
 margin-bottom:10px;
+"
+>
+
+<div
+style="
+font-size:20px;
 font-weight:bold;
+"
+>
+🚗 ${driver.name}
+</div>
+
+<div
+style="
+font-weight:bold;
+text-align:right;
 "
 >
 定員：${driver.seats}名 ／
@@ -887,6 +900,11 @@ font-weight:bold;
     : "－"
 }
 </div>
+
+</div>
+
+
+
 
 `;
 
