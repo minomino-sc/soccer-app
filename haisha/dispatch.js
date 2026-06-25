@@ -545,31 +545,13 @@ margin-bottom:20px;
 </tr>
 
 <tr>
-<td>試合当番</td>
-<td>${dutyList.join("・") || "未設定"}</td>
-</tr>
-
-<tr>
-<td>配車対象</td>
-<td>
-
-選手 ${playerCount}名<br>
-コーチ ${coachCount}名<br>
-試合当番 ${dutyCount}名<br>
-
-<b>合計 ${needCount}名</b>
-
-</td>
-</tr>
-
-<tr>
 <td>利用可能座席</td>
 <td>${seatCount}席</td>
 </tr>
-
-<tr>
-<td>復路希望</td>
-<td>${returnTripTargets.length}名</td>
+<br>
+<small>
+（運転手含まず・MAX乗車回避済）
+</small>
 </tr>
 
 </table>
