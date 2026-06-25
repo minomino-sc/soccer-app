@@ -893,7 +893,6 @@ html += `
 <div
 style="
 display:flex;
-justify-content:space-between;
 align-items:center;
 margin-top:20px;
 margin-bottom:10px;
@@ -913,6 +912,7 @@ flex-shrink:0;
 
 <div
 style="
+flex:1;
 font-weight:bold;
 text-align:right;
 "
