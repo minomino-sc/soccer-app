@@ -546,7 +546,7 @@ margin-bottom:20px;
 
 <tr>
 <td>利用可能座席</td>
-<td>${seatCount}席（運転手含まず・MAX乗車回避済）</td>
+<td>${seatCount}席（運転手含まず、2席分を除外して算出）</td>
 </tr>
 
 </table>
