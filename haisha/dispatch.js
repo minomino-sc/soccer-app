@@ -1,5 +1,9 @@
 import { db } from "./firebase.js";
 
+document.body.classList.add(
+  "dispatch-page"
+);
+
 import {
   TEAM_A,
   TEAM_B,
