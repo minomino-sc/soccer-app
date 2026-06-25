@@ -1018,7 +1018,7 @@ text-align:center;
 font-weight:bold;
 "
 >
-${player.returnTrip ? "復路" : ""}
+${player.returnTrip ? "◎" : ""}
 </td>
 
 </tr>
