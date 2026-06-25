@@ -154,3 +154,17 @@ font-size:14px;
 .menu-card:active{
   transform:scale(0.98);
 }
+
+body.dispatch-page{
+  background:#ffffff;
+  color:#000000;
+}
+
+body.dispatch-page table,
+body.dispatch-page td,
+body.dispatch-page th,
+body.dispatch-page div,
+body.dispatch-page h2,
+body.dispatch-page h3{
+  color:#000000;
+}
