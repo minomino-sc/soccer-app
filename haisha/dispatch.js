@@ -890,9 +890,6 @@ activeDrivers.forEach(driver => {
 
 html += `
 
-
-
-
 <div
 style="
 display:flex;
@@ -1118,6 +1115,20 @@ html += `
 
 `;
 
+ // 往路ドライバー一覧
+const outwardDrivers =
+  activeDrivers.map(driver => {
+
+    if (driver.priority === 2) {
+
+      return driver.name.replace("号", "");
+
+    }
+
+    return driver.name;
+
+  }); 
+
 activeDrivers.forEach(driver => {
 
   if (
@@ -1127,11 +1138,22 @@ activeDrivers.forEach(driver => {
     return;
   }
 
+const members =
+  driver.returnPlayers.filter(name => {
+
+    return !outwardDrivers.includes(name);
+
+  });
+
+if (members.length === 0) {
+  return;
+}
+  
   html += `
 
 <div>
 🚗 ${driver.name}：
-${driver.returnPlayers.join("／")}
+${members.join("／")}
 </div>
 
 `;
