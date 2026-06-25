@@ -129,7 +129,7 @@ if (
 targetPlayers.push({
   name: a.coachName,
   role: "コーチ",
-  returnTrip: false
+  returnTrip: a.returnTrip === "○"
 });
 
   }
@@ -902,8 +902,10 @@ margin-bottom:10px;
 
 <div
 style="
+width:220px;
 font-size:20px;
 font-weight:bold;
+flex-shrink:0;
 "
 >
 🚗 ${driver.name}
