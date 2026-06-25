@@ -236,7 +236,22 @@ dutySnap.forEach((docSnap) => {
 });
 
   const needCount =
-    targetPlayers.length;  
+    targetPlayers.length;
+
+  const playerCount =
+  targetPlayers.filter(
+    p => p.role === "選手"
+  ).length;
+
+const coachCount =
+  targetPlayers.filter(
+    p => p.role === "コーチ"
+  ).length;
+
+const dutyCount =
+  targetPlayers.filter(
+    p => p.role === "試合当番"
+  ).length;
 
 const absentPlayers = [];
 
@@ -536,7 +551,15 @@ margin-bottom:20px;
 
 <tr>
 <td>配車対象</td>
-<td>${needCount}名</td>
+<td>
+
+選手 ${playerCount}名<br>
+コーチ ${coachCount}名<br>
+試合当番 ${dutyCount}名<br>
+
+<b>合計 ${needCount}名</b>
+
+</td>
 </tr>
 
 <tr>
