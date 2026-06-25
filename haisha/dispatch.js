@@ -896,9 +896,16 @@ text-align:right;
 空席：${driver.seats - driver.players.length}名 ／
 試合道具：${
   driver.equipment.length
-    ? driver.equipment.join("・")
+    ? driver.equipment
+        .map(e =>
+          e === "A"
+            ? "◎（箕谷A）"
+            : "◎（箕谷B）"
+        )
+        .join("・")
     : "－"
 }
+
 </div>
 
 </div>
