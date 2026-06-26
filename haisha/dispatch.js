@@ -303,8 +303,8 @@ dutyList.push(`${name}さん`);
 const driverCounts = {};
 
 const countSnap =
-  await getDocs
-  collection(db, "driver_counts")
+  await getDocs(
+    collection(db, "driver_counts")
   );
 
 countSnap.forEach(docSnap => {
