@@ -660,6 +660,50 @@ const assignDrivers =
       b.priority - a.priority
   );
 
+// =========================
+// ドライバーの子どもを先に自分の車へ乗せる
+// =========================
+
+activeDrivers.forEach(driver => {
+
+  let childName = null;
+
+  // コーチ
+  if (driver.priority === 1) {
+
+    childName =
+      TEAM_A.find(name => name === driver.name) ||
+      TEAM_B.find(name => name === driver.name);
+
+  }
+
+  // 試合当番
+  else {
+
+    childName = driver.dutyName;
+
+  }
+
+  if (!childName) return;
+
+  const index =
+    targetPlayers.findIndex(
+      p => p.name === childName
+    );
+
+  if (index >= 0 &&
+      driver.players.length < driver.seats) {
+
+    driver.players.push(
+      targetPlayers[index]
+    );
+
+    targetPlayers.splice(index, 1);
+
+  }
+
+});
+  
 let playerIndex = 0;
 
 while (
