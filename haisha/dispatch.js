@@ -9,7 +9,8 @@ import {
   TEAM_B,
   COACH_A,
   COACH_B,
-  COACH_CHILD
+  COACH_CHILD,
+  PARENT_CHILD
 } from "./players.js";
 
 import {
@@ -664,44 +665,50 @@ const assignDrivers =
 // =========================
 // ドライバーの子どもを先に自分の車へ乗せる
 // =========================
-
 activeDrivers.forEach(driver => {
 
-  let childName = null;
+  let children = [];
 
   // コーチ
   if (driver.priority === 1) {
 
-    childName =
-      TEAM_A.find(name => name === driver.name) ||
-      TEAM_B.find(name => name === driver.name);
+    children =
+      COACH_CHILD[driver.name] || [];
 
   }
 
   // 試合当番
   else {
 
-    childName = driver.dutyName;
+    const parent =
+      driver.name.replace("号", "");
+
+    children =
+      PARENT_CHILD[parent] || [];
 
   }
 
-  if (!childName) return;
+  children.forEach(childName => {
 
-  const index =
-    targetPlayers.findIndex(
-      p => p.name === childName
-    );
+    const index =
+      targetPlayers.findIndex(
+        p => p.name === childName
+      );
 
-  if (index >= 0 &&
-      driver.players.length < driver.seats) {
+    if (
+      index >= 0 &&
+      driver.players.length < driver.seats
+    ) {
 
-    driver.players.push(
-      targetPlayers[index]
-    );
+      driver.players.push(
+        targetPlayers[index]
+      );
 
-    targetPlayers.splice(index, 1);
+      targetPlayers.splice(index, 1);
 
-  }
+    }
+
+  });
 
 });
   
