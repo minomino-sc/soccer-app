@@ -33,6 +33,8 @@ const params =
 const id =
   params.get("id");
 
+let activeDrivers = [];
+
 const eventSnap =
   await getDoc(
     doc(
@@ -434,7 +436,7 @@ dutySnap.forEach((docSnap) => {
       a.priority - b.priority
   );
 
-const activeDrivers = [];
+activeDrivers = [];
 
 // 試合当番を先に採用
 const dutyDrivers =
@@ -1252,13 +1254,21 @@ ${members.join("／")}
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
-  html;  
+  html;
 
-  document.getElementById(
-    "dispatchArea"
-  ).innerHTML =
-    html;
-
+document.getElementById(
+  "dispatchArea"
+).insertAdjacentHTML(
+  "beforeend",
+  `
+  <div style="margin-top:30px;text-align:center;">
+    <button id="confirmBtn">
+      🚗 配車確定
+    </button>
+  </div>
+  `
+);
+  
 }
 
 document
@@ -1319,6 +1329,44 @@ pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
 pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
        
 });    
+
+// =========================
+// 配車確定
+// =========================
+const confirmBtn =
+  document.getElementById("confirmBtn");
+
+if (confirmBtn) {
+
+  confirmBtn.addEventListener(
+    "click",
+    async () => {
+
+      for (const driver of activeDrivers) {
+
+        if (driver.priority !== 1) {
+          continue;
+        }
+
+        await updateDoc(
+          doc(
+            db,
+            "driver_count",
+            driver.name
+          ),
+          {
+            count: increment(1)
+          }
+        );
+
+      }
+
+      alert("配車を確定しました。");
+
+    }
+  );
+
+}
     
 document
   .getElementById("lineBtn")
