@@ -308,6 +308,7 @@ const countSnap =
   );
 
 countSnap.forEach(docSnap => {
+  
  driverCounts[docSnap.id] =
   docSnap.data().count || 0;
   
