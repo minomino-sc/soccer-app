@@ -8,7 +8,8 @@ import {
   TEAM_A,
   TEAM_B,
   COACH_A,
-  COACH_B
+  COACH_B,
+  COACH_CHILD
 } from "./players.js";
 
 import {
