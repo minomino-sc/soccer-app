@@ -16,6 +16,9 @@ import {
 import {
   doc,
   getDoc,
+  setDoc,
+  updateDoc,
+  increment,
   collection,
   query,
   where,
@@ -292,6 +295,23 @@ dutyList.push(`${name}さん`);
   // =========================
   const drivers = [];
 
+// =========================
+// 配車回数取得
+// =========================
+const driverCounts = {};
+
+const countSnap =
+  await getDocs(
+    collection(db, "driver_count")
+  );
+
+countSnap.forEach(docSnap => {
+
+  driverCounts[docSnap.id] =
+    docSnap.data().count || 0;
+
+});
+  
 // コーチ
 coachSnap.forEach((docSnap) => {
 
@@ -331,12 +351,13 @@ coachSnap.forEach((docSnap) => {
       team = "箕谷B";
     }
 
-    drivers.push({
-      priority: 1,
-      team,
-      name: a.coachName,
-      seats
-    });
+drivers.push({
+  priority: 1,
+  team,
+  name: a.coachName,
+  seats,
+  count: driverCounts[a.coachName] || 0
+});
 
   }
 
@@ -431,10 +452,17 @@ const coachDrivers =
     .filter(
       d => d.priority === 1
     )
-    .sort(
-      (a, b) =>
-        b.seats - a.seats
-    );
+    .sort((a, b) => {
+
+      // ① 配車回数が少ない人を優先
+      if (a.count !== b.count) {
+        return a.count - b.count;
+      }
+
+      // ② 同じ回数なら座席数が多い人を優先
+      return b.seats - a.seats;
+
+    });
 
 let capacity =
   dutyDrivers.reduce(
