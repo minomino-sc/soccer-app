@@ -302,17 +302,17 @@ dutyList.push(`${name}さん`);
 // =========================
 const driverCounts = {};
 
-const countSnap =
-  await getDocs(
-    collection(db, "driver_count")
-  );
+// const countSnap =
+//   await getDocs(
+//     collection(db, "driver_count")
+//   );
 
-countSnap.forEach(docSnap => {
+// countSnap.forEach(docSnap => {
 
-  driverCounts[docSnap.id] =
-    docSnap.data().count || 0;
+//  driverCounts[docSnap.id] =
+//    docSnap.data().count || 0;
 
-});
+//  });
   
 // コーチ
 coachSnap.forEach((docSnap) => {
