@@ -235,8 +235,8 @@ dutySnap.forEach((docSnap) => {
 
 });
 
-  const needCount =
-    targetPlayers.length;
+let needCount =
+  targetPlayers.length;
 
   const playerCount =
   targetPlayers.filter(
@@ -488,6 +488,36 @@ for (const coach of coachDrivers) {
   // 総座席数
   // =========================
   let seatCount = 0;
+
+// =========================
+// 採用されなかったドライバーを乗車対象へ追加
+// =========================
+
+drivers.forEach(driver => {
+
+  const isDriving =
+    activeDrivers.includes(driver);
+
+  if (isDriving) return;
+
+  targetPlayers.push({
+
+    name: driver.priority === 1
+      ? driver.name
+      : driver.name.replace("号",""),
+
+    role:
+      driver.priority === 1
+        ? "コーチ"
+        : "試合当番",
+
+    returnTrip: false
+
+  });
+
+});
+
+  needCount = targetPlayers.length;
 
   activeDrivers.forEach(driver => {
 
