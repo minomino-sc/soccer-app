@@ -302,17 +302,16 @@ dutyList.push(`${name}さん`);
 // =========================
 const driverCounts = {};
 
-// const countSnap =
-//   await getDocs(
-//     collection(db, "driver_count")
-//   );
+const countSnap =
+  await getDocs
+  collection(db, "driver_counts")
+  );
 
-// countSnap.forEach(docSnap => {
-
-//  driverCounts[docSnap.id] =
-//    docSnap.data().count || 0;
-
-//  });
+countSnap.forEach(docSnap => {
+ driverCounts[docSnap.id] =
+  docSnap.data().count || 0;
+  
+  });
   
 // コーチ
 coachSnap.forEach((docSnap) => {
@@ -1351,7 +1350,7 @@ if (confirmBtn) {
         await updateDoc(
           doc(
             db,
-            "driver_count",
+            "driver_counts",
             driver.name
           ),
           {
