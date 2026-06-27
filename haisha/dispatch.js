@@ -35,7 +35,7 @@ const id =
 
 let activeDrivers = [];
 
-try {    //ログ出力
+alert("① 開始");    //ログ出力
 
 const eventSnap =
   await getDoc(
@@ -45,6 +45,8 @@ const eventSnap =
       id
     )
   );
+
+alert("② event取得");    //ログ出力
 
 if (!eventSnap.exists()) {
 
@@ -69,6 +71,10 @@ else {
         where("eventId", "==", id)
       )
     );
+
+  
+
+alert("③ parent取得");    //ログ出力
 
   // =========================
   // コーチ回答
