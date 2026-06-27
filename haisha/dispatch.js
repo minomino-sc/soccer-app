@@ -1255,19 +1255,6 @@ document.getElementById(
   "dispatchArea"
 ).innerHTML =
   html;
-
-document.getElementById(
-  "dispatchArea"
-).insertAdjacentHTML(
-  "beforeend",
-  `
-  <div style="margin-top:30px;text-align:center;">
-    <button id="confirmBtn">
-      🚗 配車確定
-    </button>
-  </div>
-  `
-);
   
 }
 
@@ -1342,6 +1329,10 @@ if (confirmBtn) {
     "click",
     async () => {
 
+if (!confirm("配車を確定しますか？")) {
+  return;
+}
+      
       for (const driver of activeDrivers) {
 
         if (driver.priority !== 1) {
@@ -1367,6 +1358,45 @@ if (confirmBtn) {
   );
 
 }
+
+const cancelBtn =
+  document.getElementById("cancelBtn");
+
+if (cancelBtn) {
+
+  cancelBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (!confirm("配車確定を取り消しますか？")) {
+        return;
+      }
+
+      for (const driver of activeDrivers) {
+
+        if (driver.priority !== 1) {
+          continue;
+        }
+
+        await updateDoc(
+          doc(
+            db,
+            "driver_counts",
+            driver.name
+          ),
+          {
+            count: increment(-1)
+          }
+        );
+
+      }
+
+      alert("配車確定を取り消しました。");
+
+    }
+  );
+
+}
     
 document
   .getElementById("lineBtn")
@@ -1384,3 +1414,22 @@ document
     window.open(url, "_blank");
 
   });
+
+document.getElementById("dispatchArea").insertAdjacentHTML(
+  "beforeend",
+  `
+  <div style="margin-top:30px;text-align:center;">
+
+    <button id="confirmBtn">
+      🚗 配車確定
+    </button>
+
+    <br><br>
+
+    <button id="cancelBtn">
+      ❌ 配車確定取消
+    </button>
+
+  </div>
+  `
+);
