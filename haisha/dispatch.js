@@ -1256,9 +1256,8 @@ document.getElementById(
 ).innerHTML =
   html;
  
-document.getElementById("dispatchArea").insertAdjacentHTML(
-  "beforeend",
-  `
+document.getElementById("buttonArea").innerHTML = `
+  
   <div style="margin-top:30px;text-align:center;">
 
     <button id="confirmBtn">
@@ -1277,68 +1276,6 @@ document.getElementById("dispatchArea").insertAdjacentHTML(
   
 }
 
-document
-  .getElementById("pdfBtn")
-  .addEventListener("click", async () => {
-
-    const pdfArea =
-      document.getElementById("pdfArea");
-
-    const original =
-      document.getElementById("dispatchArea");
-
-    pdfArea.innerHTML = original.innerHTML;
-
-    pdfArea.style.display = "block";
-
-    pdfArea.querySelectorAll("*").forEach(el => {
-      el.style.color = "#000000";
-    });
-
-const canvas = await html2canvas(pdfArea, {
-  scale: 2,
-  backgroundColor: "#ffffff",
-  useCORS: true,
-  windowWidth: pdfArea.scrollWidth,
-  windowHeight: pdfArea.scrollHeight
-});
-
-pdfArea.style.display = "none";
-
-const imgData = canvas.toDataURL("image/png");
-
-const { jsPDF } = window.jspdf;
-
-const pdf = new jsPDF("p", "mm", "a4");
-
-const pageWidth = pdf.internal.pageSize.getWidth();
-const pageHeight = pdf.internal.pageSize.getHeight();
-
-const margin = 10;
-
-const usableWidth = pageWidth - margin * 2;
-const usableHeight = pageHeight - margin * 2;
-
-const scale = Math.min(
-  usableWidth / canvas.width,
-  usableHeight / canvas.height
-);
-
-const imgWidth = canvas.width * scale;
-const imgHeight = canvas.height * scale;
-
-const x = (pageWidth - imgWidth) / 2;
-const y = margin;
-
-pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
-
-pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-       
-});    
-
-// =========================
-// 配車確定
-// =========================
 const confirmBtn =
   document.getElementById("confirmBtn");
 
@@ -1414,6 +1351,72 @@ if (cancelBtn) {
 
     }
   );
+  
+}
+  
+document
+  .getElementById("pdfBtn")
+  .addEventListener("click", async () => {
+
+    const pdfArea =
+      document.getElementById("pdfArea");
+
+    const original =
+      document.getElementById("dispatchArea");
+
+    pdfArea.innerHTML = original.innerHTML;
+
+    pdfArea.style.display = "block";
+
+    pdfArea.querySelectorAll("*").forEach(el => {
+      el.style.color = "#000000";
+    });
+
+const canvas = await html2canvas(pdfArea, {
+  scale: 2,
+  backgroundColor: "#ffffff",
+  useCORS: true,
+  windowWidth: pdfArea.scrollWidth,
+  windowHeight: pdfArea.scrollHeight
+});
+
+pdfArea.style.display = "none";
+
+const imgData = canvas.toDataURL("image/png");
+
+const { jsPDF } = window.jspdf;
+
+const pdf = new jsPDF("p", "mm", "a4");
+
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
+
+const margin = 10;
+
+const usableWidth = pageWidth - margin * 2;
+const usableHeight = pageHeight - margin * 2;
+
+const scale = Math.min(
+  usableWidth / canvas.width,
+  usableHeight / canvas.height
+);
+
+const imgWidth = canvas.width * scale;
+const imgHeight = canvas.height * scale;
+
+const x = (pageWidth - imgWidth) / 2;
+const y = margin;
+
+pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+
+pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
+       
+});    
+
+// =========================
+// 配車確定
+// =========================
+
 
 }
     
