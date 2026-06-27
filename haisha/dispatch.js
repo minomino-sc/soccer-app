@@ -1415,11 +1415,7 @@ pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
 
 // =========================
 // 配車確定
-// =========================
-
-
-}
-    
+// =========================   
 document
   .getElementById("lineBtn")
   .addEventListener("click", () => {
