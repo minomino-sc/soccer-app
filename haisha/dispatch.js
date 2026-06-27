@@ -57,6 +57,9 @@ else {
   const eventData =
     eventSnap.data();
 
+const dispatchConfirmed =
+  eventData.dispatchConfirmed === true;
+
   // =========================
   // 保護者回答
   // =========================
@@ -1255,25 +1258,27 @@ document.getElementById(
   "dispatchArea"
 ).innerHTML =
   html;
- 
-document.getElementById("buttonArea").innerHTML = `
-  
-  <div style="margin-top:30px;text-align:center;">
 
-    <button id="confirmBtn">
-      🚗 配車確定
-    </button>
+document.getElementById("buttonArea").innerHTML =
+dispatchConfirmed
+? `
+<div style="margin-top:30px;text-align:center;">
 
-    <br><br>
+<button id="cancelBtn">
+❌ 配車確定取消
+</button>
 
-    <button id="cancelBtn">
-      ❌ 配車確定取消
-    </button>
+</div>
+`
+: `
+<div style="margin-top:30px;text-align:center;">
 
-  </div>
-  `
+<button id="confirmBtn">
+🚗 配車確定
+</button>
 
-}
+</div>
+`;
 
 const confirmBtn =
   document.getElementById("confirmBtn");
@@ -1307,7 +1312,20 @@ if (!confirm("配車を確定しますか？")) {
 
       }
 
-      alert("配車を確定しました。");
+await updateDoc(
+  doc(
+    db,
+    "car_dispatch_events",
+    id
+  ),
+  {
+    dispatchConfirmed: true
+  }
+);
+
+alert("配車を確定しました。");
+
+location.reload();
 
     }
   );
@@ -1346,7 +1364,18 @@ if (cancelBtn) {
 
       }
 
-      alert("配車確定を取り消しました。");
+await updateDoc(
+  doc(
+    db,
+    "car_dispatch_events",
+    id
+  ),
+  {
+    dispatchConfirmed: false
+  }
+);
+
+alert("配車確定を取り消しました。");
 
     }
   );
