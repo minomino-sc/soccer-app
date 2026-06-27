@@ -1280,6 +1280,8 @@ dispatchConfirmed
 </div>
 `;
 
+ } 
+
 const confirmBtn =
   document.getElementById("confirmBtn");
 
@@ -1376,6 +1378,8 @@ await updateDoc(
 );
 
 alert("配車確定を取り消しました。");
+
+location.reload();     
 
     }
   );
