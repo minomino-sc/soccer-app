@@ -688,11 +688,11 @@ activeDrivers.forEach(driver => {
 activeDrivers.forEach(driver => {
   driver.returnPlayers = [];
 });
-  
+
 const assignDrivers =
   [...activeDrivers].sort(
     (a, b) =>
-      b.priority - a.priority
+      a.priority - b.priority
   );
 
 // =========================
