@@ -688,11 +688,11 @@ activeDrivers.forEach(driver => {
 activeDrivers.forEach(driver => {
   driver.returnPlayers = [];
 });
-
+  
 const assignDrivers =
   [...activeDrivers].sort(
     (a, b) =>
-      a.priority - b.priority
+      b.priority - a.priority
   );
 
 // =========================
@@ -744,36 +744,6 @@ activeDrivers.forEach(driver => {
   });
 
 });
-
-// =========================
-// コーチは必ず自分の車へ乗せる
-// =========================
-
-activeDrivers
-  .filter(driver => driver.priority === 1)
-  .forEach(driver => {
-
-    const index =
-      targetPlayers.findIndex(
-        p =>
-          p.role === "コーチ" &&
-          p.name === driver.name
-      );
-
-    if (
-      index >= 0 &&
-      driver.players.length < driver.seats
-    ) {
-
-      driver.players.push(
-        targetPlayers[index]
-      );
-
-      targetPlayers.splice(index, 1);
-
-    }
-
-  });
   
 let playerIndex = 0;
 
