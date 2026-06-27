@@ -1272,8 +1272,7 @@ document.getElementById("buttonArea").innerHTML = `
 
   </div>
   `
-);  
-  
+
 }
 
 const confirmBtn =
