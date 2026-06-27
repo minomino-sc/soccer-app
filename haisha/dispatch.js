@@ -1,4 +1,6 @@
-import { db } from "./firebase.js";
+alert("dispatch.js開始");
+
+// import { db } from "./firebase.js";
 
 document.body.classList.add(
   "dispatch-page"
@@ -35,8 +37,6 @@ const id =
 
 let activeDrivers = [];
 
-alert("① 開始");    //ログ出力
-
 const eventSnap =
   await getDoc(
     doc(
@@ -45,8 +45,6 @@ const eventSnap =
       id
     )
   );
-
-alert("② event取得");    //ログ出力
 
 if (!eventSnap.exists()) {
 
@@ -71,10 +69,6 @@ else {
         where("eventId", "==", id)
       )
     );
-
-  
-
-alert("③ parent取得");    //ログ出力
 
   // =========================
   // コーチ回答
