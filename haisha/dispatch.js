@@ -1444,10 +1444,3 @@ document
     window.open(url, "_blank");
 
   });
-
-}    //ログ出力
-catch (e) {
-
-  alert(e.message);
-
-}    //ログ出力
