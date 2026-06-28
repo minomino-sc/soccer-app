@@ -114,14 +114,17 @@ async function loadForm() {
   const attendanceEl = document.getElementById("attendance");
   const meetingWrap = document.getElementById("meetingWrap");
 const returnTripWrap = document.getElementById("returnTripWrap");
-
+const driveWrap = document.getElementById("driveWrap");
+  
 function updateUI() {
   if (attendanceEl.value === "欠席") {
     meetingWrap.style.display = "none";
     returnTripWrap.style.display = "none";
+    driveWrap.style.display = "none";
   } else {
     meetingWrap.style.display = "block";
     returnTripWrap.style.display = "block";
+    driveWrap.style.display = "block";
   }
 }
 
