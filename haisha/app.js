@@ -141,6 +141,7 @@ card.querySelector(".line-btn").addEventListener("click", (e) => {
   const message =
 `【各位】
 お疲れ様です。
+
 試合イベントを新規登録しました。
 対象チームの保護者、コーチは出欠の回答を期限内にお願いします。
 また、対象チームの事務さんは、試合当番設定および
