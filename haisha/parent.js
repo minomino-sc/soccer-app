@@ -78,6 +78,27 @@ async function loadForm() {
   </div>
 </div>
 
+<div id="driveWrap">
+
+  <div class="form-group">
+    <label>送迎可能</label>
+    <select id="canDrive">
+      <option value="×">×</option>
+      <option value="○">○</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>乗車人数</label>
+    <input
+      id="capacity"
+      type="number"
+      min="0"
+      value="0">
+  </div>
+
+</div>
+
       <div class="form-group">
         <label>備考</label>
         <input id="note" type="text">
@@ -123,11 +144,15 @@ const note = document.getElementById("note").value;
 
 let meetingType = "";
 let returnTrip = "";
-
+let canDrive = "";
+let capacity = 0;
+  
 // 欠席なら送らない
 if (attendance === "参加") {
   meetingType = document.getElementById("meetingType").value;
   returnTrip = document.getElementById("returnTrip").value;
+  canDrive = document.getElementById("canDrive").value;
+  capacity = Number(document.getElementById("capacity").value);
 }
 
 const answer = {
@@ -136,7 +161,9 @@ const answer = {
   attendance,
   note,
   meetingType,
-  returnTrip,   // ★追加
+  returnTrip,
+  canDrive,
+  capacity,
   createdAt: Date.now()
 };
 
