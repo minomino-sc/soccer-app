@@ -359,7 +359,7 @@ coachSnap.forEach((docSnap) => {
 drivers.push({
   priority: 1,
   team,
-  name: a.coachName,
+name: `${a.coachName}号`,
   seats,
   count: driverCounts[a.coachName] || 0
 });
@@ -537,9 +537,9 @@ drivers.forEach(driver => {
 
   targetPlayers.push({
 
-    name: driver.priority === 1
-      ? driver.name
-      : driver.name.replace("号",""),
+name: driver.priority === 1
+  ? driver.name.replace("号", "")
+  : driver.name.replace("号", ""),
 
     role:
       driver.priority === 1
