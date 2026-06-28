@@ -359,7 +359,7 @@ coachSnap.forEach((docSnap) => {
 drivers.push({
   priority: 1,
   team,
-name: `${a.coachName}号`,
+name: a.coachName,
   seats,
   count: driverCounts[a.coachName] || 0
 });
@@ -999,7 +999,7 @@ font-weight:bold;
 flex-shrink:0;
 "
 >
-🚗 ${driver.name}
+🚗 ${driver.name}号
 </div>
 
 <div
@@ -1246,7 +1246,7 @@ if (members.length === 0) {
   html += `
 
 <div>
-🚗 ${driver.name}：
+🚗 ${driver.name}号：
 ${members.join("／")}
 </div>
 
