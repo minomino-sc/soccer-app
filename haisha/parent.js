@@ -34,6 +34,25 @@ async function loadForm() {
 
   const eventData = eventSnap.data();
 
+// 配車確定後は回答不可
+if (eventData.dispatchConfirmed) {
+
+  document.getElementById("parentForm").innerHTML = `
+    <div class="event-card">
+      <div class="event-title">
+        🚫 配車確定済み
+      </div>
+
+      <div class="event-meta">
+        このイベントは配車確定済みのため、
+        回答を変更できません。
+      </div>
+    </div>
+  `;
+
+  return;
+}
+    
   let players = [];
 
   if (eventData.target === "箕谷A") players = TEAM_A;
