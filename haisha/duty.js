@@ -54,6 +54,25 @@ async function loadForm() {
   const eventData =
     eventSnap.data();
 
+  // 配車確定後は試合当番を変更不可
+if (eventData.dispatchConfirmed) {
+
+  document.getElementById("dutyForm").innerHTML = `
+    <div class="event-card">
+      <div class="event-title">
+        🚫 配車確定済み
+      </div>
+
+      <div class="event-meta">
+        このイベントは配車確定済みのため、
+        試合当番を変更できません。
+      </div>
+    </div>
+  `;
+
+  return;
+}
+
   let html = "";
 
   if (eventData.target === "箕谷A") {
