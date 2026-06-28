@@ -168,3 +168,14 @@ body.dispatch-page h2,
 body.dispatch-page h3{
   color:#000000;
 }
+
+#pdfBtn,
+#lineBtn,
+#confirmBtn,
+#cancelBtn {
+  font-size: 18px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  min-width: 150px;
+}
