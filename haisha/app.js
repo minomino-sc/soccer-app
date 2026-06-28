@@ -139,12 +139,12 @@ card.querySelector(".line-btn").addEventListener("click", (e) => {
     `https://minomino-sc.github.io/soccer-app/haisha/event.html?id=${docSnap.id}`;
 
   const message =
-`【コーチ各位】
+`【各位】
 お疲れ様です。
-
-イベントを登録しました。対象チームのコーチは、コーチ出欠の回答をお願いします。
-
-また事務さんへ、部員出欠・試合当番設定／回答の依頼をお願いします。
+試合イベントを新規登録しました。
+対象チームの保護者、コーチは出欠の回答を期限内にお願いします。
+また、対象チームの事務さんは、試合当番設定および
+試合当番さんへ回答の依頼をお願いします。
 
 ${data.title}
 ${data.date}
