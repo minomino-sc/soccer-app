@@ -88,6 +88,8 @@ async function loadAnswers() {
   let absentCount = 0;
   let returnTripYes = 0;
 let returnTripNo = 0;
+  let canDriveCount = 0;
+let seatCount = 0;
 
   let html = "";
 
@@ -109,11 +111,22 @@ let returnTripNo = 0;
 
 if (data.returnTrip === "○") {
   returnTripYes++;
-}
+}  
 
 if (data.returnTrip === "×") {
   returnTripNo++;
 }
+
+if (data.canDrive === "○") {
+  canDriveCount++;
+}
+
+if (data.canDrive === "○") {
+
+  seatCount +=
+    Number(data.capacity || 0);
+
+}      
       
       html += `
         <div class="event-card">
@@ -143,6 +156,24 @@ if (data.returnTrip === "×") {
       : data.returnTrip === "×"
         ? "乗らない"
         : "未設定"
+  }
+</div>
+
+<div class="event-meta">
+  送迎可能：
+  ${
+    data.canDrive === "○"
+      ? "○"
+      : "×"
+  }
+</div>
+
+<div class="event-meta">
+  乗車人数：
+  ${
+    data.canDrive === "○"
+      ? `${data.capacity || 0}名`
+      : "－"
   }
 </div>
   
@@ -210,6 +241,14 @@ if (data.returnTrip === "×") {
 
       <div class="event-meta">
   🔁 復路希望（○） ${returnTripYes}名
+</div>
+
+<div class="event-meta">
+  🚗 送迎可能 ${canDriveCount}名
+</div>
+
+<div class="event-meta">
+  💺 乗車人数 ${seatCount}名
 </div>
 
 <div class="event-meta">
