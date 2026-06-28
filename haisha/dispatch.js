@@ -420,16 +420,17 @@ dutySnap.forEach((docSnap) => {
 
     }
 
-    drivers.push({
-      priority: 2,
-      team,
-      dutyName: a.dutyName,
-      canCarryEquipment:
-        a.canCarryEquipment || "×",
-      name: `${family}さん号`,
-      seats
-    });
-
+drivers.push({
+  priority: 2,
+  team,
+  dutyName: a.dutyName,
+  canCarryEquipment:
+    a.canCarryEquipment || "×",
+  name: `${family}さん号`,
+  seats,
+  count: driverCounts[family] || 0
+});
+    
   }
 
 });
@@ -443,9 +444,17 @@ activeDrivers = [];
 
 // 試合当番を先に採用
 const dutyDrivers =
-  drivers.filter(
-    d => d.priority === 2
-  );
+  drivers
+    .filter(d => d.priority === 2)
+    .sort((a, b) => {
+
+      if (a.count !== b.count) {
+        return a.count - b.count;
+      }
+
+      return b.seats - a.seats;
+
+    });
 
 activeDrivers.push(
   ...dutyDrivers
