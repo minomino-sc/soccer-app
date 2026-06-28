@@ -12,6 +12,11 @@ import {
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ★ここに追加★
+function getLastName(name) {
+  return name.split(" ")[0];
+}
+
 // =========================
 // URL
 // =========================
@@ -120,10 +125,10 @@ async function loadForm() {
 
         <select id="teamA">
 
-          ${TEAM_A.map(
-            p =>
-            `<option>${p}</option>`
-          ).join("")}
+${TEAM_A.map(
+  p =>
+  `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
 
         </select>
 
@@ -137,10 +142,10 @@ async function loadForm() {
 
         <select id="teamB">
 
-          ${TEAM_B.map(
-            p =>
-            `<option>${p}</option>`
-          ).join("")}
+${TEAM_B.map(
+  p =>
+  `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
 
         </select>
 
