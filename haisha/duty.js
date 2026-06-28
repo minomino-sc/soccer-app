@@ -67,10 +67,10 @@ async function loadForm() {
 
         <select id="teamA">
 
-          ${TEAM_A.map(
-            p =>
-            `<option>${p}</option>`
-          ).join("")}
+${TEAM_A.map(
+  p =>
+  `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
 
         </select>
 
@@ -96,10 +96,10 @@ async function loadForm() {
 
         <select id="teamB">
 
-          ${TEAM_B.map(
-            p =>
-            `<option>${p}</option>`
-          ).join("")}
+${TEAM_B.map(
+  p =>
+  `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
 
         </select>
 
