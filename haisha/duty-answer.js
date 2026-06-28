@@ -97,7 +97,7 @@ async function loadForm() {
 // 配車確定後は回答不可
 if (eventData.dispatchConfirmed) {
 
-  document.getElementById("coachForm").innerHTML = `
+  document.getElementById("dutyForm").innerHTML = `
     <div class="event-card">
       <div class="event-title">
         🚫 配車確定済み
