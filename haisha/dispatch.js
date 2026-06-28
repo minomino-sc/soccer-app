@@ -999,7 +999,7 @@ font-weight:bold;
 flex-shrink:0;
 "
 >
-🚗 ${driver.name}号
+🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}
 </div>
 
 <div
@@ -1246,7 +1246,7 @@ if (members.length === 0) {
   html += `
 
 <div>
-🚗 ${driver.name}号：
+🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
 ${members.join("／")}
 </div>
 
