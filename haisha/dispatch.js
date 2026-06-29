@@ -1275,6 +1275,8 @@ ${members.join("／")}
 
 });
 
+}
+  
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
