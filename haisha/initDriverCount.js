@@ -8,12 +8,16 @@ import {
 
 import {
   COACH_A,
-  COACH_B
+  COACH_B,
+  TEAM_A,
+  TEAM_B
 } from "./players.js";
 
 const allDrivers = [
   ...COACH_A,
-  ...COACH_B
+  ...COACH_B,
+  ...TEAM_A,
+  ...TEAM_B
 ];
 
 // 重複削除
