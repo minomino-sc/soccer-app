@@ -160,11 +160,11 @@ dutySnap.forEach((docSnap) => {
     a.canDrive !== "◯"
   ) {
 
-    const family =
-      a.dutyName
-        .replace(/　/g, " ")
-        .trim()
-        .split(" ")[0];
+const family =
+  (a.parentName || "")
+    .replace(/　/g, " ")
+    .trim()
+    .split(" ")[0];
 
 targetPlayers.push({
   name: `${family}さん`,
