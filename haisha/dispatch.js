@@ -34,6 +34,7 @@ const id =
   params.get("id");
 
 let activeDrivers = [];
+let seatCount = 0;
 
 const eventSnap =
   await getDoc(
@@ -540,11 +541,6 @@ for (const coach of coachDrivers) {
   capacity += coach.seats;
 
 }
-
-  // =========================
-  // 総座席数
-  // =========================
-  let seatCount = 0;
 
 // =========================
 // 採用されなかったドライバーを乗車対象へ追加
