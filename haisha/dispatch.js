@@ -624,10 +624,12 @@ name: driver.priority === 1
   ? driver.name.replace("号", "")
   : driver.name.replace("号", ""),
 
-    role:
-      driver.priority === 1
-        ? "コーチ"
-        : "試合当番",
+role:
+  driver.priority === 1
+    ? "コーチ"
+    : driver.priority === 2
+      ? "試合当番"
+      : "保護者",
 
     returnTrip: false
 
