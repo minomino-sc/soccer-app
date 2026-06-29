@@ -633,6 +633,9 @@ if (capacity < needCount) {
 
 drivers.forEach(driver => {
 
+  // 保護者だけは除外する
+if (driver.priority === 3) return;
+
   const isDriving =
     activeDrivers.includes(driver);
 
