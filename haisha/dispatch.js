@@ -57,6 +57,22 @@ else {
   const eventData =
     eventSnap.data();
 
+  const dispatchConfirmed =
+  eventData.dispatchConfirmed === true;
+
+  if (dispatchConfirmed && eventData.snapshot) {
+
+  // ★確定済み → 保存データをそのまま使う
+
+  activeDrivers = eventData.snapshot;
+
+} else {
+
+  // ★未確定 → 今まで通り全部計算する
+  // （今の長い配車ロジックはここにそのまま残す）
+
+}
+
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
@@ -1325,16 +1341,13 @@ await updateDoc(
       }
 
 await updateDoc(
-  doc(
-    db,
-    "car_dispatch_events",
-    id
-  ),
+  doc(db, "car_dispatch_events", id),
   {
-    dispatchConfirmed: true
+    dispatchConfirmed: true,
+    snapshot: activeDrivers
   }
 );
-
+      
 alert("配車を確定しました。");
 
 location.reload();
