@@ -60,9 +60,9 @@ else {
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
-const savedSnapshot =
-  eventData.snapshot || null;
-  
+const dispatchResult =
+  eventData.dispatchResult || null;
+
   // =========================
   // 保護者回答
   // =========================
@@ -438,23 +438,24 @@ drivers.push({
 
 });
   
-  drivers.sort(
-    (a, b) =>
-      a.priority - b.priority
-  );
+drivers.sort(
+  (a, b) =>
+    a.priority - b.priority
+);
 
 if (
   dispatchConfirmed &&
-  savedSnapshot
+  dispatchResult
 ) {
 
-  activeDrivers = savedSnapshot;
+  activeDrivers = dispatchResult;
 
 } else {
 
   activeDrivers = [];
 
 // 試合当番を先に採用
+  
 const dutyDrivers =
   drivers
     .filter(d => d.priority === 2)
