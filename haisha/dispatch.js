@@ -54,33 +54,11 @@ if (!eventSnap.exists()) {
 }
 else {
 
+  const eventData =
+    eventSnap.data();
 
-
-const eventData = eventSnap.data();
-const dispatchConfirmed = eventData.dispatchConfirmed === true;
-
-let activeDrivers;
-
-// =========================
-// ① ここで1回だけ決める
-// =========================
-if (dispatchConfirmed && eventData.snapshot) {
-
-  // 保存済みをそのまま使う
-  activeDrivers = eventData.snapshot;
-
-} else {
-
-  // 未確定だけ計算する
-  const parentSnap = await getDocs(...);
-  const coachSnap = await getDocs(...);
-  const dutySnap = await getDocs(...);
-
-  activeDrivers = 最終結果をここで作る
-}
-
-  
-
+const dispatchConfirmed =
+  eventData.dispatchConfirmed === true;
 
   // =========================
   // 保護者回答
@@ -1347,13 +1325,16 @@ await updateDoc(
       }
 
 await updateDoc(
-  doc(db, "car_dispatch_events", id),
+  doc(
+    db,
+    "car_dispatch_events",
+    id
+  ),
   {
-    dispatchConfirmed: true,
-    snapshot: activeDrivers
+    dispatchConfirmed: true
   }
 );
-      
+
 alert("配車を確定しました。");
 
 location.reload();
