@@ -155,10 +155,10 @@ dutySnap.forEach((docSnap) => {
   const a =
     docSnap.data();
 
-  if (
-    a.canDrive !== "○" &&
-    a.canDrive !== "◯"
-  ) {
+if (
+  a.canDrive !== "○" &&
+  a.canDrive !== "◯"
+) return;
 
 const family =
   (a.parentName || "")
