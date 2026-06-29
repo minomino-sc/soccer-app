@@ -434,6 +434,54 @@ drivers.push({
   }
 
 });
+
+// 保護者
+parentSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (
+    a.attendance === "参加" &&
+    (
+      a.canDrive === "○" ||
+      a.canDrive === "◯"
+    )
+  ) {
+
+    const seats =
+      Math.max(
+        Number(a.capacity || 0) - 2,
+        0
+      );
+
+    const family =
+      a.parentName
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
+
+    let team = "";
+
+    if (TEAM_A.includes(a.playerName)) {
+      team = "箕谷A";
+    }
+
+    if (TEAM_B.includes(a.playerName)) {
+      team = "箕谷B";
+    }
+
+    drivers.push({
+      priority: 3,
+      team,
+      parentName: a.parentName,
+      name: `${family}さん号`,
+      seats,
+      count: driverCounts[family] || 0
+    });
+
+  }
+
+});
   
   drivers.sort(
     (a, b) =>
@@ -525,6 +573,32 @@ for (const coach of coachDrivers) {
 
   activeDrivers.push(coach);
   capacity += coach.seats;
+
+}
+
+// =========================
+// 保護者追加
+// =========================
+
+const parentDrivers =
+  drivers
+    .filter(d => d.priority === 3)
+    .sort((a, b) => {
+
+      if (a.count !== b.count) {
+        return a.count - b.count;
+      }
+
+      return b.seats - a.seats;
+
+    });
+
+for (const parent of parentDrivers) {
+
+  if (capacity >= needCount) break;
+
+  activeDrivers.push(parent);
+  capacity += parent.seats;
 
 }
 
