@@ -1305,21 +1305,22 @@ if (!confirm("配車を確定しますか？")) {
 }
       
       for (const driver of activeDrivers) {
+        
+const key =
+  driver.priority === 1
+    ? driver.name
+    : driver.dutyName;
 
-        if (driver.priority !== 1) {
-          continue;
-        }
-
-        await updateDoc(
-          doc(
-            db,
-            "driver_counts",
-            driver.name
-          ),
-          {
-            count: increment(1)
-          }
-        );
+await updateDoc(
+  doc(
+    db,
+    "driver_counts",
+    key
+  ),
+  {
+    count: increment(1)
+  }
+);        
 
       }
 
@@ -1356,22 +1357,25 @@ if (cancelBtn) {
         return;
       }
 
-      for (const driver of activeDrivers) {
+for (const driver of activeDrivers) {
 
-        if (driver.priority !== 1) {
-          continue;
-        }
+  const key =
+    driver.priority === 1
+      ? driver.name
+      : driver.dutyName;
 
-        await updateDoc(
-          doc(
-            db,
-            "driver_counts",
-            driver.name
-          ),
-          {
-            count: increment(-1)
-          }
-        );
+  await updateDoc(
+    doc(
+      db,
+      "driver_counts",
+      key
+    ),
+    {
+      count: increment(-1)
+    }
+  );
+
+}      
 
       }
 
