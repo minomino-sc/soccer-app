@@ -1345,10 +1345,11 @@ await updateDoc(
     id
   ),
   {
-    dispatchConfirmed: true
+    dispatchConfirmed: true,
+    snapshot: activeDrivers
   }
 );
-
+      
 alert("配車を確定しました。");
 
 location.reload();
@@ -1390,7 +1391,8 @@ if (cancelBtn) {
       await updateDoc(
         doc(db, "car_dispatch_events", id),
         {
-          dispatchConfirmed: false
+          dispatchConfirmed: false,
+          snapshot: null
         }
       );
 
