@@ -60,6 +60,9 @@ else {
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
+const savedSnapshot =
+  eventData.snapshot || null;
+  
   // =========================
   // 保護者回答
   // =========================
@@ -440,7 +443,16 @@ drivers.push({
       a.priority - b.priority
   );
 
-activeDrivers = [];
+if (
+  dispatchConfirmed &&
+  savedSnapshot
+) {
+
+  activeDrivers = savedSnapshot;
+
+} else {
+
+  activeDrivers = [];
 
 // 試合当番を先に採用
 const dutyDrivers =
