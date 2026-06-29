@@ -396,6 +396,10 @@ dutySnap.forEach((docSnap) => {
     const family =
       a.dutyName.split(" ")[0];
 
+// ★ここに追加（重要）
+if (usedNames.has(family)) return;
+usedNames.add(family);
+
     let team = "";
 
     if (
