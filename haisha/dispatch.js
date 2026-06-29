@@ -34,7 +34,6 @@ const id =
   params.get("id");
 
 let activeDrivers = [];
-let seatCount = 0;
 
 const eventSnap =
   await getDoc(
@@ -60,9 +59,6 @@ else {
 
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
-
-const dispatchResult =
-  eventData.dispatchResult || null;
 
   // =========================
   // 保護者回答
@@ -439,24 +435,14 @@ drivers.push({
 
 });
   
-drivers.sort(
-  (a, b) =>
-    a.priority - b.priority
-);
+  drivers.sort(
+    (a, b) =>
+      a.priority - b.priority
+  );
 
-if (
-  dispatchConfirmed &&
-  dispatchResult
-) {
-
-  activeDrivers = dispatchResult;
-
-} else {
-
-  activeDrivers = [];
+activeDrivers = [];
 
 // 試合当番を先に採用
-  
 const dutyDrivers =
   drivers
     .filter(d => d.priority === 2)
@@ -542,6 +528,11 @@ for (const coach of coachDrivers) {
 
 }
 
+  // =========================
+  // 総座席数
+  // =========================
+  let seatCount = 0;
+
 // =========================
 // 採用されなかったドライバーを乗車対象へ追加
 // =========================
@@ -578,8 +569,6 @@ name: driver.priority === 1
     driver.seats;
 
 });
-
-}   // ←これを追加  
 
   // =========================
   // 配車不足判定
@@ -1274,8 +1263,6 @@ ${members.join("／")}
 
 });
 
-}
-  
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
@@ -1338,13 +1325,16 @@ await updateDoc(
       }
 
 await updateDoc(
-  doc(db, "car_dispatch_events", id),
+  doc(
+    db,
+    "car_dispatch_events",
+    id
+  ),
   {
-    dispatchConfirmed: true,
-    dispatchResult: activeDrivers
+    dispatchConfirmed: true
   }
 );
-      
+
 alert("配車を確定しました。");
 
 location.reload();
@@ -1383,13 +1373,12 @@ if (cancelBtn) {
 
       }
 
-await updateDoc(
-  doc(db, "car_dispatch_events", id),
-  {
-    dispatchConfirmed: false,
-    dispatchResult: null
-  }
-);
+      await updateDoc(
+        doc(db, "car_dispatch_events", id),
+        {
+          dispatchConfirmed: false
+        }
+      );
 
       alert("配車確定を取り消しました。");
       location.reload();
