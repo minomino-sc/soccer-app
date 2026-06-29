@@ -166,6 +166,9 @@ const family =
     .trim()
     .split(" ")[0];
 
+if (usedNames.has(family)) return;
+usedNames.add(family);    
+
 targetPlayers.push({
   name: `${family}さん`,
   role: "試合当番",
@@ -294,7 +297,9 @@ dutyList.push(`${name}さん`);
   }
 
 });  
-  
+
+  const usedNames = new Set();
+
   // =========================
   // ドライバー一覧
   // =========================
@@ -356,6 +361,9 @@ coachSnap.forEach((docSnap) => {
       team = "箕谷B";
     }
 
+if (usedNames.has(a.coachName)) return;
+usedNames.add(a.coachName);
+    
 drivers.push({
   priority: 1,
   team,
@@ -460,6 +468,9 @@ const family =
     .trim()
     .split(" ")[0];
 
+if (usedNames.has(family)) return;
+usedNames.add(family);
+    
     let team = "";
 
     if (TEAM_A.includes(a.playerName)) {
@@ -593,12 +604,17 @@ const parentDrivers =
 
     });
 
-for (const parent of parentDrivers) {
+// 保護者は「コーチで足りない時だけ」使う
+if (capacity < needCount) {
 
-  if (capacity >= needCount) break;
+  for (const parent of parentDrivers) {
 
-  activeDrivers.push(parent);
-  capacity += parent.seats;
+    if (capacity >= needCount) break;
+
+    activeDrivers.push(parent);
+    capacity += parent.seats;
+
+  }
 
 }
 
