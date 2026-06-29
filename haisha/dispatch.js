@@ -454,11 +454,11 @@ parentSnap.forEach((docSnap) => {
         0
       );
 
-    const family =
-      a.parentName
-        .replace(/　/g, " ")
-        .trim()
-        .split(" ")[0];
+const family =
+  a.playerName
+    .replace(/　/g, " ")
+    .trim()
+    .split(" ")[0];
 
     let team = "";
 
@@ -470,14 +470,14 @@ parentSnap.forEach((docSnap) => {
       team = "箕谷B";
     }
 
-    drivers.push({
-      priority: 3,
-      team,
-      parentName: a.parentName,
-      name: `${family}さん号`,
-      seats,
-      count: driverCounts[family] || 0
-    });
+drivers.push({
+  priority: 3,
+  team,
+  playerName: a.playerName,
+  name: `${family}さん号`,
+  seats,
+  count: driverCounts[family] || 0
+});
 
   }
 
@@ -795,17 +795,26 @@ activeDrivers.forEach(driver => {
 
   }
 
-  // 試合当番
-  else {
+// 試合当番
+else if (driver.priority === 2) {
 
-    const parent =
-      driver.name.replace("号", "");
+  const parent =
+    driver.name.replace("号", "");
 
-    children =
-      PARENT_CHILD[parent] || [];
+  children =
+    PARENT_CHILD[parent] || [];
 
-  }
+}
 
+// 保護者
+else {
+
+  children = [
+    driver.playerName
+  ];
+
+}
+  
   children.forEach(childName => {
 
     const index =
@@ -1381,11 +1390,28 @@ if (!confirm("配車を確定しますか？")) {
 }
       
       for (const driver of activeDrivers) {
-        
-const key =
-  driver.priority === 1
-    ? driver.name
-    : driver.dutyName;
+
+let key;
+
+if (driver.priority === 1) {
+
+  key = driver.name;
+
+}
+else if (driver.priority === 2) {
+
+  key = driver.dutyName;
+
+}
+else {
+
+  key =
+    driver.playerName
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+}
 
 await updateDoc(
   doc(
@@ -1435,10 +1461,27 @@ if (cancelBtn) {
 
       for (const driver of activeDrivers) {
 
-        const key =
-          driver.priority === 1
-            ? driver.name
-            : driver.dutyName;
+let key;
+
+if (driver.priority === 1) {
+
+  key = driver.name;
+
+}
+else if (driver.priority === 2) {
+
+  key = driver.dutyName;
+
+}
+else {
+
+  key =
+    driver.playerName
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+}
 
         await updateDoc(
           doc(db, "driver_counts", key),
