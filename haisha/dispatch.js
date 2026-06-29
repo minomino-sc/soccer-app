@@ -54,27 +54,33 @@ if (!eventSnap.exists()) {
 }
 else {
 
-  const eventData =
-    eventSnap.data();
 
-  const dispatchConfirmed =
-  eventData.dispatchConfirmed === true;
 
-  if (dispatchConfirmed && eventData.snapshot) {
+const eventData = eventSnap.data();
+const dispatchConfirmed = eventData.dispatchConfirmed === true;
 
-  // ★確定済み → 保存データをそのまま使う
+let activeDrivers;
 
+// =========================
+// ① ここで1回だけ決める
+// =========================
+if (dispatchConfirmed && eventData.snapshot) {
+
+  // 保存済みをそのまま使う
   activeDrivers = eventData.snapshot;
 
 } else {
 
-  // ★未確定 → 今まで通り全部計算する
-  // （今の長い配車ロジックはここにそのまま残す）
+  // 未確定だけ計算する
+  const parentSnap = await getDocs(...);
+  const coachSnap = await getDocs(...);
+  const dutySnap = await getDocs(...);
 
+  activeDrivers = 最終結果をここで作る
 }
 
-const dispatchConfirmed =
-  eventData.dispatchConfirmed === true;
+  
+
 
   // =========================
   // 保護者回答
