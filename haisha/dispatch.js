@@ -1339,14 +1339,10 @@ await updateDoc(
       }
 
 await updateDoc(
-  doc(
-    db,
-    "car_dispatch_events",
-    id
-  ),
+  doc(db, "car_dispatch_events", id),
   {
     dispatchConfirmed: true,
-    snapshot: activeDrivers
+    dispatchResult: activeDrivers
   }
 );
       
@@ -1388,13 +1384,13 @@ if (cancelBtn) {
 
       }
 
-      await updateDoc(
-        doc(db, "car_dispatch_events", id),
-        {
-          dispatchConfirmed: false,
-          snapshot: null
-        }
-      );
+await updateDoc(
+  doc(db, "car_dispatch_events", id),
+  {
+    dispatchConfirmed: false,
+    dispatchResult: null
+  }
+);
 
       alert("配車確定を取り消しました。");
       location.reload();
