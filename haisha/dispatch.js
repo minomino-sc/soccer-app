@@ -1187,9 +1187,6 @@ text-align:right;
 
 </div>
 
-
-
-
 `;
 
 if (driver.players.length > 0) {
