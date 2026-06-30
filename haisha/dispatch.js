@@ -634,23 +634,62 @@ if (driver.priority === 3) return;
 
   if (isDriving) return;
 
-  targetPlayers.push({
+let returnTrip = false;
 
-name: driver.priority === 1
-  ? driver.name.replace("号", "")
-  : driver.name.replace("号", ""),
+// コーチ
+if (driver.priority === 1) {
 
-role:
-  driver.priority === 1
-    ? "コーチ"
-    : driver.priority === 2
-      ? "試合当番"
-      : "保護者",
+  const coach =
+    coachSnap.docs.find(doc =>
+      doc.data().coachName === driver.name
+    );
 
-    returnTrip: false
+  returnTrip =
+    coach?.data().returnTrip === "○";
 
-  });
+}
 
+// 試合当番
+else if (driver.priority === 2) {
+
+  const family =
+    driver.name.replace("さん号", "");
+
+  const duty =
+    dutySnap.docs.find(doc => {
+
+      const dutyFamily =
+        doc.data().dutyName
+          .replace(/　/g, " ")
+          .trim()
+          .split(" ")[0];
+
+      return dutyFamily === family;
+
+    });
+
+  returnTrip =
+    duty?.data().returnTrip === "○";
+
+}
+
+targetPlayers.push({
+
+  name: driver.priority === 1
+    ? driver.name
+    : driver.name.replace("号", ""),
+
+  role:
+    driver.priority === 1
+      ? "コーチ"
+      : driver.priority === 2
+        ? "試合当番"
+        : "保護者",
+
+  returnTrip
+
+});
+  
 });
 
   needCount = targetPlayers.length;
