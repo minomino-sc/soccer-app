@@ -952,12 +952,34 @@ returnTripTargets.forEach(person => {
   // 試合当番
 else if (person.type === "duty") {
 
-const dutyCar =
-  activeDrivers.find(d =>
-    d.priority === 2 &&
-    d.dutyName &&
-    d.dutyName.split(" ")[0] === person.dutyName.split(" ")[0]
+let dutyTeam = "";
+
+if (TEAM_A.includes(person.dutyName)) {
+  dutyTeam = "箕谷A";
+}
+
+if (TEAM_B.includes(person.dutyName)) {
+  dutyTeam = "箕谷B";
+}
+
+let dutyCar =
+  activeDrivers.find(
+    d =>
+      d.priority === 2 &&
+      d.team === dutyTeam &&
+      d.returnPlayers.length < d.seats
   );
+
+if (!dutyCar) {
+
+  dutyCar =
+    activeDrivers.find(
+      d =>
+        d.priority === 2 &&
+        d.returnPlayers.length < d.seats
+    );
+
+}
 
   if (dutyCar) {
 
@@ -987,11 +1009,32 @@ const dutyCar =
   // 部員
   else if (person.type === "player") {
 
-    const dutyCar =
-      activeDrivers.find(
-        d => d.priority === 2
-      );
+const playerTeam =
+  TEAM_A.includes(person.name)
+    ? "箕谷A"
+    : TEAM_B.includes(person.name)
+      ? "箕谷B"
+      : "";
 
+let dutyCar =
+  activeDrivers.find(
+    d =>
+      d.priority === 2 &&
+      d.team === playerTeam &&
+      d.returnPlayers.length < d.seats
+  );
+
+if (!dutyCar) {
+
+  dutyCar =
+    activeDrivers.find(
+      d =>
+        d.priority === 2 &&
+        d.returnPlayers.length < d.seats
+    );
+
+}
+    
     if (
       dutyCar &&
       dutyCar.returnPlayers.length <
