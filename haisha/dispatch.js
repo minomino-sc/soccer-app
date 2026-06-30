@@ -802,6 +802,43 @@ const assignDrivers =
       b.priority - a.priority
   );
 
+
+
+
+  
+
+
+// =========================
+// コーチ優先割り当て（往路補正） ★ここに追加
+// =========================
+activeDrivers.forEach(driver => {
+
+  if (driver.priority !== 1) return;
+
+  while (
+    driver.players.length < driver.seats &&
+    targetPlayers.some(p => p.role === "コーチ")
+  ) {
+
+    const idx =
+      targetPlayers.findIndex(p => p.role === "コーチ");
+
+    if (idx === -1) break;
+
+    driver.players.push(targetPlayers[idx]);
+    targetPlayers.splice(idx, 1);
+  }
+
+});
+
+
+
+  
+
+
+
+
+  
 // =========================
 // ドライバーの子どもを先に自分の車へ乗せる
 // =========================
