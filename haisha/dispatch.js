@@ -123,7 +123,6 @@ targetPlayers.push({
 // =========================
 // 配車対象コーチ
 // =========================
-
 coachSnap.forEach((docSnap) => {
 
   const a =
@@ -151,7 +150,6 @@ targetPlayers.push({
 // =========================
 // 配車対象試合当番
 // =========================
-
 dutySnap.forEach((docSnap) => {
 
   const a =
@@ -550,7 +548,6 @@ let capacity =
 // =========================
 // A/B別コーチ最低1台保証
 // =========================
-
 // Aチーム
 const coachesA =
   coachDrivers.filter(d => d.team === "箕谷A");
@@ -802,12 +799,6 @@ const assignDrivers =
       b.priority - a.priority
   );
 
-
-
-
-  
-
-
 // =========================
 // コーチ優先割り当て（往路補正） ★ここに追加
 // =========================
@@ -830,14 +821,6 @@ activeDrivers.forEach(driver => {
   }
 
 });
-
-
-
-  
-
-
-
-
   
 // =========================
 // ドライバーの子どもを先に自分の車へ乗せる
