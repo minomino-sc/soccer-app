@@ -25,6 +25,35 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+
+
+  // =========================
+  // ログ出力
+  // =========================
+function showError(msg) {
+  const el = document.getElementById("dispatchArea");
+  if (el) {
+    el.innerHTML =
+      `<div style="color:red;white-space:pre-wrap;">
+        ❌ エラー発生\n\n${msg}
+      </div>`;
+  }
+}
+
+window.addEventListener("error", (e) => {
+  showError(e.message + "\n" + (e.error?.stack || ""));
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+  showError("Promiseエラー:\n" + e.reason);
+});
+  // =========================
+  // ログ出力
+  // =========================
+
+
+
+
 const params =
   new URLSearchParams(
     window.location.search
