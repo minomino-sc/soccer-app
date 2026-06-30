@@ -569,7 +569,6 @@ if (coachesB.length > 0) {
 // =========================
 // 残りコーチ（A/Bで使ってない分）
 // =========================
-
 // すでに使ったコーチを記録
 const usedCoaches = new Set([
   ...(coachesA[0] ? [coachesA[0]] : []),
@@ -590,7 +589,6 @@ for (const coach of coachDrivers) {
 // =========================
 // 保護者追加
 // =========================
-
 const parentDrivers =
   drivers
     .filter(d => d.priority === 3)
@@ -626,7 +624,6 @@ if (capacity < needCount) {
 // =========================
 // 採用されなかったドライバーを乗車対象へ追加
 // =========================
-
 drivers.forEach(driver => {
 
   // 保護者だけは除外する
@@ -932,7 +929,6 @@ activeDrivers.forEach(driver => {
 // =========================
 // 復路配車
 // =========================
-
 returnTripTargets.forEach(person => {
 
   // コーチ
