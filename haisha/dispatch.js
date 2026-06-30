@@ -191,17 +191,14 @@ if (
   a.canDrive !== "◯"
   ) {
 
-const familyRaw =
-  a.parentName || "";
-
 const family =
-  familyRaw
+  (a.playerName || "")
     .replace(/　/g, " ")
     .trim()
     .split(" ")[0];
 
-if (!family) return; // ★これ追加（重要）
-
+if (!family) return;
+  
 targetPlayers.push({
   name: `${family}さん`,
   role: "試合当番",
