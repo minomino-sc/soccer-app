@@ -1012,34 +1012,26 @@ const dutyA =
       d.team === "箕谷A"
   );
 
-if (dutyA) {
+if (dutyA && dutyA.canCarryEquipment === "○") {
 
-  if (
-    dutyA.canCarryEquipment === "○"
-  ) {
+  dutyA.equipment.push("A");
 
-    dutyA.equipment.push("A");
+} else {
 
-  } else {
+  const aCoaches =
+    activeDrivers
+      .filter(
+        d =>
+          d.priority === 1 &&
+          d.team === "箕谷A"
+      )
+      .sort(
+        (a, b) =>
+          a.players.length - b.players.length
+      );
 
-const aCoaches =
-  activeDrivers.filter(
-          d =>
-            d.priority === 1 &&
-            d.team === "箕谷A"
-        )
-        .sort(
-          (a, b) =>
-            a.players.length -
-            b.players.length
-        );
-
-    if (aCoaches.length) {
-      aCoaches[0]
-        .equipment
-        .push("A");
-    }
-
+  if (aCoaches.length) {
+    aCoaches[0].equipment.push("A");
   }
 
 }
@@ -1052,34 +1044,26 @@ const dutyB =
       d.team === "箕谷B"
   );
 
-if (dutyB) {
+if (dutyB && dutyB.canCarryEquipment === "○") {
 
-  if (
-    dutyB.canCarryEquipment === "○"
-  ) {
+  dutyB.equipment.push("B");
 
-    dutyB.equipment.push("B");
+} else {
 
-  } else {
+  const bCoaches =
+    activeDrivers
+      .filter(
+        d =>
+          d.priority === 1 &&
+          d.team === "箕谷B"
+      )
+      .sort(
+        (a, b) =>
+          a.players.length - b.players.length
+      );
 
-const bCoaches =
-  activeDrivers.filter(
-          d =>
-            d.priority === 1 &&
-            d.team === "箕谷B"
-        )
-        .sort(
-          (a, b) =>
-            a.players.length -
-            b.players.length
-        );
-
-    if (bCoaches.length) {
-      bCoaches[0]
-        .equipment
-        .push("B");
-    }
-
+  if (bCoaches.length) {
+    bCoaches[0].equipment.push("B");
   }
 
 }
