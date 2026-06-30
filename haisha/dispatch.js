@@ -35,6 +35,8 @@ const id =
 
 let activeDrivers = [];
 
+  const usedNames = new Set();
+
 const eventSnap =
   await getDoc(
     doc(
@@ -303,7 +305,6 @@ dutyList.push(`${name}さん`);
   // =========================
   const drivers = [];
 
-  const usedNames = new Set();
 // =========================
 // 配車回数取得
 // =========================
