@@ -192,13 +192,13 @@ if (
   ) {
 
 const family =
-  (a.playerName || "")
+  (a.dutyName || "")
     .replace(/　/g, " ")
     .trim()
     .split(" ")[0];
 
 if (!family) return;
-  
+
 targetPlayers.push({
   name: `${family}さん`,
   role: "試合当番",
