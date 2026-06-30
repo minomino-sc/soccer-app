@@ -191,14 +191,16 @@ if (
   a.canDrive !== "◯"
   ) {
 
+const familyRaw =
+  a.parentName || "";
+
 const family =
-  (a.parentName || "")
+  familyRaw
     .replace(/　/g, " ")
     .trim()
     .split(" ")[0];
 
-if (usedNames.has(family)) return;
-usedNames.add(family);    
+if (!family) return; // ★これ追加（重要）
 
 targetPlayers.push({
   name: `${family}さん`,
