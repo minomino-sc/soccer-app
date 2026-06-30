@@ -969,12 +969,12 @@ returnTripTargets.forEach(person => {
   // 試合当番
 else if (person.type === "duty") {
 
-  const dutyCar =
-    activeDrivers.find(
-      d =>
-        d.priority === 2 &&
-        d.dutyName === person.dutyName
-    );
+const dutyCar =
+  activeDrivers.find(d =>
+    d.priority === 2 &&
+    d.dutyName &&
+    d.dutyName.split(" ")[0] === person.dutyName.split(" ")[0]
+  );
 
   if (dutyCar) {
 
