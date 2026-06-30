@@ -1557,7 +1557,8 @@ const canvas = await html2canvas(pdfArea, {
 
 pdfArea.style.display = "none";
 
-const imgData = canvas.toDataURL("image/png");
+// const imgData = canvas.toDataURL("image/png");
+const imgData = canvas.toDataURL("image/jpeg", 0.7);
 
 const { jsPDF } = window.jspdf;
 
