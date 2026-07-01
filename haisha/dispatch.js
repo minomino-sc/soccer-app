@@ -171,7 +171,7 @@ if (!family) return;
 targetPlayers.push({
   name: `${family}さん`,
   role: "試合当番",
-  returnTrip: false
+  returnTrip: a.returnTrip === "○"
 });
 
   }
