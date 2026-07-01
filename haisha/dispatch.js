@@ -62,6 +62,9 @@ else {
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
+  const savedDispatch =
+  eventData.dispatchData || [];
+
   // =========================
   // 保護者回答
   // =========================
@@ -817,6 +820,18 @@ margin-bottom:20px;
     `;
 
   }
+
+if (dispatchConfirmed) {
+
+  activeDrivers = savedDispatch;
+
+  activeDrivers.forEach(driver => {
+    driver.players ??= [];
+    driver.returnPlayers ??= [];
+    driver.equipment ??= [];
+  });
+
+} else {  
   
 // =========================
 // 自動配車（均等割り）
@@ -1577,9 +1592,10 @@ await updateDoc(
     id
   ),
   {
-    dispatchConfirmed: true
+    dispatchConfirmed: true,
+    dispatchData: activeDrivers
   }
-);
+);      
 
 alert("配車を確定しました。");
 
