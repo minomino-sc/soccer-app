@@ -836,28 +836,71 @@ const assignDrivers =
   );
 
 // =========================
-// コーチ優先割り当て（往路補正） ★ここに追加
+// コーチ優先割り当て（均等割り）
 // =========================
-activeDrivers.forEach(driver => {
 
-  if (driver.priority !== 1) return;
+const coachCars =
+  activeDrivers.filter(
+    d => d.priority === 1
+  );
 
-  while (
-    driver.players.length < driver.seats &&
-    targetPlayers.some(p => p.role === "コーチ")
+let coachCarIndex = 0;
+
+while (
+  targetPlayers.some(
+    p => p.role === "コーチ"
+  ) &&
+  coachCars.length > 0
+) {
+
+  const idx =
+    targetPlayers.findIndex(
+      p => p.role === "コーチ"
+    );
+
+  if (idx === -1) break;
+
+  let assigned = false;
+
+  for (
+    let i = 0;
+    i < coachCars.length;
+    i++
   ) {
 
-    const idx =
-      targetPlayers.findIndex(p => p.role === "コーチ");
+    const driver =
+      coachCars[
+        (coachCarIndex + i) %
+        coachCars.length
+      ];
 
-    if (idx === -1) break;
+    if (
+      driver.players.length <
+      driver.seats
+    ) {
 
-    driver.players.push(targetPlayers[idx]);
-    targetPlayers.splice(idx, 1);
+      driver.players.push(
+        targetPlayers[idx]
+      );
+
+      targetPlayers.splice(idx, 1);
+
+      coachCarIndex =
+        (coachCarIndex + i + 1) %
+        coachCars.length;
+
+      assigned = true;
+
+      break;
+
+    }
+
   }
 
-});
-  
+  if (!assigned) break;
+
+}
+   
 // =========================
 // ドライバーの子どもを先に自分の車へ乗せる
 // =========================
