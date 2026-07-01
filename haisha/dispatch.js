@@ -62,6 +62,9 @@ else {
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
+  const savedDispatch =
+  eventData.dispatchData || [];
+
   // =========================
   // 保護者回答
   // =========================
@@ -1577,7 +1580,8 @@ await updateDoc(
     id
   ),
   {
-    dispatchConfirmed: true
+    dispatchConfirmed: true,
+    dispatchData: activeDrivers
   }
 );
 
