@@ -821,6 +821,8 @@ margin-bottom:20px;
 
   }
 
+let playerIndex = 0;
+  
 if (dispatchConfirmed) {
 
   activeDrivers = savedDispatch;
@@ -969,8 +971,6 @@ else {
 
 });
   
-let playerIndex = 0;
-
 while (
   playerIndex < targetPlayers.length
 ) {
