@@ -820,6 +820,12 @@ margin-bottom:20px;
     `;
 
   }
+
+if (dispatchConfirmed) {
+
+  activeDrivers = savedDispatch;
+
+} else {
   
 // =========================
 // 自動配車（均等割り）
@@ -1494,6 +1500,8 @@ ${members.join("／")}
 `;
 
 });
+
+}
 
 document.getElementById(
   "dispatchArea"
