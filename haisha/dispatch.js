@@ -62,9 +62,6 @@ else {
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
-  const savedDispatch =
-  eventData.dispatchData || [];
-
   // =========================
   // 保護者回答
   // =========================
@@ -820,18 +817,6 @@ margin-bottom:20px;
     `;
 
   }
-
-if (dispatchConfirmed) {
-
-  activeDrivers = savedDispatch;
-
-  activeDrivers.forEach(driver => {
-    driver.players ??= [];
-    driver.returnPlayers ??= [];
-    driver.equipment ??= [];
-  });
-
-} else {  
   
 // =========================
 // 自動配車（均等割り）
@@ -1223,27 +1208,20 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
   }
 
 }
+ 
+activeDrivers.forEach(driver => {
 
+  if (
+    driver.players.length === 0 &&
+    (
+      !driver.equipment ||
+      driver.equipment.length === 0
+    )
+  ) {
+    return;
+  }
 
-
-
-
-  
-if (!driver.players) driver.players = [];
-if (!driver.returnPlayers) driver.returnPlayers = [];
-if (!driver.equipment) driver.equipment = [];
-
-if (
-  driver.players.length === 0 &&
-  driver.equipment.length === 0
-) {
-  return;
-}
-
-
-
-
-
+html += `
 
 <div
 style="
@@ -1599,10 +1577,9 @@ await updateDoc(
     id
   ),
   {
-    dispatchConfirmed: true,
-    dispatchData: activeDrivers
+    dispatchConfirmed: true
   }
-);      
+);
 
 alert("配車を確定しました。");
 
