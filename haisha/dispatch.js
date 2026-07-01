@@ -1223,20 +1223,27 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
   }
 
 }
- 
-activeDrivers.forEach(driver => {
 
-  if (
-    driver.players.length === 0 &&
-    (
-      !driver.equipment ||
-      driver.equipment.length === 0
-    )
-  ) {
-    return;
-  }
 
-html += `
+
+
+
+  
+if (!driver.players) driver.players = [];
+if (!driver.returnPlayers) driver.returnPlayers = [];
+if (!driver.equipment) driver.equipment = [];
+
+if (
+  driver.players.length === 0 &&
+  driver.equipment.length === 0
+) {
+  return;
+}
+
+
+
+
+
 
 <div
 style="
