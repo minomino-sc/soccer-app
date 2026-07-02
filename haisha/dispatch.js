@@ -1256,17 +1256,17 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 // =========================  
 activeDrivers.forEach(driver => {
 
+  driver.players ??= [];
+  driver.equipment ??= [];
+
   if (
     driver.players.length === 0 &&
-    (
-      !driver.equipment ||
-      driver.equipment.length === 0
-    )
+    driver.equipment.length === 0
   ) {
     return;
   }
 
-html += `
+  html += `
 
 <div
 style="
@@ -1299,29 +1299,27 @@ text-align:right;
 乗車：${driver.players.length}名 ／
 空席：${driver.seats - driver.players.length}名 ／
 試合道具：${
-  driver.equipment.length
-    ? driver.equipment
-        .map(e =>
-          e === "A"
-            ? "◎（箕谷A）"
-            : "◎（箕谷B）"
-        )
-        .join("・")
-    : "－"
+driver.equipment.length
+? driver.equipment
+.map(e =>
+e === "A"
+? "◎（箕谷A）"
+: "◎（箕谷B）"
+)
+.join("・")
+: "－"
 }
-
 </div>
 
 </div>
 
 `;
 
-if (driver.players.length > 0) {
+  if (driver.players.length === 0) {
+    return;
+  }
 
   html += `
-
-<tr>
-<td colspan="5">
 
 <table
 style="
@@ -1378,16 +1376,13 @@ background:#f5f5f5;
 
 `;
 
-driver.players.forEach(
-  (player, index) => {
+  driver.players.forEach((player, index) => {
 
     html += `
 
 <tr
 style="
-${player.returnTrip
-  ? "background:#fff3a0;"
-  : ""}
+${player.returnTrip ? "background:#fff3a0;" : ""}
 "
 >
 
@@ -1435,20 +1430,14 @@ ${player.returnTrip ? "◎" : ""}
 
 `;
 
-  }
-);
+  });
 
   html += `
 
 </table>
 
-</td>
-</tr>
-
 `;
 
-}
-  
 });
 // =========================
 // 切り取り（end）
