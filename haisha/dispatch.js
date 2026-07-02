@@ -1493,12 +1493,7 @@ const members =
     return !outwardDrivers.includes(name);
 
   });
-
-const dispatchData =
-  JSON.parse(
-    JSON.stringify(activeDrivers)
-  );
-  
+ 
 if (members.length === 0) {
   return;
 }
@@ -1556,6 +1551,11 @@ if (confirmBtn) {
 if (!confirm("配車を確定しますか？")) {
   return;
 }
+
+const dispatchData =
+  JSON.parse(
+    JSON.stringify(activeDrivers)
+  );     
       
       for (const driver of activeDrivers) {
 
