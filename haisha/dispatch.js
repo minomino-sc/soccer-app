@@ -1444,22 +1444,13 @@ ${player.returnTrip ? "◎" : ""}
 // =========================  
 
 const remainPlayers =
-  targetPlayers.slice(
-    playerIndex
-  );
+  targetPlayers.slice(playerIndex);
 
-if (
-  remainPlayers.length > 0
-) {
+if (remainPlayers.length > 0) {
 
   html += `
-
     <hr>
-
-    <h3>
-      🚨 配車できなかった選手
-    </h3>
-
+    <h3>🚨 配車できなかった選手</h3>
   `;
 
   remainPlayers.forEach(player => {
@@ -1475,43 +1466,36 @@ if (
 }
 
 html += `
-
 <hr>
-
-<h3>
-復路配車一覧
-</h3>
-
+<h3>復路配車一覧</h3>
 `;
 
+// =========================
 // 往路ドライバー一覧
+// =========================
 const outwardDrivers =
   activeDrivers.map(driver => {
 
-    if (driver.priority === 2) {
-
-      return driver.name.replace("号", "");
-
+    if (driver?.priority === 2) {
+      return (driver?.name ?? "").replace("号", "");
     }
 
-    return driver.name;
+    return driver?.name ?? "";
 
   });
 
+// =========================
+// 復路一覧
+// =========================
 activeDrivers.forEach(driver => {
 
-  if (
-    !driver.returnPlayers ||
-    driver.returnPlayers.length === 0
-  ) {
+  if (!driver?.returnPlayers || !Array.isArray(driver.returnPlayers)) {
     return;
   }
 
   const members =
     driver.returnPlayers.filter(name => {
-
       return !outwardDrivers.includes(name);
-
     });
 
   if (members.length === 0) {
@@ -1519,17 +1503,17 @@ activeDrivers.forEach(driver => {
   }
 
   html += `
-
-<div>
-🚗 ${
-  driver.name?.endsWith("号")
-    ? driver.name
-    : driver.name + "号"
-}：
-${members.join("／")}
-</div>
-
-`;
+    <div>
+      🚗 ${
+        driver?.name
+          ? (driver.name.endsWith("号")
+              ? driver.name
+              : driver.name + "号")
+          : ""
+      }：
+      ${members.join("／")}
+    </div>
+  `;
 
 });
 
@@ -1537,262 +1521,198 @@ ${members.join("／")}
 // アラート
 // =========================
 alert("HTML文字数：" + html.length);
-// =========================
-// アラート
-// =========================
 
-document.getElementById(
-  "dispatchArea"
-).innerHTML =
-  html;
+document.getElementById("dispatchArea").innerHTML = html;
 
-// =========================
-// アラート
-// =========================
 alert("dispatchAreaセット完了");
-// =========================
-// アラート
-// =========================
 
+// =========================
+// ボタン表示
+// =========================
 document.getElementById("buttonArea").innerHTML =
-dispatchConfirmed
-? `
+  dispatchConfirmed
+    ? `
 <div style="margin-top:30px;text-align:center;">
-
-<button id="cancelBtn">
-❌ 配車確定取消
-</button>
-
+  <button id="cancelBtn">❌ 配車確定取消</button>
 </div>
 `
-: `
+    : `
 <div style="margin-top:30px;text-align:center;">
-
-<button id="confirmBtn">
-🚗 配車確定
-</button>
-
+  <button id="confirmBtn">🚗 配車確定</button>
 </div>
 `;
 
 // =========================
 // confirmBtn
 // =========================
-const confirmBtn =
-  document.getElementById("confirmBtn");
+const confirmBtn = document.getElementById("confirmBtn");
 
 if (confirmBtn) {
 
-  confirmBtn.addEventListener(
-    "click",
-    async () => {
+  confirmBtn.addEventListener("click", async () => {
 
-      const dispatchData =
-        JSON.parse(
-          JSON.stringify(activeDrivers)
-        );
+    const dispatchData =
+      JSON.parse(JSON.stringify(activeDrivers));
 
-      for (const driver of activeDrivers) {
+    for (const driver of activeDrivers) {
 
-        let key;
+      let key = "";
 
-        if (driver.priority === 1) {
-
-          key = driver.name;
-
-        }
-        else if (driver.priority === 2) {
-
-          key = driver.dutyName;
-
-        }
-        else {
-
-          key =
-            driver.playerName
-              ?.replace(/　/g, " ")
-              ?.trim()
-              ?.split(" ")[0];
-
-        }
-
-        await updateDoc(
-          doc(
-            db,
-            "driver_counts",
-            key
-          ),
-          {
-            count: increment(1)
-          }
-        );
-
+      if (driver?.priority === 1) {
+        key = driver?.name ?? "";
+      }
+      else if (driver?.priority === 2) {
+        key = driver?.dutyName ?? "";
+      }
+      else {
+        key =
+          (driver?.playerName ?? "")
+            .replace(/　/g, " ")
+            .trim()
+            .split(" ")[0] ?? "";
       }
 
+      if (!key) continue;
+
       await updateDoc(
-        doc(
-          db,
-          "car_dispatch_events",
-          id
-        ),
-        {
-          dispatchConfirmed: true,
-          dispatchData
-        }
+        doc(db, "driver_counts", key),
+        { count: increment(1) }
       );
 
-      alert("配車を確定しました。");
-
-      location.reload();
-
     }
-  );
+
+    await updateDoc(
+      doc(db, "car_dispatch_events", id),
+      {
+        dispatchConfirmed: true,
+        dispatchData
+      }
+    );
+
+    alert("配車を確定しました。");
+    location.reload();
+
+  });
 
 }
 
 // =========================
 // cancelBtn
 // =========================
-const cancelBtn =
-  document.getElementById("cancelBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 
 if (cancelBtn) {
 
-  cancelBtn.addEventListener(
-    "click",
-    async () => {
+  cancelBtn.addEventListener("click", async () => {
 
-      if (!confirm("配車確定を取り消しますか？")) {
-        return;
+    if (!confirm("配車確定を取り消しますか？")) {
+      return;
+    }
+
+    for (const driver of activeDrivers) {
+
+      let key = "";
+
+      if (driver?.priority === 1) {
+        key = driver?.name ?? "";
+      }
+      else if (driver?.priority === 2) {
+        key = driver?.dutyName ?? "";
+      }
+      else {
+        key =
+          (driver?.playerName ?? "")
+            .replace(/　/g, " ")
+            .trim()
+            .split(" ")[0] ?? "";
       }
 
-      for (const driver of activeDrivers) {
-
-        let key;
-
-        if (driver.priority === 1) {
-
-          key = driver.name;
-
-        }
-        else if (driver.priority === 2) {
-
-          key = driver.dutyName;
-
-        }
-        else {
-
-          key =
-            driver.playerName
-              ?.replace(/　/g, " ")
-              ?.trim()
-              ?.split(" ")[0];
-
-        }
-
-        await updateDoc(
-          doc(db, "driver_counts", key),
-          {
-            count: increment(-1)
-          }
-        );
-
-      }
+      if (!key) continue;
 
       await updateDoc(
-        doc(db, "car_dispatch_events", id),
-        {
-          dispatchConfirmed: false
-        }
+        doc(db, "driver_counts", key),
+        { count: increment(-1) }
       );
 
-      alert("配車確定を取り消しました。");
-      location.reload();
-
     }
-  );
+
+    await updateDoc(
+      doc(db, "car_dispatch_events", id),
+      {
+        dispatchConfirmed: false
+      }
+    );
+
+    alert("配車確定を取り消しました。");
+    location.reload();
+
+  });
 
 }
 
 // =========================
-// PDF
+// PDF出力
 // =========================
-document
-  .getElementById("pdfBtn")
-  .addEventListener("click", async () => {
+document.getElementById("pdfBtn").addEventListener("click", async () => {
 
-    const pdfArea =
-      document.getElementById("pdfArea");
+  const pdfArea = document.getElementById("pdfArea");
+  const original = document.getElementById("dispatchArea");
 
-    const original =
-      document.getElementById("dispatchArea");
+  pdfArea.innerHTML = original.innerHTML;
+  pdfArea.style.display = "block";
 
-    pdfArea.innerHTML = original.innerHTML;
-
-    pdfArea.style.display = "block";
-
-    pdfArea.querySelectorAll("*").forEach(el => {
-      el.style.color = "#000000";
-    });
-
-    const canvas = await html2canvas(pdfArea, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      useCORS: true,
-      windowWidth: pdfArea.scrollWidth,
-      windowHeight: pdfArea.scrollHeight
-    });
-
-    pdfArea.style.display = "none";
-
-    const imgData = canvas.toDataURL("image/jpeg", 0.7);
-
-    const { jsPDF } = window.jspdf;
-
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    const margin = 10;
-
-    const usableWidth = pageWidth - margin * 2;
-    const usableHeight = pageHeight - margin * 2;
-
-    const scale = Math.min(
-      usableWidth / canvas.width,
-      usableHeight / canvas.height
-    );
-
-    const imgWidth = canvas.width * scale;
-    const imgHeight = canvas.height * scale;
-
-    const x = (pageWidth - imgWidth) / 2;
-    const y = margin;
-
-    pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
-
-    pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-
+  pdfArea.querySelectorAll("*").forEach(el => {
+    el.style.color = "#000";
   });
+
+  const canvas = await html2canvas(pdfArea, {
+    scale: 2,
+    backgroundColor: "#fff",
+    useCORS: true,
+    windowWidth: pdfArea.scrollWidth,
+    windowHeight: pdfArea.scrollHeight
+  });
+
+  pdfArea.style.display = "none";
+
+  const imgData = canvas.toDataURL("image/jpeg", 0.7);
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  const margin = 10;
+
+  const scale = Math.min(
+    (pageWidth - margin * 2) / canvas.width,
+    (pageHeight - margin * 2) / canvas.height
+  );
+
+  const imgWidth = canvas.width * scale;
+  const imgHeight = canvas.height * scale;
+
+  const x = (pageWidth - imgWidth) / 2;
+
+  pdf.addImage(imgData, "PNG", x, margin, imgWidth, imgHeight);
+
+  pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
+
+});
 
 // =========================
 // LINE送信
 // =========================
-document
-  .getElementById("lineBtn")
-  .addEventListener("click", () => {
+document.getElementById("lineBtn").addEventListener("click", () => {
 
-    const text =
-      document.getElementById("dispatchArea").innerText;
+  const text = document.getElementById("dispatchArea").innerText;
 
-    const encoded =
-      encodeURIComponent(text);
+  const encoded = encodeURIComponent(text);
 
-    const url =
-      `https://line.me/R/msg/text/?${encoded}`;
+  window.open(
+    `https://line.me/R/msg/text/?${encoded}`,
+    "_blank"
+  );
 
-    window.open(url, "_blank");
-
-  });
-  
+});
