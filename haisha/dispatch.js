@@ -822,8 +822,16 @@ margin-bottom:20px;
   }
 
 let playerIndex = 0;
-  
+
 if (dispatchConfirmed) {
+
+  savedDispatch.forEach(driver => {
+
+    driver.players ??= [];
+    driver.returnPlayers ??= [];
+    driver.equipment ??= [];
+
+  });
 
   activeDrivers = savedDispatch;
 
@@ -1486,6 +1494,11 @@ const members =
 
   });
 
+const dispatchData =
+  JSON.parse(
+    JSON.stringify(activeDrivers)
+  );
+  
 if (members.length === 0) {
   return;
 }
@@ -1589,7 +1602,7 @@ await updateDoc(
   ),
   {
     dispatchConfirmed: true,
-    dispatchData: activeDrivers
+    dispatchData
   }
 );
 
