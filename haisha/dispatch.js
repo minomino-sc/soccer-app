@@ -1443,8 +1443,17 @@ ${player.returnTrip ? "◎" : ""}
 // 切り取り（end）
 // =========================  
 
+alert("②開始");
+
+// =========================
+// 配車できなかった選手
+// =========================
 const remainPlayers =
-  (targetPlayers ?? []).slice(playerIndex ?? 0);
+  Array.isArray(targetPlayers)
+    ? targetPlayers.slice(playerIndex ?? 0)
+    : [];
+
+alert("②-1 remainPlayers OK");
 
 if (remainPlayers.length > 0) {
 
@@ -1453,80 +1462,86 @@ if (remainPlayers.length > 0) {
     <h3>🚨 配車できなかった選手</h3>
   `;
 
-  remainPlayers.forEach(player => {
+  for (const player of remainPlayers) {
 
     html += `
       <div>${player?.name ?? ""}</div>
     `;
 
-  });
+  }
 
 }
 
+alert("②-2 不足選手OK");
+
+// =========================
+// 復路配車一覧
+// =========================
 html += `
 <hr>
 <h3>復路配車一覧</h3>
 `;
 
-// =========================
+const safeDrivers =
+  Array.isArray(activeDrivers) ? activeDrivers : [];
+
+alert("②-3 activeDrivers OK");
+
 // 往路ドライバー一覧
-// =========================
-const outwardDrivers =
-  (activeDrivers ?? []).map(driver => {
+const outwardDrivers = safeDrivers.map(driver => {
 
-    const name = driver?.name ?? "";
+  const name = driver?.name ?? "";
 
-    if (driver?.priority === 2) {
-      return name.replace("号", "");
-    }
+  if (driver?.priority === 2) {
+    return name.replace("号", "");
+  }
 
-    return name;
+  return name;
 
-  });
+});
 
-// =========================
-// 復路配車一覧
-// =========================
-(activeDrivers ?? []).forEach(driver => {
+alert("②-4 outwardDrivers OK");
+
+// 復路処理
+for (const driver of safeDrivers) {
 
   const returnPlayers = driver?.returnPlayers;
 
-  if (!Array.isArray(returnPlayers)) return;
+  if (!Array.isArray(returnPlayers)) continue;
 
   const members =
     returnPlayers.filter(name => {
       return !outwardDrivers.includes(name);
     });
 
-  if (!members.length) return;
-
-  const driverName =
-    driver?.name
-      ? (driver.name.endsWith("号")
-          ? driver.name
-          : driver.name + "号")
-      : "";
+  if (members.length === 0) continue;
 
   html += `
     <div>
-      🚗 ${driverName}：${members.join("／")}
+      🚗 ${
+        driver?.name
+          ? (driver.name.endsWith("号")
+              ? driver.name
+              : driver.name + "号")
+          : ""
+      }：
+      ${members.join("／")}
     </div>
   `;
 
-});
-
-// =========================
-// DOM反映（完全防御）
-// =========================
-const dispatchArea =
-  document.getElementById("dispatchArea");
-
-if (dispatchArea) {
-  dispatchArea.innerHTML = html;
 }
 
-const buttonArea =
-  document.getElementById("buttonArea");
+alert("②-5 復路OK");
+
+// =========================
+// DOM反映
+// =========================
+const dispatchArea = document.getElementById("dispatchArea");
+if (dispatchArea) dispatchArea.innerHTML = html;
+
+alert("②-6 dispatchArea OK");
+
+const buttonArea = document.getElementById("buttonArea");
 
 if (buttonArea) {
 
@@ -1545,22 +1560,24 @@ if (buttonArea) {
 
 }
 
+alert("②-7 buttonArea OK");
+
 // =========================
 // confirmBtn
 // =========================
-const confirmBtn =
-  document.getElementById("confirmBtn");
+const confirmBtn = document.getElementById("confirmBtn");
 
 if (confirmBtn) {
 
   confirmBtn.onclick = async () => {
 
-    const safeDrivers = activeDrivers ?? [];
+    const drivers =
+      Array.isArray(activeDrivers) ? activeDrivers : [];
 
     const dispatchData =
-      JSON.parse(JSON.stringify(safeDrivers));
+      JSON.parse(JSON.stringify(drivers));
 
-    for (const driver of safeDrivers) {
+    for (const driver of drivers) {
 
       let key = "";
 
@@ -1585,9 +1602,7 @@ if (confirmBtn) {
           doc(db, "driver_counts", key),
           { count: increment(1) }
         );
-      } catch (e) {
-        // 完全スキップ（止めない）
-      }
+      } catch (e) {}
 
     }
 
@@ -1606,11 +1621,12 @@ if (confirmBtn) {
 
 }
 
+alert("②-8 confirmBtn OK");
+
 // =========================
 // cancelBtn
 // =========================
-const cancelBtn =
-  document.getElementById("cancelBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 
 if (cancelBtn) {
 
@@ -1618,9 +1634,10 @@ if (cancelBtn) {
 
     if (!confirm("配車確定を取り消しますか？")) return;
 
-    const safeDrivers = activeDrivers ?? [];
+    const drivers =
+      Array.isArray(activeDrivers) ? activeDrivers : [];
 
-    for (const driver of safeDrivers) {
+    for (const driver of drivers) {
 
       let key = "";
 
@@ -1663,21 +1680,18 @@ if (cancelBtn) {
 
 }
 
+alert("②-9 cancelBtn OK");
+
 // =========================
-// PDF（完全安全・外部依存チェック付き）
+// PDF
 // =========================
 const pdfBtn = document.getElementById("pdfBtn");
 
-if (pdfBtn) {
+if (pdfBtn && window.html2canvas && window.jspdf) {
 
   pdfBtn.onclick = async () => {
 
     try {
-
-      if (!window.html2canvas || !window.jspdf) {
-        alert("PDF機能が読み込まれていません");
-        return;
-      }
 
       const pdfArea = document.getElementById("pdfArea");
       const original = document.getElementById("dispatchArea");
@@ -1707,13 +1721,13 @@ if (pdfBtn) {
 
       pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
 
-    } catch (e) {
-      alert("PDF出力でエラーが発生しました");
-    }
+    } catch (e) {}
 
   };
 
 }
+
+alert("②-10 PDF OK");
 
 // =========================
 // LINE
@@ -1738,3 +1752,6 @@ if (lineBtn) {
   };
 
 }
+
+alert("②完了");
+  
