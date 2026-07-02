@@ -1256,16 +1256,16 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 // =========================  
 activeDrivers.forEach(driver => {
 
-if (
-  driver.players.length === 0 &&
-  (
-    !driver.equipment ||
-    driver.equipment.length === 0
-  )
-) {
-  return;
-}
-  
+  if (
+    driver.players.length === 0 &&
+    (
+      !driver.equipment ||
+      driver.equipment.length === 0
+    )
+  ) {
+    return;
+  }
+
 html += `
 
 <div
