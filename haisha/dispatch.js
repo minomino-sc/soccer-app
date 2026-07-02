@@ -1225,7 +1225,14 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
   }
 
 }
- 
+
+
+
+
+
+// =========================
+// 切り取り（start）
+// =========================  
 activeDrivers.forEach(driver => {
 
   if (
@@ -1422,6 +1429,13 @@ ${player.returnTrip ? "◎" : ""}
 }
   
 });
+// =========================
+// 切り取り（end）
+// =========================  
+
+
+
+  
 
 const remainPlayers =
   targetPlayers.slice(
