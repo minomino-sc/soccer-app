@@ -1552,10 +1552,18 @@ if (!confirm("配車を確定しますか？")) {
   return;
 }
 
+
+
+      
+alert(JSON.stringify(dispatchData));
+      
 const dispatchData =
   JSON.parse(
     JSON.stringify(activeDrivers)
   );     
+
+
+
       
       for (const driver of activeDrivers) {
 
