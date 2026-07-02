@@ -1256,16 +1256,20 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 // =========================  
 activeDrivers.forEach(driver => {
 
-  if (
-    driver.players.length === 0 &&
-    (
-      !driver.equipment ||
-      driver.equipment.length === 0
-    )
-  ) {
-    return;
-  }
+driver.players ??= [];
+driver.returnPlayers ??= [];
+driver.equipment ??= [];
 
+// 配車確定後は車は必ず表示する
+// 自動配車時だけ空車を非表示
+if (
+  !dispatchConfirmed &&
+  driver.players.length === 0 &&
+  driver.equipment.length === 0
+) {
+  return;
+}
+  
 html += `
 
 <div
