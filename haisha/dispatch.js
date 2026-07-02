@@ -1549,7 +1549,7 @@ ${members.join("／")}
 // =========================
 // アラート
 // =========================
-alert("HTML作成完了");
+alert("HTML文字数：" + html.length);
 // =========================
 // アラート
 // =========================
@@ -1559,6 +1559,14 @@ document.getElementById(
 ).innerHTML =
   html;
 
+// =========================
+// アラート
+// =========================
+alert("dispatchAreaセット完了");
+// =========================
+// アラート
+// =========================
+  
 document.getElementById("buttonArea").innerHTML =
 dispatchConfirmed
 ? `
