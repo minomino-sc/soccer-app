@@ -1254,60 +1254,41 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 // =========================
 // 切り取り（start）
 // =========================  
-activeDrivers.forEach(driver => {
+// =========================
+// ドライバー表示（①）
+// =========================
+(activeDrivers ?? []).forEach(driver => {
 
-  driver.players ??= [];
-  driver.equipment ??= [];
+  driver.players = Array.isArray(driver?.players) ? driver.players : [];
+  driver.equipment = Array.isArray(driver?.equipment) ? driver.equipment : [];
 
-  if (
-    driver.players.length === 0 &&
-    driver.equipment.length === 0
-  ) {
+  const driverName =
+    driver?.name ?? "";
+
+  if (driver.players.length === 0 && driver.equipment.length === 0) {
     return;
   }
 
   html += `
 
-<div
-style="
-display:flex;
-align-items:center;
-margin-top:20px;
-margin-bottom:10px;
-"
->
+<div style="display:flex;align-items:center;margin-top:20px;margin-bottom:10px;">
 
-<div
-style="
-width:220px;
-font-size:20px;
-font-weight:bold;
-flex-shrink:0;
-"
->
-🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}
+<div style="width:220px;font-size:20px;font-weight:bold;flex-shrink:0;">
+🚗 ${driverName
+  ? (driverName.endsWith("号") ? driverName : driverName + "号")
+  : ""}
 </div>
 
-<div
-style="
-flex:1;
-font-weight:bold;
-text-align:right;
-"
->
-定員：${driver.seats}名 ／
+<div style="flex:1;font-weight:bold;text-align:right;">
+定員：${driver?.seats ?? 0}名 ／
 乗車：${driver.players.length}名 ／
-空席：${driver.seats - driver.players.length}名 ／
+空席：${(driver?.seats ?? 0) - driver.players.length}名 ／
 試合道具：${
 driver.equipment.length
-? driver.equipment
-.map(e =>
-e === "A"
-? "◎（箕谷A）"
-: "◎（箕谷B）"
-)
-.join("・")
-: "－"
+  ? driver.equipment
+      .map(e => (e === "A" ? "◎（箕谷A）" : "◎（箕谷B）"))
+      .join("・")
+  : "－"
 }
 </div>
 
@@ -1315,145 +1296,46 @@ e === "A"
 
 `;
 
-  if (driver.players.length === 0) {
-    return;
-  }
+  if (driver.players.length === 0) return;
 
   html += `
-
-<table
-style="
-width:100%;
-margin-top:5px;
-border-collapse:collapse;
-table-layout:fixed;
-"
->
-
+<table style="width:100%;margin-top:5px;border-collapse:collapse;table-layout:fixed;">
 <tr>
 
-<th
-style="
-border:1px solid #ccc;
-padding:4px;
-background:#f5f5f5;
-"
->
-No
-</th>
-
-<th
-style="
-border:1px solid #ccc;
-padding:4px;
-background:#f5f5f5;
-"
->
-氏名
-</th>
-
-<th
-style="
-border:1px solid #ccc;
-padding:4px;
-background:#f5f5f5;
-"
->
-役割
-</th>
-
-<th
-style="
-border:1px solid #ccc;
-padding:4px;
-background:#f5f5f5;
-"
->
-復路
-</th>
+<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">No</th>
+<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">氏名</th>
+<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">役割</th>
+<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">復路</th>
 
 </tr>
-
 `;
 
   driver.players.forEach((player, index) => {
 
     html += `
-
-<tr
-style="
-${player.returnTrip ? "background:#fff3a0;" : ""}
-"
->
-
-<td
-style="
-border:1px solid #ccc;
-padding:4px;
-text-align:center;
-"
->
-${index + 1}
-</td>
-
-<td
-style="
-border:1px solid #ccc;
-padding:4px;
-"
->
-${player.name}
-</td>
-
-<td
-style="
-border:1px solid #ccc;
-padding:4px;
-text-align:center;
-"
->
-${player.role}
-</td>
-
-<td
-style="
-border:1px solid #ccc;
-padding:4px;
-text-align:center;
-font-weight:bold;
-"
->
-${player.returnTrip ? "◎" : ""}
-</td>
-
+<tr style="${player?.returnTrip ? "background:#fff3a0;" : ""}">
+<td style="border:1px solid #ccc;padding:4px;text-align:center;">${index + 1}</td>
+<td style="border:1px solid #ccc;padding:4px;">${player?.name ?? ""}</td>
+<td style="border:1px solid #ccc;padding:4px;text-align:center;">${player?.role ?? ""}</td>
+<td style="border:1px solid #ccc;padding:4px;text-align:center;font-weight:bold;">${player?.returnTrip ? "◎" : ""}</td>
 </tr>
-
 `;
-
   });
 
-  html += `
-
-</table>
-
-`;
-
+  html += `</table>`;
 });
-// =========================
-// 切り取り（end）
-// =========================  
 
+
+// =========================
+// ②開始（ここから後処理）
+// =========================
 alert("②開始");
 
-// =========================
 // 配車できなかった選手
-// =========================
 const remainPlayers =
   Array.isArray(targetPlayers)
     ? targetPlayers.slice(playerIndex ?? 0)
     : [];
-
-alert("②-1 remainPlayers OK");
 
 if (remainPlayers.length > 0) {
 
@@ -1462,21 +1344,13 @@ if (remainPlayers.length > 0) {
     <h3>🚨 配車できなかった選手</h3>
   `;
 
-  for (const player of remainPlayers) {
-
-    html += `
-      <div>${player?.name ?? ""}</div>
-    `;
-
-  }
+  remainPlayers.forEach(player => {
+    html += `<div>${player?.name ?? ""}</div>`;
+  });
 
 }
 
-alert("②-2 不足選手OK");
-
-// =========================
 // 復路配車一覧
-// =========================
 html += `
 <hr>
 <h3>復路配車一覧</h3>
@@ -1485,61 +1359,42 @@ html += `
 const safeDrivers =
   Array.isArray(activeDrivers) ? activeDrivers : [];
 
-alert("②-3 activeDrivers OK");
-
-// 往路ドライバー一覧
 const outwardDrivers = safeDrivers.map(driver => {
-
   const name = driver?.name ?? "";
-
-  if (driver?.priority === 2) {
-    return name.replace("号", "");
-  }
-
-  return name;
-
+  return driver?.priority === 2
+    ? name.replace("号", "")
+    : name;
 });
 
-alert("②-4 outwardDrivers OK");
+safeDrivers.forEach(driver => {
 
-// 復路処理
-for (const driver of safeDrivers) {
+  const returnPlayers = Array.isArray(driver?.returnPlayers)
+    ? driver.returnPlayers
+    : [];
 
-  const returnPlayers = driver?.returnPlayers;
+  const members = returnPlayers.filter(name =>
+    !outwardDrivers.includes(name)
+  );
 
-  if (!Array.isArray(returnPlayers)) continue;
+  if (members.length === 0) return;
 
-  const members =
-    returnPlayers.filter(name => {
-      return !outwardDrivers.includes(name);
-    });
-
-  if (members.length === 0) continue;
+  const driverName =
+    driver?.name
+      ? (driver.name.endsWith("号")
+          ? driver.name
+          : driver.name + "号")
+      : "";
 
   html += `
-    <div>
-      🚗 ${
-        driver?.name
-          ? (driver.name.endsWith("号")
-              ? driver.name
-              : driver.name + "号")
-          : ""
-      }：
-      ${members.join("／")}
-    </div>
+    <div>🚗 ${driverName}：${members.join("／")}</div>
   `;
-
-}
-
-alert("②-5 復路OK");
+});
 
 // =========================
 // DOM反映
 // =========================
 const dispatchArea = document.getElementById("dispatchArea");
 if (dispatchArea) dispatchArea.innerHTML = html;
-
-alert("②-6 dispatchArea OK");
 
 const buttonArea = document.getElementById("buttonArea");
 
@@ -1560,8 +1415,6 @@ if (buttonArea) {
 
 }
 
-alert("②-7 buttonArea OK");
-
 // =========================
 // confirmBtn
 // =========================
@@ -1581,12 +1434,8 @@ if (confirmBtn) {
 
       let key = "";
 
-      if (driver?.priority === 1) {
-        key = driver?.name ?? "";
-      }
-      else if (driver?.priority === 2) {
-        key = driver?.dutyName ?? "";
-      }
+      if (driver?.priority === 1) key = driver?.name ?? "";
+      else if (driver?.priority === 2) key = driver?.dutyName ?? "";
       else {
         key =
           (driver?.playerName ?? "")
@@ -1603,7 +1452,6 @@ if (confirmBtn) {
           { count: increment(1) }
         );
       } catch (e) {}
-
     }
 
     await updateDoc(
@@ -1620,8 +1468,6 @@ if (confirmBtn) {
   };
 
 }
-
-alert("②-8 confirmBtn OK");
 
 // =========================
 // cancelBtn
@@ -1641,12 +1487,8 @@ if (cancelBtn) {
 
       let key = "";
 
-      if (driver?.priority === 1) {
-        key = driver?.name ?? "";
-      }
-      else if (driver?.priority === 2) {
-        key = driver?.dutyName ?? "";
-      }
+      if (driver?.priority === 1) key = driver?.name ?? "";
+      else if (driver?.priority === 2) key = driver?.dutyName ?? "";
       else {
         key =
           (driver?.playerName ?? "")
@@ -1663,14 +1505,11 @@ if (cancelBtn) {
           { count: increment(-1) }
         );
       } catch (e) {}
-
     }
 
     await updateDoc(
       doc(db, "car_dispatch_events", id),
-      {
-        dispatchConfirmed: false
-      }
+      { dispatchConfirmed: false }
     );
 
     alert("配車確定を取り消しました。");
@@ -1679,79 +1518,4 @@ if (cancelBtn) {
   };
 
 }
-
-alert("②-9 cancelBtn OK");
-
-// =========================
-// PDF
-// =========================
-const pdfBtn = document.getElementById("pdfBtn");
-
-if (pdfBtn && window.html2canvas && window.jspdf) {
-
-  pdfBtn.onclick = async () => {
-
-    try {
-
-      const pdfArea = document.getElementById("pdfArea");
-      const original = document.getElementById("dispatchArea");
-
-      if (!pdfArea || !original) return;
-
-      pdfArea.innerHTML = original.innerHTML;
-      pdfArea.style.display = "block";
-
-      const canvas = await html2canvas(pdfArea, {
-        scale: 2
-      });
-
-      pdfArea.style.display = "none";
-
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF("p", "mm", "a4");
-
-      pdf.addImage(
-        canvas.toDataURL("image/jpeg", 0.7),
-        "JPEG",
-        10,
-        10,
-        180,
-        0
-      );
-
-      pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-
-    } catch (e) {}
-
-  };
-
-}
-
-alert("②-10 PDF OK");
-
-// =========================
-// LINE
-// =========================
-const lineBtn = document.getElementById("lineBtn");
-
-if (lineBtn) {
-
-  lineBtn.onclick = () => {
-
-    const el = document.getElementById("dispatchArea");
-    if (!el) return;
-
-    const text = el.innerText || "";
-    const encoded = encodeURIComponent(text);
-
-    window.open(
-      `https://line.me/R/msg/text/?${encoded}`,
-      "_blank"
-    );
-
-  };
-
-}
-
-alert("②完了");
   
