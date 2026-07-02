@@ -835,6 +835,27 @@ if (dispatchConfirmed) {
 
   activeDrivers = savedDispatch;
 
+
+
+// =========================
+// アラート
+// =========================
+  alert(
+
+    "台数：" + activeDrivers.length +
+
+    "\n\n1台目：" +
+
+    JSON.stringify(activeDrivers[0])
+
+  );
+// =========================
+// アラート
+// =========================
+
+
+  
+
 } else {
   
 // =========================
