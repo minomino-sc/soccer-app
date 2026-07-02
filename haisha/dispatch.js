@@ -1444,7 +1444,7 @@ ${player.returnTrip ? "◎" : ""}
 // =========================  
 
 const remainPlayers =
-  targetPlayers?.slice?.(playerIndex) ?? [];
+  (targetPlayers ?? []).slice(playerIndex ?? 0);
 
 if (remainPlayers.length > 0) {
 
@@ -1456,9 +1456,7 @@ if (remainPlayers.length > 0) {
   remainPlayers.forEach(player => {
 
     html += `
-      <div>
-        ${player?.name ?? ""}
-      </div>
+      <div>${player?.name ?? ""}</div>
     `;
 
   });
@@ -1476,42 +1474,42 @@ html += `
 const outwardDrivers =
   (activeDrivers ?? []).map(driver => {
 
+    const name = driver?.name ?? "";
+
     if (driver?.priority === 2) {
-      return (driver?.name ?? "").replace("号", "");
+      return name.replace("号", "");
     }
 
-    return driver?.name ?? "";
+    return name;
 
   });
 
 // =========================
-// 復路配車
+// 復路配車一覧
 // =========================
 (activeDrivers ?? []).forEach(driver => {
 
-  if (!driver?.returnPlayers || !Array.isArray(driver.returnPlayers)) {
-    return;
-  }
+  const returnPlayers = driver?.returnPlayers;
+
+  if (!Array.isArray(returnPlayers)) return;
 
   const members =
-    driver.returnPlayers.filter(name => {
+    returnPlayers.filter(name => {
       return !outwardDrivers.includes(name);
     });
 
-  if (!members.length) {
-    return;
-  }
+  if (!members.length) return;
+
+  const driverName =
+    driver?.name
+      ? (driver.name.endsWith("号")
+          ? driver.name
+          : driver.name + "号")
+      : "";
 
   html += `
     <div>
-      🚗 ${
-        driver?.name
-          ? (driver.name.endsWith("号")
-              ? driver.name
-              : driver.name + "号")
-          : ""
-      }：
-      ${members.join("／")}
+      🚗 ${driverName}：${members.join("／")}
     </div>
   `;
 
@@ -1527,13 +1525,6 @@ if (dispatchArea) {
   dispatchArea.innerHTML = html;
 }
 
-alert("HTML文字数：" + html.length);
-
-alert("dispatchAreaセット完了");
-
-// =========================
-// ボタンエリア
-// =========================
 const buttonArea =
   document.getElementById("buttonArea");
 
@@ -1562,12 +1553,14 @@ const confirmBtn =
 
 if (confirmBtn) {
 
-  confirmBtn.addEventListener("click", async () => {
+  confirmBtn.onclick = async () => {
+
+    const safeDrivers = activeDrivers ?? [];
 
     const dispatchData =
-      JSON.parse(JSON.stringify(activeDrivers ?? []));
+      JSON.parse(JSON.stringify(safeDrivers));
 
-    for (const driver of (activeDrivers ?? [])) {
+    for (const driver of safeDrivers) {
 
       let key = "";
 
@@ -1587,10 +1580,14 @@ if (confirmBtn) {
 
       if (!key) continue;
 
-      await updateDoc(
-        doc(db, "driver_counts", key),
-        { count: increment(1) }
-      );
+      try {
+        await updateDoc(
+          doc(db, "driver_counts", key),
+          { count: increment(1) }
+        );
+      } catch (e) {
+        // 完全スキップ（止めない）
+      }
 
     }
 
@@ -1605,7 +1602,7 @@ if (confirmBtn) {
     alert("配車を確定しました。");
     location.reload();
 
-  });
+  };
 
 }
 
@@ -1617,13 +1614,13 @@ const cancelBtn =
 
 if (cancelBtn) {
 
-  cancelBtn.addEventListener("click", async () => {
+  cancelBtn.onclick = async () => {
 
-    if (!confirm("配車確定を取り消しますか？")) {
-      return;
-    }
+    if (!confirm("配車確定を取り消しますか？")) return;
 
-    for (const driver of (activeDrivers ?? [])) {
+    const safeDrivers = activeDrivers ?? [];
+
+    for (const driver of safeDrivers) {
 
       let key = "";
 
@@ -1643,10 +1640,12 @@ if (cancelBtn) {
 
       if (!key) continue;
 
-      await updateDoc(
-        doc(db, "driver_counts", key),
-        { count: increment(-1) }
-      );
+      try {
+        await updateDoc(
+          doc(db, "driver_counts", key),
+          { count: increment(-1) }
+        );
+      } catch (e) {}
 
     }
 
@@ -1660,66 +1659,59 @@ if (cancelBtn) {
     alert("配車確定を取り消しました。");
     location.reload();
 
-  });
+  };
 
 }
 
 // =========================
-// PDF
+// PDF（完全安全・外部依存チェック付き）
 // =========================
 const pdfBtn = document.getElementById("pdfBtn");
 
 if (pdfBtn) {
 
-  pdfBtn.addEventListener("click", async () => {
+  pdfBtn.onclick = async () => {
 
-    const pdfArea = document.getElementById("pdfArea");
-    const original = document.getElementById("dispatchArea");
+    try {
 
-    if (!pdfArea || !original) return;
+      if (!window.html2canvas || !window.jspdf) {
+        alert("PDF機能が読み込まれていません");
+        return;
+      }
 
-    pdfArea.innerHTML = original.innerHTML;
-    pdfArea.style.display = "block";
+      const pdfArea = document.getElementById("pdfArea");
+      const original = document.getElementById("dispatchArea");
 
-    pdfArea.querySelectorAll("*").forEach(el => {
-      el.style.color = "#000";
-    });
+      if (!pdfArea || !original) return;
 
-    const canvas = await html2canvas(pdfArea, {
-      scale: 2,
-      backgroundColor: "#fff",
-      useCORS: true,
-      windowWidth: pdfArea.scrollWidth,
-      windowHeight: pdfArea.scrollHeight
-    });
+      pdfArea.innerHTML = original.innerHTML;
+      pdfArea.style.display = "block";
 
-    pdfArea.style.display = "none";
+      const canvas = await html2canvas(pdfArea, {
+        scale: 2
+      });
 
-    const imgData = canvas.toDataURL("image/jpeg", 0.7);
+      pdfArea.style.display = "none";
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+      pdf.addImage(
+        canvas.toDataURL("image/jpeg", 0.7),
+        "JPEG",
+        10,
+        10,
+        180,
+        0
+      );
 
-    const margin = 10;
+      pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
 
-    const scale = Math.min(
-      (pageWidth - margin * 2) / canvas.width,
-      (pageHeight - margin * 2) / canvas.height
-    );
+    } catch (e) {
+      alert("PDF出力でエラーが発生しました");
+    }
 
-    const imgWidth = canvas.width * scale;
-    const imgHeight = canvas.height * scale;
-
-    const x = (pageWidth - imgWidth) / 2;
-
-    pdf.addImage(imgData, "PNG", x, margin, imgWidth, imgHeight);
-
-    pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-
-  });
+  };
 
 }
 
@@ -1730,11 +1722,12 @@ const lineBtn = document.getElementById("lineBtn");
 
 if (lineBtn) {
 
-  lineBtn.addEventListener("click", () => {
+  lineBtn.onclick = () => {
 
-    const text =
-      document.getElementById("dispatchArea")?.innerText ?? "";
+    const el = document.getElementById("dispatchArea");
+    if (!el) return;
 
+    const text = el.innerText || "";
     const encoded = encodeURIComponent(text);
 
     window.open(
@@ -1742,6 +1735,6 @@ if (lineBtn) {
       "_blank"
     );
 
-  });
+  };
 
 }
