@@ -1547,9 +1547,7 @@ if (confirmBtn) {
   confirmBtn.addEventListener(
     "click",
     async () => {
-      
-alert(JSON.stringify(dispatchData));
-      
+    
 const dispatchData =
   JSON.parse(
     JSON.stringify(activeDrivers)
