@@ -1443,10 +1443,6 @@ ${player.returnTrip ? "◎" : ""}
 // 切り取り（end）
 // =========================  
 
-
-
-  
-
 const remainPlayers =
   targetPlayers.slice(
     playerIndex
@@ -1470,7 +1466,7 @@ if (
 
     html += `
       <div>
-        ${player.name}
+        ${player?.name ?? ""}
       </div>
     `;
 
@@ -1488,7 +1484,7 @@ html += `
 
 `;
 
- // 往路ドライバー一覧
+// 往路ドライバー一覧
 const outwardDrivers =
   activeDrivers.map(driver => {
 
@@ -1500,7 +1496,7 @@ const outwardDrivers =
 
     return driver.name;
 
-  }); 
+  });
 
 activeDrivers.forEach(driver => {
 
@@ -1511,29 +1507,31 @@ activeDrivers.forEach(driver => {
     return;
   }
 
-const members =
-  driver.returnPlayers.filter(name => {
+  const members =
+    driver.returnPlayers.filter(name => {
 
-    return !outwardDrivers.includes(name);
+      return !outwardDrivers.includes(name);
 
-  });
- 
-if (members.length === 0) {
-  return;
-}
-  
+    });
+
+  if (members.length === 0) {
+    return;
+  }
+
   html += `
 
 <div>
-🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
+🚗 ${
+  driver.name?.endsWith("号")
+    ? driver.name
+    : driver.name + "号"
+}：
 ${members.join("／")}
 </div>
 
 `;
 
 });
-
-}
 
 // =========================
 // アラート
@@ -1542,7 +1540,7 @@ alert("HTML文字数：" + html.length);
 // =========================
 // アラート
 // =========================
-  
+
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
@@ -1555,7 +1553,7 @@ alert("dispatchAreaセット完了");
 // =========================
 // アラート
 // =========================
-  
+
 document.getElementById("buttonArea").innerHTML =
 dispatchConfirmed
 ? `
@@ -1577,8 +1575,9 @@ dispatchConfirmed
 </div>
 `;
 
- } 
-
+// =========================
+// confirmBtn
+// =========================
 const confirmBtn =
   document.getElementById("confirmBtn");
 
@@ -1587,70 +1586,73 @@ if (confirmBtn) {
   confirmBtn.addEventListener(
     "click",
     async () => {
-    
-const dispatchData =
-  JSON.parse(
-    JSON.stringify(activeDrivers)
-  );     
-     
+
+      const dispatchData =
+        JSON.parse(
+          JSON.stringify(activeDrivers)
+        );
+
       for (const driver of activeDrivers) {
 
-let key;
+        let key;
 
-if (driver.priority === 1) {
+        if (driver.priority === 1) {
 
-  key = driver.name;
+          key = driver.name;
 
-}
-else if (driver.priority === 2) {
+        }
+        else if (driver.priority === 2) {
 
-  key = driver.dutyName;
+          key = driver.dutyName;
 
-}
-else {
+        }
+        else {
 
-  key =
-    driver.playerName
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+          key =
+            driver.playerName
+              ?.replace(/　/g, " ")
+              ?.trim()
+              ?.split(" ")[0];
 
-}
+        }
 
-await updateDoc(
-  doc(
-    db,
-    "driver_counts",
-    key
-  ),
-  {
-    count: increment(1)
-  }
-);        
+        await updateDoc(
+          doc(
+            db,
+            "driver_counts",
+            key
+          ),
+          {
+            count: increment(1)
+          }
+        );
 
       }
 
-await updateDoc(
-  doc(
-    db,
-    "car_dispatch_events",
-    id
-  ),
-  {
-    dispatchConfirmed: true,
-    dispatchData
-  }
-);
+      await updateDoc(
+        doc(
+          db,
+          "car_dispatch_events",
+          id
+        ),
+        {
+          dispatchConfirmed: true,
+          dispatchData
+        }
+      );
 
-alert("配車を確定しました。");
+      alert("配車を確定しました。");
 
-location.reload();
+      location.reload();
 
     }
   );
 
 }
 
+// =========================
+// cancelBtn
+// =========================
 const cancelBtn =
   document.getElementById("cancelBtn");
 
@@ -1666,27 +1668,27 @@ if (cancelBtn) {
 
       for (const driver of activeDrivers) {
 
-let key;
+        let key;
 
-if (driver.priority === 1) {
+        if (driver.priority === 1) {
 
-  key = driver.name;
+          key = driver.name;
 
-}
-else if (driver.priority === 2) {
+        }
+        else if (driver.priority === 2) {
 
-  key = driver.dutyName;
+          key = driver.dutyName;
 
-}
-else {
+        }
+        else {
 
-  key =
-    driver.playerName
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+          key =
+            driver.playerName
+              ?.replace(/　/g, " ")
+              ?.trim()
+              ?.split(" ")[0];
 
-}
+        }
 
         await updateDoc(
           doc(db, "driver_counts", key),
@@ -1711,7 +1713,10 @@ else {
   );
 
 }
-  
+
+// =========================
+// PDF
+// =========================
 document
   .getElementById("pdfBtn")
   .addEventListener("click", async () => {
@@ -1730,51 +1735,50 @@ document
       el.style.color = "#000000";
     });
 
-const canvas = await html2canvas(pdfArea, {
-  scale: 2,
-  backgroundColor: "#ffffff",
-  useCORS: true,
-  windowWidth: pdfArea.scrollWidth,
-  windowHeight: pdfArea.scrollHeight
-});
+    const canvas = await html2canvas(pdfArea, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      windowWidth: pdfArea.scrollWidth,
+      windowHeight: pdfArea.scrollHeight
+    });
 
-pdfArea.style.display = "none";
+    pdfArea.style.display = "none";
 
-// const imgData = canvas.toDataURL("image/png");
-const imgData = canvas.toDataURL("image/jpeg", 0.7);
+    const imgData = canvas.toDataURL("image/jpeg", 0.7);
 
-const { jsPDF } = window.jspdf;
+    const { jsPDF } = window.jspdf;
 
-const pdf = new jsPDF("p", "mm", "a4");
+    const pdf = new jsPDF("p", "mm", "a4");
 
-const pageWidth = pdf.internal.pageSize.getWidth();
-const pageHeight = pdf.internal.pageSize.getHeight();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
 
-const margin = 10;
+    const margin = 10;
 
-const usableWidth = pageWidth - margin * 2;
-const usableHeight = pageHeight - margin * 2;
+    const usableWidth = pageWidth - margin * 2;
+    const usableHeight = pageHeight - margin * 2;
 
-const scale = Math.min(
-  usableWidth / canvas.width,
-  usableHeight / canvas.height
-);
+    const scale = Math.min(
+      usableWidth / canvas.width,
+      usableHeight / canvas.height
+    );
 
-const imgWidth = canvas.width * scale;
-const imgHeight = canvas.height * scale;
+    const imgWidth = canvas.width * scale;
+    const imgHeight = canvas.height * scale;
 
-const x = (pageWidth - imgWidth) / 2;
-const y = margin;
+    const x = (pageWidth - imgWidth) / 2;
+    const y = margin;
 
-pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+    pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
 
-pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-       
-});    
+    pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
+
+  });
 
 // =========================
-// 配車確定
-// =========================   
+// LINE送信
+// =========================
 document
   .getElementById("lineBtn")
   .addEventListener("click", () => {
@@ -1791,3 +1795,4 @@ document
     window.open(url, "_blank");
 
   });
+  
