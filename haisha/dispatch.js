@@ -1254,268 +1254,551 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 // =========================
 // 切り取り（start）
 // =========================  
-// =========================
-// ドライバー表示（①）
-// =========================
-(activeDrivers ?? []).forEach(driver => {
+activeDrivers.forEach(driver => {
 
-  driver.players = Array.isArray(driver?.players) ? driver.players : [];
-  driver.equipment = Array.isArray(driver?.equipment) ? driver.equipment : [];
-
-  const driverName =
-    driver?.name ?? "";
-
-  if (driver.players.length === 0 && driver.equipment.length === 0) {
+  if (
+    driver.players.length === 0 &&
+    (
+      !driver.equipment ||
+      driver.equipment.length === 0
+    )
+  ) {
     return;
   }
 
-  html += `
+html += `
 
-<div style="display:flex;align-items:center;margin-top:20px;margin-bottom:10px;">
+<div
+style="
+display:flex;
+align-items:center;
+margin-top:20px;
+margin-bottom:10px;
+"
+>
 
-<div style="width:220px;font-size:20px;font-weight:bold;flex-shrink:0;">
-🚗 ${driverName
-  ? (driverName.endsWith("号") ? driverName : driverName + "号")
-  : ""}
+<div
+style="
+width:220px;
+font-size:20px;
+font-weight:bold;
+flex-shrink:0;
+"
+>
+🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}
 </div>
 
-<div style="flex:1;font-weight:bold;text-align:right;">
-定員：${driver?.seats ?? 0}名 ／
+<div
+style="
+flex:1;
+font-weight:bold;
+text-align:right;
+"
+>
+定員：${driver.seats}名 ／
 乗車：${driver.players.length}名 ／
-空席：${(driver?.seats ?? 0) - driver.players.length}名 ／
+空席：${driver.seats - driver.players.length}名 ／
 試合道具：${
-driver.equipment.length
-  ? driver.equipment
-      .map(e => (e === "A" ? "◎（箕谷A）" : "◎（箕谷B）"))
-      .join("・")
-  : "－"
+  driver.equipment.length
+    ? driver.equipment
+        .map(e =>
+          e === "A"
+            ? "◎（箕谷A）"
+            : "◎（箕谷B）"
+        )
+        .join("・")
+    : "－"
 }
+
 </div>
 
 </div>
 
 `;
 
-  if (driver.players.length === 0) return;
+if (driver.players.length > 0) {
 
   html += `
-<table style="width:100%;margin-top:5px;border-collapse:collapse;table-layout:fixed;">
+
+<tr>
+<td colspan="5">
+
+<table
+style="
+width:100%;
+margin-top:5px;
+border-collapse:collapse;
+table-layout:fixed;
+"
+>
+
 <tr>
 
-<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">No</th>
-<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">氏名</th>
-<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">役割</th>
-<th style="border:1px solid #ccc;padding:4px;background:#f5f5f5;">復路</th>
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+No
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+氏名
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+役割
+</th>
+
+<th
+style="
+border:1px solid #ccc;
+padding:4px;
+background:#f5f5f5;
+"
+>
+復路
+</th>
 
 </tr>
+
 `;
 
-  driver.players.forEach((player, index) => {
+driver.players.forEach(
+  (player, index) => {
 
     html += `
-<tr style="${player?.returnTrip ? "background:#fff3a0;" : ""}">
-<td style="border:1px solid #ccc;padding:4px;text-align:center;">${index + 1}</td>
-<td style="border:1px solid #ccc;padding:4px;">${player?.name ?? ""}</td>
-<td style="border:1px solid #ccc;padding:4px;text-align:center;">${player?.role ?? ""}</td>
-<td style="border:1px solid #ccc;padding:4px;text-align:center;font-weight:bold;">${player?.returnTrip ? "◎" : ""}</td>
+
+<tr
+style="
+${player.returnTrip
+  ? "background:#fff3a0;"
+  : ""}
+"
+>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+text-align:center;
+"
+>
+${index + 1}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+"
+>
+${player.name}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+text-align:center;
+"
+>
+${player.role}
+</td>
+
+<td
+style="
+border:1px solid #ccc;
+padding:4px;
+text-align:center;
+font-weight:bold;
+"
+>
+${player.returnTrip ? "◎" : ""}
+</td>
+
 </tr>
+
 `;
-  });
 
-  html += `</table>`;
-});
-
-
-// =========================
-// ②開始（ここから後処理）
-// =========================
-alert("②開始");
-
-// 配車できなかった選手
-const remainPlayers =
-  Array.isArray(targetPlayers)
-    ? targetPlayers.slice(playerIndex ?? 0)
-    : [];
-
-if (remainPlayers.length > 0) {
+  }
+);
 
   html += `
-    <hr>
-    <h3>🚨 配車できなかった選手</h3>
-  `;
 
-  remainPlayers.forEach(player => {
-    html += `<div>${player?.name ?? ""}</div>`;
-  });
+</table>
 
-}
+</td>
+</tr>
 
-// 復路配車一覧
-html += `
-<hr>
-<h3>復路配車一覧</h3>
 `;
-
-const safeDrivers =
-  Array.isArray(activeDrivers) ? activeDrivers : [];
-
-const outwardDrivers = safeDrivers.map(driver => {
-  const name = driver?.name ?? "";
-  return driver?.priority === 2
-    ? name.replace("号", "")
-    : name;
-});
-
-safeDrivers.forEach(driver => {
-
-  const returnPlayers = Array.isArray(driver?.returnPlayers)
-    ? driver.returnPlayers
-    : [];
-
-  const members = returnPlayers.filter(name =>
-    !outwardDrivers.includes(name)
-  );
-
-  if (members.length === 0) return;
-
-  const driverName =
-    driver?.name
-      ? (driver.name.endsWith("号")
-          ? driver.name
-          : driver.name + "号")
-      : "";
-
-  html += `
-    <div>🚗 ${driverName}：${members.join("／")}</div>
-  `;
-});
-
-// =========================
-// DOM反映
-// =========================
-const dispatchArea = document.getElementById("dispatchArea");
-if (dispatchArea) dispatchArea.innerHTML = html;
-
-const buttonArea = document.getElementById("buttonArea");
-
-if (buttonArea) {
-
-  buttonArea.innerHTML =
-    dispatchConfirmed
-      ? `
-<div style="margin-top:30px;text-align:center;">
-  <button id="cancelBtn">❌ 配車確定取消</button>
-</div>
-`
-      : `
-<div style="margin-top:30px;text-align:center;">
-  <button id="confirmBtn">🚗 配車確定</button>
-</div>
-`;
-
-}
-
-// =========================
-// confirmBtn
-// =========================
-const confirmBtn = document.getElementById("confirmBtn");
-
-if (confirmBtn) {
-
-  confirmBtn.onclick = async () => {
-
-    const drivers =
-      Array.isArray(activeDrivers) ? activeDrivers : [];
-
-    const dispatchData =
-      JSON.parse(JSON.stringify(drivers));
-
-    for (const driver of drivers) {
-
-      let key = "";
-
-      if (driver?.priority === 1) key = driver?.name ?? "";
-      else if (driver?.priority === 2) key = driver?.dutyName ?? "";
-      else {
-        key =
-          (driver?.playerName ?? "")
-            .replace(/　/g, " ")
-            .trim()
-            .split(" ")[0] ?? "";
-      }
-
-      if (!key) continue;
-
-      try {
-        await updateDoc(
-          doc(db, "driver_counts", key),
-          { count: increment(1) }
-        );
-      } catch (e) {}
-    }
-
-    await updateDoc(
-      doc(db, "car_dispatch_events", id),
-      {
-        dispatchConfirmed: true,
-        dispatchData
-      }
-    );
-
-    alert("配車を確定しました。");
-    location.reload();
-
-  };
-
-}
-
-// =========================
-// cancelBtn
-// =========================
-const cancelBtn = document.getElementById("cancelBtn");
-
-if (cancelBtn) {
-
-  cancelBtn.onclick = async () => {
-
-    if (!confirm("配車確定を取り消しますか？")) return;
-
-    const drivers =
-      Array.isArray(activeDrivers) ? activeDrivers : [];
-
-    for (const driver of drivers) {
-
-      let key = "";
-
-      if (driver?.priority === 1) key = driver?.name ?? "";
-      else if (driver?.priority === 2) key = driver?.dutyName ?? "";
-      else {
-        key =
-          (driver?.playerName ?? "")
-            .replace(/　/g, " ")
-            .trim()
-            .split(" ")[0] ?? "";
-      }
-
-      if (!key) continue;
-
-      try {
-        await updateDoc(
-          doc(db, "driver_counts", key),
-          { count: increment(-1) }
-        );
-      } catch (e) {}
-    }
-
-    await updateDoc(
-      doc(db, "car_dispatch_events", id),
-      { dispatchConfirmed: false }
-    );
-
-    alert("配車確定を取り消しました。");
-    location.reload();
-
-  };
 
 }
   
+});
+// =========================
+// 切り取り（end）
+// =========================  
+
+
+
+  
+
+const remainPlayers =
+  targetPlayers.slice(
+    playerIndex
+  );
+
+if (
+  remainPlayers.length > 0
+) {
+
+  html += `
+
+    <hr>
+
+    <h3>
+      🚨 配車できなかった選手
+    </h3>
+
+  `;
+
+  remainPlayers.forEach(player => {
+
+    html += `
+      <div>
+        ${player.name}
+      </div>
+    `;
+
+  });
+
+}
+
+html += `
+
+<hr>
+
+<h3>
+復路配車一覧
+</h3>
+
+`;
+
+ // 往路ドライバー一覧
+const outwardDrivers =
+  activeDrivers.map(driver => {
+
+    if (driver.priority === 2) {
+
+      return driver.name.replace("号", "");
+
+    }
+
+    return driver.name;
+
+  }); 
+
+activeDrivers.forEach(driver => {
+
+  if (
+    !driver.returnPlayers ||
+    driver.returnPlayers.length === 0
+  ) {
+    return;
+  }
+
+const members =
+  driver.returnPlayers.filter(name => {
+
+    return !outwardDrivers.includes(name);
+
+  });
+ 
+if (members.length === 0) {
+  return;
+}
+  
+  html += `
+
+<div>
+🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
+${members.join("／")}
+</div>
+
+`;
+
+});
+
+}
+
+// =========================
+// アラート
+// =========================
+alert("HTML文字数：" + html.length);
+// =========================
+// アラート
+// =========================
+  
+document.getElementById(
+  "dispatchArea"
+).innerHTML =
+  html;
+
+// =========================
+// アラート
+// =========================
+alert("dispatchAreaセット完了");
+// =========================
+// アラート
+// =========================
+  
+document.getElementById("buttonArea").innerHTML =
+dispatchConfirmed
+? `
+<div style="margin-top:30px;text-align:center;">
+
+<button id="cancelBtn">
+❌ 配車確定取消
+</button>
+
+</div>
+`
+: `
+<div style="margin-top:30px;text-align:center;">
+
+<button id="confirmBtn">
+🚗 配車確定
+</button>
+
+</div>
+`;
+
+ } 
+
+const confirmBtn =
+  document.getElementById("confirmBtn");
+
+if (confirmBtn) {
+
+  confirmBtn.addEventListener(
+    "click",
+    async () => {
+    
+const dispatchData =
+  JSON.parse(
+    JSON.stringify(activeDrivers)
+  );     
+     
+      for (const driver of activeDrivers) {
+
+let key;
+
+if (driver.priority === 1) {
+
+  key = driver.name;
+
+}
+else if (driver.priority === 2) {
+
+  key = driver.dutyName;
+
+}
+else {
+
+  key =
+    driver.playerName
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+}
+
+await updateDoc(
+  doc(
+    db,
+    "driver_counts",
+    key
+  ),
+  {
+    count: increment(1)
+  }
+);        
+
+      }
+
+await updateDoc(
+  doc(
+    db,
+    "car_dispatch_events",
+    id
+  ),
+  {
+    dispatchConfirmed: true,
+    dispatchData
+  }
+);
+
+alert("配車を確定しました。");
+
+location.reload();
+
+    }
+  );
+
+}
+
+const cancelBtn =
+  document.getElementById("cancelBtn");
+
+if (cancelBtn) {
+
+  cancelBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (!confirm("配車確定を取り消しますか？")) {
+        return;
+      }
+
+      for (const driver of activeDrivers) {
+
+let key;
+
+if (driver.priority === 1) {
+
+  key = driver.name;
+
+}
+else if (driver.priority === 2) {
+
+  key = driver.dutyName;
+
+}
+else {
+
+  key =
+    driver.playerName
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+}
+
+        await updateDoc(
+          doc(db, "driver_counts", key),
+          {
+            count: increment(-1)
+          }
+        );
+
+      }
+
+      await updateDoc(
+        doc(db, "car_dispatch_events", id),
+        {
+          dispatchConfirmed: false
+        }
+      );
+
+      alert("配車確定を取り消しました。");
+      location.reload();
+
+    }
+  );
+
+}
+  
+document
+  .getElementById("pdfBtn")
+  .addEventListener("click", async () => {
+
+    const pdfArea =
+      document.getElementById("pdfArea");
+
+    const original =
+      document.getElementById("dispatchArea");
+
+    pdfArea.innerHTML = original.innerHTML;
+
+    pdfArea.style.display = "block";
+
+    pdfArea.querySelectorAll("*").forEach(el => {
+      el.style.color = "#000000";
+    });
+
+const canvas = await html2canvas(pdfArea, {
+  scale: 2,
+  backgroundColor: "#ffffff",
+  useCORS: true,
+  windowWidth: pdfArea.scrollWidth,
+  windowHeight: pdfArea.scrollHeight
+});
+
+pdfArea.style.display = "none";
+
+// const imgData = canvas.toDataURL("image/png");
+const imgData = canvas.toDataURL("image/jpeg", 0.7);
+
+const { jsPDF } = window.jspdf;
+
+const pdf = new jsPDF("p", "mm", "a4");
+
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
+
+const margin = 10;
+
+const usableWidth = pageWidth - margin * 2;
+const usableHeight = pageHeight - margin * 2;
+
+const scale = Math.min(
+  usableWidth / canvas.width,
+  usableHeight / canvas.height
+);
+
+const imgWidth = canvas.width * scale;
+const imgHeight = canvas.height * scale;
+
+const x = (pageWidth - imgWidth) / 2;
+const y = margin;
+
+pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+
+pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
+       
+});    
+
+// =========================
+// 配車確定
+// =========================   
+document
+  .getElementById("lineBtn")
+  .addEventListener("click", () => {
+
+    const text =
+      document.getElementById("dispatchArea").innerText;
+
+    const encoded =
+      encodeURIComponent(text);
+
+    const url =
+      `https://line.me/R/msg/text/?${encoded}`;
+
+    window.open(url, "_blank");
+
+  });
