@@ -853,7 +853,16 @@ if (dispatchConfirmed) {
 
   activeDrivers = savedDispatch;
 
-
+// =========================
+// アラート
+// =========================
+alert(
+  "【② activeDrivers（初期）】\n" +
+  JSON.stringify(activeDrivers, null, 2)
+);
+// =========================
+// アラート
+// =========================
 
 // =========================
 // アラート
