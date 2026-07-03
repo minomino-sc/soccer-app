@@ -642,14 +642,10 @@ let returnTrip = false;
 // コーチ
 if (driver.priority === 1) {
 
-
-  
-const coach =
-  coachSnap.docs.find(doc =>
-    doc.data().coachName === driver.name.replace(/さん|コーチ|号/g, "")
-  );
-
-  
+  const coach =
+    coachSnap.docs.find(doc =>
+      doc.data().coachName === driver.name
+    );
 
   returnTrip =
     coach?.data().returnTrip === "○";
@@ -659,12 +655,8 @@ const coach =
 // 試合当番
 else if (driver.priority === 2) {
 
-const family =
-  driver.name
-    .replace(/　/g, " ")   // 全角スペース対策
-    .replace("さん号", "")
-    .replace("号", "")
-    .trim();
+  const family =
+    driver.name.replace("さん号", "");
 
   const duty =
     dutySnap.docs.find(doc => {
@@ -852,6 +844,8 @@ if (dispatchConfirmed) {
   });
 
   activeDrivers = savedDispatch;
+
+
 
 // =========================
 // アラート
@@ -1062,7 +1056,7 @@ activeDrivers.forEach(driver => {
   }
 
 });
-  
+
 // =========================
 // 復路配車
 // =========================
@@ -1533,19 +1527,18 @@ html += `
 const outwardDrivers =
   activeDrivers.map(driver => {
 
-    const name =
-      driver.name.endsWith("号")
-        ? driver.name
-        : driver.name + "号";
+    if (driver.priority === 2) {
 
-    return name;
-  });
+      return driver.name.replace("号", "");
 
+    }
 
-  
+    return driver.name;
+
+  }); 
 
 activeDrivers.forEach(driver => {
-  
+
   if (
     !driver.returnPlayers ||
     driver.returnPlayers.length === 0
@@ -1554,12 +1547,11 @@ activeDrivers.forEach(driver => {
   }
 
 const members =
-  driver.returnPlayers.map(name => `（${name}）`);
-
-  
-const members =
   driver.returnPlayers.filter(name => {
 
+    return !outwardDrivers.includes(name);
+
+  });
 
 const family =
   driver.priority === 3
