@@ -835,8 +835,7 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-    
-    
+        
     driver.players ??= [];
     driver.returnPlayers ??= [];
     driver.equipment ??= [];
