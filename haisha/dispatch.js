@@ -652,11 +652,40 @@ if (driver.priority === 1) {
 
 }
 
+
+
+  
 // 試合当番
 else if (driver.priority === 2) {
 
   const family =
     driver.name.replace("さん号", "");
+
+  const note = [];
+
+  // 子ども
+  const children =
+    PARENT_CHILD[family] || [];
+
+  children.forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+  // コーチ（苗字一致っぽいもの）
+  const familyName =
+    family.replace("さん", "");
+
+  const coachName =
+    COACH_A.concat(COACH_B)
+      .find(c => c.includes(familyName));
+
+  if (coachName) {
+    note.push(`（${coachName}）`);
+  }
+
+  // ★表示用だけ追加（ここ重要）
+  driver.displayName =
+    `${driver.name}${note.length ? " " + note.join("") : ""}`;
 
   const duty =
     dutySnap.docs.find(doc => {
@@ -673,9 +702,12 @@ else if (driver.priority === 2) {
 
   returnTrip =
     duty?.data().returnTrip === "○";
-
 }
 
+
+
+
+  
 targetPlayers.push({
 
   name: driver.priority === 1
@@ -1309,7 +1341,7 @@ font-weight:bold;
 flex-shrink:0;
 "
 >
-🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}
+🚗 ${driver.displayName || (driver.name.endsWith("号") ? driver.name : driver.name + "号")}
 </div>
 
 <div
