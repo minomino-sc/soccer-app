@@ -827,6 +827,16 @@ if (dispatchConfirmed) {
 
   savedDispatch.forEach(driver => {
 
+
+// =========================
+// アラート
+// =========================    
+  alert("dispatchConfirmed終了");
+// =========================
+// アラート
+// =========================
+    
+    
     driver.players ??= [];
     driver.returnPlayers ??= [];
     driver.equipment ??= [];
