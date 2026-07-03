@@ -1569,6 +1569,19 @@ const outwardDrivers =
 
 activeDrivers.forEach(driver => {
 
+// =========================
+// アラート
+// =========================  
+alert(
+  "【③ driver確認】\n" +
+  driver.name + "\n" +
+  JSON.stringify(driver.returnPlayers, null, 2)
+);
+// =========================
+// アラート
+// =========================
+
+  
   if (
     !driver.returnPlayers ||
     driver.returnPlayers.length === 0
