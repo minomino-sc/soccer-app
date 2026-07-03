@@ -655,8 +655,12 @@ if (driver.priority === 1) {
 // 試合当番
 else if (driver.priority === 2) {
 
-  const family =
-    driver.name.replace("さん号", "");
+const family =
+  driver.name
+    .replace(/　/g, " ")   // 全角スペース対策
+    .replace("さん号", "")
+    .replace("号", "")
+    .trim();
 
   const duty =
     dutySnap.docs.find(doc => {
