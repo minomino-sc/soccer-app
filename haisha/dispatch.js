@@ -856,14 +856,6 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-alert(JSON.stringify(returnTripTargets[0], null, 2));
-// =========================
-// アラート
-// =========================
-
-// =========================
-// アラート
-// =========================
 let msg = "台数：" + activeDrivers.length;
 
 activeDrivers.forEach((driver, i) => {
@@ -1070,15 +1062,6 @@ activeDrivers.forEach(driver => {
   }
 
 });
-
-
-// =========================
-// アラート
-// ========================
-alert("returnTripTargets件数: " + returnTripTargets.length);
-// =========================
-// アラート
-// =======================
   
 // =========================
 // 復路配車
@@ -1562,15 +1545,6 @@ const outwardDrivers =
   
 
 activeDrivers.forEach(driver => {
-
-// =========================
-// アラート
-// =========================  
-alert("drivers数: " + activeDrivers.length);
-// =========================
-// アラート
-// =========================
-
   
   if (
     !driver.returnPlayers ||
