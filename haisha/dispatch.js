@@ -642,10 +642,14 @@ let returnTrip = false;
 // コーチ
 if (driver.priority === 1) {
 
-  const coach =
-    coachSnap.docs.find(doc =>
-      doc.data().coachName === driver.name
-    );
+
+  
+const coach =
+  coachSnap.docs.find(doc =>
+    doc.data().coachName === driver.name.replace(/さん|コーチ|号/g, "")
+  );
+
+  
 
   returnTrip =
     coach?.data().returnTrip === "○";
