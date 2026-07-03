@@ -840,15 +840,17 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-  alert(
+let msg = "台数：" + activeDrivers.length;
 
-    "台数：" + activeDrivers.length +
+activeDrivers.forEach((driver, i) => {
+  msg +=
+    "\n\n" +
+    (i + 1) +
+    "台目\n" +
+    JSON.stringify(driver);
+});
 
-    "\n\n1台目：" +
-
-    JSON.stringify(activeDrivers[0])
-
-  );
+alert(msg);
 // =========================
 // アラート
 // =========================
