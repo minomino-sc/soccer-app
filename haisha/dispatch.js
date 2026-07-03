@@ -856,10 +856,7 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-alert(
-  "【② activeDrivers（初期）】\n" +
-  JSON.stringify(activeDrivers, null, 2)
-);
+alert(JSON.stringify(returnTripTargets[0], null, 2));
 // =========================
 // アラート
 // =========================
@@ -1078,10 +1075,7 @@ activeDrivers.forEach(driver => {
 // =========================
 // アラート
 // ========================
-alert(
-  "【① returnTripTargets】\n" +
-  JSON.stringify(returnTripTargets, null, 2)
-);
+alert("returnTripTargets件数: " + returnTripTargets.length);
 // =========================
 // アラート
 // =======================
@@ -1572,11 +1566,7 @@ activeDrivers.forEach(driver => {
 // =========================
 // アラート
 // =========================  
-alert(
-  "【③ driver確認】\n" +
-  driver.name + "\n" +
-  JSON.stringify(driver.returnPlayers, null, 2)
-);
+alert("drivers数: " + activeDrivers.length);
 // =========================
 // アラート
 // =========================
