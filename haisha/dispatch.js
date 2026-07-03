@@ -1535,15 +1535,16 @@ html += `
 const outwardDrivers =
   activeDrivers.map(driver => {
 
-    if (driver.priority === 2) {
+    const name =
+      driver.name.endsWith("号")
+        ? driver.name
+        : driver.name + "号";
 
-      return driver.name.replace("号", "");
+    return name;
+  });
 
-    }
 
-    return driver.name;
-
-  }); 
+  
 
 activeDrivers.forEach(driver => {
 
@@ -1555,11 +1556,12 @@ activeDrivers.forEach(driver => {
   }
 
 const members =
+  driver.returnPlayers.map(name => `（${name}）`);
+
+  
+const members =
   driver.returnPlayers.filter(name => {
 
-    return !outwardDrivers.includes(name);
-
-  });
 
 const family =
   driver.priority === 3
