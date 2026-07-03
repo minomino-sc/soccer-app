@@ -1654,8 +1654,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
@@ -1725,8 +1724,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
