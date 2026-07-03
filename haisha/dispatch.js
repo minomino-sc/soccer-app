@@ -1,6 +1,3 @@
-alert("dispatch.js開始");
-
-
 import { db } from "./firebase.js";
 
 document.body.classList.add(
