@@ -1552,6 +1552,36 @@ const members =
     return !outwardDrivers.includes(name);
 
   });
+
+const family =
+  driver.priority === 3
+    ? driver.name.replace("さん号", "")
+    : driver.name.replace("コーチ号", "")
+        .replace("号", "")
+        .trim();
+  
+const note = [];
+
+// 子ども
+if (PARENT_CHILD[family]) {
+
+  PARENT_CHILD[family].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
+
+// コーチ本人
+if (
+  driver.priority === 1 &&
+  COACH_CHILD[driver.name]
+) {
+
+  COACH_CHILD[driver.name].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
  
 if (members.length === 0) {
   return;
@@ -1561,7 +1591,7 @@ if (members.length === 0) {
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.join("／")}
+${members.concat(note).join("／")}
 </div>
 
 `;
