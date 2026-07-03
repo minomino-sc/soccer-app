@@ -1250,6 +1250,7 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 
 
 
+
 // =========================
 // 切り取り（start）
 // =========================  
@@ -1452,6 +1453,11 @@ ${player.returnTrip ? "◎" : ""}
 // =========================
 // 切り取り（end）
 // =========================  
+
+
+
+  
+
 const remainPlayers =
   targetPlayers.slice(
     playerIndex
@@ -1463,22 +1469,21 @@ if (
 
   html += `
 
-<hr>
+    <hr>
 
-<h3>
-🚨 配車できなかった選手
-</h3>
+    <h3>
+      🚨 配車できなかった選手
+    </h3>
 
-`;
+  `;
 
   remainPlayers.forEach(player => {
 
     html += `
-<div>
-${player.name}
-（${player.role}）
-</div>
-`;
+      <div>
+        ${player.name}
+      </div>
+    `;
 
   });
 
@@ -1494,50 +1499,43 @@ html += `
 
 `;
 
-// 往路ドライバー一覧
+ // 往路ドライバー一覧
 const outwardDrivers =
   activeDrivers.map(driver => {
 
     if (driver.priority === 2) {
+
       return driver.name.replace("号", "");
+
     }
 
     return driver.name;
 
-  });
-
-let hasReturn = false;
+  }); 
 
 activeDrivers.forEach(driver => {
 
-  driver.returnPlayers ??= [];
-
   if (
+    !driver.returnPlayers ||
     driver.returnPlayers.length === 0
   ) {
     return;
   }
 
-  const members =
-    driver.returnPlayers.filter(name => {
+const members =
+  driver.returnPlayers.filter(name => {
 
-      return !outwardDrivers.includes(name);
+    return !outwardDrivers.includes(name);
 
-    });
-
-  if (members.length === 0) {
-    return;
-  }
-
-  hasReturn = true;
-
+  });
+ 
+if (members.length === 0) {
+  return;
+}
+  
   html += `
 
-<div
-style="
-margin-bottom:8px;
-"
->
+<div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
 ${members.join("／")}
 </div>
@@ -1546,23 +1544,7 @@ ${members.join("／")}
 
 });
 
-if (!hasReturn) {
-
-  html += `
-
-<div>
-なし
-</div>
-
-`;
-
 }
-
-
-
-
-
-  
 
 // =========================
 // アラート
