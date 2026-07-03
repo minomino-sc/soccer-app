@@ -1622,7 +1622,14 @@ if (confirmBtn) {
   confirmBtn.addEventListener(
     "click",
     async () => {
-    
+
+  // =========================
+  // 確認ダイアログ追加（重要）
+  // =========================
+  if (!confirm("配車を確定しますか？")) {
+    return;
+  }
+      
 const dispatchData =
   JSON.parse(
     JSON.stringify(activeDrivers)
