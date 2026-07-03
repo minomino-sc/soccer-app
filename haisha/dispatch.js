@@ -1559,10 +1559,11 @@ const members =
   
 
 const family =
-  driver.name
-    .replace("さん号", "")
-    .replace("コーチ号", "")
-    .trim();
+  driver.priority === 3
+    ? driver.name.replace("さん号", "")
+    : driver.name.replace("コーチ号", "")
+        .replace("号", "")
+        .trim();
 
 const note = [];
 
