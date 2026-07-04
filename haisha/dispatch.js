@@ -1114,6 +1114,7 @@ activeDrivers.forEach(driver => {
 // アラート
 // =======================  
 alert(driver.name + " 予約=" + driver.returnReserved);
+  
 });
 // =========================
 // アラート
