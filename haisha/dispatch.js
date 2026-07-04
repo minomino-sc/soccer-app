@@ -1089,7 +1089,6 @@ alert(
 
 
     
-    
 
     if (a.attendance !== "参加") return;
     if (a.returnTrip !== "○") return;
