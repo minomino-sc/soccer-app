@@ -1100,9 +1100,33 @@ alert(
         .trim()
         .split(" ")[0];
 
-    if (playerFamily === family) {
-      driver.returnReserved++;
-    }
+    
+
+
+// =========================
+// アラート
+// =========================   
+if (playerFamily === family) {
+
+  alert(
+    "一致\n" +
+    "driver=" + driver.name +
+    "\nfamily=" + family +
+    "\nplayerFamily=" + playerFamily
+  );
+
+  driver.returnReserved++;
+}
+// =========================
+// アラート
+// =========================
+
+
+
+    
+//     if (playerFamily === family) {
+//       driver.returnReserved++;
+//     }
 
   });
 
