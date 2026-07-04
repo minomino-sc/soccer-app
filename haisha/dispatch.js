@@ -1056,6 +1056,49 @@ activeDrivers.forEach(driver => {
 
 });
 
+
+// =========================
+// 試合当番の家族（復路強制）
+// =========================
+dutySnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  // ★欠席は完全除外
+  if (a.attendance && a.attendance !== "参加") return;
+
+  const family =
+    (a.dutyName || "")
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+  if (!family) return;
+
+  const dutyDriver = activeDrivers.find(
+    d => d.priority === 2 &&
+         d.dutyName === a.dutyName
+  );
+
+  if (!dutyDriver) return;
+
+  const members =
+    (COACH_CHILD[a.dutyName] || [])
+    .concat(PARENT_CHILD[family] || []);
+
+  members.forEach(name => {
+
+    if (!dutyDriver.returnPlayers.includes(name)) {
+      dutyDriver.returnPlayers.push(name);
+    }
+
+  });
+
+});
+
+
+  
+
 // =========================
 // 復路配車
 // =========================
