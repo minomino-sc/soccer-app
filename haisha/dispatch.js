@@ -1599,7 +1599,10 @@ coachSnap.forEach((docSnap) => {
   const coachFamily =
     a.coachName.replace("コーチ", "");
 
-if (coachFamily === driverFamily) {
+if (
+  coachFamily === driverFamily &&
+  a.coachName !== driver.name.replace("号", "")
+) {
   note.push(`（${a.coachName}）`);
 }
 
