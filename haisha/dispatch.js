@@ -1106,7 +1106,12 @@ alert(
 // =========================
 // アラート
 // =========================   
-if (playerFamily === family) {
+alert(
+  "family=[" + family + "] len=" + family.length +
+  "\nplayerFamily=[" + playerFamily + "] len=" + playerFamily.length
+);
+    
+    if (playerFamily === family) {
 
   alert(
     "一致\n" +
