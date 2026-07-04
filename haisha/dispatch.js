@@ -827,7 +827,6 @@ if (dispatchConfirmed) {
 
   savedDispatch.forEach(driver => {
 
-
 // =========================
 // アラート
 // =========================    
