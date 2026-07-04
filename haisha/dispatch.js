@@ -1108,6 +1108,20 @@ activeDrivers.forEach(driver => {
 
   });
 
+
+// =========================
+// アラート
+// ========================  
+ alert(
+  driver.name +
+  "\nseats=" + driver.seats +
+  "\nreturnReserved=" + driver.returnReserved
+); 
+// =========================
+// アラート
+// ========================  
+  
+
 });
   
 // =========================
