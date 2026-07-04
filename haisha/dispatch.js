@@ -1074,6 +1074,23 @@ const family =
 
     const a = docSnap.data();
 
+// =========================
+// アラート
+// =========================
+alert(
+  "driver=" + driver.name +
+  "\nfamily=" + family +
+  "\nplayer=" + a.playerName +
+  "\nreturnTrip=" + a.returnTrip
+);
+// =========================
+// アラート
+// =========================
+
+
+    
+    
+
     if (a.attendance !== "参加") return;
     if (a.returnTrip !== "○") return;
 
@@ -1094,6 +1111,19 @@ const family =
 
     const a = docSnap.data();
 
+// =========================
+// アラート
+// =========================
+alert(
+  "driver=" + driver.name +
+  "\nfamily=" + family +
+  "\ncoach=" + a.coachName +
+  "\nreturnTrip=" + a.returnTrip
+);
+// =========================
+// アラート
+// =========================
+    
     if (a.attendance !== "参加") return;
     if (a.returnTrip !== "○") return;
 
