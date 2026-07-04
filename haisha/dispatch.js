@@ -1105,7 +1105,17 @@ alert(
 
 // =========================
 // アラート
-// =========================   
+// =========================
+if (a.playerName === "横江 恭平") {
+
+  alert(
+    "family=[" + family + "] len=" + family.length +
+    "\nplayerFamily=[" + playerFamily + "] len=" + playerFamily.length
+  );
+
+}
+
+    
 alert(
   "family=[" + family + "] len=" + family.length +
   "\nplayerFamily=[" + playerFamily + "] len=" + playerFamily.length
