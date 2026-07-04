@@ -1561,6 +1561,11 @@ const family =
 
 const note = [];
 
+const driverFamily =
+  family
+    .replace("さん", "")
+    .replace("コーチ", "");
+  
 // =========================
 // 同じ家族の子ども（参加者のみ）
 // =========================
@@ -1575,11 +1580,6 @@ const playerFamily =
     .replace(/　/g, " ")
     .trim()
     .split(" ")[0];
-
-const driverFamily =
-  family
-    .replace("さん", "")
-    .replace("コーチ", "");
 
 if (playerFamily === driverFamily) {
   note.push(`（${a.playerName}）`);
