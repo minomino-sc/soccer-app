@@ -1570,15 +1570,20 @@ parentSnap.forEach((docSnap) => {
 
   if (a.attendance !== "参加") return;
 
-  const playerFamily =
-    a.playerName
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+const playerFamily =
+  a.playerName
+    .replace(/　/g, " ")
+    .trim()
+    .split(" ")[0];
 
-  if (playerFamily === family.replace("さん", "")) {
-    note.push(`（${a.playerName}）`);
-  }
+const driverFamily =
+  family
+    .replace("さん", "")
+    .replace("コーチ", "");
+
+if (playerFamily === driverFamily) {
+  note.push(`（${a.playerName}）`);
+}
 
 });
 
@@ -1594,9 +1599,9 @@ coachSnap.forEach((docSnap) => {
   const coachFamily =
     a.coachName.replace("コーチ", "");
 
-  if (coachFamily === family.replace("さん", "")) {
-    note.push(`（${a.coachName}）`);
-  }
+if (coachFamily === driverFamily) {
+  note.push(`（${a.coachName}）`);
+}
 
 });
 
