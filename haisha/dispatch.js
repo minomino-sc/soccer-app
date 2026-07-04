@@ -1112,11 +1112,13 @@ activeDrivers.forEach(driver => {
 // =========================
 // アラート
 // ========================  
- alert(
-  driver.name +
+alert(
+  "driver=" + driver.name +
+  "\npriority=" + driver.priority +
+  "\nfamily=" + family +
   "\nseats=" + driver.seats +
   "\nreturnReserved=" + driver.returnReserved
-); 
+);
 // =========================
 // アラート
 // ========================  
