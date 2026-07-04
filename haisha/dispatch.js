@@ -827,6 +827,7 @@ if (dispatchConfirmed) {
 
   savedDispatch.forEach(driver => {
 
+
 // =========================
 // アラート
 // =========================    
@@ -877,10 +878,6 @@ activeDrivers.forEach(driver => {
 activeDrivers.forEach(driver => {
   driver.returnPlayers = [];
 });
-
-activeDrivers.forEach(driver => {
-  driver.returnReserved = 0;
-});  
   
 const assignDrivers =
   [...activeDrivers].sort(
@@ -1059,142 +1056,6 @@ activeDrivers.forEach(driver => {
 
 });
 
-activeDrivers.forEach(driver => {
-
-const family =
-  driver.name
-    .replace("さん号", "")
-    .replace("コーチ号", "")
-    .replace("コーチ", "")
-    .replace("号", "")
-    .trim(); 
-
-  // 子ども
-  parentSnap.forEach(docSnap => {
-
-    const a = docSnap.data();
-
-// =========================
-// アラート
-// =========================
-alert(
-  "driver=" + driver.name +
-  "\nfamily=" + family +
-  "\nplayer=" + a.playerName +
-  "\nreturnTrip=" + a.returnTrip
-);
-// =========================
-// アラート
-// =========================
-
-
-    
-
-    if (a.attendance !== "参加") return;
-    if (a.returnTrip !== "○") return;
-
-    const playerFamily =
-      a.playerName
-        .replace(/　/g, " ")
-        .trim()
-        .split(" ")[0];
-
-    
-
-
-// =========================
-// アラート
-// =========================
-if (a.playerName === "横江 恭平") {
-
-  alert(
-    "family=[" + family + "] len=" + family.length +
-    "\nplayerFamily=[" + playerFamily + "] len=" + playerFamily.length
-  );
-
-}
-
-    
-alert(
-  "family=[" + family + "] len=" + family.length +
-  "\nplayerFamily=[" + playerFamily + "] len=" + playerFamily.length
-);
-    
-    if (playerFamily === family) {
-
-  alert(
-    "一致\n" +
-    "driver=" + driver.name +
-    "\nfamily=" + family +
-    "\nplayerFamily=" + playerFamily
-  );
-
-  driver.returnReserved++;
-}
-// =========================
-// アラート
-// =========================
-
-
-
-    
-//     if (playerFamily === family) {
-//       driver.returnReserved++;
-//     }
-
-  });
-
-  // コーチ
-  coachSnap.forEach(docSnap => {
-
-    const a = docSnap.data();
-
-// =========================
-// アラート
-// =========================
-alert(
-  "driver=" + driver.name +
-  "\nfamily=" + family +
-  "\ncoach=" + a.coachName +
-  "\nreturnTrip=" + a.returnTrip
-);
-// =========================
-// アラート
-// =========================
-    
-    if (a.attendance !== "参加") return;
-    if (a.returnTrip !== "○") return;
-
-    const coachFamily =
-      a.coachName.replace("コーチ", "");
-
-    if (
-      coachFamily === family &&
-      a.coachName !== driver.name.replace("号", "")
-    ) {
-      driver.returnReserved++;
-    }
-
-  });
-
-
-// =========================
-// アラート
-// ========================  
-alert(
-  "driver=" + driver.name +
-  "\npriority=" + driver.priority +
-  "\nfamily=" + family +
-  "\nseats=" + driver.seats +
-  "\nreturnReserved=" + driver.returnReserved
-);
-// =========================
-// アラート
-// ========================  
-  
-
-});
-  
 // =========================
 // 復路配車
 // =========================
@@ -1232,8 +1093,7 @@ let dutyCar =
     d =>
       d.priority === 2 &&
       d.team === dutyTeam &&
-      d.returnPlayers.length + d.returnReserved < d.seats
-
+      d.returnPlayers.length < d.seats
   );
 
 if (!dutyCar) {
@@ -1242,8 +1102,7 @@ if (!dutyCar) {
     activeDrivers.find(
       d =>
         d.priority === 2 &&
-        d.returnPlayers.length + d.returnReserved < d.seats
-
+        d.returnPlayers.length < d.seats
     );
 
 }
@@ -1288,7 +1147,7 @@ let dutyCar =
     d =>
       d.priority === 2 &&
       d.team === playerTeam &&
-      d.returnPlayers.length < d.seats    
+      d.returnPlayers.length < d.seats
   );
 
 if (!dutyCar) {
@@ -1301,13 +1160,12 @@ if (!dutyCar) {
     );
 
 }
-
-if (
-  dutyCar &&
-  dutyCar.returnPlayers.length +
-    dutyCar.returnReserved <
-  dutyCar.seats
-) {
+    
+    if (
+      dutyCar &&
+      dutyCar.returnPlayers.length <
+      dutyCar.seats
+    ) {
 
       dutyCar.returnPlayers.push(person.name);
 
@@ -1420,8 +1278,6 @@ alert("表示開始：" + driver.name);
 // =========================
 // アラート
 // =========================
-
-
   
   if (
     driver.players.length === 0 &&
