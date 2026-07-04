@@ -878,6 +878,10 @@ activeDrivers.forEach(driver => {
 activeDrivers.forEach(driver => {
   driver.returnPlayers = [];
 });
+
+activeDrivers.forEach(driver => {
+  driver.returnReserved = 0;
+});  
   
 const assignDrivers =
   [...activeDrivers].sort(
@@ -1056,6 +1060,57 @@ activeDrivers.forEach(driver => {
 
 });
 
+activeDrivers.forEach(driver => {
+
+  const family =
+    driver.priority === 3
+      ? driver.name.replace("さん号", "")
+      : driver.name.replace("コーチ号", "")
+          .replace("号", "")
+          .trim();
+
+  // 子ども
+  parentSnap.forEach(docSnap => {
+
+    const a = docSnap.data();
+
+    if (a.attendance !== "参加") return;
+    if (a.returnTrip !== "○") return;
+
+    const playerFamily =
+      a.playerName
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
+
+    if (playerFamily === family) {
+      driver.returnReserved++;
+    }
+
+  });
+
+  // コーチ
+  coachSnap.forEach(docSnap => {
+
+    const a = docSnap.data();
+
+    if (a.attendance !== "参加") return;
+    if (a.returnTrip !== "○") return;
+
+    const coachFamily =
+      a.coachName.replace("コーチ", "");
+
+    if (
+      coachFamily === family &&
+      a.coachName !== driver.name.replace("号", "")
+    ) {
+      driver.returnReserved++;
+    }
+
+  });
+
+});
+
 // =========================
 // 復路配車
 // =========================
@@ -1093,7 +1148,8 @@ let dutyCar =
     d =>
       d.priority === 2 &&
       d.team === dutyTeam &&
-      d.returnPlayers.length < d.seats
+      d.returnPlayers.length + d.returnReserved < d.seats
+
   );
 
 if (!dutyCar) {
@@ -1102,7 +1158,8 @@ if (!dutyCar) {
     activeDrivers.find(
       d =>
         d.priority === 2 &&
-        d.returnPlayers.length < d.seats
+        d.returnPlayers.length + d.returnReserved < d.seats
+
     );
 
 }
@@ -1147,7 +1204,7 @@ let dutyCar =
     d =>
       d.priority === 2 &&
       d.team === playerTeam &&
-      d.returnPlayers.length < d.seats
+      d.returnPlayers.length < d.seats    
   );
 
 if (!dutyCar) {
@@ -1160,12 +1217,13 @@ if (!dutyCar) {
     );
 
 }
-    
-    if (
-      dutyCar &&
-      dutyCar.returnPlayers.length <
-      dutyCar.seats
-    ) {
+
+if (
+  dutyCar &&
+  dutyCar.returnPlayers.length +
+    dutyCar.returnReserved <
+  dutyCar.seats
+) {
 
       dutyCar.returnPlayers.push(person.name);
 
