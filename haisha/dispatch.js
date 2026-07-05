@@ -226,32 +226,29 @@ dutySnap.forEach((docSnap) => {
 
   const a = docSnap.data();
 
-  const family =
-    a.dutyName
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+  if (
+    a.returnTrip === "○"
+  ) {
 
-  returnTripTargets.push({
-    type: "duty",
+    const family =
+      a.dutyName
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
 
-    // 内部判定用
-    dutyName: a.dutyName,
+    returnTripTargets.push({
+      type: "duty",
 
-    // 画面表示用
-    displayName: `${family}さん`,
+      // 内部判定用
+      dutyName: a.dutyName,
 
-    // ★重要：フラグとして保持（削らない）
-    returnTrip: a.returnTrip === "○"
-  });
+      // 画面表示用
+      displayName: `${family}さん`
+    });
+
+  }
 
 });
-
-  
-
-
-  
-
 
 let needCount =
   targetPlayers.length;
@@ -1057,7 +1054,7 @@ activeDrivers.forEach(driver => {
     driver.players = [];
   }
 
-});  
+});
 
 // =========================
 // 復路配車
@@ -1081,44 +1078,40 @@ returnTripTargets.forEach(person => {
   // 試合当番
 else if (person.type === "duty") {
 
-  const family =
-    person.dutyName
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+let dutyTeam = "";
 
-  let dutyTeam = "";
+if (TEAM_A.includes(person.dutyName)) {
+  dutyTeam = "箕谷A";
+}
 
-  if (TEAM_A.includes(family)) {
-    dutyTeam = "箕谷A";
-  }
+if (TEAM_B.includes(person.dutyName)) {
+  dutyTeam = "箕谷B";
+}
 
-  if (TEAM_B.includes(family)) {
-    dutyTeam = "箕谷B";
-  }
+let dutyCar =
+  activeDrivers.find(
+    d =>
+      d.priority === 2 &&
+      d.team === dutyTeam &&
+      d.returnPlayers.length < d.seats
+  );
 
-  let dutyCar =
+if (!dutyCar) {
+
+  dutyCar =
     activeDrivers.find(
       d =>
         d.priority === 2 &&
-        d.team === dutyTeam &&
         d.returnPlayers.length < d.seats
     );
 
-  if (!dutyCar) {
-
-    dutyCar =
-      activeDrivers.find(
-        d =>
-          d.priority === 2 &&
-          d.returnPlayers.length < d.seats
-      );
-
-  }
+}
 
   if (dutyCar) {
 
-    dutyCar.returnPlayers.push(person.displayName);
+    dutyCar.returnPlayers.push(
+      person.displayName
+    );
 
   } else {
 
@@ -1128,7 +1121,11 @@ else if (person.type === "duty") {
       );
 
     if (coachCar) {
-      coachCar.returnPlayers.push(person.displayName);
+
+      coachCar.returnPlayers.push(
+        person.displayName
+      );
+
     }
 
   }
