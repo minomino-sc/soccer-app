@@ -118,9 +118,9 @@ if (data.returnTrip === "×") {
   returnTripNo++;
 }
 
-if (data.returnFamilyCar === "○") {
+if (data.familyReturn === "○") {
   returnFamilyCarYes++;
-}      
+}    
 
 if (data.canDrive === "○") {
   canDriveCount++;
@@ -167,9 +167,9 @@ if (data.canDrive === "○") {
 <div class="event-meta">
   復路家族車：
   ${
-    data.returnFamilyCar === "○"
+    data.familyReturn === "○"
       ? "○"
-      : data.returnFamilyCar === "×"
+      : data.familyReturn === "×"
         ? "×"
         : "－"
   }
