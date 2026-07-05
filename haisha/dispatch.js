@@ -1073,25 +1073,6 @@ activeDrivers.forEach(driver => {
 // 復路配車
 // =========================
 returnTripTargets.forEach(person => {
-// =========================
-// アラート
-// ========================
-alert(
-  returnTripTargets
-    .map(p =>
-      p.name +
-      " / " +
-      p.type +
-      " / RT:" +
-      p.returnTrip +
-      " / FR:" +
-      p.familyReturn
-    )
-    .join("\n")
-);
-// =========================
-// アラート
-// ========================
   
 const isReturn = person.returnTrip === "○";
 const isFamily = person.familyReturn === "○";
