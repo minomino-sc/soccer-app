@@ -88,6 +88,7 @@ async function loadAnswers() {
   let absentCount = 0;
   let returnTripYes = 0;
 let returnTripNo = 0;
+let returnFamilyCarYes = 0; 
   let canDriveCount = 0;
 let seatCount = 0;
 
@@ -116,6 +117,10 @@ if (data.returnTrip === "○") {
 if (data.returnTrip === "×") {
   returnTripNo++;
 }
+
+if (data.returnFamilyCar === "○") {
+  returnFamilyCarYes++;
+}      
 
 if (data.canDrive === "○") {
   canDriveCount++;
@@ -156,6 +161,17 @@ if (data.canDrive === "○") {
       : data.returnTrip === "×"
         ? "乗らない"
         : "未設定"
+  }
+</div>
+
+<div class="event-meta">
+  復路家族車：
+  ${
+    data.returnFamilyCar === "○"
+      ? "○"
+      : data.returnFamilyCar === "×"
+        ? "×"
+        : "－"
   }
 </div>
 
@@ -241,6 +257,10 @@ if (data.canDrive === "○") {
 
       <div class="event-meta">
   🔁 復路希望（○） ${returnTripYes}名
+</div>
+
+<div class="event-meta">
+  👨‍👩‍👧 復路家族車 ○ ${returnFamilyCarYes}名
 </div>
 
 <div class="event-meta">
