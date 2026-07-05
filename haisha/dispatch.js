@@ -226,29 +226,32 @@ dutySnap.forEach((docSnap) => {
 
   const a = docSnap.data();
 
-  if (
-    a.returnTrip === "○"
-  ) {
+  const family =
+    a.dutyName
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
 
-    const family =
-      a.dutyName
-        .replace(/　/g, " ")
-        .trim()
-        .split(" ")[0];
+  returnTripTargets.push({
+    type: "duty",
 
-    returnTripTargets.push({
-      type: "duty",
+    // 内部判定用
+    dutyName: a.dutyName,
 
-      // 内部判定用
-      dutyName: a.dutyName,
+    // 画面表示用
+    displayName: `${family}さん`,
 
-      // 画面表示用
-      displayName: `${family}さん`
-    });
-
-  }
+    // ★重要：フラグとして保持（削らない）
+    returnTrip: a.returnTrip === "○"
+  });
 
 });
+
+  
+
+
+  
+
 
 let needCount =
   targetPlayers.length;
@@ -1054,50 +1057,7 @@ activeDrivers.forEach(driver => {
     driver.players = [];
   }
 
-});
-
-
-// =========================
-// 試合当番の家族（復路強制）
-// =========================
-dutySnap.forEach((docSnap) => {
-
-  const a = docSnap.data();
-
-  // ★欠席は完全除外
-  if (a.attendance && a.attendance !== "参加") return;
-
-  const family =
-    (a.dutyName || "")
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
-
-  if (!family) return;
-
-  const dutyDriver = activeDrivers.find(
-    d => d.priority === 2 &&
-         d.dutyName === a.dutyName
-  );
-
-  if (!dutyDriver) return;
-
-  const members =
-    (COACH_CHILD[a.dutyName] || [])
-    .concat(PARENT_CHILD[family] || []);
-
-  members.forEach(name => {
-
-    if (!dutyDriver.returnPlayers.includes(name)) {
-      dutyDriver.returnPlayers.push(name);
-    }
-
-  });
-
-});
-
-
-  
+});  
 
 // =========================
 // 復路配車
