@@ -1110,14 +1110,14 @@ if (person.returnTrip === false) {
 
   const isCoachMatch =
     activeDrivers.some(d =>
-      d.priority === 1 &&
-      d.name.includes(family)
+      d.priority === 1 &&                       
+    d.name.startsWith(family)                      
     );
 
   const isDutyMatch =
     activeDrivers.some(d =>
       d.priority === 2 &&
-      d.dutyName?.includes(family)
+    d.dutyName?.startsWith(family)
     );
 
   if (!isCoachMatch && !isDutyMatch) {
