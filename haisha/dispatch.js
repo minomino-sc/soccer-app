@@ -1724,10 +1724,14 @@ activeDrivers.forEach(driver => {
 const members =
   driver.returnPlayers.filter(name => {
 
-    return !outwardDrivers.includes(name);
+    return !outwardDrivers.some(d =>
+      d === name ||
+      d === `(${name})` ||
+      name === `(${d})`
+    );
 
   });
-
+  
 const family =
   driver.priority === 3
     ? driver.name.replace("さん号", "")
