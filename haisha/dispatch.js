@@ -1142,40 +1142,132 @@ if (!dutyCar) {
 
 }
 
-  // 部員
-  else if (person.type === "player") {
+// 部員
+else if (person.type === "player") {
 
-const playerTeam =
-  TEAM_A.includes(person.name)
-    ? "箕谷A"
-    : TEAM_B.includes(person.name)
-      ? "箕谷B"
-      : "";
+  // =========================
+  // 復路家族車
+  // =========================
+  if (person.familyReturn) {
 
-let dutyCar =
-  activeDrivers.find(
-    d =>
-      d.priority === 2 &&
-      d.team === playerTeam &&
-      d.returnPlayers.length < d.seats
-  );
+    const family =
+      person.name
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
 
-if (!dutyCar) {
+    let familyCar =
+      activeDrivers.find(d =>
 
-  dutyCar =
-    activeDrivers.find(
-      d =>
-        d.priority === 2 &&
-        d.returnPlayers.length < d.seats
-    );
+        // 試合当番車
+        (
+          d.priority === 2 &&
+          d.dutyName?.startsWith(family)
+        )
 
-}
-    
-    if (
-      dutyCar &&
-      dutyCar.returnPlayers.length <
-      dutyCar.seats
-    ) {
+        ||
+
+        // コーチ車
+        (
+          d.priority === 1 &&
+          d.name.startsWith(family)
+        )
+
+      );
+
+    // 家族の車が見つかった
+    if (familyCar) {
+
+      familyCar.returnPlayers.push(
+        `(${person.name})`
+      );
+
+    }
+
+    // 家族の車が無ければ通常配車
+    else {
+
+      const playerTeam =
+        TEAM_A.includes(person.name)
+          ? "箕谷A"
+          : TEAM_B.includes(person.name)
+            ? "箕谷B"
+            : "";
+
+      let dutyCar =
+        activeDrivers.find(
+          d =>
+            d.priority === 2 &&
+            d.team === playerTeam &&
+            d.returnPlayers.length < d.seats
+        );
+
+      if (!dutyCar) {
+
+        dutyCar =
+          activeDrivers.find(
+            d =>
+              d.priority === 2 &&
+              d.returnPlayers.length < d.seats
+          );
+
+      }
+
+      if (dutyCar) {
+
+        dutyCar.returnPlayers.push(person.name);
+
+      } else {
+
+        const coachCar =
+          activeDrivers.find(
+            d => d.priority === 1
+          );
+
+        if (coachCar) {
+
+          coachCar.returnPlayers.push(person.name);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  // =========================
+  // 通常の復路希望
+  // =========================
+  else {
+
+    const playerTeam =
+      TEAM_A.includes(person.name)
+        ? "箕谷A"
+        : TEAM_B.includes(person.name)
+          ? "箕谷B"
+          : "";
+
+    let dutyCar =
+      activeDrivers.find(
+        d =>
+          d.priority === 2 &&
+          d.team === playerTeam &&
+          d.returnPlayers.length < d.seats
+      );
+
+    if (!dutyCar) {
+
+      dutyCar =
+        activeDrivers.find(
+          d =>
+            d.priority === 2 &&
+            d.returnPlayers.length < d.seats
+        );
+
+    }
+
+    if (dutyCar) {
 
       dutyCar.returnPlayers.push(person.name);
 
@@ -1187,14 +1279,16 @@ if (!dutyCar) {
         );
 
       if (coachCar) {
+
         coachCar.returnPlayers.push(person.name);
+
       }
 
     }
 
   }
 
-});
+}
     
 // =========================
 // 試合道具割当
