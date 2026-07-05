@@ -640,55 +640,52 @@ if (capacity < needCount) {
 drivers.forEach(driver => {
 
   // 保護者だけは除外する
-  if (driver.priority === 3) return;
+if (driver.priority === 3) return;
 
   const isDriving =
     activeDrivers.includes(driver);
 
   if (isDriving) return;
 
-  let returnTrip = false;
+let returnTrip = false;
 
-  // コーチ
-  if (driver.priority === 1) {
-    const coach =
-      coachSnap.docs.find(doc =>
-        doc.data().coachName === driver.name
-      );
+// コーチ
+if (driver.priority === 1) {
 
-    returnTrip =
-      coach?.data().returnTrip === "○";
-  }
+  const coach =
+    coachSnap.docs.find(doc =>
+      doc.data().coachName === driver.name
+    );
 
-  // 試合当番
-  else if (driver.priority === 2) {
+  returnTrip =
+    coach?.data().returnTrip === "○";
 
-    const family =
-      driver.name.replace("さん号", "");
+}
 
-    const duty =
-      dutySnap.docs.find(doc => {
+// 試合当番
+else if (driver.priority === 2) {
 
-        const dutyFamily =
-          doc.data().dutyName
-            .replace(/　/g, " ")
-            .trim()
-            .split(" ")[0];
+  const family =
+    driver.name.replace("さん号", "");
 
-        return dutyFamily === family;
+  const duty =
+    dutySnap.docs.find(doc => {
 
-      });
+      const dutyFamily =
+        doc.data().dutyName
+          .replace(/　/g, " ")
+          .trim()
+          .split(" ")[0];
 
-    returnTrip =
-      duty?.data().returnTrip === "○";
-  }
+      return dutyFamily === family;
 
-  // ★ここ追加（超重要）
-  if (!returnTrip) return;
+    });
 
+  returnTrip =
+    duty?.data().returnTrip === "○";
 
+}
 
-  
 targetPlayers.push({
 
   name: driver.priority === 1
