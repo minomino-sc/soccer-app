@@ -1096,18 +1096,12 @@ alert(
   
 returnTripTargets.forEach(person => {
   
-const isReturn = person.returnTrip === "○";
-const isFamily = person.familyReturn === "○";
+const isReturnOK = person.returnTrip === true;
+const isFamilyOK = person.familyReturn === true;
 
-// ① ○は無条件通過
-if (isReturn) {
-  // ここはそのまま処理
-}
+if (!isReturnOK && !isFamilyOK) return;
 
-// ② ×は家族のみ
-else {
-
-  if (!isFamily) return;
+if (person.returnTrip === false) {
 
   const family =
     person.name
