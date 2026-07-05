@@ -1094,6 +1094,20 @@ alert(
 // ========================
   
 returnTripTargets.forEach(person => {
+
+// =========================
+// アラート
+// =======================  
+  alert(
+    "CHECK\n" +
+    person.name +
+    "\nRT:" + person.returnTrip +
+    "\nFR:" + person.familyReturn +
+    "\nTYPE:" + person.type
+  );
+ // =========================
+// アラート
+// ======================= 
   
 const isReturnOK = person.returnTrip === true;
 const isFamilyOK = person.familyReturn === true;
