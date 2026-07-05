@@ -1072,38 +1072,41 @@ activeDrivers.forEach(driver => {
 // =========================
 // 復路配車
 // =========================
-returnTripTargets.forEach(person => {
+const isReturn = person.returnTrip === "○";
+const isFamily = person.familyReturn === "○";
 
-  const isReturnOK = person.returnTrip === "○";
-  const isFamilyOK = person.familyReturn === "○";
+// ① ○は無条件通過
+if (isReturn) {
+  // ここはそのまま処理
+}
 
-  if (!isReturnOK && !isFamilyOK) return;
+// ② ×は家族のみ
+else {
 
-  // ★ここに追加（×のときだけ家族判定）
-  if (person.returnTrip === "×") {
+  if (!isFamily) return;
 
-    const family =
-      person.name
-        ?.replace(/　/g, " ")
-        .trim()
-        .split(" ")[0];
+  const family =
+    person.name
+      ?.replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
 
-    const isCoachMatch =
-      activeDrivers.some(d =>
-        d.priority === 1 &&
-        d.name.includes(family)
-      );
+  const isCoachMatch =
+    activeDrivers.some(d =>
+      d.priority === 1 &&
+      d.name.includes(family)
+    );
 
-    const isDutyMatch =
-      activeDrivers.some(d =>
-        d.priority === 2 &&
-        d.dutyName?.includes(family)
-      );
+  const isDutyMatch =
+    activeDrivers.some(d =>
+      d.priority === 2 &&
+      d.dutyName?.includes(family)
+    );
 
-    if (!isCoachMatch && !isDutyMatch) {
-      return;
-    }
+  if (!isCoachMatch && !isDutyMatch) {
+    return;
   }
+}
 
   // ↓ここから下が「配車処理本体」
   
