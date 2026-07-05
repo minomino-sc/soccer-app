@@ -97,6 +97,16 @@ if (eventData.dispatchConfirmed) {
   </div>
 </div>
 
+<div id="familyReturnWrap">
+  <div class="form-group">
+    <label>復路家族車</label>
+    <select id="familyReturn">
+      <option value="×">×</option>
+      <option value="○">○</option>
+    </select>
+  </div>
+</div>
+
 <div id="driveWrap">
 
   <div class="form-group">
@@ -134,6 +144,8 @@ const attendanceEl = document.getElementById("attendance");
 const meetingWrap = document.getElementById("meetingWrap");
 const returnTripWrap = document.getElementById("returnTripWrap");
 const driveWrap = document.getElementById("driveWrap");
+const familyReturnWrap =
+  document.getElementById("familyReturnWrap");  
 const meetingTypeEl = document.getElementById("meetingType");
     
 function updateUI() {
@@ -142,12 +154,14 @@ function updateUI() {
 
     meetingWrap.style.display = "none";
     returnTripWrap.style.display = "none";
+familyReturnWrap.style.display = "none";
     driveWrap.style.display = "none";
 
   } else {
 
     meetingWrap.style.display = "block";
     returnTripWrap.style.display = "block";
+familyReturnWrap.style.display = "block";
 
     if (meetingTypeEl.value === "onsite") {
       driveWrap.style.display = "none";
@@ -179,6 +193,7 @@ const note = document.getElementById("note").value;
 
 let meetingType = "";
 let returnTrip = "";
+let familyReturn = "";
 let canDrive = "";
 let capacity = 0;
   
@@ -186,6 +201,8 @@ let capacity = 0;
 if (attendance === "参加") {
   meetingType = document.getElementById("meetingType").value;
   returnTrip = document.getElementById("returnTrip").value;
+familyReturn =
+  document.getElementById("familyReturn").value; 
   canDrive = document.getElementById("canDrive").value;
   capacity = Number(document.getElementById("capacity").value);
 }
@@ -197,6 +214,7 @@ const answer = {
   note,
   meetingType,
   returnTrip,
+familyReturn,
   canDrive,
   capacity,
   createdAt: Date.now()
