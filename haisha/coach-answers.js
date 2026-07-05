@@ -103,6 +103,8 @@ async function loadAnswers() {
   let returnTripYes = 0;
 let returnTripNo = 0;
 
+let returnFamilyCarYes = 0;
+
   let driveYes = 0;
   let driveNo = 0;
 
@@ -137,7 +139,11 @@ if (data.returnTrip === "○") {
 if (data.returnTrip === "×") {
   returnTripNo++;
 }
-    
+
+if (data.familyReturn === "○") {
+  returnFamilyCarYes++;
+}
+        
 if (
   data.canDrive === "○" ||
   data.canDrive === "◯"
@@ -176,6 +182,16 @@ if (
       : data.returnTrip === "×"
         ? "乗らない"
         : "-"
+  }
+</div>
+
+<div class="event-meta">
+  復路家族車：${
+    data.familyReturn === "○"
+      ? "○"
+      : data.familyReturn === "×"
+        ? "×"
+        : "－"
   }
 </div>
 
@@ -259,6 +275,10 @@ if (
 
 <div class="event-meta">
   🔁復路希望（○） ${returnTripYes}
+</div>
+
+<div class="event-meta">
+  👨‍👩‍👧 復路家族車 ○ ${returnFamilyCarYes}
 </div>
 
 <div class="event-meta">
