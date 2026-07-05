@@ -640,52 +640,55 @@ if (capacity < needCount) {
 drivers.forEach(driver => {
 
   // 保護者だけは除外する
-if (driver.priority === 3) return;
+  if (driver.priority === 3) return;
 
   const isDriving =
     activeDrivers.includes(driver);
 
   if (isDriving) return;
 
-let returnTrip = false;
+  let returnTrip = false;
 
-// コーチ
-if (driver.priority === 1) {
+  // コーチ
+  if (driver.priority === 1) {
+    const coach =
+      coachSnap.docs.find(doc =>
+        doc.data().coachName === driver.name
+      );
 
-  const coach =
-    coachSnap.docs.find(doc =>
-      doc.data().coachName === driver.name
-    );
+    returnTrip =
+      coach?.data().returnTrip === "○";
+  }
 
-  returnTrip =
-    coach?.data().returnTrip === "○";
+  // 試合当番
+  else if (driver.priority === 2) {
 
-}
+    const family =
+      driver.name.replace("さん号", "");
 
-// 試合当番
-else if (driver.priority === 2) {
+    const duty =
+      dutySnap.docs.find(doc => {
 
-  const family =
-    driver.name.replace("さん号", "");
+        const dutyFamily =
+          doc.data().dutyName
+            .replace(/　/g, " ")
+            .trim()
+            .split(" ")[0];
 
-  const duty =
-    dutySnap.docs.find(doc => {
+        return dutyFamily === family;
 
-      const dutyFamily =
-        doc.data().dutyName
-          .replace(/　/g, " ")
-          .trim()
-          .split(" ")[0];
+      });
 
-      return dutyFamily === family;
+    returnTrip =
+      duty?.data().returnTrip === "○";
+  }
 
-    });
+  // ★ここ追加（超重要）
+  if (!returnTrip) return;
 
-  returnTrip =
-    duty?.data().returnTrip === "○";
 
-}
 
+  
 targetPlayers.push({
 
   name: driver.priority === 1
@@ -1147,31 +1150,6 @@ if (!dutyCar) {
 
 // 部員
 else if (person.type === "player") {
-
-  // ★追加：家族車でも紐づきない人は除外
-  const family =
-    person.name
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
-
-// 試合当番 or コーチに紐づいてるかチェック
-const hasDutyMatch = drivers.some(d =>
-  d.priority === 2 &&
-  d.dutyName?.startsWith(family)
-);
-
-const hasCoachMatch = drivers.some(d =>
-  d.priority === 1 &&
-  d.name.startsWith(family)
-);
-
-// ★ここが重要
-if (!hasDutyMatch && !hasCoachMatch && !person.familyReturn) {
-  return; // ← 復路に出さない
-}
-
-  
 
   // =========================
   // 復路家族車
