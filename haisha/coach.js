@@ -115,8 +115,20 @@ if (eventData.dispatchConfirmed) {
   <div class="form-group">
     <label>復路希望</label>
     <select id="returnTrip">
+      <option value="×">×</option>    
       <option value="○">○</option>
+    </select>
+  </div>
+
+</div>
+
+<div id="familyReturnArea">
+
+  <div class="form-group">
+    <label>復路家族車</label>
+    <select id="familyReturn">
       <option value="×">×</option>
+      <option value="○">○</option>
     </select>
   </div>
 
@@ -127,8 +139,8 @@ if (eventData.dispatchConfirmed) {
           <div class="form-group">
             <label>送迎可能</label>
             <select id="canDrive">
-              <option value="○">○</option>
-              <option value="×">×</option>
+      <option value="×">×</option>         
+              <option value="○">○</option>        
             </select>
           </div>
 
@@ -257,6 +269,7 @@ async function saveAnswer() {
 
   let meetingType = "";
   let returnTrip = "";
+let familyReturn = "";  
   let canDrive = "";
   let capacity = 0;
 
@@ -268,6 +281,9 @@ if (attendance === "参加") {
 
   returnTrip =
     document.getElementById("returnTrip").value;
+
+familyReturn =
+  document.getElementById("familyReturn").value;    
 
     if (meetingType === "集合場所集合") {
 
@@ -295,6 +311,7 @@ const answer = {
   attendance,
   meetingType,
   returnTrip,
+familyReturn,  
   canDrive,
   capacity,
   note,
