@@ -190,12 +190,17 @@ parentSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    a.returnTrip === "○"
+    (
+      a.returnTrip === "○" ||
+      a.familyReturn === "○"
+    )
   ) {
 
     returnTripTargets.push({
       type: "player",
-      name: a.playerName
+      name: a.playerName,
+      returnTrip: a.returnTrip === "○",
+      familyReturn: a.familyReturn === "○"
     });
 
   }
@@ -209,12 +214,17 @@ coachSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    a.returnTrip === "○"
+    (
+      a.returnTrip === "○" ||
+      a.familyReturn === "○"
+    )
   ) {
 
     returnTripTargets.push({
       type: "coach",
-      name: a.coachName
+      name: a.coachName,
+      returnTrip: a.returnTrip === "○",
+      familyReturn: a.familyReturn === "○"
     });
 
   }
