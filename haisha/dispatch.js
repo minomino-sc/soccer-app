@@ -1148,6 +1148,31 @@ if (!dutyCar) {
 // 部員
 else if (person.type === "player") {
 
+  // ★追加：家族車でも紐づきない人は除外
+  const family =
+    person.name
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+// 試合当番 or コーチに紐づいてるかチェック
+const hasDutyMatch = drivers.some(d =>
+  d.priority === 2 &&
+  d.dutyName?.startsWith(family)
+);
+
+const hasCoachMatch = drivers.some(d =>
+  d.priority === 1 &&
+  d.name.startsWith(family)
+);
+
+// ★ここが重要
+if (!hasDutyMatch && !hasCoachMatch && !person.familyReturn) {
+  return; // ← 復路に出さない
+}
+
+  
+
   // =========================
   // 復路家族車
   // =========================
