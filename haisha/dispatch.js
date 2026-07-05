@@ -1757,7 +1757,7 @@ if (members.length === 0) {
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.concat(note).join("／")}
+${members.join("／")}
 </div>
 
 `;
