@@ -1081,40 +1081,44 @@ returnTripTargets.forEach(person => {
   // 試合当番
 else if (person.type === "duty") {
 
-let dutyTeam = "";
+  const family =
+    person.dutyName
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
 
-if (TEAM_A.includes(person.dutyName)) {
-  dutyTeam = "箕谷A";
-}
+  let dutyTeam = "";
 
-if (TEAM_B.includes(person.dutyName)) {
-  dutyTeam = "箕谷B";
-}
+  if (TEAM_A.includes(family)) {
+    dutyTeam = "箕谷A";
+  }
 
-let dutyCar =
-  activeDrivers.find(
-    d =>
-      d.priority === 2 &&
-      d.team === dutyTeam &&
-      d.returnPlayers.length < d.seats
-  );
+  if (TEAM_B.includes(family)) {
+    dutyTeam = "箕谷B";
+  }
 
-if (!dutyCar) {
-
-  dutyCar =
+  let dutyCar =
     activeDrivers.find(
       d =>
         d.priority === 2 &&
+        d.team === dutyTeam &&
         d.returnPlayers.length < d.seats
     );
 
-}
+  if (!dutyCar) {
+
+    dutyCar =
+      activeDrivers.find(
+        d =>
+          d.priority === 2 &&
+          d.returnPlayers.length < d.seats
+      );
+
+  }
 
   if (dutyCar) {
 
-    dutyCar.returnPlayers.push(
-      person.displayName
-    );
+    dutyCar.returnPlayers.push(person.displayName);
 
   } else {
 
@@ -1124,11 +1128,7 @@ if (!dutyCar) {
       );
 
     if (coachCar) {
-
-      coachCar.returnPlayers.push(
-        person.displayName
-      );
-
+      coachCar.returnPlayers.push(person.displayName);
     }
 
   }
