@@ -91,8 +91,8 @@ if (eventData.dispatchConfirmed) {
   <div class="form-group">
     <label>復路希望</label>
     <select id="returnTrip">
-      <option value="○">○</option>
       <option value="×">×</option>
+      <option value="○">○</option>
     </select>
   </div>
 </div>
@@ -112,8 +112,8 @@ if (eventData.dispatchConfirmed) {
   <div class="form-group">
     <label>送迎可能</label>
     <select id="canDrive">
-      <option value="○">○</option>    
       <option value="×">×</option>
+      <option value="○">○</option>    
     </select>
   </div>
 
