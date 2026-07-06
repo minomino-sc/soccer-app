@@ -35,6 +35,8 @@ const id =
 
 let activeDrivers = [];
 
+let editMode = false;
+
   const usedNames = new Set();
 
 const eventSnap =
