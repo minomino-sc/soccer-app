@@ -1773,6 +1773,22 @@ location.reload();
 
 }
 
+const editBtn =
+  document.getElementById("editBtn");
+
+if (editBtn) {
+
+  editBtn.addEventListener(
+    "click",
+    () => {
+
+      alert("配車編集モード");
+
+    }
+  );
+
+}
+
 const cancelBtn =
   document.getElementById("cancelBtn");
 
