@@ -827,16 +827,6 @@ if (dispatchConfirmed) {
 
   savedDispatch.forEach(driver => {
 
-
-// =========================
-// アラート
-// =========================    
-//   alert("dispatchConfirmed終了");
-// =========================
-// アラート
-// =========================
-    
-    
     driver.players ??= [];
     driver.returnPlayers ??= [];
     driver.equipment ??= [];
@@ -850,20 +840,19 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-let msg = "台数：" + activeDrivers.length;
+  alert(
 
-activeDrivers.forEach((driver, i) => {
-  msg +=
-    "\n\n" +
-    (i + 1) +
-    "台目\n" +
-    JSON.stringify(driver);
-});
+    "台数：" + activeDrivers.length +
 
-alert(msg);
+    "\n\n1台目：" +
+
+    JSON.stringify(activeDrivers[0])
+
+  );
 // =========================
 // アラート
 // =========================
+
 
   
 
@@ -1259,27 +1248,14 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 }
 
 
-// =========================
-// アラート
-// ========================
-alert("試合道具終了");
-// =========================
-// アラート
-// ========================
+
+
 
 // =========================
 // 切り取り（start）
 // =========================  
 activeDrivers.forEach(driver => {
 
-// =========================
-// アラート
-// =========================  
-alert("表示開始：" + driver.name);
-// =========================
-// アラート
-// =========================
-  
   if (
     driver.players.length === 0 &&
     (
@@ -1477,11 +1453,6 @@ ${player.returnTrip ? "◎" : ""}
 // =========================
 // 切り取り（end）
 // =========================  
-
-
-
-  
-
 const remainPlayers =
   targetPlayers.slice(
     playerIndex
@@ -1493,21 +1464,22 @@ if (
 
   html += `
 
-    <hr>
+<hr>
 
-    <h3>
-      🚨 配車できなかった選手
-    </h3>
+<h3>
+🚨 配車できなかった選手
+</h3>
 
-  `;
+`;
 
   remainPlayers.forEach(player => {
 
     html += `
-      <div>
-        ${player.name}
-      </div>
-    `;
+<div>
+${player.name}
+（${player.role}）
+</div>
+`;
 
   });
 
@@ -1523,82 +1495,75 @@ html += `
 
 `;
 
- // 往路ドライバー一覧
+// 往路ドライバー一覧
 const outwardDrivers =
   activeDrivers.map(driver => {
 
     if (driver.priority === 2) {
-
       return driver.name.replace("号", "");
-
     }
 
     return driver.name;
 
-  }); 
+  });
+
+let hasReturn = false;
 
 activeDrivers.forEach(driver => {
 
+  driver.returnPlayers ??= [];
+
   if (
-    !driver.returnPlayers ||
     driver.returnPlayers.length === 0
   ) {
     return;
   }
 
-const members =
-  driver.returnPlayers.filter(name => {
+  const members =
+    driver.returnPlayers.filter(name => {
 
-    return !outwardDrivers.includes(name);
+      return !outwardDrivers.includes(name);
 
-  });
+    });
 
-const family =
-  driver.priority === 3
-    ? driver.name.replace("さん号", "")
-    : driver.name.replace("コーチ号", "")
-        .replace("号", "")
-        .trim();
-  
-const note = [];
+  if (members.length === 0) {
+    return;
+  }
 
-// 子ども
-if (PARENT_CHILD[family]) {
+  hasReturn = true;
 
-  PARENT_CHILD[family].forEach(name => {
-    note.push(`（${name}）`);
-  });
-
-}
-
-// コーチ本人
-if (
-  driver.priority === 1 &&
-  COACH_CHILD[driver.name]
-) {
-
-  COACH_CHILD[driver.name].forEach(name => {
-    note.push(`（${name}）`);
-  });
-
-}
- 
-if (members.length === 0) {
-  return;
-}
-  
   html += `
 
-<div>
+<div
+style="
+margin-bottom:8px;
+"
+>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.concat(note).join("／")}
+${members.join("／")}
 </div>
 
 `;
 
 });
 
-} 
+if (!hasReturn) {
+
+  html += `
+
+<div>
+なし
+</div>
+
+`;
+
+}
+
+
+
+
+
+  
 
 // =========================
 // アラート
@@ -1652,14 +1617,7 @@ if (confirmBtn) {
   confirmBtn.addEventListener(
     "click",
     async () => {
-
-  // =========================
-  // 確認ダイアログ追加（重要）
-  // =========================
-  if (!confirm("配車を確定しますか？")) {
-    return;
-  }
-      
+    
 const dispatchData =
   JSON.parse(
     JSON.stringify(activeDrivers)
@@ -1684,7 +1642,8 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim();
+      .trim()
+      .split(" ")[0];
 
 }
 
@@ -1754,7 +1713,8 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim();
+      .trim()
+      .split(" ")[0];
 
 }
 
@@ -1780,7 +1740,7 @@ else {
     }
   );
 
-} 
+}
   
 document
   .getElementById("pdfBtn")
