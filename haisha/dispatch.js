@@ -1783,39 +1783,7 @@ if (
 }
 
 });
-
-}
-  
-  
-// const note = [];
-
-// // 子ども
-// if (PARENT_CHILD[family]) {
-
-//   PARENT_CHILD[family].forEach(name => {
-//     note.push(`（${name}）`);
-//   });
-
-// }
-
-// // コーチ本人
-// if (
-//   driver.priority === 1 &&
-//   COACH_CHILD[driver.name]
-// ) {
-
-//   COACH_CHILD[driver.name].forEach(name => {
-//     note.push(`（${name}）`);
-//   });
-
-// }
-
-
-
-
-
-  
- 
+      
 if (members.length === 0) {
   return;
 }
