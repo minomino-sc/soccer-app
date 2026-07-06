@@ -1100,31 +1100,6 @@ const isFamilyOK = person.familyReturn === true;
 
 if (!isReturnOK && !isFamilyOK) return;
 
-if (person.returnTrip === false) {
-
-  const family =
-    person.name
-      ?.replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
-
-  const isCoachMatch =
-    activeDrivers.some(d =>
-      d.priority === 1 &&
-      d.name.includes(family)
-    );
-
-  const isDutyMatch =
-    activeDrivers.some(d =>
-      d.priority === 2 &&
-      d.dutyName?.includes(family)
-    );
-
-  if (!isCoachMatch && !isDutyMatch) {
-    return;
-  }
-}
-
   // ↓ここから下が「配車処理本体」
   
   // コーチ
