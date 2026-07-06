@@ -835,7 +835,8 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-        
+    
+    
     driver.players ??= [];
     driver.returnPlayers ??= [];
     driver.equipment ??= [];
@@ -1558,87 +1559,29 @@ const family =
     : driver.name.replace("コーチ号", "")
         .replace("号", "")
         .trim();
-
+  
 const note = [];
 
-const driverFamily =
-  family
-    .replace("さん", "")
-    .replace("コーチ", "");
-  
-// =========================
-// 同じ家族の子ども（参加者のみ）
-// =========================
-parentSnap.forEach((docSnap) => {
+// 子ども
+if (PARENT_CHILD[family]) {
 
-  const a = docSnap.data();
+  PARENT_CHILD[family].forEach(name => {
+    note.push(`（${name}）`);
+  });
 
-  if (a.attendance !== "参加") return;
-
-const playerFamily =
-  a.playerName
-    .replace(/　/g, " ")
-    .trim()
-    .split(" ")[0];
-
-if (playerFamily === driverFamily) {
-  note.push(`（${a.playerName}）`);
 }
 
-});
-
-// =========================
-// 同じ家族のコーチ（参加者のみ）
-// =========================
-coachSnap.forEach((docSnap) => {
-
-  const a = docSnap.data();
-
-  if (a.attendance !== "参加") return;
-
-  const coachFamily =
-    a.coachName.replace("コーチ", "");
-
+// コーチ本人
 if (
-  coachFamily === driverFamily &&
-  a.coachName !== driver.name.replace("号", "")
+  driver.priority === 1 &&
+  COACH_CHILD[driver.name]
 ) {
-  note.push(`（${a.coachName}）`);
+
+  COACH_CHILD[driver.name].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
 }
-
-});
-
-
-  
-  
-// const note = [];
-
-// // 子ども
-// if (PARENT_CHILD[family]) {
-
-//   PARENT_CHILD[family].forEach(name => {
-//     note.push(`（${name}）`);
-//   });
-
-// }
-
-// // コーチ本人
-// if (
-//   driver.priority === 1 &&
-//   COACH_CHILD[driver.name]
-// ) {
-
-//   COACH_CHILD[driver.name].forEach(name => {
-//     note.push(`（${name}）`);
-//   });
-
-// }
-
-
-
-
-
-  
  
 if (members.length === 0) {
   return;
