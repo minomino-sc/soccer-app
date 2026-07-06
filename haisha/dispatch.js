@@ -1561,11 +1561,6 @@ const family =
 
 const note = [];
 
-const driverFamily =
-  family
-    .replace("さん", "")
-    .replace("コーチ", "");
-  
 // =========================
 // 同じ家族の子ども（参加者のみ）
 // =========================
@@ -1575,15 +1570,15 @@ parentSnap.forEach((docSnap) => {
 
   if (a.attendance !== "参加") return;
 
-const playerFamily =
-  a.playerName
-    .replace(/　/g, " ")
-    .trim()
-    .split(" ")[0];
+  const playerFamily =
+    a.playerName
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
 
-if (playerFamily === driverFamily) {
-  note.push(`（${a.playerName}）`);
-}
+  if (playerFamily === family.replace("さん", "")) {
+    note.push(`（${a.playerName}）`);
+  }
 
 });
 
@@ -1599,17 +1594,12 @@ coachSnap.forEach((docSnap) => {
   const coachFamily =
     a.coachName.replace("コーチ", "");
 
-if (
-  coachFamily === driverFamily &&
-  a.coachName !== driver.name.replace("号", "")
-) {
-  note.push(`（${a.coachName}）`);
-}
+  if (coachFamily === family.replace("さん", "")) {
+    note.push(`（${a.coachName}）`);
+  }
 
 });
 
-
-  
   
 // const note = [];
 
