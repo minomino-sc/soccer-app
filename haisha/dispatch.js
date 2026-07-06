@@ -190,12 +190,17 @@ parentSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    a.returnTrip === "○"
+    (
+      a.returnTrip === "○" ||
+      a.familyReturn === "○"
+    )
   ) {
 
     returnTripTargets.push({
       type: "player",
-      name: a.playerName
+      name: a.playerName,
+      returnTrip: a.returnTrip === "○",
+      familyReturn: a.familyReturn === "○"
     });
 
   }
@@ -209,12 +214,17 @@ coachSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    a.returnTrip === "○"
+    (
+      a.returnTrip === "○" ||
+      a.familyReturn === "○"
+    )
   ) {
 
     returnTripTargets.push({
       type: "coach",
-      name: a.coachName
+      name: a.coachName,
+      returnTrip: a.returnTrip === "○",
+      familyReturn: a.familyReturn === "○"
     });
 
   }
@@ -828,7 +838,6 @@ if (dispatchConfirmed) {
   savedDispatch.forEach(driver => {
 
 
-    
 // =========================
 // アラート
 // =========================    
@@ -836,6 +845,8 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
+
+
 
     
     driver.players ??= [];
@@ -1061,8 +1072,61 @@ activeDrivers.forEach(driver => {
 // =========================
 // 復路配車
 // =========================
+  
+// =========================
+// アラート
+// ========================
+alert(
+  returnTripTargets
+    .map(p =>
+      p.name +
+      " / " +
+      p.type +
+      " / RT:" +
+      p.returnTrip +
+      " / FR:" +
+      p.familyReturn
+    )
+    .join("\n")
+);
+// =========================
+// アラート
+// ========================
+  
 returnTripTargets.forEach(person => {
+  
+const isReturnOK = person.returnTrip === true;
+const isFamilyOK = person.familyReturn === true;
 
+if (!isReturnOK && !isFamilyOK) return;
+
+if (person.returnTrip === false) {
+
+  const family =
+    person.name
+      ?.replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+  const isCoachMatch =
+    activeDrivers.some(d =>
+      d.priority === 1 &&
+      d.name.includes(family)
+    );
+
+  const isDutyMatch =
+    activeDrivers.some(d =>
+      d.priority === 2 &&
+      d.dutyName?.includes(family)
+    );
+
+  if (!isCoachMatch && !isDutyMatch) {
+    return;
+  }
+}
+
+  // ↓ここから下が「配車処理本体」
+  
   // コーチ
   if (person.type === "coach") {
 
@@ -1134,40 +1198,132 @@ if (!dutyCar) {
 
 }
 
-  // 部員
-  else if (person.type === "player") {
+// 部員
+else if (person.type === "player") {
 
-const playerTeam =
-  TEAM_A.includes(person.name)
-    ? "箕谷A"
-    : TEAM_B.includes(person.name)
-      ? "箕谷B"
-      : "";
+  // =========================
+  // 復路家族車
+  // =========================
+  if (person.familyReturn) {
 
-let dutyCar =
-  activeDrivers.find(
-    d =>
-      d.priority === 2 &&
-      d.team === playerTeam &&
-      d.returnPlayers.length < d.seats
-  );
+    const family =
+      person.name
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
 
-if (!dutyCar) {
+    let familyCar =
+      activeDrivers.find(d =>
 
-  dutyCar =
-    activeDrivers.find(
-      d =>
-        d.priority === 2 &&
-        d.returnPlayers.length < d.seats
-    );
+        // 試合当番車
+        (
+          d.priority === 2 &&
+          d.dutyName?.startsWith(family)
+        )
 
-}
-    
-    if (
-      dutyCar &&
-      dutyCar.returnPlayers.length <
-      dutyCar.seats
-    ) {
+        ||
+
+        // コーチ車
+        (
+          d.priority === 1 &&
+          d.name.startsWith(family)
+        )
+
+      );
+
+    // 家族の車が見つかった
+    if (familyCar) {
+
+      familyCar.returnPlayers.push(
+        `(${person.name})`
+      );
+
+    }
+
+    // 家族の車が無ければ通常配車
+    else {
+
+      const playerTeam =
+        TEAM_A.includes(person.name)
+          ? "箕谷A"
+          : TEAM_B.includes(person.name)
+            ? "箕谷B"
+            : "";
+
+      let dutyCar =
+        activeDrivers.find(
+          d =>
+            d.priority === 2 &&
+            d.team === playerTeam &&
+            d.returnPlayers.length < d.seats
+        );
+
+      if (!dutyCar) {
+
+        dutyCar =
+          activeDrivers.find(
+            d =>
+              d.priority === 2 &&
+              d.returnPlayers.length < d.seats
+          );
+
+      }
+
+      if (dutyCar) {
+
+        dutyCar.returnPlayers.push(person.name);
+
+      } else {
+
+        const coachCar =
+          activeDrivers.find(
+            d => d.priority === 1
+          );
+
+        if (coachCar) {
+
+          coachCar.returnPlayers.push(person.name);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  // =========================
+  // 通常の復路希望
+  // =========================
+  else {
+
+    const playerTeam =
+      TEAM_A.includes(person.name)
+        ? "箕谷A"
+        : TEAM_B.includes(person.name)
+          ? "箕谷B"
+          : "";
+
+    let dutyCar =
+      activeDrivers.find(
+        d =>
+          d.priority === 2 &&
+          d.team === playerTeam &&
+          d.returnPlayers.length < d.seats
+      );
+
+    if (!dutyCar) {
+
+      dutyCar =
+        activeDrivers.find(
+          d =>
+            d.priority === 2 &&
+            d.returnPlayers.length < d.seats
+        );
+
+    }
+
+    if (dutyCar) {
 
       dutyCar.returnPlayers.push(person.name);
 
@@ -1179,13 +1335,17 @@ if (!dutyCar) {
         );
 
       if (coachCar) {
+
         coachCar.returnPlayers.push(person.name);
+
       }
 
     }
 
   }
 
+  }
+ 
 });
     
 // =========================
@@ -1650,7 +1810,7 @@ if (members.length === 0) {
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.concat(note).join("／")}
+${members.join("／")}
 </div>
 
 `;
