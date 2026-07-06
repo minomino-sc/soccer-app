@@ -821,9 +821,51 @@ margin-bottom:20px;
 
   }
 
+let playerIndex = 0;
+
 if (dispatchConfirmed) {
 
+  savedDispatch.forEach(driver => {
+
+
+// =========================
+// アラート
+// =========================    
+//   alert("dispatchConfirmed終了");
+// =========================
+// アラート
+// =========================
+    
+    
+    driver.players ??= [];
+    driver.returnPlayers ??= [];
+    driver.equipment ??= [];
+
+  });
+
   activeDrivers = savedDispatch;
+
+
+
+// =========================
+// アラート
+// =========================
+let msg = "台数：" + activeDrivers.length;
+
+activeDrivers.forEach((driver, i) => {
+  msg +=
+    "\n\n" +
+    (i + 1) +
+    "台目\n" +
+    JSON.stringify(driver);
+});
+
+alert(msg);
+// =========================
+// アラート
+// =========================
+
+  
 
 } else {
   
@@ -969,8 +1011,6 @@ else {
 
 });
   
-let playerIndex = 0;
-
 while (
   playerIndex < targetPlayers.length
 ) {
@@ -1217,9 +1257,29 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
   }
 
 }
- 
+
+
+// =========================
+// アラート
+// ========================
+alert("試合道具終了");
+// =========================
+// アラート
+// ========================
+
+// =========================
+// 切り取り（start）
+// =========================  
 activeDrivers.forEach(driver => {
 
+// =========================
+// アラート
+// =========================  
+alert("表示開始：" + driver.name);
+// =========================
+// アラート
+// =========================
+  
   if (
     driver.players.length === 0 &&
     (
@@ -1414,6 +1474,13 @@ ${player.returnTrip ? "◎" : ""}
 }
   
 });
+// =========================
+// 切り取り（end）
+// =========================  
+
+
+
+  
 
 const remainPlayers =
   targetPlayers.slice(
@@ -1486,6 +1553,36 @@ const members =
 
   });
 
+const family =
+  driver.priority === 3
+    ? driver.name.replace("さん号", "")
+    : driver.name.replace("コーチ号", "")
+        .replace("号", "")
+        .trim();
+  
+const note = [];
+
+// 子ども
+if (PARENT_CHILD[family]) {
+
+  PARENT_CHILD[family].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
+
+// コーチ本人
+if (
+  driver.priority === 1 &&
+  COACH_CHILD[driver.name]
+) {
+
+  COACH_CHILD[driver.name].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
+ 
 if (members.length === 0) {
   return;
 }
@@ -1494,20 +1591,36 @@ if (members.length === 0) {
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.join("／")}
+${members.concat(note).join("／")}
 </div>
 
 `;
 
 });
 
-}
+} 
 
+// =========================
+// アラート
+// =========================
+alert("HTML文字数：" + html.length);
+// =========================
+// アラート
+// =========================
+  
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
   html;
 
+// =========================
+// アラート
+// =========================
+alert("dispatchAreaセット完了");
+// =========================
+// アラート
+// =========================
+  
 document.getElementById("buttonArea").innerHTML =
 dispatchConfirmed
 ? `
@@ -1540,10 +1653,18 @@ if (confirmBtn) {
     "click",
     async () => {
 
-if (!confirm("配車を確定しますか？")) {
-  return;
-}
+  // =========================
+  // 確認ダイアログ追加（重要）
+  // =========================
+  if (!confirm("配車を確定しますか？")) {
+    return;
+  }
       
+const dispatchData =
+  JSON.parse(
+    JSON.stringify(activeDrivers)
+  );     
+     
       for (const driver of activeDrivers) {
 
 let key;
@@ -1563,8 +1684,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
@@ -1589,7 +1709,7 @@ await updateDoc(
   ),
   {
     dispatchConfirmed: true,
-    dispatchData: activeDrivers
+    dispatchData
   }
 );
 
@@ -1634,8 +1754,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
@@ -1661,7 +1780,7 @@ else {
     }
   );
 
-}
+} 
   
 document
   .getElementById("pdfBtn")
