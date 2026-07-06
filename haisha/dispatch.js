@@ -838,8 +838,6 @@ if (dispatchConfirmed) {
   savedDispatch.forEach(driver => {
 
 
-
-    
 // =========================
 // アラート
 // =========================    
@@ -1349,8 +1347,6 @@ else if (person.type === "player") {
   }
  
 });
-
-}  
     
 // =========================
 // 試合道具割当
@@ -1682,22 +1678,147 @@ html += `
 
 <hr>
 
-<h3>復路配車</h3>
+<h3>
+復路配車一覧
+</h3>
+
+`;
+
+ // 往路ドライバー一覧
+const outwardDrivers =
+  activeDrivers.map(driver => {
+
+    if (driver.priority === 2) {
+
+      return driver.name.replace("号", "");
+
+    }
+
+    return driver.name;
+
+  }); 
+
+activeDrivers.forEach(driver => {
+
+  if (
+    !driver.returnPlayers ||
+    driver.returnPlayers.length === 0
+  ) {
+    return;
+  }
+
+const members =
+  driver.returnPlayers.filter(name => {
+
+    return !outwardDrivers.includes(name);
+
+  });
+
+const family =
+  driver.priority === 3
+    ? driver.name.replace("さん号", "")
+    : driver.name.replace("コーチ号", "")
+        .replace("号", "")
+        .trim();
+
+const note = [];
+
+const driverFamily =
+  family
+    .replace("さん", "")
+    .replace("コーチ", "");
+  
+// =========================
+// 同じ家族の子ども（参加者のみ）
+// =========================
+parentSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (a.attendance !== "参加") return;
+
+const playerFamily =
+  a.playerName
+    .replace(/　/g, " ")
+    .trim()
+    .split(" ")[0];
+
+if (playerFamily === driverFamily) {
+  note.push(`（${a.playerName}）`);
+}
+
+});
+
+// =========================
+// 同じ家族のコーチ（参加者のみ）
+// =========================
+coachSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (a.attendance !== "参加") return;
+
+  const coachFamily =
+    a.coachName.replace("コーチ", "");
+
+if (
+  coachFamily === driverFamily &&
+  a.coachName !== driver.name.replace("号", "")
+) {
+  note.push(`（${a.coachName}）`);
+}
+
+});
+
+
+  
+  
+// const note = [];
+
+// // 子ども
+// if (PARENT_CHILD[family]) {
+
+//   PARENT_CHILD[family].forEach(name => {
+//     note.push(`（${name}）`);
+//   });
+
+// }
+
+// // コーチ本人
+// if (
+//   driver.priority === 1 &&
+//   COACH_CHILD[driver.name]
+// ) {
+
+//   COACH_CHILD[driver.name].forEach(name => {
+//     note.push(`（${name}）`);
+//   });
+
+// }
+
+
+
+
+
+  
+ 
+if (members.length === 0) {
+  return;
+}
+  
+  html += `
 
 <div>
-①復路希望の部員あり<br>
-→試合当番さんで復路送迎の対応をお願いします。
-</div>
-
-<br>
-
-<div>
-②復路希望のコーチあり<br>
-→コーチ（往路担当したコーチ）で復路送迎の対応をお願いします。
+🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
+${members.join("／")}
 </div>
 
 `;
-  
+
+});
+
+} 
+
 // =========================
 // アラート
 // =========================
