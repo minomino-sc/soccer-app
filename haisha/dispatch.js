@@ -1441,10 +1441,30 @@ ${player.returnTrip
 style="
 border:1px solid #ccc;
 padding:4px;
-text-align:center;
 "
 >
-${index + 1}
+
+${
+  editMode && player.role === "選手"
+
+  ? `
+<select
+class="playerSelect"
+data-driver="${driver.name}"
+data-index="${index}"
+>
+
+<option>
+${player.name}
+</option>
+
+</select>
+`
+
+  : player.name
+
+}
+
 </td>
 
 <td
