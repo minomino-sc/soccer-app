@@ -1807,8 +1807,9 @@ if (
 if (members.length === 0) {
   return;
 }
-  
-  html += `
+
+/*
+html += `
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
@@ -1816,6 +1817,7 @@ ${members.join("／")}
 </div>
 
 `;
+*/
 
 });
 
