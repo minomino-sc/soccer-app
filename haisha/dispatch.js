@@ -1674,6 +1674,15 @@ if (
 
 }
 
+const hasReturnPlayers =
+  activeDrivers.some(
+    driver =>
+      driver.returnPlayers &&
+      driver.returnPlayers.length > 0
+  );
+
+if (hasReturnPlayers) {
+  
 html += `
 
 <hr>
@@ -1819,6 +1828,8 @@ ${members.join("／")}
 
 } 
 
+} 
+  
 // =========================
 // アラート
 // =========================
