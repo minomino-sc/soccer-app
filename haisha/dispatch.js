@@ -190,12 +190,17 @@ parentSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    a.returnTrip === "○"
+    (
+      a.returnTrip === "○" ||
+      a.familyReturn === "○"
+    )
   ) {
 
     returnTripTargets.push({
       type: "player",
-      name: a.playerName
+      name: a.playerName,
+      returnTrip: a.returnTrip === "○",
+      familyReturn: a.familyReturn === "○"
     });
 
   }
@@ -209,12 +214,17 @@ coachSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    a.returnTrip === "○"
+    (
+      a.returnTrip === "○" ||
+      a.familyReturn === "○"
+    )
   ) {
 
     returnTripTargets.push({
       type: "coach",
-      name: a.coachName
+      name: a.coachName,
+      returnTrip: a.returnTrip === "○",
+      familyReturn: a.familyReturn === "○"
     });
 
   }
@@ -827,6 +837,18 @@ if (dispatchConfirmed) {
 
   savedDispatch.forEach(driver => {
 
+
+// =========================
+// アラート
+// =========================    
+//   alert("dispatchConfirmed終了");
+// =========================
+// アラート
+// =========================
+
+
+
+    
     driver.players ??= [];
     driver.returnPlayers ??= [];
     driver.equipment ??= [];
@@ -836,22 +858,24 @@ if (dispatchConfirmed) {
   activeDrivers = savedDispatch;
 
 
+
 // =========================
 // アラート
 // =========================
-  alert(
+let msg = "台数：" + activeDrivers.length;
 
-    "台数：" + activeDrivers.length +
+activeDrivers.forEach((driver, i) => {
+  msg +=
+    "\n\n" +
+    (i + 1) +
+    "台目\n" +
+    JSON.stringify(driver);
+});
 
-    "\n\n1台目：" +
-
-    JSON.stringify(activeDrivers[0])
-
-  );
+alert(msg);
 // =========================
 // アラート
 // =========================
-
 
   
 
@@ -1048,8 +1072,61 @@ activeDrivers.forEach(driver => {
 // =========================
 // 復路配車
 // =========================
+  
+// =========================
+// アラート
+// ========================
+alert(
+  returnTripTargets
+    .map(p =>
+      p.name +
+      " / " +
+      p.type +
+      " / RT:" +
+      p.returnTrip +
+      " / FR:" +
+      p.familyReturn
+    )
+    .join("\n")
+);
+// =========================
+// アラート
+// ========================
+  
 returnTripTargets.forEach(person => {
+  
+const isReturnOK = person.returnTrip === true;
+const isFamilyOK = person.familyReturn === true;
 
+if (!isReturnOK && !isFamilyOK) return;
+
+if (person.returnTrip === false) {
+
+  const family =
+    person.name
+      ?.replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
+
+  const isCoachMatch =
+    activeDrivers.some(d =>
+      d.priority === 1 &&
+      d.name.includes(family)
+    );
+
+  const isDutyMatch =
+    activeDrivers.some(d =>
+      d.priority === 2 &&
+      d.dutyName?.includes(family)
+    );
+
+  if (!isCoachMatch && !isDutyMatch) {
+    return;
+  }
+}
+
+  // ↓ここから下が「配車処理本体」
+  
   // コーチ
   if (person.type === "coach") {
 
@@ -1121,40 +1198,132 @@ if (!dutyCar) {
 
 }
 
-  // 部員
-  else if (person.type === "player") {
+// 部員
+else if (person.type === "player") {
 
-const playerTeam =
-  TEAM_A.includes(person.name)
-    ? "箕谷A"
-    : TEAM_B.includes(person.name)
-      ? "箕谷B"
-      : "";
+  // =========================
+  // 復路家族車
+  // =========================
+  if (person.familyReturn) {
 
-let dutyCar =
-  activeDrivers.find(
-    d =>
-      d.priority === 2 &&
-      d.team === playerTeam &&
-      d.returnPlayers.length < d.seats
-  );
+    const family =
+      person.name
+        .replace(/　/g, " ")
+        .trim()
+        .split(" ")[0];
 
-if (!dutyCar) {
+    let familyCar =
+      activeDrivers.find(d =>
 
-  dutyCar =
-    activeDrivers.find(
-      d =>
-        d.priority === 2 &&
-        d.returnPlayers.length < d.seats
-    );
+        // 試合当番車
+        (
+          d.priority === 2 &&
+          d.dutyName?.startsWith(family)
+        )
 
-}
-    
-    if (
-      dutyCar &&
-      dutyCar.returnPlayers.length <
-      dutyCar.seats
-    ) {
+        ||
+
+        // コーチ車
+        (
+          d.priority === 1 &&
+          d.name.startsWith(family)
+        )
+
+      );
+
+    // 家族の車が見つかった
+    if (familyCar) {
+
+      familyCar.returnPlayers.push(
+        `(${person.name})`
+      );
+
+    }
+
+    // 家族の車が無ければ通常配車
+    else {
+
+      const playerTeam =
+        TEAM_A.includes(person.name)
+          ? "箕谷A"
+          : TEAM_B.includes(person.name)
+            ? "箕谷B"
+            : "";
+
+      let dutyCar =
+        activeDrivers.find(
+          d =>
+            d.priority === 2 &&
+            d.team === playerTeam &&
+            d.returnPlayers.length < d.seats
+        );
+
+      if (!dutyCar) {
+
+        dutyCar =
+          activeDrivers.find(
+            d =>
+              d.priority === 2 &&
+              d.returnPlayers.length < d.seats
+          );
+
+      }
+
+      if (dutyCar) {
+
+        dutyCar.returnPlayers.push(person.name);
+
+      } else {
+
+        const coachCar =
+          activeDrivers.find(
+            d => d.priority === 1
+          );
+
+        if (coachCar) {
+
+          coachCar.returnPlayers.push(person.name);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  // =========================
+  // 通常の復路希望
+  // =========================
+  else {
+
+    const playerTeam =
+      TEAM_A.includes(person.name)
+        ? "箕谷A"
+        : TEAM_B.includes(person.name)
+          ? "箕谷B"
+          : "";
+
+    let dutyCar =
+      activeDrivers.find(
+        d =>
+          d.priority === 2 &&
+          d.team === playerTeam &&
+          d.returnPlayers.length < d.seats
+      );
+
+    if (!dutyCar) {
+
+      dutyCar =
+        activeDrivers.find(
+          d =>
+            d.priority === 2 &&
+            d.returnPlayers.length < d.seats
+        );
+
+    }
+
+    if (dutyCar) {
 
       dutyCar.returnPlayers.push(person.name);
 
@@ -1166,13 +1335,17 @@ if (!dutyCar) {
         );
 
       if (coachCar) {
+
         coachCar.returnPlayers.push(person.name);
+
       }
 
     }
 
   }
 
+  }
+ 
 });
     
 // =========================
@@ -1247,14 +1420,27 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 }
 
 
-
-
+// =========================
+// アラート
+// ========================
+alert("試合道具終了");
+// =========================
+// アラート
+// ========================
 
 // =========================
 // 切り取り（start）
 // =========================  
 activeDrivers.forEach(driver => {
 
+// =========================
+// アラート
+// =========================  
+alert("表示開始：" + driver.name);
+// =========================
+// アラート
+// =========================
+  
   if (
     driver.players.length === 0 &&
     (
@@ -1452,6 +1638,11 @@ ${player.returnTrip ? "◎" : ""}
 // =========================
 // 切り取り（end）
 // =========================  
+
+
+
+  
+
 const remainPlayers =
   targetPlayers.slice(
     playerIndex
@@ -1463,22 +1654,21 @@ if (
 
   html += `
 
-<hr>
+    <hr>
 
-<h3>
-🚨 配車できなかった選手
-</h3>
+    <h3>
+      🚨 配車できなかった選手
+    </h3>
 
-`;
+  `;
 
   remainPlayers.forEach(player => {
 
     html += `
-<div>
-${player.name}
-（${player.role}）
-</div>
-`;
+      <div>
+        ${player.name}
+      </div>
+    `;
 
   });
 
@@ -1494,50 +1684,131 @@ html += `
 
 `;
 
-// 往路ドライバー一覧
+ // 往路ドライバー一覧
 const outwardDrivers =
   activeDrivers.map(driver => {
 
     if (driver.priority === 2) {
+
       return driver.name.replace("号", "");
+
     }
 
     return driver.name;
 
-  });
-
-let hasReturn = false;
+  }); 
 
 activeDrivers.forEach(driver => {
 
-  driver.returnPlayers ??= [];
-
   if (
+    !driver.returnPlayers ||
     driver.returnPlayers.length === 0
   ) {
     return;
   }
 
-  const members =
-    driver.returnPlayers.filter(name => {
+const members =
+  driver.returnPlayers.filter(name => {
 
-      return !outwardDrivers.includes(name);
+    return !outwardDrivers.includes(name);
 
-    });
+  });
 
-  if (members.length === 0) {
-    return;
-  }
+const family =
+  driver.priority === 3
+    ? driver.name.replace("さん号", "")
+    : driver.name.replace("コーチ号", "")
+        .replace("号", "")
+        .trim();
 
-  hasReturn = true;
+const note = [];
 
+const driverFamily =
+  family
+    .replace("さん", "")
+    .replace("コーチ", "");
+  
+// =========================
+// 同じ家族の子ども（参加者のみ）
+// =========================
+parentSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (a.attendance !== "参加") return;
+
+const playerFamily =
+  a.playerName
+    .replace(/　/g, " ")
+    .trim()
+    .split(" ")[0];
+
+if (playerFamily === driverFamily) {
+  note.push(`（${a.playerName}）`);
+}
+
+});
+
+// =========================
+// 同じ家族のコーチ（参加者のみ）
+// =========================
+coachSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (a.attendance !== "参加") return;
+
+  const coachFamily =
+    a.coachName.replace("コーチ", "");
+
+if (
+  coachFamily === driverFamily &&
+  a.coachName !== driver.name.replace("号", "")
+) {
+  note.push(`（${a.coachName}）`);
+}
+
+});
+
+
+  
+  
+// const note = [];
+
+// // 子ども
+// if (PARENT_CHILD[family]) {
+
+//   PARENT_CHILD[family].forEach(name => {
+//     note.push(`（${name}）`);
+//   });
+
+// }
+
+// // コーチ本人
+// if (
+//   driver.priority === 1 &&
+//   COACH_CHILD[driver.name]
+// ) {
+
+//   COACH_CHILD[driver.name].forEach(name => {
+//     note.push(`（${name}）`);
+//   });
+
+// }
+
+
+
+
+
+  
+ 
+if (members.length === 0) {
+  return;
+}
+  
   html += `
 
-<div
-style="
-margin-bottom:8px;
-"
->
+<div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
 ${members.join("／")}
 </div>
@@ -1546,23 +1817,7 @@ ${members.join("／")}
 
 });
 
-if (!hasReturn) {
-
-  html += `
-
-<div>
-なし
-</div>
-
-`;
-
-}
-
-
-
-
-
-  
+} 
 
 // =========================
 // アラート
@@ -1616,7 +1871,14 @@ if (confirmBtn) {
   confirmBtn.addEventListener(
     "click",
     async () => {
-    
+
+  // =========================
+  // 確認ダイアログ追加（重要）
+  // =========================
+  if (!confirm("配車を確定しますか？")) {
+    return;
+  }
+      
 const dispatchData =
   JSON.parse(
     JSON.stringify(activeDrivers)
@@ -1641,8 +1903,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
@@ -1712,8 +1973,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
@@ -1739,7 +1999,7 @@ else {
     }
   );
 
-}
+} 
   
 document
   .getElementById("pdfBtn")
