@@ -836,7 +836,6 @@ if (dispatchConfirmed) {
   activeDrivers = savedDispatch;
 
 
-
 // =========================
 // アラート
 // =========================
