@@ -1674,6 +1674,7 @@ if (
 
 }
 
+/*
 html += `
 
 <hr>
@@ -1683,6 +1684,7 @@ html += `
 </h3>
 
 `;
+*/
 
  // 往路ドライバー一覧
 const outwardDrivers =
