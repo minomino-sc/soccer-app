@@ -1094,20 +1094,6 @@ alert(
 // ========================
   
 returnTripTargets.forEach(person => {
-
-// =========================
-// アラート
-// =======================  
-  alert(
-    "CHECK\n" +
-    person.name +
-    "\nRT:" + person.returnTrip +
-    "\nFR:" + person.familyReturn +
-    "\nTYPE:" + person.type
-  );
- // =========================
-// アラート
-// ======================= 
   
 const isReturnOK = person.returnTrip === true;
 const isFamilyOK = person.familyReturn === true;
@@ -1124,14 +1110,14 @@ if (person.returnTrip === false) {
 
   const isCoachMatch =
     activeDrivers.some(d =>
-      d.priority === 1 &&                       
-    d.name.startsWith(family)                      
+      d.priority === 1 &&
+      d.name.includes(family)
     );
 
   const isDutyMatch =
     activeDrivers.some(d =>
       d.priority === 2 &&
-    d.dutyName?.startsWith(family)
+      d.dutyName?.includes(family)
     );
 
   if (!isCoachMatch && !isDutyMatch) {
@@ -1141,49 +1127,19 @@ if (person.returnTrip === false) {
 
   // ↓ここから下が「配車処理本体」
   
-// コーチ
-if (person.type === "coach") {
+  // コーチ
+  if (person.type === "coach") {
 
-  // 名前から「家族名」を作る
-  const family =
-    person.name
-      ?.replace(/コーチ/g, "")
-      .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+    const coachCar =
+      activeDrivers.find(
+        d => d.priority === 1
+      );
 
-  // ① まず「試合当番の車」に入れる（家族一致）
-  const dutyCar = activeDrivers.find(d =>
-    d.priority === 2 &&
-    d.dutyName?.startsWith(family)
-  );
+    if (coachCar) {
+      coachCar.returnPlayers.push(person.name);
+    }
 
-  if (dutyCar) {
-    dutyCar.returnPlayers.push(`(${person.name})`);
-    return;
   }
-
-  // ② 次に「コーチ本人の車」
-  const coachCar = activeDrivers.find(d =>
-    d.priority === 1 &&
-    d.name.startsWith(family)
-  );
-
-  if (coachCar) {
-    coachCar.returnPlayers.push(`(${person.name})`);
-    return;
-  }
-
-  // ③ どちらもなければ、普通のコーチ車
-  const fallback = activeDrivers.find(d =>
-    d.priority === 1
-  );
-
-  if (fallback) {
-    fallback.returnPlayers.push(`(${person.name})`);
-  }
-
-}
 
   // 試合当番
 else if (person.type === "duty") {
@@ -1514,14 +1470,7 @@ font-weight:bold;
 flex-shrink:0;
 "
 >
-🚗 ${
-  driver.priority === 1
-    ? driver.name   // コーチはそのまま
-    : driver.name.endsWith("号")
-      ? driver.name
-      : driver.name + "号"
-}
-
+🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}
 </div>
 
 <div
@@ -1761,14 +1710,10 @@ activeDrivers.forEach(driver => {
 const members =
   driver.returnPlayers.filter(name => {
 
-    return !outwardDrivers.some(d =>
-      d === name ||
-      d === `(${name})` ||
-      name === `(${d})`
-    );
+    return !outwardDrivers.includes(name);
 
   });
-  
+
 const family =
   driver.priority === 3
     ? driver.name.replace("さん号", "")
