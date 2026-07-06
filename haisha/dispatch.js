@@ -582,8 +582,10 @@ for (const coach of coachDrivers) {
 
   if (usedCoaches.has(coach)) continue;
 
-  if (capacity >= needCount) break;
-
+// =========================  
+//  if (capacity >= needCount) break;
+// =========================
+  
   activeDrivers.push(coach);
   capacity += coach.seats;
 
