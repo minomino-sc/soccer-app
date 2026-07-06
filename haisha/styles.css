@@ -172,7 +172,8 @@ body.dispatch-page h3{
 #pdfBtn,
 #lineBtn,
 #confirmBtn,
-#cancelBtn {
+#cancelBtn,
+#editBtn {
   font-size: 18px;
   padding: 12px 24px;
   border-radius: 8px;
