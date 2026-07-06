@@ -580,11 +580,23 @@ const usedCoaches = new Set([
 
 for (const coach of coachDrivers) {
 
+  alert(
+
+    "追加判断\n" +
+
+    "コーチ：" + coach.name +
+
+    "\n座席：" + coach.seats +
+
+    "\n現在capacity：" + capacity +
+
+    "\n必要人数needCount：" + needCount
+
+  );
+  
   if (usedCoaches.has(coach)) continue;
 
-// =========================  
-//  if (capacity >= needCount) break;
-// =========================
+  if (capacity >= needCount) break;
   
   activeDrivers.push(coach);
   capacity += coach.seats;
