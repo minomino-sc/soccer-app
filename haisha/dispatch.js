@@ -578,26 +578,34 @@ const usedCoaches = new Set([
   ...(coachesB[0] ? [coachesB[0]] : [])
 ]);
 
+// 最終的に乗車する人数を見て判断
+const finalNeedCount =
+  needCount +
+  coachDrivers.filter(
+    coach => !usedCoaches.has(coach)
+  ).length;
+
 for (const coach of coachDrivers) {
 
+  // =========================
+  // アラート
+  // =========================  
   alert(
-
     "追加判断\n" +
-
     "コーチ：" + coach.name +
-
     "\n座席：" + coach.seats +
-
     "\n現在capacity：" + capacity +
-
-    "\n必要人数needCount：" + needCount
-
+    "\n必要人数needCount：" + needCount +
+    "\n最終必要人数finalNeedCount：" + finalNeedCount
   );
+  // =========================
+  // アラート
+  // ========================
   
   if (usedCoaches.has(coach)) continue;
 
-  if (capacity >= needCount) break;
-  
+  if (capacity >= finalNeedCount) break;
+
   activeDrivers.push(coach);
   capacity += coach.seats;
 
