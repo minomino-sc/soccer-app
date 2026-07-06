@@ -1514,7 +1514,14 @@ font-weight:bold;
 flex-shrink:0;
 "
 >
-🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}
+🚗 ${
+  driver.priority === 1
+    ? driver.name   // コーチはそのまま
+    : driver.name.endsWith("号")
+      ? driver.name
+      : driver.name + "号"
+}
+
 </div>
 
 <div
