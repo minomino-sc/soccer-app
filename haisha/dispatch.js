@@ -339,7 +339,7 @@ coachSnap.forEach((docSnap) => {
 
     const seats =
       Math.max(
-        Number(a.capacity || 0) - 2,
+        Number(a.capacity || 0) - 1,
         0
       );
 
@@ -389,7 +389,7 @@ dutySnap.forEach((docSnap) => {
 
     const seats =
       Math.max(
-        Number(a.capacity || 0) - 2,
+        Number(a.capacity || 0) - 1,
         0
       );
 
@@ -462,7 +462,7 @@ parentSnap.forEach((docSnap) => {
 
     const seats =
       Math.max(
-        Number(a.capacity || 0) - 2,
+        Number(a.capacity || 0) - 1,
         0
       );
 
@@ -776,7 +776,7 @@ margin-bottom:20px;
 
 <tr>
 <td>利用可能座席</td>
-<td>${seatCount}席（運転手含まず、2席分を除外して算出）</td>
+<td>${seatCount}席（運転手1席分を除外して算出）</td>
 </tr>
 
 </table>
