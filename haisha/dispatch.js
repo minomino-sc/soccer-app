@@ -1513,6 +1513,7 @@ if (
 
 }
 
+/*
 html += `
 
 <hr>
@@ -1522,6 +1523,7 @@ html += `
 </h3>
 
 `;
+*/
 
  // 往路ドライバー一覧
 const outwardDrivers =
@@ -1586,16 +1588,18 @@ if (
 if (members.length === 0) {
   return;
 }
-  
-  html += `
+
+/*
+html += `
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.concat(note).join("／")}
+${members.join("／")}
 </div>
 
 `;
-
+*/
+  
 });
 
 } 
