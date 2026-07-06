@@ -62,6 +62,9 @@ else {
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
+  const savedDispatch =
+  eventData.dispatchData || [];
+
   // =========================
   // 保護者回答
   // =========================
@@ -817,6 +820,54 @@ margin-bottom:20px;
     `;
 
   }
+
+let playerIndex = 0;
+
+if (dispatchConfirmed) {
+
+  savedDispatch.forEach(driver => {
+
+
+// =========================
+// アラート
+// =========================    
+//   alert("dispatchConfirmed終了");
+// =========================
+// アラート
+// =========================
+    
+    
+    driver.players ??= [];
+    driver.returnPlayers ??= [];
+    driver.equipment ??= [];
+
+  });
+
+  activeDrivers = savedDispatch;
+
+
+
+// =========================
+// アラート
+// =========================
+let msg = "台数：" + activeDrivers.length;
+
+activeDrivers.forEach((driver, i) => {
+  msg +=
+    "\n\n" +
+    (i + 1) +
+    "台目\n" +
+    JSON.stringify(driver);
+});
+
+alert(msg);
+// =========================
+// アラート
+// =========================
+
+  
+
+} else {
   
 // =========================
 // 自動配車（均等割り）
@@ -960,8 +1011,6 @@ else {
 
 });
   
-let playerIndex = 0;
-
 while (
   playerIndex < targetPlayers.length
 ) {
@@ -1208,9 +1257,29 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
   }
 
 }
- 
+
+
+// =========================
+// アラート
+// ========================
+alert("試合道具終了");
+// =========================
+// アラート
+// ========================
+
+// =========================
+// 切り取り（start）
+// =========================  
 activeDrivers.forEach(driver => {
 
+// =========================
+// アラート
+// =========================  
+alert("表示開始：" + driver.name);
+// =========================
+// アラート
+// =========================
+  
   if (
     driver.players.length === 0 &&
     (
@@ -1405,6 +1474,13 @@ ${player.returnTrip ? "◎" : ""}
 }
   
 });
+// =========================
+// 切り取り（end）
+// =========================  
+
+
+
+  
 
 const remainPlayers =
   targetPlayers.slice(
@@ -1437,6 +1513,7 @@ if (
 
 }
 
+/*
 html += `
 
 <hr>
@@ -1446,6 +1523,7 @@ html += `
 </h3>
 
 `;
+*/
 
  // 往路ドライバー一覧
 const outwardDrivers =
@@ -1477,11 +1555,42 @@ const members =
 
   });
 
+const family =
+  driver.priority === 3
+    ? driver.name.replace("さん号", "")
+    : driver.name.replace("コーチ号", "")
+        .replace("号", "")
+        .trim();
+  
+const note = [];
+
+// 子ども
+if (PARENT_CHILD[family]) {
+
+  PARENT_CHILD[family].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
+
+// コーチ本人
+if (
+  driver.priority === 1 &&
+  COACH_CHILD[driver.name]
+) {
+
+  COACH_CHILD[driver.name].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
+ 
 if (members.length === 0) {
   return;
 }
-  
-  html += `
+
+/*
+html += `
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
@@ -1489,14 +1598,54 @@ ${members.join("／")}
 </div>
 
 `;
-
+*/
+  
 });
 
+} 
+
+html += `
+
+<hr>
+
+<h3>復路配車</h3>
+
+<div>
+⭐️復路希望あり（部員）⭐️<br>
+　試合当番さんで部員の復路配車対応をお願いします。<br>
+　試合当番さんのみで対応不可の場合は、配車担当のコーチへ相談してください。
+</div>
+
+<br>
+
+<div>
+⭐️復路希望あり（コーチ）⭐️<br>
+　復路希望のコーチを往路配車したコーチで、復路配車の対応をお願いします。
+</div>
+
+`;
+
+// =========================
+// アラート
+// =========================
+alert("HTML文字数：" + html.length);
+// =========================
+// アラート
+// =========================
+  
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
   html;
 
+// =========================
+// アラート
+// =========================
+alert("dispatchAreaセット完了");
+// =========================
+// アラート
+// =========================
+  
 document.getElementById("buttonArea").innerHTML =
 dispatchConfirmed
 ? `
@@ -1529,10 +1678,18 @@ if (confirmBtn) {
     "click",
     async () => {
 
-if (!confirm("配車を確定しますか？")) {
-  return;
-}
+  // =========================
+  // 確認ダイアログ追加（重要）
+  // =========================
+  if (!confirm("配車を確定しますか？")) {
+    return;
+  }
       
+const dispatchData =
+  JSON.parse(
+    JSON.stringify(activeDrivers)
+  );     
+     
       for (const driver of activeDrivers) {
 
 let key;
@@ -1552,8 +1709,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
@@ -1577,7 +1733,8 @@ await updateDoc(
     id
   ),
   {
-    dispatchConfirmed: true
+    dispatchConfirmed: true,
+    dispatchData
   }
 );
 
@@ -1622,8 +1779,7 @@ else {
   key =
     driver.playerName
       .replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
+      .trim();
 
 }
 
@@ -1649,7 +1805,7 @@ else {
     }
   );
 
-}
+} 
   
 document
   .getElementById("pdfBtn")
