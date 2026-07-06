@@ -828,6 +828,7 @@ if (dispatchConfirmed) {
   savedDispatch.forEach(driver => {
 
 
+    
 // =========================
 // アラート
 // =========================    
@@ -835,7 +836,8 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-        
+
+    
     driver.players ??= [];
     driver.returnPlayers ??= [];
     driver.equipment ??= [];
