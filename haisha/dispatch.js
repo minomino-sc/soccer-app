@@ -1673,6 +1673,10 @@ dispatchConfirmed
 ? `
 <div style="margin-top:30px;text-align:center;">
 
+<button id="editBtn">
+✏️ 配車編集
+</button>
+
 <button id="cancelBtn">
 ❌ 配車確定取消
 </button>
