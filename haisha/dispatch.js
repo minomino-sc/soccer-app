@@ -1141,19 +1141,49 @@ if (person.returnTrip === false) {
 
   // ↓ここから下が「配車処理本体」
   
-  // コーチ
-  if (person.type === "coach") {
+// コーチ
+if (person.type === "coach") {
 
-    const coachCar =
-      activeDrivers.find(
-        d => d.priority === 1
-      );
+  // 名前から「家族名」を作る
+  const family =
+    person.name
+      ?.replace(/コーチ/g, "")
+      .replace(/　/g, " ")
+      .trim()
+      .split(" ")[0];
 
-    if (coachCar) {
-      coachCar.returnPlayers.push(person.name);
-    }
+  // ① まず「試合当番の車」に入れる（家族一致）
+  const dutyCar = activeDrivers.find(d =>
+    d.priority === 2 &&
+    d.dutyName?.startsWith(family)
+  );
 
+  if (dutyCar) {
+    dutyCar.returnPlayers.push(`(${person.name})`);
+    return;
   }
+
+  // ② 次に「コーチ本人の車」
+  const coachCar = activeDrivers.find(d =>
+    d.priority === 1 &&
+    d.name.startsWith(family)
+  );
+
+  if (coachCar) {
+    coachCar.returnPlayers.push(`(${person.name})`);
+    return;
+  }
+
+  // ③ どちらもなければ、普通のコーチ車
+  const fallback = activeDrivers.find(d =>
+    d.priority === 1
+  );
+
+  if (fallback) {
+    fallback.returnPlayers.push(`(${person.name})`);
+  }
+
+}
 
   // 試合当番
 else if (person.type === "duty") {
