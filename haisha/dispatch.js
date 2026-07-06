@@ -190,17 +190,12 @@ parentSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    (
-      a.returnTrip === "○" ||
-      a.familyReturn === "○"
-    )
+    a.returnTrip === "○"
   ) {
 
     returnTripTargets.push({
       type: "player",
-      name: a.playerName,
-      returnTrip: a.returnTrip === "○",
-      familyReturn: a.familyReturn === "○"
+      name: a.playerName
     });
 
   }
@@ -214,17 +209,12 @@ coachSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    (
-      a.returnTrip === "○" ||
-      a.familyReturn === "○"
-    )
+    a.returnTrip === "○"
   ) {
 
     returnTripTargets.push({
       type: "coach",
-      name: a.coachName,
-      returnTrip: a.returnTrip === "○",
-      familyReturn: a.familyReturn === "○"
+      name: a.coachName
     });
 
   }
@@ -845,9 +835,7 @@ if (dispatchConfirmed) {
 // =========================
 // アラート
 // =========================
-
-
-
+    
     
     driver.players ??= [];
     driver.returnPlayers ??= [];
@@ -1072,61 +1060,8 @@ activeDrivers.forEach(driver => {
 // =========================
 // 復路配車
 // =========================
-  
-// =========================
-// アラート
-// ========================
-alert(
-  returnTripTargets
-    .map(p =>
-      p.name +
-      " / " +
-      p.type +
-      " / RT:" +
-      p.returnTrip +
-      " / FR:" +
-      p.familyReturn
-    )
-    .join("\n")
-);
-// =========================
-// アラート
-// ========================
-  
 returnTripTargets.forEach(person => {
-  
-const isReturnOK = person.returnTrip === true;
-const isFamilyOK = person.familyReturn === true;
 
-if (!isReturnOK && !isFamilyOK) return;
-
-if (person.returnTrip === false) {
-
-  const family =
-    person.name
-      ?.replace(/　/g, " ")
-      .trim()
-      .split(" ")[0];
-
-  const isCoachMatch =
-    activeDrivers.some(d =>
-      d.priority === 1 &&
-      d.name.includes(family)
-    );
-
-  const isDutyMatch =
-    activeDrivers.some(d =>
-      d.priority === 2 &&
-      d.dutyName?.includes(family)
-    );
-
-  if (!isCoachMatch && !isDutyMatch) {
-    return;
-  }
-}
-
-  // ↓ここから下が「配車処理本体」
-  
   // コーチ
   if (person.type === "coach") {
 
@@ -1198,132 +1133,40 @@ if (!dutyCar) {
 
 }
 
-// 部員
-else if (person.type === "player") {
+  // 部員
+  else if (person.type === "player") {
 
-  // =========================
-  // 復路家族車
-  // =========================
-  if (person.familyReturn) {
+const playerTeam =
+  TEAM_A.includes(person.name)
+    ? "箕谷A"
+    : TEAM_B.includes(person.name)
+      ? "箕谷B"
+      : "";
 
-    const family =
-      person.name
-        .replace(/　/g, " ")
-        .trim()
-        .split(" ")[0];
+let dutyCar =
+  activeDrivers.find(
+    d =>
+      d.priority === 2 &&
+      d.team === playerTeam &&
+      d.returnPlayers.length < d.seats
+  );
 
-    let familyCar =
-      activeDrivers.find(d =>
+if (!dutyCar) {
 
-        // 試合当番車
-        (
-          d.priority === 2 &&
-          d.dutyName?.startsWith(family)
-        )
+  dutyCar =
+    activeDrivers.find(
+      d =>
+        d.priority === 2 &&
+        d.returnPlayers.length < d.seats
+    );
 
-        ||
-
-        // コーチ車
-        (
-          d.priority === 1 &&
-          d.name.startsWith(family)
-        )
-
-      );
-
-    // 家族の車が見つかった
-    if (familyCar) {
-
-      familyCar.returnPlayers.push(
-        `(${person.name})`
-      );
-
-    }
-
-    // 家族の車が無ければ通常配車
-    else {
-
-      const playerTeam =
-        TEAM_A.includes(person.name)
-          ? "箕谷A"
-          : TEAM_B.includes(person.name)
-            ? "箕谷B"
-            : "";
-
-      let dutyCar =
-        activeDrivers.find(
-          d =>
-            d.priority === 2 &&
-            d.team === playerTeam &&
-            d.returnPlayers.length < d.seats
-        );
-
-      if (!dutyCar) {
-
-        dutyCar =
-          activeDrivers.find(
-            d =>
-              d.priority === 2 &&
-              d.returnPlayers.length < d.seats
-          );
-
-      }
-
-      if (dutyCar) {
-
-        dutyCar.returnPlayers.push(person.name);
-
-      } else {
-
-        const coachCar =
-          activeDrivers.find(
-            d => d.priority === 1
-          );
-
-        if (coachCar) {
-
-          coachCar.returnPlayers.push(person.name);
-
-        }
-
-      }
-
-    }
-
-  }
-
-  // =========================
-  // 通常の復路希望
-  // =========================
-  else {
-
-    const playerTeam =
-      TEAM_A.includes(person.name)
-        ? "箕谷A"
-        : TEAM_B.includes(person.name)
-          ? "箕谷B"
-          : "";
-
-    let dutyCar =
-      activeDrivers.find(
-        d =>
-          d.priority === 2 &&
-          d.team === playerTeam &&
-          d.returnPlayers.length < d.seats
-      );
-
-    if (!dutyCar) {
-
-      dutyCar =
-        activeDrivers.find(
-          d =>
-            d.priority === 2 &&
-            d.returnPlayers.length < d.seats
-        );
-
-    }
-
-    if (dutyCar) {
+}
+    
+    if (
+      dutyCar &&
+      dutyCar.returnPlayers.length <
+      dutyCar.seats
+    ) {
 
       dutyCar.returnPlayers.push(person.name);
 
@@ -1335,17 +1178,13 @@ else if (person.type === "player") {
         );
 
       if (coachCar) {
-
         coachCar.returnPlayers.push(person.name);
-
       }
 
     }
 
   }
 
-  }
- 
 });
     
 // =========================
@@ -1674,7 +1513,6 @@ if (
 
 }
 
-/*
 html += `
 
 <hr>
@@ -1684,7 +1522,6 @@ html += `
 </h3>
 
 `;
-*/
 
  // 往路ドライバー一覧
 const outwardDrivers =
@@ -1722,128 +1559,47 @@ const family =
     : driver.name.replace("コーチ号", "")
         .replace("号", "")
         .trim();
-
+  
 const note = [];
 
-const driverFamily =
-  family
-    .replace("さん", "")
-    .replace("コーチ", "");
-  
-// =========================
-// 同じ家族の子ども（参加者のみ）
-// =========================
-parentSnap.forEach((docSnap) => {
+// 子ども
+if (PARENT_CHILD[family]) {
 
-  const a = docSnap.data();
+  PARENT_CHILD[family].forEach(name => {
+    note.push(`（${name}）`);
+  });
 
-  if (a.attendance !== "参加") return;
-
-const playerFamily =
-  a.playerName
-    .replace(/　/g, " ")
-    .trim()
-    .split(" ")[0];
-
-if (playerFamily === driverFamily) {
-  note.push(`（${a.playerName}）`);
 }
 
-});
-
-// =========================
-// 同じ家族のコーチ（参加者のみ）
-// =========================
-coachSnap.forEach((docSnap) => {
-
-  const a = docSnap.data();
-
-  if (a.attendance !== "参加") return;
-
-  const coachFamily =
-    a.coachName.replace("コーチ", "");
-
+// コーチ本人
 if (
-  coachFamily === driverFamily &&
-  a.coachName !== driver.name.replace("号", "")
+  driver.priority === 1 &&
+  COACH_CHILD[driver.name]
 ) {
-  note.push(`（${a.coachName}）`);
+
+  COACH_CHILD[driver.name].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
 }
-
-});
-
-
-  
-  
-// const note = [];
-
-// // 子ども
-// if (PARENT_CHILD[family]) {
-
-//   PARENT_CHILD[family].forEach(name => {
-//     note.push(`（${name}）`);
-//   });
-
-// }
-
-// // コーチ本人
-// if (
-//   driver.priority === 1 &&
-//   COACH_CHILD[driver.name]
-// ) {
-
-//   COACH_CHILD[driver.name].forEach(name => {
-//     note.push(`（${name}）`);
-//   });
-
-// }
-
-
-
-
-
-  
  
 if (members.length === 0) {
   return;
 }
-
-/*
-html += `
+  
+  html += `
 
 <div>
 🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.join("／")}
+${members.concat(note).join("／")}
 </div>
 
 `;
-*/
 
 });
 
-}
-  
-html += `
+} 
 
-<hr>
-
-<h3>復路配車</h3>
-
-<div>
-⭐️復路希望あり（部員）⭐️<br>
-　試合当番さんで部員の復路配車対応をお願いします。<br>
-　試合当番さんのみで対応不可の場合は、配車担当のコーチへ相談してください。
-</div>
-
-<br>
-
-<div>
-⭐️復路希望あり（コーチ）⭐️<br>
-　復路希望のコーチを往路配車したコーチで、復路配車の対応をお願いします。
-</div>
-
-`;
-  
 // =========================
 // アラート
 // =========================
