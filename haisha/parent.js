@@ -110,7 +110,7 @@ if (eventData.dispatchConfirmed) {
 <div id="driveWrap">
 
   <div class="form-group">
-    <label>送迎可能</label>
+    <label>配車可能</label>
     <select id="canDrive">
       <option value="×">×</option>
       <option value="○">○</option>    
