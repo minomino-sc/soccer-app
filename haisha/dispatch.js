@@ -1804,7 +1804,7 @@ if (editBtn) {
     "click",
     () => {
 
-      alert("配車編集モード");
+    editMode = true;
 
     }
   );
