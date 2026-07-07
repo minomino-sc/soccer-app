@@ -137,7 +137,7 @@ if (eventData.dispatchConfirmed) {
 <div id="driveArea">
 
           <div class="form-group">
-            <label>送迎可能</label>
+            <label>配車可能</label>
             <select id="canDrive">
       <option value="×">×</option>         
               <option value="○">○</option>        
@@ -220,7 +220,7 @@ if (eventData.dispatchConfirmed) {
 
     driveArea.style.display = "block";
 
-    // 送迎不可
+    // 配車不可
     if (canDrive.value === "×") {
 
       capacityArea.style.display = "none";
