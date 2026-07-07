@@ -176,7 +176,7 @@ if (data.canDrive === "○") {
 </div>
 
 <div class="event-meta">
-  送迎可能：
+  配車可能：
   ${
     data.canDrive === "○"
       ? "○"
@@ -264,7 +264,7 @@ if (data.canDrive === "○") {
 </div>
 
 <div class="event-meta">
-  🚗 送迎可能 ${canDriveCount}名
+  🚗 配車可能 ${canDriveCount}名
 </div>
 
 <div class="event-meta">
