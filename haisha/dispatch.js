@@ -586,21 +586,6 @@ const finalNeedCount =
   ).length;
 
 for (const coach of coachDrivers) {
-
-  // =========================
-  // アラート
-  // =========================  
-  alert(
-    "追加判断\n" +
-    "コーチ：" + coach.name +
-    "\n座席：" + coach.seats +
-    "\n現在capacity：" + capacity +
-    "\n必要人数needCount：" + needCount +
-    "\n最終必要人数finalNeedCount：" + finalNeedCount
-  );
-  // =========================
-  // アラート
-  // ========================
   
   if (usedCoaches.has(coach)) continue;
 
@@ -847,17 +832,7 @@ let playerIndex = 0;
 
 if (dispatchConfirmed) {
 
-  savedDispatch.forEach(driver => {
-
-
-// =========================
-// アラート
-// =========================    
-//   alert("dispatchConfirmed終了");
-// =========================
-// アラート
-// =========================
-    
+  savedDispatch.forEach(driver => {    
     
     driver.players ??= [];
     driver.returnPlayers ??= [];
@@ -865,29 +840,7 @@ if (dispatchConfirmed) {
 
   });
 
-  activeDrivers = savedDispatch;
-
-
-
-// =========================
-// アラート
-// =========================
-let msg = "台数：" + activeDrivers.length;
-
-activeDrivers.forEach((driver, i) => {
-  msg +=
-    "\n\n" +
-    (i + 1) +
-    "台目\n" +
-    JSON.stringify(driver);
-});
-
-alert(msg);
-// =========================
-// アラート
-// =========================
-
-  
+  activeDrivers = savedDispatch;  
 
 } else {
   
@@ -1278,22 +1231,7 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
     bCoaches[0].equipment.push("B");
   }  
 
-}
-
-
-// =========================
-// アラート
-// ========================
-alert("試合道具終了");
-// =========================
-// アラート
-// ========================
-
-
-
-
-
-  
+} 
 
 const remainPlayers =
   targetPlayers.slice(
@@ -1417,20 +1355,7 @@ ${members.join("／")}
 
 } 
 
-
-
- // =========================
-// 切り取り（start）
-// =========================  
 activeDrivers.forEach(driver => {
-
-// =========================
-// アラート
-// =========================  
-alert("表示開始：" + driver.name);
-// =========================
-// アラート
-// =========================
   
   if (
     driver.players.length === 0 &&
@@ -1626,17 +1551,7 @@ ${player.returnTrip ? "◎" : ""}
 }
   
 });
-// =========================
-// 切り取り（end）
-// ========================= 
-
-
-
-
-
-
   
-
 html += `
 
 <hr>
@@ -1657,27 +1572,11 @@ html += `
 </div>
 
 `;
-
-// =========================
-// アラート
-// =========================
-alert("HTML文字数：" + html.length);
-// =========================
-// アラート
-// =========================
   
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
   html;
-
-// =========================
-// アラート
-// =========================
-alert("dispatchAreaセット完了");
-// =========================
-// アラート
-// =========================
   
 document.getElementById("buttonArea").innerHTML =
 dispatchConfirmed
