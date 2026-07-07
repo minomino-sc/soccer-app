@@ -46,6 +46,8 @@ if (!cancelBtn) {
       document.getElementById("departureTime").value = data.departureTime || "";
       document.getElementById("dismissTime").value = data.dismissTime || "";
       document.getElementById("deadline").value = data.deadline || "";
+document.getElementById("dispatchComment").value =
+  data.dispatchComment || "";    
     }
   }
 
@@ -64,6 +66,8 @@ if (!cancelBtn) {
       departureTime: document.getElementById("departureTime").value,
       dismissTime: document.getElementById("dismissTime").value,
       deadline: document.getElementById("deadline").value,
+dispatchComment:
+  document.getElementById("dispatchComment").value,
       createdAt: Date.now()
     };
 
