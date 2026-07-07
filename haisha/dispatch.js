@@ -35,7 +35,8 @@ const id =
 
 let activeDrivers = [];
 
-let editMode = false;
+let editMode =
+  sessionStorage.getItem("editMode") === "true";
 
   const usedNames = new Set();
 
@@ -1804,8 +1805,13 @@ if (editBtn) {
     "click",
     () => {
 
-    editMode = true;
+sessionStorage.setItem(
+  "editMode",
+  "true"
+);
 
+location.reload();
+      
     }
   );
 
