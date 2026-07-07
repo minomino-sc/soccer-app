@@ -1572,7 +1572,30 @@ html += `
 </div>
 
 `;
-  
+
+if (eventData.dispatchComment) {
+
+  html += `
+
+<hr>
+
+<h3>コメント</h3>
+
+<div
+style="
+padding:12px;
+border:1px solid #ccc;
+border-radius:8px;
+white-space:pre-wrap;
+"
+>
+${eventData.dispatchComment}
+</div>
+
+`;
+
+}
+ 
 document.getElementById(
   "dispatchArea"
 ).innerHTML =
