@@ -1575,24 +1575,18 @@ html += `
 
 if (eventData.dispatchComment) {
 
-  html += `
-
+html += `
 <hr>
 
 <h3>コメント</h3>
 
-<div
-style="
-padding:8px 12px;
+<pre style="
 border:1px solid #ccc;
 border-radius:8px;
+padding:10px;
+margin-top:0;
 white-space:pre-wrap;
-line-height:1.5;
-"
->
-${eventData.dispatchComment}
-</div>
-
+">${eventData.comment || ""}</pre>
 `;
 
 }
