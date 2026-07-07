@@ -1547,7 +1547,7 @@ ${player.returnTrip ? "◎" : ""}
 </tr>
 
 `;
-
+  
 }
   
 });
