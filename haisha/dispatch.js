@@ -1245,7 +1245,7 @@ if (dutyA && dutyA.canCarryEquipment === "○") {
   if (aCoaches.length) {
     aCoaches[0].equipment.push("A");
   }
-
+    
 }
 
 // B
@@ -1276,7 +1276,7 @@ if (dutyB && dutyB.canCarryEquipment === "○") {
 
   if (bCoaches.length) {
     bCoaches[0].equipment.push("B");
-  }
+  }  
 
 }
 
@@ -1289,7 +1289,137 @@ alert("試合道具終了");
 // アラート
 // ========================
 
-// =========================
+
+
+
+
+  
+
+const remainPlayers =
+  targetPlayers.slice(
+    playerIndex
+  );
+
+if (
+  remainPlayers.length > 0
+) {
+
+  html += `
+
+    <hr>
+
+    <h3>
+      🚨 配車できなかった選手
+    </h3>
+
+  `;
+
+  remainPlayers.forEach(player => {
+
+    html += `
+      <div>
+        ${player.name}
+      </div>
+    `;
+
+  });
+
+}
+
+/*
+html += `
+
+<hr>
+
+<h3>
+復路配車一覧
+</h3>
+
+`;
+*/
+
+ // 往路ドライバー一覧
+const outwardDrivers =
+  activeDrivers.map(driver => {
+
+    if (driver.priority === 2) {
+
+      return driver.name.replace("号", "");
+
+    }
+
+    return driver.name;
+
+  }); 
+
+activeDrivers.forEach(driver => {
+
+  if (
+    !driver.returnPlayers ||
+    driver.returnPlayers.length === 0
+  ) {
+    return;
+  }
+
+const members =
+  driver.returnPlayers.filter(name => {
+
+    return !outwardDrivers.includes(name);
+
+  });
+
+const family =
+  driver.priority === 3
+    ? driver.name.replace("さん号", "")
+    : driver.name.replace("コーチ号", "")
+        .replace("号", "")
+        .trim();
+  
+const note = [];
+
+// 子ども
+if (PARENT_CHILD[family]) {
+
+  PARENT_CHILD[family].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
+
+// コーチ本人
+if (
+  driver.priority === 1 &&
+  COACH_CHILD[driver.name]
+) {
+
+  COACH_CHILD[driver.name].forEach(name => {
+    note.push(`（${name}）`);
+  });
+
+}
+ 
+if (members.length === 0) {
+  return;
+}
+
+/*
+html += `
+
+<div>
+🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
+${members.join("／")}
+</div>
+
+`;
+*/
+  
+});
+
+} 
+
+
+
+ // =========================
 // 切り取り（start）
 // =========================  
 activeDrivers.forEach(driver => {
@@ -1498,133 +1628,14 @@ ${player.returnTrip ? "◎" : ""}
 });
 // =========================
 // 切り取り（end）
-// =========================  
+// ========================= 
+
+
+
 
 
 
   
-
-const remainPlayers =
-  targetPlayers.slice(
-    playerIndex
-  );
-
-if (
-  remainPlayers.length > 0
-) {
-
-  html += `
-
-    <hr>
-
-    <h3>
-      🚨 配車できなかった選手
-    </h3>
-
-  `;
-
-  remainPlayers.forEach(player => {
-
-    html += `
-      <div>
-        ${player.name}
-      </div>
-    `;
-
-  });
-
-}
-
-/*
-html += `
-
-<hr>
-
-<h3>
-復路配車一覧
-</h3>
-
-`;
-*/
-
- // 往路ドライバー一覧
-const outwardDrivers =
-  activeDrivers.map(driver => {
-
-    if (driver.priority === 2) {
-
-      return driver.name.replace("号", "");
-
-    }
-
-    return driver.name;
-
-  }); 
-
-activeDrivers.forEach(driver => {
-
-  if (
-    !driver.returnPlayers ||
-    driver.returnPlayers.length === 0
-  ) {
-    return;
-  }
-
-const members =
-  driver.returnPlayers.filter(name => {
-
-    return !outwardDrivers.includes(name);
-
-  });
-
-const family =
-  driver.priority === 3
-    ? driver.name.replace("さん号", "")
-    : driver.name.replace("コーチ号", "")
-        .replace("号", "")
-        .trim();
-  
-const note = [];
-
-// 子ども
-if (PARENT_CHILD[family]) {
-
-  PARENT_CHILD[family].forEach(name => {
-    note.push(`（${name}）`);
-  });
-
-}
-
-// コーチ本人
-if (
-  driver.priority === 1 &&
-  COACH_CHILD[driver.name]
-) {
-
-  COACH_CHILD[driver.name].forEach(name => {
-    note.push(`（${name}）`);
-  });
-
-}
- 
-if (members.length === 0) {
-  return;
-}
-
-/*
-html += `
-
-<div>
-🚗 ${driver.name.endsWith("号") ? driver.name : driver.name + "号"}：
-${members.join("／")}
-</div>
-
-`;
-*/
-  
-});
-
-} 
 
 html += `
 
