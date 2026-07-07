@@ -191,7 +191,7 @@ if (eventData.dispatchConfirmed) {
 
       <div class="form-group">
         <label>
-          送迎可能
+          配車可能
         </label>
 
         <select id="canDrive">
