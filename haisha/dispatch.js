@@ -1573,30 +1573,23 @@ html += `
 
 `;
 
-// =========================
-// コメント
-// =========================
-if (eventData.comment) {
+if (eventData.dispatchComment) {
 
-html += `
+  html += `
 
 <hr>
 
-<h3 style="
-margin:0 0 6px 0;
-">
-コメント
-</h3>
+<h3>コメント</h3>
 
-<div style="
+<div
+style="
+padding:12px;
 border:1px solid #ccc;
 border-radius:8px;
-padding:10px;
 white-space:pre-wrap;
-line-height:1.5;
-font-family:inherit;
-">
-${eventData.comment}
+"
+>
+${eventData.dispatchComment}
 </div>
 
 `;
