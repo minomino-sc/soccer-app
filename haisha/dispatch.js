@@ -1583,10 +1583,11 @@ if (eventData.dispatchComment) {
 
 <div
 style="
-padding:12px;
+padding:8px 12px;
 border:1px solid #ccc;
 border-radius:8px;
 white-space:pre-wrap;
+line-height:1.5;
 "
 >
 ${eventData.dispatchComment}
