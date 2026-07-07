@@ -35,9 +35,6 @@ const id =
 
 let activeDrivers = [];
 
-let editMode =
-  sessionStorage.getItem("editMode") === "true";
-
   const usedNames = new Set();
 
 const eventSnap =
@@ -1444,30 +1441,10 @@ ${player.returnTrip
 style="
 border:1px solid #ccc;
 padding:4px;
+text-align:center;
 "
 >
-
-${
-  editMode && player.role === "選手"
-
-  ? `
-<select
-class="playerSelect"
-data-driver="${driver.name}"
-data-index="${index}"
->
-
-<option>
-${player.name}
-</option>
-
-</select>
-`
-
-  : player.name
-
-}
-
+${index + 1}
 </td>
 
 <td
@@ -1696,10 +1673,6 @@ dispatchConfirmed
 ? `
 <div style="margin-top:30px;text-align:center;">
 
-<button id="editBtn">
-✏️ 配車編集
-</button>
-
 <button id="cancelBtn">
 ❌ 配車確定取消
 </button>
@@ -1791,27 +1764,6 @@ alert("配車を確定しました。");
 
 location.reload();
 
-    }
-  );
-
-}
-
-const editBtn =
-  document.getElementById("editBtn");
-
-if (editBtn) {
-
-  editBtn.addEventListener(
-    "click",
-    () => {
-
-sessionStorage.setItem(
-  "editMode",
-  "true"
-);
-
-location.reload();
-      
     }
   );
 
