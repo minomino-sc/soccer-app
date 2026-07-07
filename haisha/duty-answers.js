@@ -74,7 +74,7 @@ if (data.returnTrip === "×") {
   returnTripNo++;
 }
 
-    // 送迎集計
+    // 配車集計
     if (data.canDrive === "○") {
 
       driveYes++;
@@ -107,7 +107,7 @@ if (data.returnTrip === "×") {
         </div>
 
         <div class="event-meta">
-          送迎：${data.canDrive}
+          配車：${data.canDrive}
         </div>
 
 <div class="event-meta">
@@ -152,11 +152,11 @@ if (data.returnTrip === "×") {
       </div>
 
       <div class="event-meta">
-        🚗送迎可能 ${driveYes}
+        🚗配車可能 ${driveYes}
       </div>
 
       <div class="event-meta">
-        ❌送迎不可 ${driveNo}
+        ❌配車不可 ${driveNo}
       </div>
 
       <div class="event-meta">
