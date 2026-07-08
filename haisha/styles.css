@@ -17,9 +17,13 @@ body{
 }
 
 .overlay{
-  padding:20px;
-  max-width:900px;
-  margin:0 auto;
+
+  max-width:1000px;
+
+  margin:30px auto;
+
+  padding:30px;
+
 }
 
 /* =========================
@@ -133,7 +137,7 @@ margin:20px 0 10px;
 
 .event-card{
 
-  background:#ffffff;
+  background:rgba(255,255,255,.95);
 
   border-radius:28px;
 
@@ -243,12 +247,19 @@ margin:20px 0 10px;
 /* =========================
    配車画面
 ========================= */
-
 body.dispatch-page{
 
-  background:#f6f8fb;
+  background:
+    url("images/bg-road.png") bottom center/100% auto no-repeat,
+    linear-gradient(
+      180deg,
+      #bfe8ff 0%,
+      #f4fbff 260px,
+      #f6f8fb 260px,
+      #f6f8fb 100%
+    );
 
-  color:#000;
+  color:#222;
 }
 
 body.dispatch-page table,
@@ -265,12 +276,14 @@ body.dispatch-page table{
 
   background:#fff;
 
-  border-radius:14px;
+  border-radius:22px;
 
   overflow:hidden;
 
+  margin-bottom:22px;
+
   box-shadow:
-    0 4px 12px rgba(0,0,0,.08);
+    0 12px 30px rgba(0,0,0,.10);
 }
 
 /* =========================
@@ -285,7 +298,7 @@ body.dispatch-page table{
 
   font-size:18px;
 
-  padding:16px 28px;
+  padding:18px 34px;
 
   border:none;
 
@@ -298,6 +311,8 @@ body.dispatch-page table{
   cursor:pointer;
 
   margin:6px;
+
+  transition:.2s;
 
   color:#fff;
 
@@ -319,4 +334,36 @@ body.dispatch-page table{
       #888,
       #666
     );
+}
+
+body.dispatch-page h2{
+
+  font-size:34px;
+
+  color:#1976d2;
+
+  margin-bottom:20px;
+
+  font-weight:900;
+
+}
+
+body.dispatch-page h3{
+
+  color:#1976d2;
+
+  margin-top:28px;
+
+  margin-bottom:12px;
+
+}
+
+#pdfBtn:active,
+#lineBtn:active,
+#confirmBtn:active,
+#cancelBtn:active,
+#editBtn:active{
+
+  transform:scale(.97);
+
 }
