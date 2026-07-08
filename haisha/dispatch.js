@@ -59,6 +59,12 @@ else {
   const eventData =
     eventSnap.data();
 
+// =========================
+// 配車モード
+// =========================
+const dispatchMode =
+  eventData.dispatchMode || "max";
+
 const dispatchConfirmed =
   eventData.dispatchConfirmed === true;
 
@@ -337,12 +343,17 @@ coachSnap.forEach((docSnap) => {
     )
   ) {
 
-    const seats =
-      Math.max(
-        Number(a.capacity || 0) - 1,
-        0
-      );
+const baseSeats =
+  Math.max(
+    Number(a.capacity || 0) - 1,
+    0
+  );
 
+const seats =
+  dispatchMode === "relaxed"
+    ? Math.max(baseSeats - 2, 1)
+    : baseSeats;
+    
     let team = "";
 
     if (
@@ -387,11 +398,16 @@ dutySnap.forEach((docSnap) => {
     a.canDrive === "◯"
   ) {
 
-    const seats =
-      Math.max(
-        Number(a.capacity || 0) - 1,
-        0
-      );
+const baseSeats =
+  Math.max(
+    Number(a.capacity || 0) - 1,
+    0
+  );
+
+const seats =
+  dispatchMode === "relaxed"
+    ? Math.max(baseSeats - 2, 1)
+    : baseSeats;
 
     const family =
       a.dutyName.split(" ")[0];
@@ -460,11 +476,16 @@ parentSnap.forEach((docSnap) => {
     )
   ) {
 
-    const seats =
-      Math.max(
-        Number(a.capacity || 0) - 1,
-        0
-      );
+const baseSeats =
+  Math.max(
+    Number(a.capacity || 0) - 1,
+    0
+  );
+
+const seats =
+  dispatchMode === "relaxed"
+    ? Math.max(baseSeats - 2, 1)
+    : baseSeats;
 
 const family =
   a.playerName
