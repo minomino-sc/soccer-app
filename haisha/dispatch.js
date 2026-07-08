@@ -374,11 +374,12 @@ const seats =
 
 if (usedNames.has(a.coachName)) return;
 usedNames.add(a.coachName);
-    
+
 drivers.push({
   priority: 1,
   team,
-name: a.coachName,
+  name: a.coachName,
+  capacity: Number(a.capacity || 0), // ←追加
   seats,
   count: driverCounts[a.coachName] || 0
 });
@@ -455,6 +456,7 @@ drivers.push({
   canCarryEquipment:
     a.canCarryEquipment || "×",
   name: `${family}さん号`,
+  capacity: Number(a.capacity || 0), // ←追加
   seats,
   count: driverCounts[family] || 0
 });
@@ -511,6 +513,7 @@ drivers.push({
   team,
   playerName: a.playerName,
   name: `${family}さん号`,
+  capacity: Number(a.capacity || 0), // ←追加
   seats,
   count: driverCounts[family] || 0
 });
@@ -1417,7 +1420,7 @@ font-weight:bold;
 text-align:right;
 "
 >
-定員：${driver.seats}名 ／
+定員：${driver.capacity}名 ／
 乗車：${driver.players.length}名 ／
 空席：${driver.seats - driver.players.length}名 ／
 試合道具：${
