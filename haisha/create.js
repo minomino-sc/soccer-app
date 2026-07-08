@@ -44,8 +44,8 @@ if (!cancelBtn) {
       document.getElementById("meetingPlace").value = data.meetingPlace || "";
       document.getElementById("meetingTime").value = data.meetingTime || "";
       document.getElementById("departureTime").value = data.departureTime || "";
-      document.getElementById("dismissTime").value = document.getElementById("deadline").value = data.deadline || "";     
-      document.getElementById("deadline").value = data.deadline || "";
+document.getElementById("dismissTime").value =　data.dismissTime || "";
+      document.getElementById("deadline").value = data.deadline || "";   
 document.getElementById("dispatchMode").value =
   data.dispatchMode || "max";
 document.getElementById("dispatchComment").value =
@@ -69,6 +69,8 @@ document.getElementById("dispatchComment").value =
       departureTime: document.getElementById("departureTime").value,
       dismissTime: document.getElementById("dismissTime").value,
       deadline: document.getElementById("deadline").value,
+      dispatchMode:
+  document.getElementById("dispatchMode").value,
 dispatchComment:
   document.getElementById("dispatchComment").value,
       createdAt: Date.now()
