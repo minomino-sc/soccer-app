@@ -367,3 +367,13 @@ body.dispatch-page h3{
   transform:scale(.97);
 
 }
+
+.event-list{
+
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+
+  margin-top:24px;
+
+}
