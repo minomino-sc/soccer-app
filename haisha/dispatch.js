@@ -1589,8 +1589,7 @@ border-radius:8px;
 white-space:pre-wrap;
 "
 >
-${eventData.dispatchComment}
-</div>
+${eventData.dispatchComment}</div>
 
 `;
 
