@@ -102,7 +102,7 @@ margin:20px 0 10px;
 #createBtn{
   width:100%;
 
-  padding:20px;
+  padding:16px;
 
   border:none;
 
@@ -117,7 +117,7 @@ margin:20px 0 10px;
 
   color:#fff;
 
-  font-size:20px;
+  font-size:18px;
 
   font-weight:bold;
 
@@ -163,7 +163,7 @@ margin:20px 0 10px;
 }
 
 .event-title{
-  font-size:30px;
+  font-size:24px;
   font-weight:bold;
   margin-top:8px;
   color:#222;
@@ -173,7 +173,7 @@ margin:20px 0 10px;
   margin-top:10px;
   color:#1976d2;
   font-weight:bold;
-  font-size:20px;
+  font-size:17px;
 }
 
 .event-status{
