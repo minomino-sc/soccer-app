@@ -44,10 +44,13 @@ if (!cancelBtn) {
       document.getElementById("meetingPlace").value = data.meetingPlace || "";
       document.getElementById("meetingTime").value = data.meetingTime || "";
       document.getElementById("departureTime").value = data.departureTime || "";
-      document.getElementById("dismissTime").value = data.dismissTime || "";
+      document.getElementById("dismissTime").value = document.getElementById("deadline").value = data.deadline || "";     
       document.getElementById("deadline").value = data.deadline || "";
+document.getElementById("dispatchMode").value =
+  data.dispatchMode || "max";
 document.getElementById("dispatchComment").value =
-  data.dispatchComment || "";    
+  data.dispatchComment || "";     
+
     }
   }
 
