@@ -1587,9 +1587,11 @@ padding:12px;
 border:1px solid #ccc;
 border-radius:8px;
 white-space:pre-wrap;
+display:flex;
+align-items:flex-start;
+justify-content:flex-start;
 "
->
->${JSON.stringify(eventData.dispatchComment)}</div>
+>${eventData.dispatchComment}</div>
 
 `;
 
