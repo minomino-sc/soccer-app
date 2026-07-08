@@ -1583,13 +1583,13 @@ if (eventData.dispatchComment) {
 
 <div
 style="
-padding:0px;
+padding:12px;
 border:1px solid #ccc;
 border-radius:8px;
 white-space:pre-wrap;
 "
 >
-${eventData.dispatchComment}</div>
+>${JSON.stringify(eventData.dispatchComment)}</div>
 
 `;
 
