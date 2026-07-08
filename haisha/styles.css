@@ -3,10 +3,11 @@ body{
   font-family:system-ui;
 
   background:
+    url("images/bg-road.png") bottom center/100% auto no-repeat,
     linear-gradient(
       180deg,
-      #8fd3ff 0%,
-      #dff4ff 260px,
+      #bfe8ff 0%,
+      #f4fbff 260px,
       #f6f8fb 260px,
       #f6f8fb 100%
     );
@@ -83,7 +84,11 @@ h1{
   text-align:center;
   margin:10px 0 24px;
   color:#184c8f;
-  font-size:34px;
+  font-size:42px;
+font-weight:900;
+letter-spacing:1px;
+margin:20px 0 10px;
+  
 }
 
 .top-actions{
@@ -93,11 +98,11 @@ h1{
 #createBtn{
   width:100%;
 
-  padding:18px;
+  padding:20px;
 
   border:none;
 
-  border-radius:18px;
+  border-radius:999px;
 
   background:
     linear-gradient(
@@ -130,14 +135,14 @@ h1{
 
   background:#ffffff;
 
-  border-radius:22px;
+  border-radius:28px;
 
-  padding:20px;
+  padding:24px;
 
   color:#222;
 
   box-shadow:
-    0 8px 24px rgba(0,0,0,.08);
+    0 12px 35px rgba(0,0,0,.10);
 
   cursor:pointer;
 
@@ -185,9 +190,9 @@ h1{
 
   padding:14px;
 
-  background:#f4f8fc;
+  background:#edf7ff;
 
-  border-radius:16px;
+  border-radius:20px;
 }
 
 /* =========================
@@ -280,11 +285,11 @@ body.dispatch-page table{
 
   font-size:18px;
 
-  padding:14px 24px;
+  padding:16px 28px;
 
   border:none;
 
-  border-radius:12px;
+  border-radius:999px;
 
   font-weight:bold;
 
