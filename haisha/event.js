@@ -366,7 +366,7 @@ else {
 </div>
 
 <div
-  class="event-card menu-card"
+  class="event-card menu-card dispatch-card"
   id="dispatchMenu">
 
   <div class="event-title">
