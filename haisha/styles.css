@@ -350,15 +350,17 @@ body.dispatch-page #cancelBtn:active{
 .line-btn,
 .edit-btn,
 .delete-btn{
-  flex:1;
-  height:18px;
+  flex:none;
+  width:78px;
+  height:30px;
+
   padding:0;
 
   background:#fff;
   border:1px solid;
   border-radius:999px;
 
-  font-size:8px;
+  font-size:12px;
   font-weight:bold;
 
   cursor:pointer;
