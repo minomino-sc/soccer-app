@@ -252,7 +252,6 @@ body.dispatch-page table{
 #pdfBtn,
 #lineBtn,
 #confirmBtn,
-#cancelBtn,
 #editBtn{
   font-size:18px;
   padding:18px 34px;
@@ -274,13 +273,27 @@ body.dispatch-page table{
     0 6px 16px rgba(0,0,0,.15);
 }
 
-#cancelBtn{
+body.dispatch-page #cancelBtn{
+  font-size:18px;
+  padding:18px 34px;
+  border:none;
+  border-radius:999px;
+  font-weight:bold;
+  min-width:150px;
+  cursor:pointer;
+  margin:6px;
+  transition:.2s;
+  color:#fff;
+
   background:
     linear-gradient(
       135deg,
       #888,
       #666
     );
+
+  box-shadow:
+    0 6px 16px rgba(0,0,0,.15);
 }
 
 body.dispatch-page h2{
@@ -299,7 +312,9 @@ body.dispatch-page h3{
 #pdfBtn:active,
 #lineBtn:active,
 #confirmBtn:active,
-#cancelBtn:active,
+body.dispatch-page #cancelBtn:active{
+  transform:scale(.97);
+}
 #editBtn:active{
   transform:scale(.97);
 }
