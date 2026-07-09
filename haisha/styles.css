@@ -383,3 +383,14 @@ body.dispatch-page #cancelBtn:active{
   color:#d94a4a;
   border-color:#d94a4a;
 }
+
+.dispatch-card{
+  display:flex;
+  align-items:center;
+}
+
+.dispatch-card .event-title{
+  margin:0;
+  font-size:16px;
+  text-align:left;
+}
