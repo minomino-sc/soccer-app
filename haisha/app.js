@@ -116,7 +116,7 @@ card.innerHTML = `
 
     <img
       class="event-illustration"
-      src="images/soccer-field.png"
+      src="https://github.com/minomino-sc/soccer-app/blob/main/haisha/18030398-C91A-43B4-8FD1-1A8F821FFF50.png"
       alt="サッカー場">
 
   </div>
