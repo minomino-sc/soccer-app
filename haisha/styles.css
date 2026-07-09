@@ -394,3 +394,19 @@ body.dispatch-page #cancelBtn:active{
   font-size:16px;
   text-align:left;
 }
+
+.event-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+
+.event-info{
+  flex:1;
+}
+
+.event-illust{
+  width:110px;
+  height:auto;
+  margin-left:12px;
+}
