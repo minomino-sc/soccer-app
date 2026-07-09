@@ -17,19 +17,14 @@ body{
 }
 
 .overlay{
-
   max-width:1000px;
-
   margin:10px auto 30px;
-
   padding:30px;
-
 }
 
 /* =========================
    入力フォーム
 ========================= */
-
 .form-card{
   max-width:500px;
   margin:0 auto;
@@ -54,20 +49,14 @@ select{
   width:100%;
   height:44px;
   padding:0 12px;
-
   border:none;
   border-radius:12px;
-
   background:#fff;
-
   font-size:16px;
-
   box-sizing:border-box;
-
   appearance:none;
   -webkit-appearance:none;
   -moz-appearance:none;
-
   box-shadow:
     0 2px 8px rgba(0,0,0,.08);
 }
@@ -101,13 +90,9 @@ margin:0 0 10px;
 
 #createBtn{
   width:100%;
-
   padding:16px;
-
   border:none;
-
   border-radius:999px;
-
   background:
     linear-gradient(
       135deg,
@@ -116,11 +101,8 @@ margin:0 0 10px;
     );
 
   color:#fff;
-
   font-size:18px;
-
   font-weight:bold;
-
   box-shadow:
     0 10px 25px rgba(22,120,255,.35);
 }
@@ -128,7 +110,6 @@ margin:0 0 10px;
 /* =========================
    イベント一覧
 ========================= */
-
 .event-list{
   display:flex;
   flex-direction:column;
@@ -191,13 +172,9 @@ margin:0 0 10px;
 /* =========================
    過去イベント
 ========================= */
-
 .event-card.past{
-
   opacity:.65;
-
   background:#eceff3;
-
   filter:none;
 }
 
@@ -220,7 +197,6 @@ margin:0 0 10px;
 /* =========================
    メニューカード
 ========================= */
-
 .menu-card{
   margin-top:12px;
 }
@@ -262,15 +238,10 @@ body.dispatch-page h3{
 }
 
 body.dispatch-page table{
-
   background:#fff;
-
   border-radius:8px;
-
   overflow:hidden;
-
   margin-bottom:18px;
-
   box-shadow:
     0 6px 16px rgba(0,0,0,.08);
 }
@@ -278,40 +249,27 @@ body.dispatch-page table{
 /* =========================
    ボタン
 ========================= */
-
 #pdfBtn,
 #lineBtn,
 #confirmBtn,
 #cancelBtn,
 #editBtn{
-
   font-size:18px;
-
   padding:18px 34px;
-
   border:none;
-
   border-radius:999px;
-
   font-weight:bold;
-
   min-width:150px;
-
   cursor:pointer;
-
   margin:6px;
-
   transition:.2s;
-
   color:#fff;
-
   background:
     linear-gradient(
       135deg,
       #1678ff,
       #4ca7ff
     );
-
   box-shadow:
     0 6px 16px rgba(0,0,0,.15);
 }
@@ -326,25 +284,16 @@ body.dispatch-page table{
 }
 
 body.dispatch-page h2{
-
   font-size:34px;
-
   color:#1976d2;
-
   margin-bottom:20px;
-
   font-weight:900;
-
 }
 
 body.dispatch-page h3{
-
   color:#1976d2;
-
   margin-top:28px;
-
   margin-bottom:12px;
-
 }
 
 #pdfBtn:active,
@@ -352,37 +301,25 @@ body.dispatch-page h3{
 #confirmBtn:active,
 #cancelBtn:active,
 #editBtn:active{
-
   transform:scale(.97);
-
 }
 
 .event-list{
-
   display:flex;
   flex-direction:column;
   gap:18px;
-
   margin-top:24px;
-
 }
 
 .subTitle{
-
   text-align:center;
-
   font-size:14px;
-
   font-weight:bold;
-
   color:#1976d2;
-
   margin-bottom:24px;
-
 }
 
 /* 回答一覧カード間隔 */
-
 #answerList{
   display:flex;
   flex-direction:column;
