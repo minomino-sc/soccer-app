@@ -136,20 +136,13 @@ margin:0 0 10px;
 }
 
 .event-card{
-
   background:rgba(255,255,255,.95);
-
-  border-radius:22px;
-
+  border-radius:12px;
   padding:16px;
-
   color:#222;
-
   box-shadow:
     0 12px 35px rgba(0,0,0,.10);
-
   cursor:pointer;
-
   transition:.2s;
 }
 
@@ -189,14 +182,10 @@ margin:0 0 10px;
 }
 
 .event-block{
-
   margin-top:10px;
-
   padding:10px;
-
   background:#edf7ff;
-
-  border-radius:16px;
+  border-radius:8px;
 }
 
 /* =========================
@@ -276,14 +265,14 @@ body.dispatch-page table{
 
   background:#fff;
 
-  border-radius:22px;
+  border-radius:8px;
 
   overflow:hidden;
 
-  margin-bottom:22px;
+  margin-bottom:18px;
 
   box-shadow:
-    0 12px 30px rgba(0,0,0,.10);
+    0 6px 16px rgba(0,0,0,.08);
 }
 
 /* =========================
