@@ -385,10 +385,12 @@ body.dispatch-page #cancelBtn:active{
 }
 
 .dispatch-card{
-  text-align:center;
+  display:flex;
+  align-items:center;
 }
 
 .dispatch-card .event-title{
   margin:0;
   font-size:16px;
+  text-align:left;
 }
