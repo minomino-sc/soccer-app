@@ -365,9 +365,7 @@ else {
 
 </div>
 
-<div
-  class="event-card menu-card dispatch-card"
-  id="dispatchMenu">
+<div class="event-card menu-card" id="dispatchMenu">
 
   <div class="event-title">
     🚗 配車作成
