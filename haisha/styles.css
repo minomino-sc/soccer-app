@@ -396,18 +396,18 @@ body.dispatch-page #cancelBtn:active{
 }
 
 .event-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
+  position:relative;
+}
+
+.event-illustration{
+  position:absolute;
+  right:10px;
+  top:10px;
+  width:45px;
+  height:45px;
+  object-fit:contain;
 }
 
 .event-info{
   flex:1;
-}
-
-.event-illustration{
-  width:120px;
-  height:120px;
-  object-fit:contain;
-  margin-left:12px;
 }
