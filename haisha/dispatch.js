@@ -1416,8 +1416,10 @@ flex-shrink:0;
 <div
 style="
 flex:1;
+font-size:14px;
 font-weight:bold;
 text-align:right;
+white-space:nowrap;
 "
 >
 定員：${driver.capacity}名 ／
