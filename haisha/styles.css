@@ -340,3 +340,41 @@ body.dispatch-page #cancelBtn:active{
   flex-direction:column;
   gap:18px;
 }
+
+.event-actions{
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+}
+
+.line-btn,
+.edit-btn,
+.delete-btn{
+  flex:1;
+  height:42px;
+
+  background:#fff;
+  border:2px solid;
+  border-radius:999px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+/* LINE送信 */
+.line-btn{
+  color:#2fad58;
+  border-color:#2fad58;
+}
+
+/* 編集 */
+.edit-btn{
+  color:#2b6fe8;
+  border-color:#2b6fe8;
+}
+
+/* 削除 */
+.delete-btn{
+  color:#d94a4a;
+  border-color:#d94a4a;
+}
