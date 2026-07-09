@@ -177,6 +177,13 @@ card.querySelector(".edit-btn").addEventListener("click", (e) => {
 
   e.stopPropagation();
 
+  if (data.dispatchConfirmed) {
+
+    alert("配車確定後は編集できません。\n配車確定を取り消してから編集してください。");
+
+    return;
+  }
+
   localStorage.setItem("editId", docSnap.id);
   window.location.href = "create.html";
 
