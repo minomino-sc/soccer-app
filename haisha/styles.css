@@ -132,16 +132,16 @@ margin:0 0 10px;
 .event-list{
   display:flex;
   flex-direction:column;
-  gap:18px;
+  gap:12px;
 }
 
 .event-card{
 
   background:rgba(255,255,255,.95);
 
-  border-radius:28px;
+  border-radius:22px;
 
-  padding:24px;
+  padding:16px;
 
   color:#222;
 
@@ -190,13 +190,13 @@ margin:0 0 10px;
 
 .event-block{
 
-  margin-top:14px;
+  margin-top:10px;
 
-  padding:14px;
+  padding:10px;
 
   background:#edf7ff;
 
-  border-radius:20px;
+  border-radius:16px;
 }
 
 /* =========================
