@@ -403,8 +403,8 @@ body.dispatch-page #cancelBtn:active{
   position:absolute;
   right:10px;
   top:10px;
-  width:45px;
-  height:45px;
+  width:100px;
+  height:100px;
   object-fit:contain;
 }
 
