@@ -353,11 +353,15 @@ body.dispatch-page #cancelBtn:active{
   flex:1;
   height:34px;
 
+  padding:0;
+
   background:#fff;
   border:2px solid;
   border-radius:999px;
+
   font-size:13px;
   font-weight:bold;
+
   cursor:pointer;
 }
 
