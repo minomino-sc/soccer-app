@@ -406,7 +406,8 @@ body.dispatch-page #cancelBtn:active{
 }
 
 .event-illustration{
-  width:110px;
-  height:auto;
+  width:60px;
+  height:60px;
+  object-fit:contain;
   margin-left:12px;
 }
