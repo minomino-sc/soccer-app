@@ -278,33 +278,21 @@ body.dispatch-page table{
 /* =========================
    ボタン
 ========================= */
-
-#pdfBtn,
-#lineBtn,
-#confirmBtn,
-#cancelBtn,
-#editBtn{
-
+body.dispatch-page #pdfBtn,
+body.dispatch-page #lineBtn,
+body.dispatch-page #confirmBtn,
+body.dispatch-page #cancelBtn,
+body.dispatch-page #editBtn{
   font-size:18px;
-
   padding:18px 34px;
-
   border:none;
-
   border-radius:999px;
-
   font-weight:bold;
-
   min-width:150px;
-
   cursor:pointer;
-
   margin:6px;
-
   transition:.2s;
-
   color:#fff;
-
   background:
     linear-gradient(
       135deg,
@@ -317,6 +305,7 @@ body.dispatch-page table{
 }
 
 #cancelBtn{
+body.dispatch-page #cancelBtn{
   background:
     linear-gradient(
       135deg,
@@ -326,63 +315,42 @@ body.dispatch-page table{
 }
 
 body.dispatch-page h2{
-
   font-size:34px;
-
   color:#1976d2;
-
   margin-bottom:20px;
-
   font-weight:900;
-
 }
 
 body.dispatch-page h3{
-
   color:#1976d2;
-
   margin-top:28px;
-
   margin-bottom:12px;
-
 }
 
-#pdfBtn:active,
-#lineBtn:active,
-#confirmBtn:active,
-#cancelBtn:active,
-#editBtn:active{
-
+body.dispatch-page #pdfBtn:active,
+body.dispatch-page #lineBtn:active,
+body.dispatch-page #confirmBtn:active,
+body.dispatch-page #cancelBtn:active,
+body.dispatch-page #editBtn:active{
   transform:scale(.97);
-
 }
 
 .event-list{
-
   display:flex;
   flex-direction:column;
   gap:18px;
-
   margin-top:24px;
-
 }
 
 .subTitle{
-
   text-align:center;
-
   font-size:14px;
-
   font-weight:bold;
-
   color:#1976d2;
-
   margin-bottom:24px;
-
 }
 
 /* 回答一覧カード間隔 */
-
 #answerList{
   display:flex;
   flex-direction:column;
