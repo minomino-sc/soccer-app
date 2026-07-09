@@ -105,28 +105,38 @@ card.addEventListener("click", () => {
       card.classList.add("past");
     }
 
-    card.innerHTML = `
+card.innerHTML = `
+  <div class="event-header">
+
+    <div class="event-info">
       <div class="event-date">📅 ${data.date ?? ""}</div>
       <div class="event-title">${data.title ?? ""}</div>
       <div class="event-team">👥 ${data.target ?? ""}</div>
+    </div>
 
-      <div class="event-block">
-        <div class="event-meta">📍 集合：${data.meetingPlace ?? ""}</div>
-        <div class="event-meta">🕒 集合：${data.meetingTime ?? ""}</div>
-        <div class="event-meta">🚗 出発：${data.departureTime ?? ""}</div>
-      </div>
+    <img
+      class="event-illustration"
+      src="images/soccer-field.png"
+      alt="サッカー場">
 
-      <div class="event-status">
-        ⏰ 締切：${formatDateTime(data.deadline)}
-      </div>
+  </div>
 
-<div class="event-actions">
-  <button class="line-btn" data-id="${docSnap.id}">LINE送信</button>
-  <button class="edit-btn" data-id="${docSnap.id}">編集</button>
-  <button class="delete-btn" data-id="${docSnap.id}">削除</button>
-</div>
+  <div class="event-block">
+    <div class="event-meta">📍 集合：${data.meetingPlace ?? ""}</div>
+    <div class="event-meta">🕒 集合：${data.meetingTime ?? ""}</div>
+    <div class="event-meta">🚗 出発：${data.departureTime ?? ""}</div>
+  </div>
 
-    `;
+  <div class="event-status">
+    ⏰ 締切：${formatDateTime(data.deadline)}
+  </div>
+
+  <div class="event-actions">
+    <button class="line-btn" data-id="${docSnap.id}">LINE送信</button>
+    <button class="edit-btn" data-id="${docSnap.id}">編集</button>
+    <button class="delete-btn" data-id="${docSnap.id}">削除</button>
+  </div>
+`;
 
 // =========================
 // LINE送信
