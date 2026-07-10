@@ -141,6 +141,8 @@ margin:0 0 10px;
   font-weight:bold;
   margin-top:8px;
   color:#222;
+  line-height:1.25;
+  word-break:break-word;
 }
 
 .event-team{
@@ -410,4 +412,5 @@ body.dispatch-page #cancelBtn:active{
 
 .event-info{
   flex:1;
+  padding-right:110px;
 }
