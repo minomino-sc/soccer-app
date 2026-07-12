@@ -2,11 +2,8 @@ body{
   margin:0;
   font-family:system-ui;
 
-  background-color:#f6f8fb;
-
-  background-image:
-    url("5F1F22E0-A5B3-46B9-80DD-57ABF3C62DD2.png"),
-    url("images/bg-road.png"),
+  background:
+    url("images/bg-road.png") bottom center/100% auto no-repeat,
     linear-gradient(
       180deg,
       #bfe8ff 0%,
@@ -14,21 +11,6 @@ body{
       #f6f8fb 260px,
       #f6f8fb 100%
     );
-
-  background-repeat:
-    no-repeat,
-    no-repeat,
-    no-repeat;
-
-  background-position:
-    top center,
-    bottom center,
-    top left;
-
-  background-size:
-    100% 200px,
-    100% auto,
-    100% 100%;
 
   color:#222;
   min-height:100vh;
@@ -38,22 +20,6 @@ body{
   max-width:1000px;
   margin:10px auto 30px;
   padding:30px;
-}
-
-/* =========================
-   共通ページカード
-========================= */
-.page-card{
-  max-width:700px;
-  margin:20px auto;
-  padding:24px;
-
-  background:rgba(255,255,255,.96);
-
-  border-radius:18px;
-
-  box-shadow:
-    0 12px 35px rgba(0,0,0,.10);
 }
 
 /* =========================

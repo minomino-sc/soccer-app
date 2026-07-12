@@ -42,84 +42,80 @@ input, select{
 </head>
 <body>
 <div class="overlay">
-  <h1>📝 新規予定作成</h1>
-  <div class="page-card">
-    <div class="form-card">
-      <div class="form-group">
-        <label>試合名</label>
-        <input id="eventName" type="text">
-      </div>
-      <div class="form-group">
-        <label>開催日</label>
-        <input id="eventDate" type="date">
-      </div>
-      <div class="form-group">
-        <label>対象チーム</label>
-        <select id="team">
-          <option>箕谷A</option>
-          <option>箕谷B</option>
-          <option>箕谷A/B</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>会場</label>
-        <input id="venue" type="text">
-      </div>
-      <div class="form-group">
-        <label>集合場所</label>
-        <input id="meetingPlace" type="text">
-      </div>
-      <div class="form-group">
-        <label>集合時間</label>
-        <input id="meetingTime" type="time">
-      </div>
-      <div class="form-group">
-        <label>出発時間</label>
-        <input id="departureTime" type="time">
-      </div>
-      <div class="form-group">
-        <label>解散予定時間</label>
-        <input id="dismissTime" type="time">
-      </div>
-      <div class="form-group">
-        <label>回答締切</label>
-        <input id="deadline" type="datetime-local">
-      </div>
-      <div class="form-group">
-        <label>配車設定</label>
-        <select id="dispatchMode">
-          <option value="max">公式戦／カップ戦他</option>
-          <option value="relaxed">遠征／合宿</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>役員コメント</label>
-        <textarea
-          id="dispatchComment"
-          rows="5"
-          style="
-            width:100%;
-            padding:12px;
-            border:none;
-            border-radius:12px;
-            box-sizing:border-box;
-            font-size:16px;
-            resize:vertical;
-          "
-        ></textarea>
-      </div>
-      <button class="save-btn" id="saveBtn">
-        💾 保存
-      </button>
-      <button
-        id="cancelBtn"
-        class="save-btn"
-        style="background:#666; margin-top:10px;"
-      >
-        キャンセル
-      </button>
-    </div>
-  </div>
+<h1>📝 新規予定作成</h1>
+<div class="form-card">
+<div class="form-group">
+<label>試合名</label>
+<input id="eventName" type="text">
+</div>
+<div class="form-group">
+<label>開催日</label>
+<input id="eventDate" type="date">
+</div>
+<div class="form-group">
+<label>対象チーム</label>
+<select id="team">
+<option>箕谷A</option>
+<option>箕谷B</option>
+<option>箕谷A/B</option>
+</select>
+</div>
+<div class="form-group">
+<label>会場</label>
+<input id="venue" type="text">
+</div>
+<div class="form-group">
+<label>集合場所</label>
+<input id="meetingPlace" type="text">
+</div>
+<div class="form-group">
+<label>集合時間</label>
+<input id="meetingTime" type="time">
+</div>
+<div class="form-group">
+<label>出発時間</label>
+<input id="departureTime" type="time">
+</div>
+<div class="form-group">
+<label>解散予定時間</label>
+<input id="dismissTime" type="time">
+</div>
+<div class="form-group">
+<label>回答締切</label>
+<input id="deadline" type="datetime-local">
+</div>
+<div class="form-group">
+<label>配車設定</label>
+<select id="dispatchMode">
+  <option value="max">公式戦／カップ戦他</option>
+  <option value="relaxed">遠征／合宿</option>
+</select>
+</div>  
+<div class="form-group">
+<label>役員コメント</label>
+
+<textarea
+  id="dispatchComment"
+  rows="5"
+  style="
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    box-sizing:border-box;
+    font-size:16px;
+    resize:vertical;
+  "
+></textarea>
+
+</div>  
+<button class="save-btn" id="saveBtn">
+💾 保存
+</button>
+<button id="cancelBtn" class="save-btn" style="background:#666; margin-top:10px;">
+キャンセル
+</button>
+</div>
 </div>
 <script type="module" src="create.js"></script>
 </body>
