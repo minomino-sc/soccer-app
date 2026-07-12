@@ -2,10 +2,11 @@ body{
   margin:0;
   font-family:system-ui;
 
-  /*
-  background:
-    url("5F1F22E0-A5B3-46B9-80DD-57ABF3C62DD2.png") top center/100% auto no-repeat,
-    url("images/bg-road.png") bottom center/100% auto no-repeat,
+  background-color:#f6f8fb;
+
+  background-image:
+    url("5F1F22E0-A5B3-46B9-80DD-57ABF3C62DD2.png"),
+    url("images/bg-road.png"),
     linear-gradient(
       180deg,
       #bfe8ff 0%,
@@ -13,10 +14,21 @@ body{
       #f6f8fb 260px,
       #f6f8fb 100%
     );
-  */
 
-  background:
-    url("5F1F22E0-A5B3-46B9-80DD-57ABF3C62DD2.png") no-repeat top center;
+  background-repeat:
+    no-repeat,
+    no-repeat,
+    no-repeat;
+
+  background-position:
+    top center,
+    bottom center,
+    top left;
+
+  background-size:
+    100% 180px,
+    100% auto,
+    100% 100%;
 
   color:#222;
   min-height:100vh;
