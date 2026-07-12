@@ -2,6 +2,7 @@ body{
   margin:0;
   font-family:system-ui;
 
+  /*
   background:
     url("5F1F22E0-A5B3-46B9-80DD-57ABF3C62DD2.png") top center/100% auto no-repeat,
     url("images/bg-road.png") bottom center/100% auto no-repeat,
@@ -12,6 +13,10 @@ body{
       #f6f8fb 260px,
       #f6f8fb 100%
     );
+  */
+
+  background:
+    url("5F1F22E0-A5B3-46B9-80DD-57ABF3C62DD2.png") no-repeat top center;
 
   color:#222;
   min-height:100vh;
