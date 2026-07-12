@@ -3,6 +3,7 @@ body{
   font-family:system-ui;
 
   background:
+    url("images/bg-sky.png") top center/100% auto no-repeat,
     url("images/bg-road.png") bottom center/100% auto no-repeat,
     linear-gradient(
       180deg,
