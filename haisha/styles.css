@@ -41,6 +41,22 @@ body{
 }
 
 /* =========================
+   共通ページカード
+========================= */
+.page-card{
+  max-width:700px;
+  margin:20px auto;
+  padding:24px;
+
+  background:rgba(255,255,255,.96);
+
+  border-radius:18px;
+
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.10);
+}
+
+/* =========================
    入力フォーム
 ========================= */
 .form-card{
