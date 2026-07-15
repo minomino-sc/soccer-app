@@ -798,6 +798,16 @@ margin-bottom:20px;
     : absentPlayers.map(n => `<div>❌ ${n}</div>`).join("")
   }
 
+<hr>
+
+<h3>現地集合</h3>
+
+${
+  localMembers.length === 0
+    ? "<div>なし</div>"
+    : localMembers.map(n => `<div>📍 ${n}</div>`).join("")
+}
+
   <hr>
 
   <h3>試合当番</h3>
