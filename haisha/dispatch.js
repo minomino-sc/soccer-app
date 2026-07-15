@@ -286,6 +286,43 @@ parentSnap.forEach((docSnap) => {
 
 });
 
+// =========================
+// 現地集合者
+// =========================
+const localMembers = [];
+
+// 部員
+parentSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (
+    a.attendance === "参加" &&
+    a.meetingType === "現地集合"
+  ) {
+
+    localMembers.push(a.playerName);
+
+  }
+
+});
+
+// コーチ
+coachSnap.forEach((docSnap) => {
+
+  const a = docSnap.data();
+
+  if (
+    a.attendance === "参加" &&
+    a.meetingType === "現地集合"
+  ) {
+
+    localMembers.push(a.coachName);
+
+  }
+
+});  
+
 const dutyList = [];
 
 dutySnap.forEach((docSnap) => {
