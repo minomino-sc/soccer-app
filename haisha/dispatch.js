@@ -380,16 +380,29 @@ coachSnap.forEach((docSnap) => {
     )
   ) {
 
-const baseSeats =
-  Math.max(
-    Number(a.capacity || 0) - 1,
-    0
-  );
+const capacity =
+  Number(a.capacity || 0);
 
-const seats =
-  dispatchMode === "relaxed"
-    ? Math.max(baseSeats - 2, 1)
-    : baseSeats;
+const baseSeats =
+  Math.max(capacity - 1, 0);
+
+let seats = baseSeats;
+
+if (dispatchMode === "relaxed") {
+
+  if (capacity >= 7) {
+
+    // 7～8人乗りは3列目を使わない
+    seats = 5;
+
+  } else {
+
+    // 4～6人乗りは通常どおり使用
+    seats = baseSeats;
+
+  }
+
+}    
     
     let team = "";
 
@@ -436,16 +449,29 @@ dutySnap.forEach((docSnap) => {
     a.canDrive === "◯"
   ) {
 
-const baseSeats =
-  Math.max(
-    Number(a.capacity || 0) - 1,
-    0
-  );
+const capacity =
+  Number(a.capacity || 0);
 
-const seats =
-  dispatchMode === "relaxed"
-    ? Math.max(baseSeats - 2, 1)
-    : baseSeats;
+const baseSeats =
+  Math.max(capacity - 1, 0);
+
+let seats = baseSeats;
+
+if (dispatchMode === "relaxed") {
+
+  if (capacity >= 7) {
+
+    // 7～8人乗りは3列目を使わない
+    seats = 5;
+
+  } else {
+
+    // 4～6人乗りは通常どおり使用
+    seats = baseSeats;
+
+  }
+
+}
 
     const family =
       a.dutyName.split(" ")[0];
@@ -515,16 +541,29 @@ parentSnap.forEach((docSnap) => {
     )
   ) {
 
-const baseSeats =
-  Math.max(
-    Number(a.capacity || 0) - 1,
-    0
-  );
+const capacity =
+  Number(a.capacity || 0);
 
-const seats =
-  dispatchMode === "relaxed"
-    ? Math.max(baseSeats - 2, 1)
-    : baseSeats;
+const baseSeats =
+  Math.max(capacity - 1, 0);
+
+let seats = baseSeats;
+
+if (dispatchMode === "relaxed") {
+
+  if (capacity >= 7) {
+
+    // 7～8人乗りは3列目を使わない
+    seats = 5;
+
+  } else {
+
+    // 4～6人乗りは通常どおり使用
+    seats = baseSeats;
+
+  }
+
+}
 
 const family =
   a.playerName
