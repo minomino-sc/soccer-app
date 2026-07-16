@@ -1913,7 +1913,7 @@ const pdf = new jsPDF("p", "mm", "a4");
 const pageWidth = pdf.internal.pageSize.getWidth();
 const pageHeight = pdf.internal.pageSize.getHeight();
 
-const margin = 10;
+const margin = 6;
 
 const usableWidth = pageWidth - margin * 2;
 const usableHeight = pageHeight - margin * 2;
