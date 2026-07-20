@@ -210,13 +210,13 @@ const [
 let dutyTotal = 0;
 
 if (data.target === "箕谷A") {
-  dutyTotal = 1;
+  dutyTotal = 2;
 }
 else if (data.target === "箕谷B") {
-  dutyTotal = 1;
+  dutyTotal = 2;
 }
 else if (data.target === "箕谷A/B") {
-  dutyTotal = 2;
+  dutyTotal = 4;
 }
   
 let dutyText = "未設定";
@@ -226,22 +226,26 @@ if (duty) {
 if (data.target === "箕谷A") {
 
   dutyText =
-    formatDutyName(duty.teamA);
+    `${formatDutyName(duty.teamA1)}<br>` +
+    `${formatDutyName(duty.teamA2)}`;
 
 }
 
 else if (data.target === "箕谷B") {
 
   dutyText =
-    formatDutyName(duty.teamB);
+    `${formatDutyName(duty.teamB1)}<br>` +
+    `${formatDutyName(duty.teamB2)}`;
 
 }
 
 else {
 
   dutyText =
-    `A：${formatDutyName(duty.teamA)}<br>
-     B：${formatDutyName(duty.teamB)}`;
+    `A①：${formatDutyName(duty.teamA1)}<br>
+     A②：${formatDutyName(duty.teamA2)}<br><br>
+     B①：${formatDutyName(duty.teamB1)}<br>
+     B②：${formatDutyName(duty.teamB2)}`;
 
 }
   
