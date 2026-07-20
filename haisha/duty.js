@@ -26,16 +26,12 @@ const params =
 const eventId =
   params.get("id");
 
-alert("① duty.js読み込み開始");
-
 loadForm();
 
 // =========================
 // 画面作成
 // =========================
 async function loadForm() {
-
-  alert("② loadForm開始");
 
   const eventRef =
     doc(db,
@@ -57,7 +53,6 @@ async function loadForm() {
 
   const eventData =
     eventSnap.data();
-  alert(eventData.target);
 
   // 配車確定後は試合当番を変更不可
 if (eventData.dispatchConfirmed) {
