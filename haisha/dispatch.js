@@ -891,8 +891,10 @@ else if (driver.priority === 2) {
 
     });
 
-  returnTrip =
-    duty?.data().returnTrip === "○";
+returnTrip =
+  activeDrivers.includes(driver)
+    ? duty?.data().returnTrip === "○"
+    : true;
 
 }
 
