@@ -115,47 +115,71 @@ if (eventData.dispatchConfirmed) {
   
   let dutyMembers = [];
 
-  if (
-    eventData.target === "箕谷A"
-  ) {
+if (
+  eventData.target === "箕谷A"
+) {
 
-    if (dutyData.teamA) {
-      dutyMembers.push(
-        dutyData.teamA
-      );
-    }
-
+  if (dutyData.teamA1) {
+    dutyMembers.push(
+      dutyData.teamA1
+    );
   }
 
-  if (
-    eventData.target === "箕谷B"
-  ) {
-
-    if (dutyData.teamB) {
-      dutyMembers.push(
-        dutyData.teamB
-      );
-    }
-
+  if (dutyData.teamA2) {
+    dutyMembers.push(
+      dutyData.teamA2
+    );
   }
 
-  if (
-    eventData.target === "箕谷A/B"
-  ) {
+}
 
-    if (dutyData.teamA) {
-      dutyMembers.push(
-        dutyData.teamA
-      );
-    }
+if (
+  eventData.target === "箕谷B"
+) {
 
-    if (dutyData.teamB) {
-      dutyMembers.push(
-        dutyData.teamB
-      );
-    }
-
+  if (dutyData.teamB1) {
+    dutyMembers.push(
+      dutyData.teamB1
+    );
   }
+
+  if (dutyData.teamB2) {
+    dutyMembers.push(
+      dutyData.teamB2
+    );
+  }
+
+}
+
+if (
+  eventData.target === "箕谷A/B"
+) {
+
+  if (dutyData.teamA1) {
+    dutyMembers.push(
+      dutyData.teamA1
+    );
+  }
+
+  if (dutyData.teamA2) {
+    dutyMembers.push(
+      dutyData.teamA2
+    );
+  }
+
+  if (dutyData.teamB1) {
+    dutyMembers.push(
+      dutyData.teamB1
+    );
+  }
+
+  if (dutyData.teamB2) {
+    dutyMembers.push(
+      dutyData.teamB2
+    );
+  }
+
+}
 
   if (
     dutyMembers.length === 0
