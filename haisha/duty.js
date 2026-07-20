@@ -167,51 +167,70 @@ ${TEAM_B.map(
     `;
   }
 
-  if (eventData.target === "箕谷A/B") {
+if (eventData.target === "箕谷A/B") {
 
-    html = `
-      <div class="form-group">
+  html = `
 
-        <label>
-          Aチーム
-        </label>
+<div class="form-group">
 
-        <select id="teamA">
+<label>
+Aチーム 試合当番①
+</label>
 
+<select id="teamA1">
 ${TEAM_A.map(
-  p =>
-  `<option value="${p}">${getLastName(p)}さん</option>`
+  p => `<option value="${p}">${getLastName(p)}さん</option>`
 ).join("")}
+</select>
 
-        </select>
+<br><br>
 
-      </div>
+<label>
+Aチーム 試合当番②
+</label>
 
-      <div class="form-group">
+<select id="teamA2">
+<option value="">なし</option>
+${TEAM_A.map(
+  p => `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
+</select>
 
-        <label>
-          Bチーム
-        </label>
+</div>
 
-        <select id="teamB">
+<div class="form-group">
 
+<label>
+Bチーム 試合当番①
+</label>
+
+<select id="teamB1">
 ${TEAM_B.map(
-  p =>
-  `<option value="${p}">${getLastName(p)}さん</option>`
+  p => `<option value="${p}">${getLastName(p)}さん</option>`
 ).join("")}
+</select>
 
-        </select>
+<br><br>
 
-      </div>
+<label>
+Bチーム 試合当番②
+</label>
 
-      <button id="saveBtn"
-              class="save-btn">
+<select id="teamB2">
+<option value="">なし</option>
+${TEAM_B.map(
+  p => `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
+</select>
 
-        保存
+</div>
 
-      </button>
-    `;
-  }
+<button id="saveBtn" class="save-btn">
+保存
+</button>
+
+`;
+}
 
   document.getElementById(
     "dutyForm"
