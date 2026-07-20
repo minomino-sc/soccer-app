@@ -306,50 +306,20 @@ oldTeamB1 = oldData.teamB1 || "";
 oldTeamB2 = oldData.teamB2 || "";
 }
 
-const eventRef =
-  doc(db, "car_dispatch_events", eventId);
-
-const eventSnap =
-  await getDoc(eventRef);
-
-const eventData =
-  eventSnap.data();
-
-let saveData = {
-  eventId,
-  updatedAt: Date.now()
-};
-
-if (eventData.target === "箕谷A") {
-
-  saveData.teamA1 = teamA1;
-  saveData.teamA2 = teamA2;
-  saveData.teamB1 = "";
-  saveData.teamB2 = "";
-
-}
-
-else if (eventData.target === "箕谷B") {
-
-  saveData.teamA1 = "";
-  saveData.teamA2 = "";
-  saveData.teamB1 = teamB1;
-  saveData.teamB2 = teamB2;
-
-}
-
-else {
-
-  saveData.teamA1 = teamA1;
-  saveData.teamA2 = teamA2;
-  saveData.teamB1 = teamB1;
-  saveData.teamB2 = teamB2;
-
-}
-
 await setDoc(
-  doc(db, "match_duties", eventId),
-  saveData
+  doc(
+    db,
+    "match_duties",
+    eventId
+  ),
+  {
+    eventId,
+    teamA1,
+    teamA2,
+    teamB1,
+    teamB2,
+    updatedAt: Date.now()
+  }
 );
 
 // =========================
