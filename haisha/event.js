@@ -210,42 +210,58 @@ const [
 let dutyTotal = 0;
 
 if (data.target === "箕谷A") {
-  dutyTotal = 1;
+  if (duty?.teamA1) dutyTotal++;
+  if (duty?.teamA2) dutyTotal++;
 }
+
 else if (data.target === "箕谷B") {
-  dutyTotal = 1;
+  if (duty?.teamB1) dutyTotal++;
+  if (duty?.teamB2) dutyTotal++;
 }
+
 else if (data.target === "箕谷A/B") {
-  dutyTotal = 2;
+  if (duty?.teamA1) dutyTotal++;
+  if (duty?.teamA2) dutyTotal++;
+  if (duty?.teamB1) dutyTotal++;
+  if (duty?.teamB2) dutyTotal++;
 }
-  
-let dutyText = "未設定";
+  let dutyText = "未設定";
 
 if (duty) {
 
-if (data.target === "箕谷A") {
+  if (data.target === "箕谷A") {
 
-  dutyText =
-    formatDutyName(duty.teamA);
+    const list = [];
+
+    if (duty.teamA1) list.push(formatDutyName(duty.teamA1));
+    if (duty.teamA2) list.push(formatDutyName(duty.teamA2));
+
+    dutyText = list.join("<br>");
+  }
+
+  else if (data.target === "箕谷B") {
+
+    const list = [];
+
+    if (duty.teamB1) list.push(formatDutyName(duty.teamB1));
+    if (duty.teamB2) list.push(formatDutyName(duty.teamB2));
+
+    dutyText = list.join("<br>");
+  }
+
+  else {
+
+    const list = [];
+
+    if (duty.teamA1) list.push(`A①：${formatDutyName(duty.teamA1)}`);
+    if (duty.teamA2) list.push(`A②：${formatDutyName(duty.teamA2)}`);
+    if (duty.teamB1) list.push(`B①：${formatDutyName(duty.teamB1)}`);
+    if (duty.teamB2) list.push(`B②：${formatDutyName(duty.teamB2)}`);
+
+    dutyText = list.join("<br>");
+  }
 
 }
-
-else if (data.target === "箕谷B") {
-
-  dutyText =
-    formatDutyName(duty.teamB);
-
-}
-
-else {
-
-  dutyText =
-    `A：${formatDutyName(duty.teamA)}<br>
-     B：${formatDutyName(duty.teamB)}`;
-
-}
-  
-} // ← ★ここを追加（これが抜けてる）
   
   const total =
     getTotalPlayers(data.target);

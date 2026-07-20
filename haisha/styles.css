@@ -414,3 +414,17 @@ body.dispatch-page #cancelBtn:active{
   flex:1;
   padding-right:110px;
 }
+
+/* 試合当番設定画面だけ */
+body.duty-setting #dutyForm .form-group{
+  display:block;
+}
+
+body.duty-setting #dutyForm label{
+  display:block;
+  margin:16px 0 6px;
+}
+
+body.duty-setting #dutyForm select{
+  width:100%;
+}
