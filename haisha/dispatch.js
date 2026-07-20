@@ -596,6 +596,88 @@ drivers.push({
 
   }
 
+// =========================
+// 同じ家庭のドライバー重複削除
+// 優先：試合当番 → コーチ → 保護者
+// =========================
+
+const familyDriverMap = {};
+
+drivers.forEach(driver => {
+
+  let family = "";
+
+  // コーチ
+  if (driver.priority === 1) {
+
+    family =
+      driver.name
+        .replace("コーチ","")
+        .trim();
+
+  }
+
+  // 試合当番
+  if (driver.priority === 2) {
+
+    family =
+      driver.name
+        .replace("さん号","")
+        .trim();
+
+  }
+
+  // 保護者
+  if (driver.priority === 3) {
+
+    family =
+      driver.name
+        .replace("さん号","")
+        .trim();
+
+  }
+
+  if (!familyDriverMap[family]) {
+
+    familyDriverMap[family] = [];
+
+  }
+
+  familyDriverMap[family].push(driver);
+
+});
+
+const newDrivers = [];
+
+Object.values(familyDriverMap)
+.forEach(list => {
+
+  const selected =
+    list.sort((a,b)=>{
+
+      // 試合当番を最優先
+      const rank = {
+        2: 1,
+        1: 2,
+        3: 3
+      };
+
+      return rank[a.priority]
+        -
+        rank[b.priority];
+
+    })[0];
+
+  newDrivers.push(selected);
+
+});
+
+drivers.length = 0;
+
+drivers.push(
+  ...newDrivers
+);
+  
 });
   
   drivers.sort(
