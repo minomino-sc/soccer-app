@@ -80,18 +80,35 @@ if (eventData.dispatchConfirmed) {
     html = `
       <div class="form-group">
 
-        <label>
-          試合当番
-        </label>
+<label>
+  試合当番①
+</label>
 
-        <select id="teamA">
+<select id="teamA1">
 
 ${TEAM_A.map(
   p =>
   `<option value="${p}">${getLastName(p)}さん</option>`
 ).join("")}
 
-        </select>
+</select>
+
+<br><br>
+
+<label>
+  試合当番②
+</label>
+
+<select id="teamA2">
+
+<option value="">なし</option>
+
+${TEAM_A.map(
+  p =>
+  `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
+
+</select>       
 
       </div>
 
@@ -109,18 +126,35 @@ ${TEAM_A.map(
     html = `
       <div class="form-group">
 
-        <label>
-          試合当番
-        </label>
+<label>
+  試合当番①
+</label>
 
-        <select id="teamB">
+<select id="teamB1">
 
 ${TEAM_B.map(
   p =>
   `<option value="${p}">${getLastName(p)}さん</option>`
 ).join("")}
 
-        </select>
+</select>
+
+<br><br>
+
+<label>
+  試合当番②
+</label>
+
+<select id="teamB2">
+
+<option value="">なし</option>
+
+${TEAM_B.map(
+  p =>
+  `<option value="${p}">${getLastName(p)}さん</option>`
+).join("")}
+
+</select>
 
       </div>
 
@@ -196,77 +230,107 @@ ${TEAM_B.map(
 // =========================
 async function saveDuty() {
 
-  const teamA =
-    document.getElementById("teamA")
-      ?.value || "";
+const teamA1 =
+  document.getElementById("teamA1")
+    ?.value || "";
 
-  const teamB =
-    document.getElementById("teamB")
-      ?.value || "";
+const teamA2 =
+  document.getElementById("teamA2")
+    ?.value || "";
 
+const teamB1 =
+  document.getElementById("teamB1")
+    ?.value || "";
+
+const teamB2 =
+  document.getElementById("teamB2")
+    ?.value || "";
+
+// 同じ人を重複選択できないようにする
+if (
+  teamA1 &&
+  teamA2 &&
+  teamA1 === teamA2
+) {
+  alert("Aチームの試合当番①と②は別の人を選択してください。");
+  return;
+}
+
+if (
+  teamB1 &&
+  teamB2 &&
+  teamB1 === teamB2
+) {
+  alert("Bチームの試合当番①と②は別の人を選択してください。");
+  return;
+}
+  
   const dutyRef =
   doc(db, "match_duties", eventId);
 
 const oldDutySnap =
   await getDoc(dutyRef);
 
-let oldTeamA = "";
-let oldTeamB = "";
+let oldTeamA1 = "";
+let oldTeamA2 = "";
+let oldTeamB1 = "";
+let oldTeamB2 = "";
 
 if (oldDutySnap.exists()) {
 
   const oldData =
     oldDutySnap.data();
 
-  oldTeamA = oldData.teamA || "";
-  oldTeamB = oldData.teamB || "";
+oldTeamA1 = oldData.teamA1 || "";
+oldTeamA2 = oldData.teamA2 || "";
+oldTeamB1 = oldData.teamB1 || "";
+oldTeamB2 = oldData.teamB2 || "";
 }
 
-  await setDoc(
-    doc(
-      db,
-      "match_duties",
-      eventId
-    ),
-    {
-      eventId,
-      teamA,
-      teamB,
-      updatedAt:
-        Date.now()
-    }
-  );
+await setDoc(
+  doc(
+    db,
+    "match_duties",
+    eventId
+  ),
+  {
+    eventId,
+    teamA1,
+    teamA2,
+    teamB1,
+    teamB2,
+    updatedAt: Date.now()
+  }
+);
 
 // =========================
 // 旧試合当番回答削除
 // =========================
 
-// Aチーム変更
-if (
-  oldTeamA &&
-  oldTeamA !== teamA
-) {
-  await deleteDoc(
-    doc(
-      db,
-      "duty_answers",
-      `${eventId}_${oldTeamA}`
-    )
-  );
-}
+const deleteList = [
+  [oldTeamA1, teamA1],
+  [oldTeamA2, teamA2],
+  [oldTeamB1, teamB1],
+  [oldTeamB2, teamB2]
+];
 
-// Bチーム変更
-if (
-  oldTeamB &&
-  oldTeamB !== teamB
-) {
-  await deleteDoc(
-    doc(
-      db,
-      "duty_answers",
-      `${eventId}_${oldTeamB}`
-    )
-  );
+for (const [oldName, newName] of deleteList) {
+
+  if (
+    oldName &&
+    oldName !== newName
+  ) {
+
+    await deleteDoc(
+      doc(
+        db,
+        "duty_answers",
+        `${eventId}_${oldName}`
+      )
+    );
+
+  }
+
 }
   
   alert(
