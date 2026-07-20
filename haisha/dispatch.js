@@ -702,6 +702,8 @@ drivers.push(
 
 activeDrivers = [];
 
+let capacity = 0;  
+
 // 試合当番を先に採用
 const dutyDrivers =
   drivers
@@ -727,9 +729,17 @@ alert(
 // アラート終了
 // =========================  
 
-activeDrivers.push(
-  ...dutyDrivers
-);
+// 必要な分だけ試合当番車を採用
+for (const duty of dutyDrivers) {
+
+  if (capacity >= needCount) {
+    break;
+  }
+
+  activeDrivers.push(duty);
+  capacity += duty.seats;
+
+}
 
 // コーチを座席数順で並べる
 const coachDrivers =
@@ -749,12 +759,7 @@ const coachDrivers =
 
     });
 
-let capacity =
-  dutyDrivers.reduce(
-    (sum, d) =>
-      sum + d.seats,
-    0
-  );
+// capacityは試合当番採用時に計算済み
 
 // =========================
 // A/B別コーチ最低1台保証
