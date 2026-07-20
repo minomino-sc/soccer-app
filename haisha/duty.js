@@ -53,6 +53,7 @@ async function loadForm() {
 
   const eventData =
     eventSnap.data();
+  alert(eventData.target);
 
   // 配車確定後は試合当番を変更不可
 if (eventData.dispatchConfirmed) {
