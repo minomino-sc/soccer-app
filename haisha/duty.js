@@ -364,4 +364,3 @@ for (const [oldName, newName] of deleteList) {
  window.location.href = `./event.html?id=${eventId}`;
   
 }
-
