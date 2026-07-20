@@ -26,12 +26,16 @@ const params =
 const eventId =
   params.get("id");
 
+alert("① duty.js読み込み開始");
+
 loadForm();
 
 // =========================
 // 画面作成
 // =========================
 async function loadForm() {
+
+  alert("② loadForm開始");
 
   const eventRef =
     doc(db,
