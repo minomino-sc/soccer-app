@@ -709,13 +709,30 @@ drivers.push(
 
 // =========================
 // 重複削除で消えたコーチを乗車対象に戻す
+// 復路希望もコーチ回答から取得
 // =========================
 removedCoaches.forEach(coach => {
 
+  const coachAnswer =
+    coachSnap.docs.find(doc => {
+
+      return (
+        doc.data().coachName === coach.name
+      );
+
+    });
+
+  const returnTrip =
+    coachAnswer?.data().returnTrip === "○";
+
   targetPlayers.push({
+
     name: coach.name,
+
     role: "コーチ",
-    returnTrip: false
+
+    returnTrip
+
   });
 
 });
