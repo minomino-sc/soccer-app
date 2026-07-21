@@ -736,6 +736,51 @@ removedCoaches.forEach(coach => {
       a.priority - b.priority
   );
 
+// =========================
+// ドライバー候補確認アラート開始
+// =========================
+alert(
+  "【全ドライバー候補】\n\n" +
+  drivers.map(d =>
+    "優先度：" + d.priority +
+    "\nチーム：" + d.team +
+    "\n名前：" + d.name +
+    "\n座席：" + d.seats +
+    "\n配車回数：" + d.count
+  ).join("\n\n")
+);
+
+// 試合当番だけ確認
+alert(
+  "【試合当番候補】\n\n" +
+  drivers
+    .filter(d => d.priority === 2)
+    .map(d =>
+      "チーム：" + d.team +
+      "\n名前：" + d.name +
+      "\n座席：" + d.seats +
+      "\n配車回数：" + d.count
+    )
+    .join("\n\n")
+);
+
+// コーチだけ確認
+alert(
+  "【コーチ候補】\n\n" +
+  drivers
+    .filter(d => d.priority === 1)
+    .map(d =>
+      "チーム：" + d.team +
+      "\n名前：" + d.name +
+      "\n座席：" + d.seats +
+      "\n配車回数：" + d.count
+    )
+    .join("\n\n")
+);
+// =========================
+// ドライバー候補確認アラート終了
+// ========================= 
+
 activeDrivers = [];
 
 let capacity = 0;
