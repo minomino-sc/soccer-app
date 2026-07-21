@@ -603,8 +603,6 @@ drivers.push({
 });
 
   }
-
-const allDrivers = [...drivers];  
   
 // =========================
 // 同じ家庭のドライバー重複削除
@@ -831,7 +829,7 @@ if (capacity < needCount) {
 // =========================
 // 採用されなかったドライバーを乗車対象へ追加
 // =========================
-allDrivers.forEach(driver => {
+drivers.forEach(driver => {
 
   // 保護者だけは除外する
 if (driver.priority === 3) return;
