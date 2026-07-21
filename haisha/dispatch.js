@@ -657,26 +657,47 @@ drivers.forEach(driver => {
 
 const newDrivers = [];
 
+// =========================
+// 重複削除で消えるコーチを記録
+// =========================
+const removedCoaches = [];
+  
 Object.values(familyDriverMap)
 .forEach(list => {
 
-  const selected =
-    list.sort((a,b)=>{
+const selected =
+  list.sort((a,b)=>{
 
-      // 試合当番を最優先
-      const rank = {
-        2: 1,
-        1: 2,
-        3: 3
-      };
+    // 試合当番を最優先
+    const rank = {
+      2: 1,
+      1: 2,
+      3: 3
+    };
 
-      return rank[a.priority]
-        -
-        rank[b.priority];
+    return rank[a.priority]
+      -
+      rank[b.priority];
 
-    })[0];
+  })[0];
 
-  newDrivers.push(selected);
+// =========================
+// 採用されなかったコーチを記録
+// =========================
+list.forEach(driver => {
+
+  if (
+    driver.priority === 1 &&
+    driver !== selected
+  ) {
+
+    removedCoaches.push(driver);
+
+  }
+
+});
+
+newDrivers.push(selected);
 
 });
 
@@ -685,7 +706,20 @@ drivers.length = 0;
 drivers.push(
   ...newDrivers
 );
-  
+
+// =========================
+// 重複削除で消えたコーチを乗車対象に戻す
+// =========================
+removedCoaches.forEach(coach => {
+
+  targetPlayers.push({
+    name: coach.name,
+    role: "コーチ",
+    returnTrip: false
+  });
+
+});
+    
 });
   
   drivers.sort(
