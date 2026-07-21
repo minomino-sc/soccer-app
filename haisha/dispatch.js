@@ -764,6 +764,14 @@ for (const duty of dutyDrivers) {
   activeDrivers.push(duty);
   capacity += duty.seats;
 
+alert(
+  "試合当番車を採用\n\n" +
+  "採用車：" + duty.name + "\n" +
+  "座席：" + duty.seats + "\n" +
+  "現在の容量：" + capacity + "\n" +
+  "必要人数：" + needCount
+);
+  
 }
 
 // コーチを座席数順で並べる
