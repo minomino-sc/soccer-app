@@ -746,9 +746,13 @@ removedCoaches.forEach(coach => {
 
 activeDrivers = [];
 
-let capacity = 0;  
+let capacity = 0;
 
-// 試合当番を先に採用
+// =========================
+// 試合当番
+// 配車回数が少ない順
+// 同じなら座席数が多い順
+// =========================
 const dutyDrivers =
   drivers
     .filter(d => d.priority === 2)
@@ -762,88 +766,28 @@ const dutyDrivers =
 
     });
 
-// 必要な分だけ試合当番車を採用
-for (const duty of dutyDrivers) {
-
-  if (capacity >= needCount) {
-    break;
-  }
-
-  activeDrivers.push(duty);
-  capacity += duty.seats;
-
-}
-
-// コーチを座席数順で並べる
+// =========================
+// コーチ
+// 配車回数が少ない順
+// 同じなら座席数が多い順
+// =========================
 const coachDrivers =
   drivers
-    .filter(
-      d => d.priority === 1
-    )
+    .filter(d => d.priority === 1)
     .sort((a, b) => {
 
-      // ① 配車回数が少ない人を優先
       if (a.count !== b.count) {
         return a.count - b.count;
       }
 
-      // ② 同じ回数なら座席数が多い人を優先
       return b.seats - a.seats;
 
     });
 
-// capacityは試合当番採用時に計算済み
-
 // =========================
-// A/B別コーチ最低1台保証
-// =========================
-// Aチーム
-const coachesA =
-  coachDrivers.filter(d => d.team === "箕谷A");
-
-if (coachesA.length > 0) {
-  activeDrivers.push(coachesA[0]);
-  capacity += coachesA[0].seats;
-}
-
-// Bチーム
-const coachesB =
-  coachDrivers.filter(d => d.team === "箕谷B");
-
-if (coachesB.length > 0) {
-  activeDrivers.push(coachesB[0]);
-  capacity += coachesB[0].seats;
-}
-
-// =========================
-// 残りコーチ（A/Bで使ってない分）
-// =========================
-// すでに使ったコーチを記録
-const usedCoaches = new Set([
-  ...(coachesA[0] ? [coachesA[0]] : []),
-  ...(coachesB[0] ? [coachesB[0]] : [])
-]);
-
-// 最終的に乗車する人数を見て判断
-const finalNeedCount =
-  needCount +
-  coachDrivers.filter(
-    coach => !usedCoaches.has(coach)
-  ).length;
-
-for (const coach of coachDrivers) {
-  
-  if (usedCoaches.has(coach)) continue;
-
-  if (capacity >= finalNeedCount) break;
-
-  activeDrivers.push(coach);
-  capacity += coach.seats;
-
-}
-
-// =========================
-// 保護者追加
+// 保護者
+// 配車回数が少ない順
+// 同じなら座席数が多い順
 // =========================
 const parentDrivers =
   drivers
@@ -858,17 +802,151 @@ const parentDrivers =
 
     });
 
-// 保護者は「コーチで足りない時だけ」使う
-if (capacity < needCount) {
+// =========================
+// 採用済みドライバー
+// =========================
+const usedDrivers =
+  new Set();
 
-  for (const parent of parentDrivers) {
+// =========================
+// ドライバー追加
+// =========================
+function addDriver(driver) {
 
-    if (capacity >= needCount) break;
-
-    activeDrivers.push(parent);
-    capacity += parent.seats;
-
+  if (!driver) {
+    return;
   }
+
+  if (usedDrivers.has(driver)) {
+    return;
+  }
+
+  activeDrivers.push(driver);
+
+  usedDrivers.add(driver);
+
+  capacity += driver.seats;
+
+}
+
+// =========================
+// ① 試合当番を先に採用
+//
+// 現在の drivers は
+// 対象チームの回答者だけなので、
+// A/Bを別途絞り込まない
+//
+// A/B両方の場合も、
+// 配車回数が少ない順で各チーム1台を確保
+// =========================
+
+// A試合当番
+const dutyA =
+  dutyDrivers.find(
+    d => d.team === "箕谷A"
+  );
+
+if (dutyA) {
+  addDriver(dutyA);
+}
+
+// B試合当番
+const dutyB =
+  dutyDrivers.find(
+    d => d.team === "箕谷B"
+  );
+
+if (dutyB) {
+  addDriver(dutyB);
+}
+
+// =========================
+// ② コーチを採用
+//
+// A/Bそれぞれ1台を確保
+// =========================
+
+// Aコーチ
+const coachA =
+  coachDrivers.find(
+    d => d.team === "箕谷A"
+  );
+
+if (coachA) {
+  addDriver(coachA);
+}
+
+// Bコーチ
+const coachB =
+  coachDrivers.find(
+    d => d.team === "箕谷B"
+  );
+
+if (coachB) {
+  addDriver(coachB);
+}
+
+// =========================
+// コーチ本人も乗車対象になるため
+// 残りコーチを乗せる必要がある
+// =========================
+const remainingCoaches =
+  coachDrivers.filter(
+    coach =>
+      !usedDrivers.has(coach)
+  );
+
+// コーチ本人を含めた最終必要人数
+const finalNeedCount =
+  needCount +
+  remainingCoaches.length;
+
+// =========================
+// ③ 足りなければ残りコーチ
+// =========================
+for (const coach of remainingCoaches) {
+
+  if (capacity >= finalNeedCount) {
+    break;
+  }
+
+  addDriver(coach);
+
+}
+
+// =========================
+// ④ それでも足りなければ
+// 残り試合当番
+// =========================
+for (const duty of dutyDrivers) {
+
+  if (capacity >= finalNeedCount) {
+    break;
+  }
+
+  if (usedDrivers.has(duty)) {
+    continue;
+  }
+
+  addDriver(duty);
+
+}
+
+// =========================
+// ⑤ それでも足りなければ
+// 保護者
+// =========================
+for (const parent of parentDrivers) {
+
+  if (capacity >= finalNeedCount) {
+    break;
+  }
+
+  if (usedDrivers.has(parent)) {
+    continue;
+  }
+
+  addDriver(parent);
 
 }
 
