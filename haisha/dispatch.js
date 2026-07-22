@@ -945,22 +945,44 @@ else if (
 // =========================
 // ③ 足りなければ残りコーチ
 // =========================
+
+// すでに採用されているコーチを記録
+const usedCoaches =
+  new Set(
+    activeDrivers.filter(
+      d => d.priority === 1
+    )
+  );
+
+// 配車に使わないコーチも
+// 最終的には乗車対象になるため人数に加える
+const finalNeedCount =
+  needCount +
+  coachDrivers.filter(
+    coach =>
+      !usedCoaches.has(coach)
+  ).length;
+
+// 必要人数＋未採用コーチ分の座席が
+// 足りない場合だけ追加コーチを採用
 if (
-  capacity < needCount
+  capacity < finalNeedCount
 ) {
 
   for (
     const coach of coachDrivers
   ) {
 
+    // すでに採用済みならスキップ
     if (
       selectedDrivers.has(coach)
     ) {
       continue;
     }
 
+    // 必要な座席数を確保できたら終了
     if (
-      capacity >= needCount
+      capacity >= finalNeedCount
     ) {
       break;
     }
@@ -975,7 +997,7 @@ if (
 // ④ 足りなければ残り試合当番
 // =========================
 if (
-  capacity < needCount
+  capacity < finalNeedCount
 ) {
 
   for (
