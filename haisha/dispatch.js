@@ -795,50 +795,24 @@ const coachDrivers =
 // capacityは試合当番採用時に計算済み
 
 // =========================
-// 対象チームのコーチ最低1台保証
+// A/B別コーチ最低1台保証
 // =========================
-// 箕谷A
-if (
-eventData.target === “箕谷A” ||
-eventData.target === “箕谷A／B”
-) {
-
+// Aチーム
 const coachesA =
-coachDrivers.filter(
-d =>
-d.team === “箕谷A” &&
-!activeDrivers.includes(d)
-);
+  coachDrivers.filter(d => d.team === "箕谷A");
 
 if (coachesA.length > 0) {
-
-activeDrivers.push(coachesA[0]);
-capacity += coachesA[0].seats;
-
+  activeDrivers.push(coachesA[0]);
+  capacity += coachesA[0].seats;
 }
 
-}
-
-// 箕谷B
-if (
-eventData.target === “箕谷B” ||
-eventData.target === “箕谷A／B”
-) {
-
+// Bチーム
 const coachesB =
-coachDrivers.filter(
-d =>
-d.team === “箕谷B” &&
-!activeDrivers.includes(d)
-);
+  coachDrivers.filter(d => d.team === "箕谷B");
 
 if (coachesB.length > 0) {
-
-activeDrivers.push(coachesB[0]);
-capacity += coachesB[0].seats;
-
-}
-
+  activeDrivers.push(coachesB[0]);
+  capacity += coachesB[0].seats;
 }
 
 // =========================
