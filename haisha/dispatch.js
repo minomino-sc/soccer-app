@@ -866,22 +866,26 @@ const addDriver =
 // =========================
 // チーム別ドライバー取得
 // =========================
-const dutyA =
+// ※下の試合道具割当で
+// dutyA / dutyB を使用するため
+// ここでは別名にする
+// =========================
+const dutyDriversA =
   dutyDrivers.filter(
     d => d.team === "箕谷A"
   );
 
-const dutyB =
+const dutyDriversB =
   dutyDrivers.filter(
     d => d.team === "箕谷B"
   );
 
-const coachA =
+const coachDriversA =
   coachDrivers.filter(
     d => d.team === "箕谷A"
   );
 
-const coachB =
+const coachDriversB =
   coachDrivers.filter(
     d => d.team === "箕谷B"
   );
@@ -894,23 +898,31 @@ if (
   target === "箕谷A"
 ) {
 
-  addDriver(dutyA[0]);
+  addDriver(
+    dutyDriversA[0]
+  );
 
 }
 else if (
   target === "箕谷B"
 ) {
 
-  addDriver(dutyB[0]);
+  addDriver(
+    dutyDriversB[0]
+  );
 
 }
 else if (
   target === "箕谷A/B"
 ) {
 
-  addDriver(dutyA[0]);
+  addDriver(
+    dutyDriversA[0]
+  );
 
-  addDriver(dutyB[0]);
+  addDriver(
+    dutyDriversB[0]
+  );
 
 }
 
@@ -922,23 +934,31 @@ if (
   target === "箕谷A"
 ) {
 
-  addDriver(coachA[0]);
+  addDriver(
+    coachDriversA[0]
+  );
 
 }
 else if (
   target === "箕谷B"
 ) {
 
-  addDriver(coachB[0]);
+  addDriver(
+    coachDriversB[0]
+  );
 
 }
 else if (
   target === "箕谷A/B"
 ) {
 
-  addDriver(coachA[0]);
+  addDriver(
+    coachDriversA[0]
+  );
 
-  addDriver(coachB[0]);
+  addDriver(
+    coachDriversB[0]
+  );
 
 }
 
@@ -987,7 +1007,9 @@ if (
       break;
     }
 
-    addDriver(coach);
+    addDriver(
+      coach
+    );
 
   }
 
@@ -1016,7 +1038,9 @@ if (
       break;
     }
 
-    addDriver(duty);
+    addDriver(
+      duty
+    );
 
   }
 
@@ -1045,7 +1069,9 @@ if (
       break;
     }
 
-    addDriver(parent);
+    addDriver(
+      parent
+    );
 
   }
 
