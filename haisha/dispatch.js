@@ -746,250 +746,131 @@ removedCoaches.forEach(coach => {
 
 activeDrivers = [];
 
-let capacity = 0;
+let capacity = 0;  
 
-// =========================
-// ドライバーを配車回数順に並べる
-// =========================
-
-// 試合当番
+// 試合当番を先に採用
 const dutyDrivers =
-drivers
-.filter(d => d.priority === 2)
-.sort((a, b) => {
+  drivers
+    .filter(d => d.priority === 2)
+    .sort((a, b) => {
 
-  if (a.count !== b.count) {
-    return a.count - b.count;
-  }
-  return b.seats - a.seats;
-});
+      if (a.count !== b.count) {
+        return a.count - b.count;
+      }
 
-// コーチ
-const coachDrivers =
-drivers
-.filter(d => d.priority === 1)
-.sort((a, b) => {
+      return b.seats - a.seats;
 
-  if (a.count !== b.count) {
-    return a.count - b.count;
-  }
-  return b.seats - a.seats;
-});
+    });
 
-// 保護者
-const parentDrivers =
-drivers
-.filter(d => d.priority === 3)
-.sort((a, b) => {
-
-  if (a.count !== b.count) {
-    return a.count - b.count;
-  }
-  return b.seats - a.seats;
-});
-
-// =========================
-// ① 必須の試合当番車
-// =========================
-
-// 箕谷A
-if (eventData.target === “箕谷A”) {
-
-const dutyA =
-dutyDrivers.find(
-d => d.team === “箕谷A”
-);
-
-if (dutyA) {
-
-activeDrivers.push(dutyA);
-capacity += dutyA.seats;
-
-}
-
-}
-
-// 箕谷B
-else if (eventData.target === “箕谷B”) {
-
-const dutyB =
-dutyDrivers.find(
-d => d.team === “箕谷B”
-);
-
-if (dutyB) {
-
-activeDrivers.push(dutyB);
-capacity += dutyB.seats;
-
-}
-
-}
-
-// 箕谷A/B
-else if (
-eventData.target === “箕谷A／B”
-) {
-
-const dutyA =
-dutyDrivers.find(
-d => d.team === “箕谷A”
-);
-
-if (dutyA) {
-
-activeDrivers.push(dutyA);
-capacity += dutyA.seats;
-
-}
-
-const dutyB =
-dutyDrivers.find(
-d => d.team === “箕谷B”
-);
-
-if (dutyB) {
-
-activeDrivers.push(dutyB);
-capacity += dutyB.seats;
-
-}
-
-}
-
-// =========================
-// ② 必須のコーチ車
-// =========================
-
-// 箕谷A
-if (eventData.target === “箕谷A”) {
-
-const coachA =
-coachDrivers.find(
-d =>
-d.team === “箕谷A” &&
-!activeDrivers.includes(d)
-);
-
-if (coachA) {
-
-activeDrivers.push(coachA);
-capacity += coachA.seats;
-
-}
-
-}
-
-// 箕谷B
-else if (eventData.target === “箕谷B”) {
-
-const coachB =
-coachDrivers.find(
-d =>
-d.team === “箕谷B” &&
-!activeDrivers.includes(d)
-);
-
-if (coachB) {
-
-activeDrivers.push(coachB);
-capacity += coachB.seats;
-
-}
-
-}
-
-// 箕谷A/B
-else if (
-eventData.target === “箕谷A／B”
-) {
-
-const coachA =
-coachDrivers.find(
-d =>
-d.team === “箕谷A” &&
-!activeDrivers.includes(d)
-);
-
-if (coachA) {
-
-activeDrivers.push(coachA);
-capacity += coachA.seats;
-
-}
-
-const coachB =
-coachDrivers.find(
-d =>
-d.team === “箕谷B” &&
-!activeDrivers.includes(d)
-);
-
-if (coachB) {
-
-activeDrivers.push(coachB);
-capacity += coachB.seats;
-
-}
-
-}
-
-// =========================
-// ③ 足りなければ残りコーチ
-// =========================
-
-for (const coach of coachDrivers) {
-
-if (capacity >= needCount) {
-break;
-}
-
-if (activeDrivers.includes(coach)) {
-continue;
-}
-
-activeDrivers.push(coach);
-capacity += coach.seats;
-
-}
-
-// =========================
-// ④ 足りなければ残り試合当番
-// =========================
-
+// 必要な分だけ試合当番車を採用
 for (const duty of dutyDrivers) {
 
-if (capacity >= needCount) {
-break;
+  if (capacity >= needCount) {
+    break;
+  }
+
+  activeDrivers.push(duty);
+  capacity += duty.seats;
+
 }
 
-if (activeDrivers.includes(duty)) {
-continue;
+// コーチを座席数順で並べる
+const coachDrivers =
+  drivers
+    .filter(
+      d => d.priority === 1
+    )
+    .sort((a, b) => {
+
+      // ① 配車回数が少ない人を優先
+      if (a.count !== b.count) {
+        return a.count - b.count;
+      }
+
+      // ② 同じ回数なら座席数が多い人を優先
+      return b.seats - a.seats;
+
+    });
+
+// capacityは試合当番採用時に計算済み
+
+// =========================
+// A/B別コーチ最低1台保証
+// =========================
+// Aチーム
+const coachesA =
+  coachDrivers.filter(d => d.team === "箕谷A");
+
+if (coachesA.length > 0) {
+  activeDrivers.push(coachesA[0]);
+  capacity += coachesA[0].seats;
 }
 
-activeDrivers.push(duty);
-capacity += duty.seats;
+// Bチーム
+const coachesB =
+  coachDrivers.filter(d => d.team === "箕谷B");
+
+if (coachesB.length > 0) {
+  activeDrivers.push(coachesB[0]);
+  capacity += coachesB[0].seats;
+}
+
+// =========================
+// 残りコーチ（A/Bで使ってない分）
+// =========================
+// すでに使ったコーチを記録
+const usedCoaches = new Set([
+  ...(coachesA[0] ? [coachesA[0]] : []),
+  ...(coachesB[0] ? [coachesB[0]] : [])
+]);
+
+// 最終的に乗車する人数を見て判断
+const finalNeedCount =
+  needCount +
+  coachDrivers.filter(
+    coach => !usedCoaches.has(coach)
+  ).length;
+
+for (const coach of coachDrivers) {
+  
+  if (usedCoaches.has(coach)) continue;
+
+  if (capacity >= finalNeedCount) break;
+
+  activeDrivers.push(coach);
+  capacity += coach.seats;
 
 }
 
 // =========================
-// ⑤ 足りなければ保護者
+// 保護者追加
 // =========================
+const parentDrivers =
+  drivers
+    .filter(d => d.priority === 3)
+    .sort((a, b) => {
 
-for (const parent of parentDrivers) {
+      if (a.count !== b.count) {
+        return a.count - b.count;
+      }
 
-if (capacity >= needCount) {
-break;
+      return b.seats - a.seats;
+
+    });
+
+// 保護者は「コーチで足りない時だけ」使う
+if (capacity < needCount) {
+
+  for (const parent of parentDrivers) {
+
+    if (capacity >= needCount) break;
+
+    activeDrivers.push(parent);
+    capacity += parent.seats;
+
+  }
+
 }
-
-if (activeDrivers.includes(parent)) {
-continue;
-}
-
-activeDrivers.push(parent);
-capacity += parent.seats;
-
-} 
 
   // =========================
   // 総座席数
