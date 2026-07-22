@@ -730,64 +730,41 @@ removedCoaches.forEach(coach => {
 });
     
 });
-  
-  drivers.sort(
-    (a, b) =>
-      a.priority - b.priority
-  );
 
-// =========================
-// ドライバー候補確認アラート開始
-// =========================
-alert(
-  "【全ドライバー候補】\n\n" +
-  drivers.map(d =>
-    "優先度：" + d.priority +
-    "\nチーム：" + d.team +
-    "\n名前：" + d.name +
-    "\n座席：" + d.seats +
-    "\n配車回数：" + d.count
-  ).join("\n\n")
+drivers.sort(
+  (a, b) =>
+    a.priority - b.priority
 );
 
-// 試合当番だけ確認
-alert(
-  "【試合当番候補】\n\n" +
-  drivers
-    .filter(d => d.priority === 2)
-    .map(d =>
-      "チーム：" + d.team +
-      "\n名前：" + d.name +
-      "\n座席：" + d.seats +
-      "\n配車回数：" + d.count
-    )
-    .join("\n\n")
-);
 
-// コーチだけ確認
-alert(
-  "【コーチ候補】\n\n" +
-  drivers
-    .filter(d => d.priority === 1)
-    .map(d =>
-      "チーム：" + d.team +
-      "\n名前：" + d.name +
-      "\n座席：" + d.seats +
-      "\n配車回数：" + d.count
-    )
-    .join("\n\n")
-);
-// =========================
-// ドライバー候補確認アラート終了
-// ========================= 
+// ==================================================
+// 配車車両の採用
+//
+// 優先順位
+//
+// ① 試合当番車を各チーム1台
+// ↓
+// ② コーチ号を各チーム1台
+// ↓
+// ③ 必要人数を満たしていなければ残りのコーチ号
+// ↓
+// ④ それでも足りなければ2台目以降の試合当番車
+// ↓
+// ⑤ それでも足りなければ保護者号
+//
+// 箕谷A/Bの場合
+// A・Bそれぞれについて①②を実施
+//
+// ※均等配車処理はこの後のコードなので変更なし
+// ==================================================
 
 activeDrivers = [];
 
 let capacity = 0;
 
+
 // ==================================================
-// 対象チーム判定
-// Firestoreでは「箕谷A/B」と保存されている
+// 対象チーム
 // ==================================================
 
 const targetTeam =
@@ -804,82 +781,176 @@ const isBothTeams =
 
 
 // ==================================================
-// 試合当番車一覧
-// ※ここでは全候補を取得するだけ
-// ※採用順は後で決める
+// チーム対象判定
+// ==================================================
+
+function isTargetTeam(team) {
+
+  if (isTeamA) {
+    return team === "箕谷A";
+  }
+
+  if (isTeamB) {
+    return team === "箕谷B";
+  }
+
+  if (isBothTeams) {
+    return (
+      team === "箕谷A" ||
+      team === "箕谷B"
+    );
+  }
+
+  return false;
+
+}
+
+
+// ==================================================
+// 試合当番候補
 // ==================================================
 
 const dutyDrivers =
   drivers
     .filter(
-      d => d.priority === 2
+      d =>
+        d.priority === 2 &&
+        isTargetTeam(d.team)
     )
     .sort((a, b) => {
 
       // ① 配車回数が少ない人を優先
-      if (a.count !== b.count) {
-        return a.count - b.count;
+      if (
+        a.count !== b.count
+      ) {
+
+        return (
+          a.count -
+          b.count
+        );
+
       }
 
       // ② 同じ回数なら座席数が多い人を優先
-      return b.seats - a.seats;
+      return (
+        b.seats -
+        a.seats
+      );
 
     });
 
 
 // ==================================================
-// コーチ一覧
-// ※ここでは全候補を取得するだけ
-// ※採用順は後で決める
+// コーチ候補
 // ==================================================
 
 const coachDrivers =
   drivers
     .filter(
-      d => d.priority === 1
+      d =>
+        d.priority === 1 &&
+        isTargetTeam(d.team)
     )
     .sort((a, b) => {
 
       // ① 配車回数が少ない人を優先
-      if (a.count !== b.count) {
-        return a.count - b.count;
+      if (
+        a.count !== b.count
+      ) {
+
+        return (
+          a.count -
+          b.count
+        );
+
       }
 
       // ② 同じ回数なら座席数が多い人を優先
-      return b.seats - a.seats;
+      return (
+        b.seats -
+        a.seats
+      );
 
     });
 
 
 // ==================================================
-// ① 最初の試合当番車を採用
+// 保護者候補
 // ==================================================
+
+const parentDrivers =
+  drivers
+    .filter(
+      d =>
+        d.priority === 3 &&
+        isTargetTeam(d.team)
+    )
+    .sort((a, b) => {
+
+      // ① 配車回数が少ない人を優先
+      if (
+        a.count !== b.count
+      ) {
+
+        return (
+          a.count -
+          b.count
+        );
+
+      }
+
+      // ② 同じ回数なら座席数が多い人を優先
+      return (
+        b.seats -
+        a.seats
+      );
+
+    });
+
+
+// ==================================================
+// 採用済みチェック
+// ==================================================
+
+function isActive(driver) {
+
+  return activeDrivers.includes(
+    driver
+  );
+
+}
+
+
+// ==================================================
+// ① 試合当番車を各チーム1台採用
 //
 // 箕谷Aのみ
-// → A試合当番車を1台
+// → A試合当番1台
 //
 // 箕谷Bのみ
-// → B試合当番車を1台
+// → B試合当番1台
 //
 // 箕谷A/B
-// → A試合当番車を1台
-// → B試合当番車を1台
-//
-// ※ここでは最大1台ずつ
+// → A試合当番1台
+// → B試合当番1台
 // ==================================================
 
 if (isTeamA) {
 
   const dutyA =
     dutyDrivers.find(
-      d => d.team === "箕谷A"
+      d =>
+        d.team === "箕谷A"
     );
 
   if (dutyA) {
 
-    activeDrivers.push(dutyA);
+    activeDrivers.push(
+      dutyA
+    );
 
-    capacity += dutyA.seats;
+    capacity +=
+      dutyA.seats;
 
   }
 
@@ -889,14 +960,18 @@ else if (isTeamB) {
 
   const dutyB =
     dutyDrivers.find(
-      d => d.team === "箕谷B"
+      d =>
+        d.team === "箕谷B"
     );
 
   if (dutyB) {
 
-    activeDrivers.push(dutyB);
+    activeDrivers.push(
+      dutyB
+    );
 
-    capacity += dutyB.seats;
+    capacity +=
+      dutyB.seats;
 
   }
 
@@ -904,38 +979,42 @@ else if (isTeamB) {
 
 else if (isBothTeams) {
 
-  // -------------------------
-  // A試合当番車 1台
-  // -------------------------
+  // A試合当番1台
 
   const dutyA =
     dutyDrivers.find(
-      d => d.team === "箕谷A"
+      d =>
+        d.team === "箕谷A"
     );
 
   if (dutyA) {
 
-    activeDrivers.push(dutyA);
+    activeDrivers.push(
+      dutyA
+    );
 
-    capacity += dutyA.seats;
+    capacity +=
+      dutyA.seats;
 
   }
 
 
-  // -------------------------
-  // B試合当番車 1台
-  // -------------------------
+  // B試合当番1台
 
   const dutyB =
     dutyDrivers.find(
-      d => d.team === "箕谷B"
+      d =>
+        d.team === "箕谷B"
     );
 
   if (dutyB) {
 
-    activeDrivers.push(dutyB);
+    activeDrivers.push(
+      dutyB
+    );
 
-    capacity += dutyB.seats;
+    capacity +=
+      dutyB.seats;
 
   }
 
@@ -943,8 +1022,7 @@ else if (isBothTeams) {
 
 
 // ==================================================
-// ② コーチ号を1台採用
-// ==================================================
+// ② コーチ号を各チーム1台採用
 //
 // 箕谷Aのみ
 // → Aコーチ1台
@@ -955,17 +1033,13 @@ else if (isBothTeams) {
 // 箕谷A/B
 // → Aコーチ1台
 // → Bコーチ1台
-//
-// ※ここでも各チーム1台だけ
 // ==================================================
 
 const usedCoaches =
   new Set();
 
 
-// -------------------------
-// 箕谷A
-// -------------------------
+// Aコーチ1台
 
 if (
   isTeamA ||
@@ -980,20 +1054,23 @@ if (
 
   if (coachA) {
 
-    activeDrivers.push(coachA);
+    activeDrivers.push(
+      coachA
+    );
 
-    usedCoaches.add(coachA);
+    usedCoaches.add(
+      coachA
+    );
 
-    capacity += coachA.seats;
+    capacity +=
+      coachA.seats;
 
   }
 
 }
 
 
-// -------------------------
-// 箕谷B
-// -------------------------
+// Bコーチ1台
 
 if (
   isTeamB ||
@@ -1008,11 +1085,16 @@ if (
 
   if (coachB) {
 
-    activeDrivers.push(coachB);
+    activeDrivers.push(
+      coachB
+    );
 
-    usedCoaches.add(coachB);
+    usedCoaches.add(
+      coachB
+    );
 
-    capacity += coachB.seats;
+    capacity +=
+      coachB.seats;
 
   }
 
@@ -1020,7 +1102,7 @@ if (
 
 
 // ==================================================
-// ここまでで必要人数を満たしていれば終了
+// ③ 必要人数を満たしているか確認
 // ==================================================
 
 if (
@@ -1028,67 +1110,62 @@ if (
 ) {
 
   // ==================================================
-  // ③ 残りのコーチ号を追加
-  // ==================================================
+  // 残りのコーチ号を追加
   //
-  // 箕谷Aのみ
-  // → 残りAコーチ
-  //
-  // 箕谷Bのみ
-  // → 残りBコーチ
-  //
-  // 箕谷A/B
-  // → 残りA/Bコーチ
-  //
-  // 必要人数を満たしたら即終了
+  // ここでは「必要人数を満たすまで」追加
   // ==================================================
 
   for (
     const coach of coachDrivers
   ) {
 
-    // すでに採用したコーチはスキップ
+    // すでに採用済みならスキップ
+
     if (
       usedCoaches.has(coach)
     ) {
+
       continue;
+
     }
 
-    // 念のため対象チーム外は採用しない
-    if (
-      isTeamA &&
-      coach.team !== "箕谷A"
-    ) {
-      continue;
-    }
+
+    // 念のため対象チーム確認
 
     if (
-      isTeamB &&
-      coach.team !== "箕谷B"
+      !isTargetTeam(
+        coach.team
+      )
     ) {
+
       continue;
+
     }
 
-    if (
-      isBothTeams &&
-      coach.team !== "箕谷A" &&
-      coach.team !== "箕谷B"
-    ) {
-      continue;
-    }
 
     // 必要人数を満たしたら終了
+
     if (
       capacity >= needCount
     ) {
+
       break;
+
     }
 
-    activeDrivers.push(coach);
 
-    usedCoaches.add(coach);
+    // コーチ採用
 
-    capacity += coach.seats;
+    activeDrivers.push(
+      coach
+    );
+
+    usedCoaches.add(
+      coach
+    );
+
+    capacity +=
+      coach.seats;
 
   }
 
@@ -1109,45 +1186,35 @@ if (
   ) {
 
     // すでに採用済みならスキップ
-    if (
-      activeDrivers.includes(duty)
-    ) {
-      continue;
-    }
-
-    // 対象チーム外は採用しない
-    if (
-      isTeamA &&
-      duty.team !== "箕谷A"
-    ) {
-      continue;
-    }
 
     if (
-      isTeamB &&
-      duty.team !== "箕谷B"
+      isActive(duty)
     ) {
+
       continue;
+
     }
 
-    if (
-      isBothTeams &&
-      duty.team !== "箕谷A" &&
-      duty.team !== "箕谷B"
-    ) {
-      continue;
-    }
 
     // 必要人数を満たしたら終了
+
     if (
       capacity >= needCount
     ) {
+
       break;
+
     }
 
-    activeDrivers.push(duty);
 
-    capacity += duty.seats;
+    // 試合当番車を追加
+
+    activeDrivers.push(
+      duty
+    );
+
+    capacity +=
+      duty.seats;
 
   }
 
@@ -1155,49 +1222,9 @@ if (
 
 
 // ==================================================
-// ⑤ それでも足りなければ保護者号を追加
+// ⑤ それでも足りなければ
+//    保護者号を追加
 // ==================================================
-
-const parentDrivers =
-  drivers
-    .filter(
-      d => d.priority === 3
-    )
-    .filter(d => {
-
-      // 箕谷Aのみ
-      if (isTeamA) {
-        return d.team === "箕谷A";
-      }
-
-      // 箕谷Bのみ
-      if (isTeamB) {
-        return d.team === "箕谷B";
-      }
-
-      // 箕谷A/B
-      if (isBothTeams) {
-        return (
-          d.team === "箕谷A" ||
-          d.team === "箕谷B"
-        );
-      }
-
-      return false;
-
-    })
-    .sort((a, b) => {
-
-      // ① 配車回数が少ない人を優先
-      if (a.count !== b.count) {
-        return a.count - b.count;
-      }
-
-      // ② 同じ回数なら座席数が多い人を優先
-      return b.seats - a.seats;
-
-    });
-
 
 if (
   capacity < needCount
@@ -1208,20 +1235,29 @@ if (
   ) {
 
     // 必要人数を満たしたら終了
+
     if (
       capacity >= needCount
     ) {
+
       break;
+
     }
 
-    activeDrivers.push(parent);
 
-    capacity += parent.seats;
+    // 保護者号を追加
+
+    activeDrivers.push(
+      parent
+    );
+
+    capacity +=
+      parent.seats;
 
   }
 
 }
- 
+  
   // =========================
   // 総座席数
   // =========================
