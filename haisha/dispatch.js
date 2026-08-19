@@ -2365,7 +2365,8 @@ await navigator.share({
 
   files: [shareFile],
 
-  title: ""
+  title:
+    shareFile.name
 
 });
 
