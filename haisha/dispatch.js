@@ -2361,11 +2361,13 @@ if (lineBtn && linePdfInput) {
           })
         ) {
 
-          await navigator.share({
+await navigator.share({
 
-            files: [shareFile],
+  files: [shareFile],
 
-          });
+  title: ""
+
+});
 
         }
         else {
