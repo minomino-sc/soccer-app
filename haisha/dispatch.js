@@ -2362,11 +2362,8 @@ if (lineBtn && linePdfInput) {
         ) {
 
 await navigator.share({
-
   files: [shareFile],
-
-  title: "\u200B"
-
+  title: `${shareFile.name} を送付します。`
 });
 
         }
