@@ -13,8 +13,15 @@
 
 <button id="pdfBtn">PDF出力</button>
 
-<!-- ★ここに追加 -->
 <button id="lineBtn">LINE送信</button>
+
+<!-- LINE送信用：PDF選択 -->
+<input
+  type="file"
+  id="linePdfInput"
+  accept="application/pdf"
+  style="display:none;"
+>
 
 <div id="dispatchArea">
   読み込み中...
