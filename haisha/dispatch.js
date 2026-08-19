@@ -2092,66 +2092,187 @@ else {
   );
 
 } 
-  
+
+
+
+
+
+// =========================
+// PDF出力
+// iPhoneではPDFファイルとして共有
+// =========================
 document
   .getElementById("pdfBtn")
-  .addEventListener("click", async () => {
+  .addEventListener(
+    "click",
+    async () => {
 
-    const pdfArea =
-      document.getElementById("pdfArea");
+      const pdfArea =
+        document.getElementById("pdfArea");
 
-    const original =
-      document.getElementById("dispatchArea");
+      const original =
+        document.getElementById("dispatchArea");
 
-    pdfArea.innerHTML = original.innerHTML;
+      pdfArea.innerHTML =
+        original.innerHTML;
 
-    pdfArea.style.display = "block";
+      pdfArea.style.display =
+        "block";
 
-    pdfArea.querySelectorAll("*").forEach(el => {
-      el.style.color = "#000000";
-    });
+      pdfArea.querySelectorAll("*").forEach(el => {
+        el.style.color = "#000000";
+      });
 
-const canvas = await html2canvas(pdfArea, {
-  scale: 2,
-  backgroundColor: "#ffffff",
-  useCORS: true,
-  windowWidth: pdfArea.scrollWidth,
-  windowHeight: pdfArea.scrollHeight
-});
+      try {
 
-pdfArea.style.display = "none";
+        const canvas =
+          await html2canvas(
+            pdfArea,
+            {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              useCORS: true,
+              windowWidth:
+                pdfArea.scrollWidth,
+              windowHeight:
+                pdfArea.scrollHeight
+            }
+          );
 
-// const imgData = canvas.toDataURL("image/png");
-const imgData = canvas.toDataURL("image/jpeg", 0.7);
+        const imgData =
+          canvas.toDataURL(
+            "image/jpeg",
+            0.7
+          );
 
-const { jsPDF } = window.jspdf;
+        const { jsPDF } =
+          window.jspdf;
 
-const pdf = new jsPDF("p", "mm", "a4");
+        const pdf =
+          new jsPDF(
+            "p",
+            "mm",
+            "a4"
+          );
 
-const pageWidth = pdf.internal.pageSize.getWidth();
-const pageHeight = pdf.internal.pageSize.getHeight();
+        const pageWidth =
+          pdf.internal.pageSize.getWidth();
 
-const margin = 10;
+        const pageHeight =
+          pdf.internal.pageSize.getHeight();
 
-const usableWidth = pageWidth - margin * 2;
-const usableHeight = pageHeight - margin * 2;
+        const margin = 10;
 
-const scale = Math.min(
-  usableWidth / canvas.width,
-  usableHeight / canvas.height
-);
+        const usableWidth =
+          pageWidth - margin * 2;
 
-const imgWidth = canvas.width * scale;
-const imgHeight = canvas.height * scale;
+        const usableHeight =
+          pageHeight - margin * 2;
 
-const x = (pageWidth - imgWidth) / 2;
-const y = margin;
+        const scale =
+          Math.min(
+            usableWidth / canvas.width,
+            usableHeight / canvas.height
+          );
 
-pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+        const imgWidth =
+          canvas.width * scale;
 
-pdf.save(`配車表_${new Date().toISOString().slice(0,10)}.pdf`);
-       
-});    
+        const imgHeight =
+          canvas.height * scale;
+
+        const x =
+          (pageWidth - imgWidth) / 2;
+
+        const y =
+          margin;
+
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          x,
+          y,
+          imgWidth,
+          imgHeight
+        );
+
+        // =========================
+        // PDFファイルを作成
+        // =========================
+        const fileName =
+          `配車表_${new Date().toISOString().slice(0,10)}.pdf`;
+
+        const pdfBlob =
+          pdf.output("blob");
+
+        const pdfFile =
+          new File(
+            [pdfBlob],
+            fileName,
+            {
+              type: "application/pdf"
+            }
+          );
+
+        // =========================
+        // iPhoneの共有画面へ
+        // PDFファイルだけを渡す
+        // =========================
+        if (
+          navigator.share &&
+          navigator.canShare &&
+          navigator.canShare({
+            files: [pdfFile]
+          })
+        ) {
+
+          await navigator.share({
+            files: [pdfFile]
+          });
+
+        }
+        else {
+
+          // 共有非対応端末の場合のみ
+          // 通常のPDF保存
+          pdf.save(fileName);
+
+        }
+
+      }
+      catch (error) {
+
+        // 共有画面を閉じただけなら
+        // エラー表示しない
+        if (
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        console.error(
+          "PDF出力エラー:",
+          error
+        );
+
+        alert(
+          "PDFの出力に失敗しました。"
+        );
+
+      }
+      finally {
+
+        pdfArea.style.display =
+          "none";
+
+      }
+
+    }
+  );
+
+
+  
+  
 
 // =========================
 // 配車確定
