@@ -2279,34 +2279,39 @@ const linePdfInput =
 
 if (lineBtn && linePdfInput) {
 
-  // LINE送信ボタンを押したら
-  // PDF選択画面を開く
+  // =========================
+  // LINE送信ボタン
+  // =========================
   lineBtn.addEventListener(
     "click",
     () => {
 
+      // 前回選択したファイルをリセット
       linePdfInput.value = "";
 
+      // PDF選択画面を開く
       linePdfInput.click();
 
     }
   );
 
-  // PDFが選択されたら
+  // =========================
+  // PDFを選択した後
+  // =========================
   linePdfInput.addEventListener(
     "change",
     async () => {
 
-      const file =
+      const originalFile =
         linePdfInput.files[0];
 
-      if (!file) {
+      if (!originalFile) {
         return;
       }
 
       // PDF以外は拒否
       if (
-        file.type !== "application/pdf"
+        originalFile.type !== "application/pdf"
       ) {
 
         alert(
@@ -2320,19 +2325,48 @@ if (lineBtn && linePdfInput) {
       try {
 
         // =========================
-        // iPhone共有画面へ
+        // PDFを読み直す
+        // =========================
+        const arrayBuffer =
+          await originalFile.arrayBuffer();
+
+        // =========================
+        // 新しいPDFファイルとして作成
+        // =========================
+        const shareFile =
+          new File(
+            [arrayBuffer],
+            originalFile.name,
+            {
+              type: "application/pdf",
+              lastModified: Date.now()
+            }
+          );
+
+        console.log(
+          "共有するPDF:",
+          shareFile.name,
+          shareFile.type,
+          shareFile.size
+        );
+
+        // =========================
+        // iPhone共有画面
         // =========================
         if (
           navigator.share &&
           navigator.canShare &&
           navigator.canShare({
-            files: [file]
+            files: [shareFile]
           })
         ) {
 
           await navigator.share({
 
-            files: [file]
+            files: [shareFile],
+
+            title:
+              shareFile.name
 
           });
 
@@ -2340,7 +2374,7 @@ if (lineBtn && linePdfInput) {
         else {
 
           alert(
-            "この端末ではPDFの共有に対応していません。"
+            "このiPhoneではPDF共有に対応していません。"
           );
 
         }
@@ -2348,8 +2382,7 @@ if (lineBtn && linePdfInput) {
       }
       catch (error) {
 
-        // 共有画面を閉じただけなら
-        // エラー表示しない
+        // 共有画面を閉じただけなら何もしない
         if (
           error.name === "AbortError"
         ) {
