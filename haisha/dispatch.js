@@ -59,6 +59,56 @@ else {
   const eventData =
     eventSnap.data();
 
+
+
+
+
+  
+// =========================
+// 年間スケジュールの資料を取得
+// =========================
+let calendarFiles = [];
+
+const calendarSnap = await getDocs(
+  query(
+    collection(db, "calendar_events"),
+    where("date", "==", eventData.date)
+  )
+);
+
+calendarSnap.forEach(docSnap => {
+
+  const data = docSnap.data();
+
+  // 対象チームが一致する資料だけ取得
+  const teamMatch =
+    data.team === "AB" ||
+    data.team === "Z" ||
+    (eventData.target === "箕谷A" && data.team === "A") ||
+    (eventData.target === "箕谷B" && data.team === "B");
+
+  if (!teamMatch) return;
+
+  const urls =
+    data.driveUrls ||
+    (data.driveUrl ? [data.driveUrl] : []);
+
+  urls.forEach(url => {
+
+    if (url && !calendarFiles.includes(url)) {
+      calendarFiles.push(url);
+    }
+
+  });
+
+});
+
+
+
+
+
+  
+  
 // =========================
 // 配車モード
 // =========================
