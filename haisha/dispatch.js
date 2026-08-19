@@ -2093,10 +2093,6 @@ else {
 
 } 
 
-
-
-
-
 // =========================
 // PDF出力
 // iPhoneではPDFファイルとして共有
@@ -2269,27 +2265,109 @@ document
 
     }
   );
-
-
   
-  
-
 // =========================
-// 配車確定
-// =========================   
-document
-  .getElementById("lineBtn")
-  .addEventListener("click", () => {
+// LINE送信
+// PDFを選択 → iPhone共有画面 → LINE
+// =========================
 
-    const text =
-      document.getElementById("dispatchArea").innerText;
+const lineBtn =
+  document.getElementById("lineBtn");
 
-    const encoded =
-      encodeURIComponent(text);
+const linePdfInput =
+  document.getElementById("linePdfInput");
 
-    const url =
-      `https://line.me/R/msg/text/?${encoded}`;
+if (lineBtn && linePdfInput) {
 
-    window.open(url, "_blank");
+  // LINE送信ボタンを押したら
+  // PDF選択画面を開く
+  lineBtn.addEventListener(
+    "click",
+    () => {
 
-  });
+      linePdfInput.value = "";
+
+      linePdfInput.click();
+
+    }
+  );
+
+  // PDFが選択されたら
+  linePdfInput.addEventListener(
+    "change",
+    async () => {
+
+      const file =
+        linePdfInput.files[0];
+
+      if (!file) {
+        return;
+      }
+
+      // PDF以外は拒否
+      if (
+        file.type !== "application/pdf"
+      ) {
+
+        alert(
+          "PDFファイルを選択してください。"
+        );
+
+        return;
+
+      }
+
+      try {
+
+        // =========================
+        // iPhone共有画面へ
+        // =========================
+        if (
+          navigator.share &&
+          navigator.canShare &&
+          navigator.canShare({
+            files: [file]
+          })
+        ) {
+
+          await navigator.share({
+
+            files: [file]
+
+          });
+
+        }
+        else {
+
+          alert(
+            "この端末ではPDFの共有に対応していません。"
+          );
+
+        }
+
+      }
+      catch (error) {
+
+        // 共有画面を閉じただけなら
+        // エラー表示しない
+        if (
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        console.error(
+          "LINE送信エラー:",
+          error
+        );
+
+        alert(
+          "PDFの共有に失敗しました。"
+        );
+
+      }
+
+    }
+  );
+
+}
