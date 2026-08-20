@@ -78,15 +78,35 @@ async function render() {
 
 const snapshot = await getDocs(q);
 
-const now = new Date();
+
+
+
+  
+// =========================
+// 今日の日付を取得
+// =========================
+const today = new Date();
+
+today.setHours(0, 0, 0, 0);
 
 snapshot.forEach((docSnap) => {
   
-    const data = docSnap.data();
+  const data = docSnap.data();
 
-    const eventDate = new Date(data.date);
-    const isPast = eventDate < now;
-    
+  // 開催日だけで比較
+  const eventDate = new Date(data.date);
+
+  eventDate.setHours(0, 0, 0, 0);
+
+  // 開催日の翌日になったら「過去」
+  const isPast = eventDate < today;
+
+
+
+
+  
+
+  
     // タブフィルタ
     if (!showPast && isPast) return;
     if (showPast && !isPast) return;
