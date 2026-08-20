@@ -298,7 +298,7 @@ parentSnap.forEach((docSnap) => {
 
   if (
     a.attendance === "参加" &&
-    a.meetingType === "現地集合"
+    a.meetingType === "onsite"
   ) {
 
     localMembers.push(a.playerName);
