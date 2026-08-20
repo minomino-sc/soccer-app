@@ -375,7 +375,7 @@ if (duty) {
 
 
 
- ${
+${
   calendarFiles.length > 0
     ? `
       <div
@@ -396,7 +396,8 @@ if (duty) {
               display:flex;
               align-items:center;
               justify-content:center;
-              padding:10px 4px;
+              height:40px;
+              padding:0 6px;
               background:#2a8cff;
               color:#fff;
               border-radius:10px;
@@ -404,8 +405,7 @@ if (duty) {
               text-align:center;
               font-size:14px;
               font-weight:bold;
-              line-height:1.2;
-              min-height:42px;
+              line-height:1;
               box-sizing:border-box;
             "
           >
