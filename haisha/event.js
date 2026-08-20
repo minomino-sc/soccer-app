@@ -375,36 +375,48 @@ if (duty) {
 
 
 
-      ${
-        calendarFiles.length > 0
-          ? `
-            <div style="margin-top:15px;">
+ ${
+  calendarFiles.length > 0
+    ? `
+      <div
+        style="
+          display:grid;
+          grid-template-columns:repeat(3, 1fr);
+          gap:8px;
+          margin-top:15px;
+        "
+      >
 
-              ${calendarFiles.map((url, index) => `
-                <a
-                  href="${url}"
-                  target="_blank"
-                  rel="noopener"
-                  style="
-                    display:block;
-                    margin-top:8px;
-                    padding:12px;
-                    background:#2a8cff;
-                    color:#fff;
-                    border-radius:10px;
-                    text-decoration:none;
-                    text-align:center;
-                    font-weight:bold;
-                  "
-                >
-                  📄 資料を見る${calendarFiles.length > 1 ? ` ${index + 1}` : ""}
-                </a>
-              `).join("")}
+        ${calendarFiles.map((url, index) => `
+          <a
+            href="${url}"
+            target="_blank"
+            rel="noopener"
+            style="
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              padding:10px 4px;
+              background:#2a8cff;
+              color:#fff;
+              border-radius:10px;
+              text-decoration:none;
+              text-align:center;
+              font-size:14px;
+              font-weight:bold;
+              line-height:1.2;
+              min-height:42px;
+              box-sizing:border-box;
+            "
+          >
+            📄 資料${index + 1}
+          </a>
+        `).join("")}
 
-            </div>
-          `
-          : ""
-      }
+      </div>
+    `
+    : ""
+}
 
   
 
