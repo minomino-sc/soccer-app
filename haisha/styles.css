@@ -445,9 +445,9 @@ body.duty-setting #dutyForm select{
   align-items:center;
   justify-content:center;
 
-  height:36px;
-  min-height:36px;
-  max-height:36px;
+  height:26px;
+  min-height:26px;
+  max-height:26px;
 
   padding:0 !important;
   margin:0 !important;
@@ -478,9 +478,9 @@ body.duty-setting #dutyForm select{
   }
 
   .calendar-file-button{
-    height:32px;
-    min-height:32px;
-    max-height:32px;
+    height:26px;
+    min-height:26px;
+    max-height:26px;
 
     font-size:13px;
   }
