@@ -1360,6 +1360,52 @@ activeDrivers.forEach(driver => {
 
 });
 
+
+
+
+
+  
+
+// =========================
+// 配車担当コーチの復路希望を解除
+//
+// コーチが往路の配車担当になった場合、
+// そのコーチ本人と、そのコーチの子どもは
+// 復路不要とする
+// =========================
+
+activeDrivers
+  .filter(driver => driver.priority === 1)
+  .forEach(driver => {
+
+    const coachName = driver.name;
+
+    const children =
+      COACH_CHILD[coachName] || [];
+
+    driver.players.forEach(player => {
+
+      // コーチ本人
+      if (player.name === coachName) {
+        player.returnTrip = false;
+      }
+
+      // コーチの子ども
+      if (children.includes(player.name)) {
+        player.returnTrip = false;
+      }
+
+    });
+
+  });
+
+
+
+
+
+
+  
+
 // =========================
 // 復路配車
 // =========================
