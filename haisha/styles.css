@@ -428,3 +428,61 @@ body.duty-setting #dutyForm label{
 body.duty-setting #dutyForm select{
   width:100%;
 }
+
+/* =========================
+   年間スケジュール資料ボタン
+========================= */
+
+.calendar-file-buttons{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:8px;
+  margin-top:15px;
+}
+
+.calendar-file-button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  height:36px;
+  min-height:36px;
+  max-height:36px;
+
+  padding:0 !important;
+  margin:0 !important;
+
+  background:#2a8cff;
+  color:#fff !important;
+
+  border-radius:10px;
+
+  text-decoration:none;
+
+  text-align:center;
+
+  font-size:14px;
+  font-weight:bold;
+  line-height:1;
+
+  box-sizing:border-box;
+
+  overflow:hidden;
+}
+
+@media (max-width:600px){
+
+  .calendar-file-buttons{
+    grid-template-columns:repeat(3, 1fr);
+    gap:6px;
+  }
+
+  .calendar-file-button{
+    height:36px;
+    min-height:36px;
+    max-height:36px;
+
+    font-size:13px;
+  }
+
+}
