@@ -192,6 +192,65 @@ async function loadEvent(id) {
 
   const data = snap.data();
 
+
+
+
+
+
+  
+
+  // =========================
+  // 年間スケジュールの資料を取得
+  // =========================
+  let calendarFiles = [];
+
+  const calendarSnap = await getDocs(
+    query(
+      collection(db, "calendar_events"),
+      where("date", "==", data.date)
+    )
+  );
+
+  calendarSnap.forEach(docSnap => {
+
+    const calendarData = docSnap.data();
+
+    // 配車予定の対象チームと
+    // 年間スケジュールのチームを照合
+    const teamMatch =
+      calendarData.team === "AB" ||
+      calendarData.team === "Z" ||
+      (data.target === "箕谷A" && calendarData.team === "A") ||
+      (data.target === "箕谷B" && calendarData.team === "B") ||
+      (data.target === "箕谷A/B" && calendarData.team === "AB");
+
+    if (!teamMatch) return;
+
+    const urls =
+      calendarData.driveUrls ||
+      (calendarData.driveUrl
+        ? [calendarData.driveUrl]
+        : []);
+
+    urls.forEach(url => {
+
+      if (
+        url &&
+        !calendarFiles.includes(url)
+      ) {
+        calendarFiles.push(url);
+      }
+
+    });
+
+  });
+
+
+
+
+
+  
+
   // =========================
   // 回答数取得
   // =========================
@@ -311,6 +370,47 @@ if (duty) {
       <div class="event-meta">
         ⏰ 回答締切：${formatDateTime(data.deadline)}
       </div>
+
+
+
+
+
+      ${
+        calendarFiles.length > 0
+          ? `
+            <div style="margin-top:15px;">
+
+              ${calendarFiles.map((url, index) => `
+                <a
+                  href="${url}"
+                  target="_blank"
+                  rel="noopener"
+                  style="
+                    display:block;
+                    margin-top:8px;
+                    padding:12px;
+                    background:#2a8cff;
+                    color:#fff;
+                    border-radius:10px;
+                    text-decoration:none;
+                    text-align:center;
+                    font-weight:bold;
+                  "
+                >
+                  📄 資料を見る${calendarFiles.length > 1 ? ` ${index + 1}` : ""}
+                </a>
+              `).join("")}
+
+            </div>
+          `
+          : ""
+      }
+
+  
+
+
+
+
 
     </div>
 
