@@ -57,57 +57,7 @@ if (!eventSnap.exists()) {
 else {
 
   const eventData =
-    eventSnap.data();
-
-
-
-
-
-  
-// =========================
-// 年間スケジュールの資料を取得
-// =========================
-let calendarFiles = [];
-
-const calendarSnap = await getDocs(
-  query(
-    collection(db, "calendar_events"),
-    where("date", "==", eventData.date)
-  )
-);
-
-calendarSnap.forEach(docSnap => {
-
-  const data = docSnap.data();
-
-  // 対象チームが一致する資料だけ取得
-  const teamMatch =
-    data.team === "AB" ||
-    data.team === "Z" ||
-    (eventData.target === "箕谷A" && data.team === "A") ||
-    (eventData.target === "箕谷B" && data.team === "B");
-
-  if (!teamMatch) return;
-
-  const urls =
-    data.driveUrls ||
-    (data.driveUrl ? [data.driveUrl] : []);
-
-  urls.forEach(url => {
-
-    if (url && !calendarFiles.includes(url)) {
-      calendarFiles.push(url);
-    }
-
-  });
-
-});
-
-
-
-
-
-  
+    eventSnap.data(); 
   
 // =========================
 // 配車モード
@@ -1094,48 +1044,6 @@ targetPlayers.push({
   let html = `
 
 <h2>🚗 配車表</h2>
-
-
-
-
-
-${
-  calendarFiles.length > 0
-    ? `
-      <div
-        style="
-          margin:10px 0 20px;
-        "
-      >
-        ${calendarFiles.map((url, index) => `
-          <a
-            href="${url}"
-            target="_blank"
-            rel="noopener"
-            style="
-              display:block;
-              margin-bottom:8px;
-              padding:10px 14px;
-              background:#2a8cff;
-              color:#fff;
-              border-radius:8px;
-              text-decoration:none;
-              font-weight:bold;
-              text-align:center;
-            "
-          >
-            📄 資料を見る${calendarFiles.length > 1 ? ` ${index + 1}` : ""}
-          </a>
-        `).join("")}
-      </div>
-    `
-    : ""
-}
-
-
-
-
-
 
 <table
 style="
