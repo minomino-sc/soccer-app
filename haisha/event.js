@@ -378,45 +378,14 @@ if (duty) {
 ${
   calendarFiles.length > 0
     ? `
-      <div
-        style="
-          display:grid;
-          grid-template-columns:repeat(3, 1fr);
-          gap:8px;
-          margin-top:15px;
-          align-items:start;
-        "
-      >
+      <div class="calendar-file-buttons">
 
         ${calendarFiles.map((url, index) => `
           <a
             href="${url}"
             target="_blank"
             rel="noopener"
-            style="
-              display:flex !important;
-              align-items:center !important;
-              justify-content:center !important;
-
-              height:36px !important;
-              min-height:36px !important;
-              max-height:36px !important;
-
-              padding:0 !important;
-              margin:0 !important;
-
-              background:#2a8cff;
-              color:#fff;
-              border-radius:10px;
-              text-decoration:none;
-              text-align:center;
-
-              font-size:14px;
-              font-weight:bold;
-              line-height:1;
-
-              box-sizing:border-box !important;
-            "
+            class="calendar-file-button"
           >
             📄 資料${index + 1}
           </a>
