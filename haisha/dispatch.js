@@ -1189,8 +1189,20 @@ const assignDrivers =
       b.priority - a.priority
   );
 
+
+
+
+  
+
+
+  
 // =========================
-// コーチ優先割り当て（均等割り）
+// コーチ優先割り当て
+//
+// ① コーチ本人を配車担当車へ割り当て
+// ② 配車担当ではないコーチの場合は
+//    そのコーチの子どもも同じ車へ優先配置
+// ③ その後、残ったコーチを均等に配置
 // =========================
 
 const coachCars =
@@ -1199,6 +1211,10 @@ const coachCars =
   );
 
 let coachCarIndex = 0;
+
+// =========================
+// コーチ本人の割り当て
+// =========================
 
 while (
   targetPlayers.some(
@@ -1214,7 +1230,18 @@ while (
 
   if (idx === -1) break;
 
-  let assigned = false;
+  const coach =
+    targetPlayers[idx];
+
+  const children =
+    COACH_CHILD[coach.name] || [];
+
+  // ---------------------------------
+  // 子どもを含めて乗車できる車を優先
+  // ---------------------------------
+
+  let selectedDriver = null;
+  let selectedIndex = -1;
 
   for (
     let i = 0;
@@ -1222,28 +1249,31 @@ while (
     i++
   ) {
 
+    const index =
+      (coachCarIndex + i) %
+      coachCars.length;
+
     const driver =
-      coachCars[
-        (coachCarIndex + i) %
-        coachCars.length
-      ];
+      coachCars[index];
+
+    const childCount =
+      children.filter(childName =>
+        targetPlayers.some(
+          p => p.name === childName
+        )
+      ).length;
+
+    const requiredSeats =
+      1 + childCount;
 
     if (
-      driver.players.length <
+      driver.players.length +
+      requiredSeats <=
       driver.seats
     ) {
 
-      driver.players.push(
-        targetPlayers[idx]
-      );
-
-      targetPlayers.splice(idx, 1);
-
-      coachCarIndex =
-        (coachCarIndex + i + 1) %
-        coachCars.length;
-
-      assigned = true;
+      selectedDriver = driver;
+      selectedIndex = index;
 
       break;
 
@@ -1251,9 +1281,103 @@ while (
 
   }
 
-  if (!assigned) break;
+  // ---------------------------------
+  // 子どもまで入る車がない場合
+  // コーチ本人だけでも乗せられる車を探す
+  // ---------------------------------
+
+  if (!selectedDriver) {
+
+    for (
+      let i = 0;
+      i < coachCars.length;
+      i++
+    ) {
+
+      const index =
+        (coachCarIndex + i) %
+        coachCars.length;
+
+      const driver =
+        coachCars[index];
+
+      if (
+        driver.players.length <
+        driver.seats
+      ) {
+
+        selectedDriver = driver;
+        selectedIndex = index;
+
+        break;
+
+      }
+
+    }
+
+  }
+
+  if (!selectedDriver) {
+    break;
+  }
+
+  // =========================
+  // コーチ本人を乗車
+  // =========================
+
+  selectedDriver.players.push(
+    coach
+  );
+
+  targetPlayers.splice(
+    idx,
+    1
+  );
+
+  // =========================
+  // コーチの子どもを
+  // 同じ車へ優先配置
+  // =========================
+
+  children.forEach(childName => {
+
+    const childIndex =
+      targetPlayers.findIndex(
+        p => p.name === childName
+      );
+
+    if (
+      childIndex >= 0 &&
+      selectedDriver.players.length <
+      selectedDriver.seats
+    ) {
+
+      selectedDriver.players.push(
+        targetPlayers[childIndex]
+      );
+
+      targetPlayers.splice(
+        childIndex,
+        1
+      );
+
+    }
+
+  });
+
+  // 次のコーチは均等に回す
+  coachCarIndex =
+    (selectedIndex + 1) %
+    coachCars.length;
 
 }
+
+
+
+
+  
+
+  
    
 // =========================
 // ドライバーの子どもを先に自分の車へ乗せる
