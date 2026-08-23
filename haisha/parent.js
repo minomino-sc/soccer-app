@@ -188,6 +188,17 @@ familyReturnWrap.style.display = "block";
 async function saveAnswer() {
 
 const playerName = document.getElementById("player").value;
+
+if (
+  !confirm(
+    `⚠️ 回答者を確認してください\n\n` +
+    `選手名：${playerName}\n\n` +
+    `この選手の回答として保存しますか？`
+  )
+) {
+  return;
+}
+  
 const attendance = document.getElementById("attendance").value;
 const note = document.getElementById("note").value;
 
