@@ -31,8 +31,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const createBtn = document.getElementById("createBtn");
 
   createBtn.addEventListener("click", () => {
-    window.location.href = "create.html";
-  });
+
+  // 新規作成なので、過去の編集IDを削除
+  localStorage.removeItem("editId");
+
+  window.location.href = "create.html";
+
+});
 
   // タブ
   const tabUpcoming = document.getElementById("tabUpcoming");
