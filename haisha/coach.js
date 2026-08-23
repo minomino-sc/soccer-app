@@ -264,6 +264,16 @@ async function saveAnswer() {
   const coachName =
     document.getElementById("coachName").value;
 
+if (
+  !confirm(
+    `⚠️ 回答者を確認してください\n\n` +
+    `コーチ名：${coachName}\n\n` +
+    `このコーチの回答として保存しますか？`
+  )
+) {
+  return;
+}
+
   const attendance =
     document.getElementById("attendance").value;
 
