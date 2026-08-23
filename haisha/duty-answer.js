@@ -365,6 +365,19 @@ async function saveAnswer() {
       "dutyName"
     ).value;
 
+  // =========================
+  // 保存前の名前確認
+  // =========================
+  if (
+    !confirm(
+      `⚠️ 試合当番を確認してください\n\n` +
+      `試合当番：${formatDutyName(dutyName)}\n\n` +
+      `この試合当番として保存しますか？`
+    )
+  ) {
+    return;
+  }
+  
   const canDrive =
     document.getElementById(
       "canDrive"
