@@ -75,6 +75,86 @@ h1{
   font-weight:bold;
 }
 
+
+
+
+  
+.answer-box{
+  background:#fff;
+  border-radius:15px;
+  padding:20px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.selected-event{
+  padding-bottom:18px;
+  border-bottom:1px solid #eee;
+}
+
+.event-title{
+  font-size:18px;
+  font-weight:bold;
+  margin:8px 0;
+}
+
+.answer-title{
+  margin-top:20px;
+  margin-bottom:8px;
+  font-size:16px;
+  font-weight:bold;
+}
+
+.coach-select{
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  background:#fff;
+}
+
+.answer-buttons{
+  display:flex;
+  gap:10px;
+}
+
+.answer-buttons button{
+  flex:1;
+  padding:14px 10px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.attend-btn{
+  background:#d9f7df;
+  color:#176b2c;
+}
+
+.absent-btn{
+  background:#ffe0e0;
+  color:#a00000;
+}
+
+.back-list-btn{
+  width:100%;
+  margin-top:20px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#f1f1f1;
+  font-size:14px;
+  font-weight:bold;
+}
+
+  
+
+
+
+
+  
 .empty{
   background:#fff;
   border-radius:15px;
@@ -246,16 +326,12 @@ function renderEvents(events){
     `;
 
 
-    // 予定をタップしたとき
-    card.addEventListener("click", () => {
+// 予定をタップしたとき
+card.addEventListener("click", () => {
 
-      alert(
-        "選択した練習：\n" +
-        formatDate(ev.date) + "\n" +
-        (ev.text || "練習")
-      );
+  showAnswerScreen(ev);
 
-    });
+});
 
 
     eventList.appendChild(card);
@@ -264,6 +340,94 @@ function renderEvents(events){
 
 }
 
+// ========================================
+// コーチ回答画面
+// ========================================
+
+function showAnswerScreen(ev){
+
+  eventList.innerHTML = "";
+
+  const answerBox = document.createElement("div");
+
+  answerBox.className = "answer-box";
+
+  answerBox.innerHTML = `
+
+    <div class="selected-event">
+
+      <div class="event-date">
+        🟢 ${formatDate(ev.date)}
+      </div>
+
+      <div class="team-badge">
+        ${ev.team === "A" ? "🔵 チームA"
+          : ev.team === "B" ? "🟢 チームB"
+          : ev.team === "AB" ? "🟣 チームA/B"
+          : ev.team === "Z" ? "🔴 その他"
+          : "⚪ チーム未設定"}
+      </div>
+
+      <div class="event-title">
+        ${ev.text || "練習"}
+      </div>
+
+      <div class="event-info">
+        📍 ${ev.location || "場所未設定"}<br>
+        🕒 ${ev.time || "時間未設定"}
+      </div>
+
+    </div>
+
+
+    <div class="answer-title">
+      👨‍🏫 コーチを選択してください
+    </div>
+
+    <select id="coachSelect" class="coach-select">
+
+      <option value="">コーチを選択</option>
+
+      <option value="コーチA">コーチA</option>
+      <option value="コーチB">コーチB</option>
+      <option value="コーチC">コーチC</option>
+
+    </select>
+
+
+    <div class="answer-title">
+      出欠を選択してください
+    </div>
+
+
+    <div class="answer-buttons">
+
+      <button
+        class="attend-btn"
+        onclick="saveCoachAnswer('${ev.id}', '参加')">
+        🟢 参加
+      </button>
+
+      <button
+        class="absent-btn"
+        onclick="saveCoachAnswer('${ev.id}', '欠席')">
+        🔴 欠席
+      </button>
+
+    </div>
+
+
+    <button
+      class="back-list-btn"
+      onclick="loadPracticeEvents()">
+      ← 練習予定一覧に戻る
+    </button>
+
+  `;
+
+  eventList.appendChild(answerBox);
+
+}
 
 // ========================================
 // 日付表示
