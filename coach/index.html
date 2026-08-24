@@ -152,14 +152,24 @@ db.collection("calendar_events")
       const data = doc.data();
 
       // 「練習」だけ取得
-      if(data.type === "practice"){
+if(data.type === "practice"){
 
-        practiceEvents.push({
-          id: doc.id,
-          ...data
-        });
+  const today = new Date();
+  today.setHours(0,0,0,0);
 
-      }
+  const eventDate = new Date(data.date + "T00:00:00");
+
+  // 今日以降の練習だけ表示
+  if(eventDate >= today){
+
+    practiceEvents.push({
+      id: doc.id,
+      ...data
+    });
+
+  }
+
+}
 
     });
 
