@@ -430,6 +430,66 @@ function showAnswerScreen(ev){
 }
 
 // ========================================
+// コーチの出欠を保存
+// ========================================
+
+async function saveCoachAnswer(eventId, status){
+
+  const coachSelect =
+    document.getElementById("coachSelect");
+
+  const coachName = coachSelect.value;
+
+  if(!coachName){
+
+    alert("コーチを選択してください");
+
+    return;
+  }
+
+
+  try{
+
+    const answerId =
+      eventId + "_" + encodeURIComponent(coachName);
+
+    await db
+      .collection("coach_practice_answers")
+      .doc(answerId)
+      .set({
+
+        eventId: eventId,
+
+        coachName: coachName,
+
+        status: status,
+
+        updatedAt:
+          firebase.firestore.FieldValue.serverTimestamp()
+
+      }, { merge:true });
+
+
+    alert(
+      coachName + "さんの回答を保存しました。\n\n" +
+      "出欠： " + status
+    );
+
+
+  }catch(error){
+
+    console.error(error);
+
+    alert(
+      "回答の保存に失敗しました。\n" +
+      error.message
+    );
+
+  }
+
+}
+  
+// ========================================
 // 日付表示
 // ========================================
 
