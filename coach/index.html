@@ -77,7 +77,7 @@ h1{
 
 
 /* ========================================
-   コーチ回答画面
+   回答画面
 ======================================== */
 
 .answer-box{
@@ -166,20 +166,56 @@ h1{
 
 
 /* ========================================
-   コーチ回答状況
+   全コーチ回答状況
 ======================================== */
 
-.coach-answer-section{
+.answer-status-box{
   margin-top:25px;
   padding-top:20px;
   border-top:1px solid #eee;
 }
 
-.coach-answer-title{
+.status-title{
   font-size:18px;
   font-weight:bold;
   margin-bottom:12px;
 }
+
+
+/* 集計 */
+
+.status-summary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:15px;
+}
+
+.summary-item{
+  text-align:center;
+  padding:10px 5px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:bold;
+}
+
+.summary-attend{
+  background:#d9f7df;
+  color:#176b2c;
+}
+
+.summary-absent{
+  background:#ffe0e0;
+  color:#a00000;
+}
+
+.summary-unanswered{
+  background:#f1f1f1;
+  color:#666;
+}
+
+
+/* コーチ一覧 */
 
 .coach-answer-list{
   display:flex;
@@ -193,34 +229,55 @@ h1{
   background:#f7f7f7;
 }
 
-.coach-answer-name{
-  font-weight:bold;
-  font-size:16px;
+.coach-answer-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
 }
 
-.coach-answer-status{
-  margin-top:4px;
-  font-size:14px;
+.coach-name{
   font-weight:bold;
+  font-size:15px;
 }
 
-.coach-answer-comment{
-  margin-top:5px;
-  font-size:14px;
-  color:#555;
-  line-height:1.5;
+.status-badge{
+  padding:4px 9px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+  white-space:nowrap;
 }
 
 .status-attend{
+  background:#d9f7df;
   color:#176b2c;
 }
 
 .status-absent{
+  background:#ffe0e0;
   color:#a00000;
 }
 
 .status-unanswered{
+  background:#eaeaea;
   color:#777;
+}
+
+.coach-comment-display{
+  margin-top:7px;
+  padding:8px 10px;
+  background:#fff;
+  border-radius:7px;
+  font-size:13px;
+  line-height:1.5;
+  color:#555;
+}
+
+.no-comment{
+  color:#999;
+  font-size:12px;
+  margin-top:5px;
 }
 
 
@@ -247,6 +304,7 @@ h1{
 
 </head>
 
+
 <body>
 
 <div class="container">
@@ -268,9 +326,7 @@ h1{
 </div>
 
 
-<!-- ========================================
-     Firebase
-======================================== -->
+<!-- Firebase -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -280,30 +336,19 @@ h1{
 
 
 // ========================================
-// Firebase設定
+// Firebase
 // ========================================
 
 const firebaseConfig = {
 
-  apiKey: "AIzaSyDMJfAd5Bffteap51ZUO06VP-XDReFSwY",
-
-  authDomain:
-    "minotani-sc-app.firebaseapp.com",
-
-  projectId:
-    "minotani-sc-app",
-
-  storageBucket:
-    "minotani-sc-app.firebasestorage.app",
-
-  messagingSenderId:
-    "757066295000",
-
-  appId:
-    "1:757066295000:web:1c7a90f968af75d26099ad"
+  apiKey: "AIzaSyDMJfAd5Bffteap5T1ZUO06VP-XDReFSwY",
+  authDomain: "minotani-sc-app.firebaseapp.com",
+  projectId: "minotani-sc-app",
+  storageBucket: "minotani-sc-app.firebasestorage.app",
+  messagingSenderId: "757066295000",
+  appId: "1:757066295000:web:1c7a90f968af75d26099ad"
 
 };
-
 
 firebase.initializeApp(firebaseConfig);
 
@@ -317,7 +362,7 @@ const eventList =
 // コーチ一覧
 // ========================================
 
-const coachList = [
+const COACHES = [
 
   "松岡コーチ",
   "横江コーチ",
@@ -341,36 +386,29 @@ const coachList = [
 // ========================================
 
 db.collection("calendar_events")
-
   .onSnapshot(snapshot => {
 
     const practiceEvents = [];
-
 
     snapshot.forEach(doc => {
 
       const data = doc.data();
 
-
-      // 「練習」だけ取得
       if(data.type === "practice"){
 
         const today = new Date();
 
         today.setHours(0,0,0,0);
 
-
         const eventDate =
           new Date(data.date + "T00:00:00");
 
-
-        // 今日以降の練習だけ表示
+        // 今日以降だけ表示
         if(eventDate >= today){
 
           practiceEvents.push({
 
             id: doc.id,
-
             ...data
 
           });
@@ -382,7 +420,7 @@ db.collection("calendar_events")
     });
 
 
-    // 日付順に並べる
+    // 日付順
     practiceEvents.sort((a,b) =>
       a.date.localeCompare(b.date)
     );
@@ -394,7 +432,7 @@ db.collection("calendar_events")
 
 
 // ========================================
-// 練習予定を画面に表示
+// 練習予定一覧
 // ========================================
 
 function renderEvents(events){
@@ -407,9 +445,7 @@ function renderEvents(events){
     eventList.innerHTML = `
 
       <div class="empty">
-
         練習予定はありません。
-
       </div>
 
     `;
@@ -424,43 +460,32 @@ function renderEvents(events){
     const card =
       document.createElement("div");
 
-
-    card.className =
-      "event-card";
+    card.className = "event-card";
 
 
     card.innerHTML = `
 
       <div class="event-date">
-
-        ⭐️ ${formatDate(ev.date)}
-
+        🟢 ${formatDate(ev.date)}
       </div>
 
-
       <div class="event-info">
-
 
         <div class="team-badge">
 
           ${
             ev.team === "A"
               ? "🔵 チームA"
-
               : ev.team === "B"
               ? "🟢 チームB"
-
               : ev.team === "AB"
               ? "🟣 チームA/B"
-
               : ev.team === "Z"
               ? "🔴 その他"
-
               : "⚪ チーム未設定"
           }
 
         </div>
-
 
         <strong>
           ${ev.text || "練習"}
@@ -468,21 +493,18 @@ function renderEvents(events){
 
         <br>
 
-
         📍 ${ev.location || "場所未設定"}
 
         <br>
 
-
         🕒 ${ev.time || "時間未設定"}
-
 
       </div>
 
     `;
 
 
-    // 予定をタップ
+    // タップ
     card.addEventListener("click", () => {
 
       showAnswerScreen(ev);
@@ -509,53 +531,40 @@ function showAnswerScreen(ev){
   const answerBox =
     document.createElement("div");
 
-
-  answerBox.className =
-    "answer-box";
+  answerBox.className = "answer-box";
 
 
   answerBox.innerHTML = `
 
-
-    <!-- 選択した練習予定 -->
+    <!-- 練習予定 -->
 
     <div class="selected-event">
 
-
       <div class="event-date">
-
-        🟢 ${formatDate(ev.date)}
-
+        ⭐️ ${formatDate(ev.date)}
       </div>
-
 
       <div class="team-badge">
 
         ${
           ev.team === "A"
             ? "🔵 チームA"
-
             : ev.team === "B"
             ? "🟢 チームB"
-
             : ev.team === "AB"
             ? "🟣 チームA/B"
-
             : ev.team === "Z"
             ? "🔴 その他"
-
             : "⚪ チーム未設定"
         }
 
       </div>
-
 
       <div class="event-title">
 
         ${ev.text || "練習"}
 
       </div>
-
 
       <div class="event-info">
 
@@ -567,16 +576,13 @@ function showAnswerScreen(ev){
 
       </div>
 
-
     </div>
 
 
-    <!-- コーチ選択 -->
+    <!-- 回答入力 -->
 
     <div class="answer-title">
-
       👨‍🏫 コーチを選択してください
-
     </div>
 
 
@@ -589,65 +595,17 @@ function showAnswerScreen(ev){
         コーチを選択
       </option>
 
-
-      <option value="松岡コーチ">
-        松岡コーチ
-      </option>
-
-      <option value="横江コーチ">
-        横江コーチ
-      </option>
-
-      <option value="二宮コーチ">
-        二宮コーチ
-      </option>
-
-      <option value="森本コーチ">
-        森本コーチ
-      </option>
-
-      <option value="三宅コーチ">
-        三宅コーチ
-      </option>
-
-      <option value="高﨑コーチ">
-        高﨑コーチ
-      </option>
-
-
-      <option value="梶原コーチ">
-        梶原コーチ
-      </option>
-
-      <option value="田中コーチ">
-        田中コーチ
-      </option>
-
-      <option value="川村コーチ">
-        川村コーチ
-      </option>
-
-      <option value="大村コーチ">
-        大村コーチ
-      </option>
-
-      <option value="入江コーチ">
-        入江コーチ
-      </option>
-
-      <option value="西川コーチ">
-        西川コーチ
-      </option>
+      ${COACHES.map(coach => `
+        <option value="${coach}">
+          ${coach}
+        </option>
+      `).join("")}
 
     </select>
 
 
-    <!-- コメント -->
-
     <div class="answer-title">
-
       💬 コメント（任意）
-
     </div>
 
 
@@ -658,78 +616,41 @@ function showAnswerScreen(ev){
     ></textarea>
 
 
-    <!-- 出欠 -->
-
     <div class="answer-title">
-
       出欠を選択してください
-
     </div>
 
 
     <div class="answer-buttons">
 
-
       <button
         class="attend-btn"
-        onclick="
-          saveCoachAnswer(
-            '${ev.id}',
-            '参加'
-          )
-        "
+        onclick="saveCoachAnswer('${ev.id}', '参加')"
       >
-
         🟢 参加
-
       </button>
 
 
       <button
         class="absent-btn"
-        onclick="
-          saveCoachAnswer(
-            '${ev.id}',
-            '欠席'
-          )
-        "
+        onclick="saveCoachAnswer('${ev.id}', '欠席')"
       >
-
         🔴 欠席
-
       </button>
-
 
     </div>
 
 
-    <!-- ====================================
-         全コーチ回答状況
-    ==================================== -->
+    <!-- 全コーチ回答状況 -->
 
-    <div class="coach-answer-section">
+    <div
+      id="answerStatus"
+      class="answer-status-box"
+    >
 
-
-      <div class="coach-answer-title">
-
-        📋 コーチ回答状況
-
+      <div class="loading">
+        回答状況を読み込んでいます...
       </div>
-
-
-      <div
-        id="coachAnswerList"
-        class="coach-answer-list"
-      >
-
-        <div class="loading">
-
-          回答状況を読み込んでいます...
-
-        </div>
-
-      </div>
-
 
     </div>
 
@@ -740,11 +661,8 @@ function showAnswerScreen(ev){
       class="back-list-btn"
       onclick="loadPracticeEvents()"
     >
-
       ← 練習予定一覧に戻る
-
     </button>
-
 
   `;
 
@@ -752,7 +670,7 @@ function showAnswerScreen(ev){
   eventList.appendChild(answerBox);
 
 
-  // 回答状況をリアルタイム監視
+  // 回答状況を監視
   watchCoachAnswers(ev.id);
 
 }
@@ -762,39 +680,25 @@ function showAnswerScreen(ev){
 // コーチの出欠を保存
 // ========================================
 
-async function saveCoachAnswer(
-  eventId,
-  status
-){
+async function saveCoachAnswer(eventId, status){
 
   const coachSelect =
-    document.getElementById(
-      "coachSelect"
-    );
-
+    document.getElementById("coachSelect");
 
   const coachName =
     coachSelect.value;
 
 
-  const commentElement =
-    document.getElementById(
-      "coachComment"
-    );
-
-
   const comment =
-    commentElement
-      ? commentElement.value.trim()
-      : "";
+    document
+      .getElementById("coachComment")
+      .value
+      .trim();
 
 
-  // コーチ未選択
   if(!coachName){
 
-    alert(
-      "コーチを選択してください"
-    );
+    alert("コーチを選択してください");
 
     return;
 
@@ -803,48 +707,29 @@ async function saveCoachAnswer(
 
   try{
 
-
     const answerId =
-
       eventId +
       "_" +
-      encodeURIComponent(
-        coachName
-      );
+      encodeURIComponent(coachName);
 
 
     await db
-
-      .collection(
-        "coach_practice_answers"
-      )
-
+      .collection("coach_practice_answers")
       .doc(answerId)
-
       .set({
 
-        eventId:
-          eventId,
+        eventId: eventId,
 
-        coachName:
-          coachName,
+        coachName: coachName,
 
-        status:
-          status,
+        status: status,
 
-        comment:
-          comment,
+        comment: comment,
 
         updatedAt:
-          firebase.firestore
-            .FieldValue
-            .serverTimestamp()
+          firebase.firestore.FieldValue.serverTimestamp()
 
-      }, {
-
-        merge:true
-
-      });
+      }, { merge:true });
 
 
     alert(
@@ -858,9 +743,13 @@ async function saveCoachAnswer(
     );
 
 
-  }
+    // 回答したコーチのコメントをクリア
+    document.getElementById(
+      "coachComment"
+    ).value = "";
 
-  catch(error){
+
+  }catch(error){
 
     console.error(error);
 
@@ -868,7 +757,6 @@ async function saveCoachAnswer(
     alert(
 
       "回答の保存に失敗しました。\n" +
-
       error.message
 
     );
@@ -879,225 +767,246 @@ async function saveCoachAnswer(
 
 
 // ========================================
-// 全コーチの回答状況を取得
+// 全コーチの回答状況をリアルタイム取得
 // ========================================
 
 function watchCoachAnswers(eventId){
 
-  const answerList =
-    document.getElementById(
-      "coachAnswerList"
-    );
+  db.collection("coach_practice_answers")
+    .where("eventId", "==", eventId)
+    .onSnapshot(snapshot => {
 
 
-  if(!answerList){
+      // 回答データを整理
 
-    return;
+      const answers = {};
 
-  }
 
+      snapshot.forEach(doc => {
 
-  db
+        const data = doc.data();
 
-    .collection(
-      "coach_practice_answers"
-    )
+        answers[data.coachName] = data;
 
-    .where(
-      "eventId",
-      "==",
-      eventId
-    )
+      });
 
-    .onSnapshot(
 
-      snapshot => {
+      renderCoachAnswers(answers);
 
-
-        // 回答データをコーチ名ごとに整理
-
-        const answers = {};
-
-
-        snapshot.forEach(doc => {
-
-          const data =
-            doc.data();
-
-
-          answers[
-            data.coachName
-          ] = data;
-
-        });
-
-
-        // 一覧をクリア
-
-        answerList.innerHTML = "";
-
-
-        // 12人全員を表示
-
-        coachList.forEach(
-          coachName => {
-
-
-            const answer =
-              answers[coachName];
-
-
-            const item =
-              document.createElement(
-                "div"
-              );
-
-
-            item.className =
-              "coach-answer-item";
-
-
-            // ==================================
-            // 未回答
-            // ==================================
-
-            if(!answer){
-
-
-              item.innerHTML = `
-
-                <div
-                  class="coach-answer-name"
-                >
-
-                  ${coachName}
-
-                </div>
-
-
-                <div
-                  class="
-                    coach-answer-status
-                    status-unanswered
-                  "
-                >
-
-                  ⚪ 未回答
-
-                </div>
-
-              `;
-
-            }
-
-
-            // ==================================
-            // 回答済み
-            // ==================================
-
-            else{
-
-
-              const isAttend =
-                answer.status === "参加";
-
-
-              item.innerHTML = `
-
-                <div
-                  class="coach-answer-name"
-                >
-
-                  ${coachName}
-
-                </div>
-
-
-                <div
-                  class="
-                    coach-answer-status
-                    ${
-                      isAttend
-                        ? "status-attend"
-                        : "status-absent"
-                    }
-                  "
-                >
-
-                  ${
-                    isAttend
-                      ? "🟢 参加"
-                      : "🔴 欠席"
-                  }
-
-                </div>
-
-
-                ${
-                  answer.comment
-                    ?
-
-                    `
-
-                      <div
-                        class="
-                          coach-answer-comment
-                        "
-                      >
-
-                        💬
-                        ${escapeHtml(
-                          answer.comment
-                        )}
-
-                      </div>
-
-                    `
-
-                    :
-
-                    ""
-
-                }
-
-              `;
-
-            }
-
-
-            answerList.appendChild(
-              item
-            );
-
-
-          }
-        );
-
-
-      }
-
-    );
+    });
 
 }
 
 
 // ========================================
-// コメントを安全に表示
+// 全コーチ回答を表示
 // ========================================
 
-function escapeHtml(text){
+function renderCoachAnswers(answers){
 
-  const div =
-    document.createElement(
-      "div"
-    );
+  const box =
+    document.getElementById("answerStatus");
 
 
-  div.textContent =
-    text;
+  if(!box) return;
 
 
-  return div.innerHTML;
+  let attendCount = 0;
+
+  let absentCount = 0;
+
+  let unansweredCount = 0;
+
+
+  COACHES.forEach(coach => {
+
+    const answer =
+      answers[coach];
+
+
+    if(!answer){
+
+      unansweredCount++;
+
+    }
+    else if(answer.status === "参加"){
+
+      attendCount++;
+
+    }
+    else if(answer.status === "欠席"){
+
+      absentCount++;
+
+    }
+
+  });
+
+
+  let html = `
+
+    <div class="status-title">
+      👨‍🏫 全コーチの回答状況
+    </div>
+
+
+    <div class="status-summary">
+
+      <div class="summary-item summary-attend">
+        🟢 参加<br>
+        ${attendCount}人
+      </div>
+
+      <div class="summary-item summary-absent">
+        🔴 欠席<br>
+        ${absentCount}人
+      </div>
+
+      <div class="summary-item summary-unanswered">
+        ⚪ 未回答<br>
+        ${unansweredCount}人
+      </div>
+
+    </div>
+
+
+    <div class="coach-answer-list">
+
+  `;
+
+
+  COACHES.forEach(coach => {
+
+    const answer =
+      answers[coach];
+
+
+    // 未回答
+    if(!answer){
+
+      html += `
+
+        <div class="coach-answer-item">
+
+          <div class="coach-answer-header">
+
+            <span class="coach-name">
+              ${coach}
+            </span>
+
+            <span
+              class="status-badge status-unanswered"
+            >
+              ⚪ 未回答
+            </span>
+
+          </div>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    // 参加
+    if(answer.status === "参加"){
+
+      html += `
+
+        <div class="coach-answer-item">
+
+          <div class="coach-answer-header">
+
+            <span class="coach-name">
+              ${coach}
+            </span>
+
+            <span
+              class="status-badge status-attend"
+            >
+              🟢 参加
+            </span>
+
+          </div>
+
+          ${
+            answer.comment
+              ? `
+                <div class="coach-comment-display">
+                  💬 ${answer.comment}
+                </div>
+              `
+              : `
+                <div class="no-comment">
+                  コメントなし
+                </div>
+              `
+          }
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    // 欠席
+    if(answer.status === "欠席"){
+
+      html += `
+
+        <div class="coach-answer-item">
+
+          <div class="coach-answer-header">
+
+            <span class="coach-name">
+              ${coach}
+            </span>
+
+            <span
+              class="status-badge status-absent"
+            >
+              🔴 欠席
+            </span>
+
+          </div>
+
+          ${
+            answer.comment
+              ? `
+                <div class="coach-comment-display">
+                  💬 ${answer.comment}
+                </div>
+              `
+              : `
+                <div class="no-comment">
+                  コメントなし
+                </div>
+              `
+          }
+
+        </div>
+
+      `;
+
+    }
+
+  });
+
+
+  html += `
+
+    </div>
+
+  `;
+
+
+  box.innerHTML = html;
 
 }
 
@@ -1120,10 +1029,7 @@ function loadPracticeEvents(){
 function formatDate(dateStr){
 
   const date =
-    new Date(
-      dateStr +
-      "T00:00:00"
-    );
+    new Date(dateStr + "T00:00:00");
 
 
   const weekdays = [
@@ -1143,13 +1049,12 @@ function formatDate(dateStr){
 
     `${date.getMonth()+1}月` +
     `${date.getDate()}日` +
-    `（${weekdays[
-      date.getDay()
-    ]}）`
+    `（${weekdays[date.getDay()]}）`
 
   );
 
 }
+
 
 </script>
 
