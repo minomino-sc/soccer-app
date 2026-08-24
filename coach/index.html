@@ -109,6 +109,20 @@ h1{
   background:#fff;
 }
 
+.coach-comment{
+  width:100%;
+  min-height:90px;
+  padding:12px;
+  box-sizing:border-box;
+  font-size:16px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  background:#fff;
+  resize:vertical;
+  font-family:system-ui;
+  margin-bottom:10px;
+}
+  
 .answer-buttons{
   display:flex;
   gap:10px;
@@ -381,6 +395,16 @@ function showAnswerScreen(ev){
     <div class="answer-title">
       出欠を選択してください
     </div>
+
+<div class="answer-title">
+  💬 コメント（任意）
+</div>
+
+<textarea
+  id="coachComment"
+  class="coach-comment"
+  placeholder="コメントがあれば入力してください"
+></textarea>
 
     <div class="answer-buttons">
 
