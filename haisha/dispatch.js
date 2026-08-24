@@ -429,11 +429,14 @@ drivers.push({
   priority: 1,
   team,
   name: a.coachName,
-  capacity: Number(a.capacity || 0), // ←追加
+  capacity: Number(a.capacity || 0),
   seats,
-  count: driverCounts[a.coachName] || 0
+  count: driverCounts[a.coachName] || 0,
+
+  // 復路希望ありのコーチを往路配車で優先
+  returnTrip: a.returnTrip === "○"
 });
-    
+        
   }
 
 });
@@ -768,10 +771,29 @@ const coachDrivers =
     .filter(d => d.priority === 1)
     .sort((a, b) => {
 
-      if (a.count !== b.count) {
-        return a.count - b.count;
+      // =========================
+      // ① 復路希望ありのコーチを優先
+      // =========================
+      if (a.returnTrip !== b.returnTrip) {
+
+        return a.returnTrip ? -1 : 1;
+
       }
 
+      // =========================
+      // ② 復路希望が同じなら
+      //    配車回数が少ない順
+      // =========================
+      if (a.count !== b.count) {
+
+        return a.count - b.count;
+
+      }
+
+      // =========================
+      // ③ 配車回数も同じなら
+      //    座席数が多い順
+      // =========================
       return b.seats - a.seats;
 
     });
