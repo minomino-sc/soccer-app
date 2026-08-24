@@ -4,8 +4,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <link rel="apple-touch-icon" href="../IMG_4611.jpeg">
-  
+
 <title>👨‍🏫 コーチ練習出欠</title>
 
 <style>
@@ -29,12 +30,48 @@ h1{
   margin:10px 0 30px;
 }
 
-.message{
-  background:white;
+.subtitle{
+  text-align:center;
+  color:#666;
+  margin-bottom:20px;
+}
+
+.event-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.event-card{
+  background:#fff;
+  border-radius:15px;
+  padding:16px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+  cursor:pointer;
+}
+
+.event-card:active{
+  transform:scale(0.98);
+}
+
+.event-date{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.event-info{
+  font-size:14px;
+  line-height:1.6;
+}
+
+.empty{
+  background:#fff;
   border-radius:15px;
   padding:25px 20px;
   text-align:center;
-  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+  color:#777;
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
 }
 
 .back{
@@ -44,6 +81,12 @@ h1{
   text-decoration:none;
   color:#333;
   font-weight:bold;
+}
+
+.loading{
+  text-align:center;
+  color:#777;
+  padding:30px 0;
 }
 
 </style>
@@ -56,8 +99,14 @@ h1{
 
   <h1>👨‍🏫 コーチ練習出欠</h1>
 
-  <div class="message">
-    練習予定を読み込む準備中です。
+  <div class="subtitle">
+    練習予定を選択してください
+  </div>
+
+  <div id="eventList" class="event-list">
+    <div class="loading">
+      練習予定を読み込んでいます...
+    </div>
   </div>
 
   <a class="back" href="../">
@@ -66,6 +115,145 @@ h1{
 
 </div>
 
-</body>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMJfAd5BffteapT51ZUO06VP-XDReFSwY",
+  authDomain: "minotani-sc-app.firebaseapp.com",
+  projectId: "minotani-sc-app",
+  storageBucket: "minotani-sc-app.firebasestorage.app",
+  messagingSenderId: "757066295000",
+  appId: "1:757066295000:web:1c7a90f968af75d26099ad"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+const eventList = document.getElementById("eventList");
+
+
+// ========================================
+// 練習予定を取得
+// ========================================
+
+db.collection("calendar_events")
+  .onSnapshot(snapshot => {
+
+    const practiceEvents = [];
+
+    snapshot.forEach(doc => {
+
+      const data = doc.data();
+
+      // 「練習」だけ取得
+      if(data.type === "practice"){
+
+        practiceEvents.push({
+          id: doc.id,
+          ...data
+        });
+
+      }
+
+    });
+
+    // 日付順に並べる
+    practiceEvents.sort((a,b) =>
+      a.date.localeCompare(b.date)
+    );
+
+    renderEvents(practiceEvents);
+
+  });
+
+
+// ========================================
+// 練習予定を画面に表示
+// ========================================
+
+function renderEvents(events){
+
+  eventList.innerHTML = "";
+
+  if(events.length === 0){
+
+    eventList.innerHTML = `
+      <div class="empty">
+        練習予定はありません。
+      </div>
+    `;
+
+    return;
+  }
+
+
+  events.forEach(ev => {
+
+    const card = document.createElement("div");
+
+    card.className = "event-card";
+
+    card.innerHTML = `
+
+      <div class="event-date">
+        🟢 ${formatDate(ev.date)}
+      </div>
+
+      <div class="event-info">
+
+        <strong>${ev.text || "練習"}</strong><br>
+
+        📍 ${ev.location || "場所未設定"}<br>
+
+        🕒 ${ev.time || "時間未設定"}
+
+      </div>
+
+    `;
+
+
+    // 予定をタップしたとき
+    card.addEventListener("click", () => {
+
+      alert(
+        "選択した練習：\n" +
+        formatDate(ev.date) + "\n" +
+        (ev.text || "練習")
+      );
+
+    });
+
+
+    eventList.appendChild(card);
+
+  });
+
+}
+
+
+// ========================================
+// 日付表示
+// ========================================
+
+function formatDate(dateStr){
+
+  const date = new Date(dateStr + "T00:00:00");
+
+  const weekdays = [
+    "日","月","火","水","木","金","土"
+  ];
+
+  return `${date.getMonth()+1}月${date.getDate()}日（${weekdays[date.getDay()]}）`;
+
+}
+
+</script>
+
+</body>
 </html>
