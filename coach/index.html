@@ -74,10 +74,6 @@ h1{
   font-size:14px;
   font-weight:bold;
 }
-
-
-
-
   
 .answer-box{
   background:#fff;
@@ -148,13 +144,7 @@ h1{
   font-size:14px;
   font-weight:bold;
 }
-
-  
-
-
-
-
-  
+    
 .empty{
   background:#fff;
   border-radius:15px;
@@ -204,7 +194,6 @@ h1{
   </a>
 
 </div>
-
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -272,7 +261,6 @@ if(data.type === "practice"){
 
   });
 
-
 // ========================================
 // 練習予定を画面に表示
 // ========================================
@@ -332,7 +320,6 @@ card.addEventListener("click", () => {
   showAnswerScreen(ev);
 
 });
-
 
     eventList.appendChild(card);
 
@@ -399,7 +386,6 @@ function showAnswerScreen(ev){
       出欠を選択してください
     </div>
 
-
     <div class="answer-buttons">
 
       <button
@@ -415,7 +401,6 @@ function showAnswerScreen(ev){
       </button>
 
     </div>
-
 
     <button
       class="back-list-btn"
@@ -488,10 +473,7 @@ async function saveCoachAnswer(eventId, status){
   }
 
 }
-
-
   
-
 // ========================================
 // 練習予定一覧に戻る
 // ========================================
@@ -501,9 +483,6 @@ function loadPracticeEvents(){
   location.reload();
 
 }
-
-
-  
   
 // ========================================
 // 日付表示
