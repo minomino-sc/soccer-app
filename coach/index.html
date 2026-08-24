@@ -215,15 +215,23 @@ function renderEvents(events){
         🟢 ${formatDate(ev.date)}
       </div>
 
-      <div class="event-info">
+<div class="event-info">
 
-        <strong>${ev.text || "練習"}</strong><br>
+  <div class="team-badge">
+    ${ev.team === "A" ? "🔵 チームA"
+      : ev.team === "B" ? "🟢 チームB"
+      : ev.team === "AB" ? "🟣 チームA/B"
+      : ev.team === "Z" ? "🔴 その他"
+      : "⚪ チーム未設定"}
+  </div>
 
-        📍 ${ev.location || "場所未設定"}<br>
+  <strong>${ev.text || "練習"}</strong><br>
 
-        🕒 ${ev.time || "時間未設定"}
+  📍 ${ev.location || "場所未設定"}<br>
 
-      </div>
+  🕒 ${ev.time || "時間未設定"}
+
+</div>
 
     `;
 
