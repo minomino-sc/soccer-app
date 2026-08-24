@@ -445,6 +445,9 @@ async function saveCoachAnswer(eventId, status){
 
   const coachName = coachSelect.value;
 
+const comment =
+  document.getElementById("coachComment").value.trim();
+  
   if(!coachName){
 
     alert("コーチを選択してください");
