@@ -64,9 +64,10 @@ if (eventData.dispatchConfirmed) {
 
       <div class="form-group">
         <label>選手名</label>
-        <select id="player">
-          ${players.map(p => `<option>${p}</option>`).join("")}
-        </select>
+<select id="player">
+  <option value="" selected>保護者を選択</option>
+  ${players.map(p => `<option value="${p}">${p}</option>`).join("")}
+</select>
       </div>
 
       <div class="form-group">
@@ -186,8 +187,13 @@ familyReturnWrap.style.display = "block";
 // 保存処理
 // =========================
 async function saveAnswer() {
-
+  
 const playerName = document.getElementById("player").value;
+
+if (!playerName) {
+  alert("保護者を選択してください。");
+  return;
+}
 
 if (
   !confirm(
