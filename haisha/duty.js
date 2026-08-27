@@ -182,6 +182,7 @@ Aチーム 試合当番①
 </label>
 
 <select id="teamA1">
+<option value="" selected>--試合当番を選択--</option>
 ${TEAM_A.map(
   p => `<option value="${p}">${getLastName(p)}さん</option>`
 ).join("")}
@@ -209,6 +210,7 @@ Bチーム 試合当番①
 </label>
 
 <select id="teamB1">
+<option value="" selected>--試合当番を選択--</option>
 ${TEAM_B.map(
   p => `<option value="${p}">${getLastName(p)}さん</option>`
 ).join("")}
