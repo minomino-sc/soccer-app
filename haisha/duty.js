@@ -86,6 +86,8 @@ if (eventData.dispatchConfirmed) {
 
 <select id="teamA1">
 
+<option value="" selected>--試合当番を選択--</option>
+
 ${TEAM_A.map(
   p =>
   `<option value="${p}">${getLastName(p)}さん</option>`
@@ -131,6 +133,8 @@ ${TEAM_A.map(
 </label>
 
 <select id="teamB1">
+
+<option value="" selected>--試合当番を選択--</option>
 
 ${TEAM_B.map(
   p =>
@@ -265,6 +269,20 @@ const teamB2 =
   document.getElementById("teamB2")
     ?.value || "";
 
+// =========================
+// 試合当番①の未選択チェック
+// =========================
+
+if (!teamA1 && document.getElementById("teamA1")) {
+  alert("Aチームの試合当番①を選択してください。");
+  return;
+}
+
+if (!teamB1 && document.getElementById("teamB1")) {
+  alert("Bチームの試合当番①を選択してください。");
+  return;
+}
+  
 // 同じ人を重複選択できないようにする
 if (
   teamA1 &&
