@@ -65,7 +65,7 @@ if (eventData.dispatchConfirmed) {
       <div class="form-group">
         <label>選手名</label>
 <select id="player">
-  <option value="" selected>保護者を選択</option>
+  <option value="" selected>--保護者を選択--</option>
   ${players.map(p => `<option value="${p}">${p}</option>`).join("")}
 </select>
       </div>
