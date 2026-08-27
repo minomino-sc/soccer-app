@@ -203,14 +203,15 @@ if (
         <label>
           試合当番
         </label>
-
         <select id="dutyName">
-          ${dutyMembers.map(name => `
-            <option value="${name}">
-              ${formatDutyName(name)}
-            </option>
-          `).join("")}
-        </select>
+  <option value="" selected>--試合当番を選択--</option>
+
+  ${dutyMembers.map(name => `
+    <option value="${name}">
+      ${formatDutyName(name)}
+    </option>
+  `).join("")}
+</select>
       </div>
 
       <div class="form-group">
@@ -364,6 +365,14 @@ async function saveAnswer() {
     document.getElementById(
       "dutyName"
     ).value;
+  
+  if (!dutyName) {
+
+  alert("試合当番を選択してください。");
+
+  return;
+
+}  
 
   // =========================
   // 保存前の名前確認
