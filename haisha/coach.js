@@ -82,7 +82,7 @@ if (eventData.dispatchConfirmed) {
       <div class="form-group">
         <label>コーチ名</label>
         <select id="coachName">
-  <option value="" selected>コーチを選択</option>
+  <option value="" selected>--コーチを選択--</option>
 
   ${coaches.map(c =>
     `<option value="${c}">${c}</option>`
