@@ -82,10 +82,12 @@ if (eventData.dispatchConfirmed) {
       <div class="form-group">
         <label>コーチ名</label>
         <select id="coachName">
-          ${coaches.map(c =>
-            `<option>${c}</option>`
-          ).join("")}
-        </select>
+  <option value="" selected>コーチを選択</option>
+
+  ${coaches.map(c =>
+    `<option value="${c}">${c}</option>`
+  ).join("")}
+</select>
       </div>
 
       <div class="form-group">
@@ -264,6 +266,14 @@ async function saveAnswer() {
   const coachName =
     document.getElementById("coachName").value;
 
+if (!coachName) {
+
+  alert("コーチを選択してください。");
+
+  return;
+
+}
+  
 if (
   !confirm(
     `⚠️ 回答者を確認してください\n\n` +
