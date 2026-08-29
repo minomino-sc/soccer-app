@@ -203,7 +203,7 @@ async function addEvent(){
   const time =
     document.getElementById("adminTime").value;
 
-  // 👩🏻練習当番
+  // 練習当番
   const practiceDutyInput =
     document.getElementById("adminPracticeDuty");
 
@@ -238,7 +238,7 @@ async function addEvent(){
     location: location,
     time: time,
 
-    // 👩🏻練習当番
+    // 練習当番
     // 練習以外の場合は空欄
     practiceDuty:
       type === "practice"
@@ -340,7 +340,7 @@ function showPopup(date){
               ev.type === "practice" &&
               ev.practiceDuty
                 ? `
-                  <strong>👩🏻練習当番:</strong>
+                  <strong>練習当番:</strong>
                   ${ev.practiceDuty}<br>
                 `
                 : ""
@@ -541,7 +541,7 @@ async function editEvent(e, date, team, index){
       ${
         ev.type === "practice"
           ? `
-            <label>👩🏻練習当番</label>
+            <label>練習当番</label>
 
             <input
               type="text"
@@ -605,7 +605,7 @@ async function saveEdit(id){
   const newTime =
     document.getElementById("editTime").value;
 
-  // 👩🏻練習当番
+  // 練習当番
   let newPracticeDuty = "";
 
   const practiceDutyInput =
@@ -634,7 +634,7 @@ async function saveEdit(id){
       location: newLocation,
       time: newTime,
 
-      // 👩🏻練習の場合のみ保存
+      // 練習の場合のみ保存
       practiceDuty:
         newType === "practice"
           ? newPracticeDuty
