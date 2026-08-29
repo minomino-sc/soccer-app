@@ -115,7 +115,9 @@ function createMonth(month,y){
 
   for(let day=1;day<=days;day++){
 
-    const dateStr=`${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const dateStr=
+      `${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+
     const dateObj=new Date(dateStr);
 
     const dDiv=document.createElement("div");
@@ -135,7 +137,11 @@ function createMonth(month,y){
 
           const l=document.createElement("div");
           l.className="label";
-          l.textContent = typeMap[ev.type].emoji;
+
+          l.textContent =
+            typeMap[ev.type]
+              ? typeMap[ev.type].emoji
+              : "🔴";
 
           dDiv.appendChild(l);
 
@@ -171,34 +177,56 @@ function toggleAdmin(){
   const p=document.getElementById("adminPanel");
 
   p.style.display =
-    p.style.display==="none" ? "block" : "none";
+    p.style.display==="none"
+      ? "block"
+      : "none";
 
 }
 
 async function addEvent(){
 
-  const date = document.getElementById("adminDate").value;
-  const team = document.getElementById("adminTeam").value;
-  const type = document.getElementById("adminType").value;
-  const text = document.getElementById("adminText").value;
-  const location = document.getElementById("adminLocation").value;
-  const time = document.getElementById("adminTime").value;
+  const date =
+    document.getElementById("adminDate").value;
+
+  const team =
+    document.getElementById("adminTeam").value;
+
+  const type =
+    document.getElementById("adminType").value;
+
+  const text =
+    document.getElementById("adminText").value;
+
+  const location =
+    document.getElementById("adminLocation").value;
+
+  const time =
+    document.getElementById("adminTime").value;
 
   // 🧑‍✈️ 練習当番
+  const practiceDutyInput =
+    document.getElementById("adminPracticeDuty");
+
   const practiceDuty =
-    document.getElementById("adminPracticeDuty").value.trim();
+    practiceDutyInput
+      ? practiceDutyInput.value.trim()
+      : "";
 
   const raw =
     document.getElementById("adminFileUrl").value || "";
 
-  const driveUrls = raw
-    .split("\n")
-    .map(v => v.trim())
-    .filter(v => v !== "");
+  const driveUrls =
+    raw
+      .split("\n")
+      .map(v => v.trim())
+      .filter(v => v !== "");
 
   if (!date || !text) {
+
     alert("日付と内容は必須です");
+
     return;
+
   }
 
   await db.collection("calendar_events").add({
@@ -211,9 +239,11 @@ async function addEvent(){
     time: time,
 
     // 🧑‍✈️ 練習当番
-    practiceDuty: type === "practice"
-      ? practiceDuty
-      : "",
+    // 練習以外の場合は空欄
+    practiceDuty:
+      type === "practice"
+        ? practiceDuty
+        : "",
 
     driveUrls: driveUrls,
 
@@ -227,8 +257,13 @@ async function addEvent(){
   document.getElementById("adminText").value = "";
   document.getElementById("adminLocation").value = "";
   document.getElementById("adminTime").value = "";
-  document.getElementById("adminPracticeDuty").value = "";
+
+  if (practiceDutyInput) {
+    practiceDutyInput.value = "";
+  }
+
   document.getElementById("adminFileUrl").value = "";
+
 }
 
 function showPopup(date){
@@ -248,6 +283,12 @@ function showPopup(date){
         if(team === "B") bgColor = "#d4f4dd";
         if(team === "AB") bgColor = "#e8d6f0";
         if(team === "Z") bgColor = "#ffe0e0";
+
+        const typeInfo =
+          typeMap[ev.type] || {
+            emoji:"🔴",
+            label:"その他"
+          };
 
         html += `
         <div style="
@@ -271,16 +312,20 @@ function showPopup(date){
               font-weight:bold;
             ">
               ${
-                team === "A" ? "チームA"
-                : team === "B" ? "チームB"
-                : team === "AB" ? "チームA/B"
-                : team === "Z" ? "その他"
-                : `チーム${team}`
+                team === "A"
+                  ? "チームA"
+                  : team === "B"
+                  ? "チームB"
+                  : team === "AB"
+                  ? "チームA/B"
+                  : team === "Z"
+                  ? "その他"
+                  : `チーム${team}`
               }
             </span>
 
-            ${typeMap[ev.type].emoji}
-            ${typeMap[ev.type].label}<br>
+            ${typeInfo.emoji}
+            ${typeInfo.label}<br>
 
             <strong>内容:</strong>
             ${ev.text}<br>
@@ -292,17 +337,20 @@ function showPopup(date){
             ${ev.time || "未設定"}<br>
 
             ${
-              ev.type === "practice" && ev.practiceDuty
-              ? `
-                <strong>🧑‍✈️ 練習当番:</strong>
-                ${ev.practiceDuty}<br>
-              `
-              : ""
+              ev.type === "practice" &&
+              ev.practiceDuty
+                ? `
+                  <strong>🧑‍✈️ 練習当番:</strong>
+                  ${ev.practiceDuty}<br>
+                `
+                : ""
             }
 
             ${
-              (ev.driveUrls ||
-              (ev.driveUrl ? [ev.driveUrl] : []))
+              (
+                ev.driveUrls ||
+                (ev.driveUrl ? [ev.driveUrl] : [])
+              )
               .map(url => `
                 <a href="${url}" target="_blank"
                   style="
@@ -409,7 +457,8 @@ async function editEvent(e, date, team, index){
 
   e.stopPropagation();
 
-  const ev = events[date][team][index];
+  const ev =
+    events[date][team][index];
 
   popup.innerHTML = `
 
@@ -420,20 +469,49 @@ async function editEvent(e, date, team, index){
       <label>チーム</label>
 
       <select id="editTeam">
-        <option value="A">チームA</option>
-        <option value="B">チームB</option>
-        <option value="AB">チームA/B</option>
-        <option value="Z">その他</option>
+
+        <option value="A">
+          チームA
+        </option>
+
+        <option value="B">
+          チームB
+        </option>
+
+        <option value="AB">
+          チームA/B
+        </option>
+
+        <option value="Z">
+          その他
+        </option>
+
       </select>
 
       <label>種別</label>
 
       <select id="editType">
-        <option value="practice">練習</option>
-        <option value="official">公式戦</option>
-        <option value="cup">カップ戦</option>
-        <option value="friendly">交流戦</option>
-        <option value="etc">その他</option>
+
+        <option value="practice">
+          練習
+        </option>
+
+        <option value="official">
+          公式戦
+        </option>
+
+        <option value="cup">
+          カップ戦
+        </option>
+
+        <option value="friendly">
+          交流戦
+        </option>
+
+        <option value="etc">
+          その他
+        </option>
+
       </select>
 
       <label>内容</label>
@@ -462,24 +540,24 @@ async function editEvent(e, date, team, index){
 
       ${
         ev.type === "practice"
-        ? `
-          <label>🧑‍✈️ 練習当番</label>
+          ? `
+            <label>🧑‍✈️ 練習当番</label>
 
-          <input
-            type="text"
-            id="editPracticeDuty"
-            value="${ev.practiceDuty || ""}"
-            placeholder="練習当番（1名）"
-          >
-        `
-        : ""
+            <input
+              type="text"
+              id="editPracticeDuty"
+              value="${ev.practiceDuty || ""}"
+              placeholder="練習当番（例：松岡さん）"
+            >
+          `
+          : ""
       }
 
       <label>資料URL</label>
 
-      <textarea id="editDriveUrls">
-${(ev.driveUrls || []).join("\n")}
-      </textarea>
+      <textarea id="editDriveUrls">${(
+        ev.driveUrls || []
+      ).join("\n")}</textarea>
 
       <div class="edit-buttons">
 
@@ -502,8 +580,12 @@ ${(ev.driveUrls || []).join("\n")}
 
   popup.style.display = "block";
 
-  document.getElementById("editTeam").value = team;
-  document.getElementById("editType").value = ev.type;
+  document.getElementById("editTeam").value =
+    team;
+
+  document.getElementById("editType").value =
+    ev.type;
+
 }
 
 async function saveEdit(id){
@@ -552,7 +634,7 @@ async function saveEdit(id){
       location: newLocation,
       time: newTime,
 
-      // 練習の場合のみ保存
+      // 🧑‍✈️ 練習の場合のみ保存
       practiceDuty:
         newType === "practice"
           ? newPracticeDuty
@@ -563,13 +645,15 @@ async function saveEdit(id){
     });
 
   popup.style.display = "none";
+
 }
 
 async function deleteEvent(e, date, team, index){
 
   e.stopPropagation();
 
-  const ev = events[date][team][index];
+  const ev =
+    events[date][team][index];
 
   if(confirm("削除しますか？")){
 
@@ -588,12 +672,16 @@ function scrollToCurrentMonth(){
 
   const now = new Date();
 
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
+  const currentYear =
+    now.getFullYear();
 
-  const target = document.getElementById(
-    `month-${currentYear}-${currentMonth}`
-  );
+  const currentMonth =
+    now.getMonth() + 1;
+
+  const target =
+    document.getElementById(
+      `month-${currentYear}-${currentMonth}`
+    );
 
   if(target){
 
