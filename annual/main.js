@@ -238,7 +238,7 @@ async function addEvent(){
     location: location,
     time: time,
 
-    // 🧑‍✈️ 練習当番
+    // 👩🏻練習当番
     // 練習以外の場合は空欄
     practiceDuty:
       type === "practice"
@@ -340,7 +340,7 @@ function showPopup(date){
               ev.type === "practice" &&
               ev.practiceDuty
                 ? `
-                  <strong>🧑‍✈️ 練習当番:</strong>
+                  <strong>👩🏻練習当番:</strong>
                   ${ev.practiceDuty}<br>
                 `
                 : ""
