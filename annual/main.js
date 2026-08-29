@@ -541,7 +541,7 @@ async function editEvent(e, date, team, index){
       ${
         ev.type === "practice"
           ? `
-            <label>🧑‍✈️ 練習当番</label>
+            <label>👩🏻練習当番</label>
 
             <input
               type="text"
@@ -605,7 +605,7 @@ async function saveEdit(id){
   const newTime =
     document.getElementById("editTime").value;
 
-  // 🧑‍✈️ 練習当番
+  // 👩🏻練習当番
   let newPracticeDuty = "";
 
   const practiceDutyInput =
@@ -634,7 +634,7 @@ async function saveEdit(id){
       location: newLocation,
       time: newTime,
 
-      // 🧑‍✈️ 練習の場合のみ保存
+      // 👩🏻練習の場合のみ保存
       practiceDuty:
         newType === "practice"
           ? newPracticeDuty
