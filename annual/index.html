@@ -7,82 +7,179 @@
 <link rel="stylesheet" href="styles.css">
 
 <style>
-body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-h1 { white-space: nowrap; }
-.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.weekday-header { font-weight: bold; text-align: center; }
-.sunday { color: red; }
-.saturday { color: blue; }
-.day { border: 1px solid #ccc; min-height: 45px; text-align: center; padding-top: 4px; background: #fff; cursor: pointer; }
-.holiday { color: orange; }
-.label { font-size: 16px; line-height: 1; }
-  
-#eventPopup{
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #f9f9f9;
+}
+
+h1 {
+  white-space: nowrap;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.weekday-header {
+  font-weight: bold;
+  text-align: center;
+}
+
+.sunday {
+  color: red;
+}
+
+.saturday {
+  color: blue;
+}
+
+.day {
+  border: 1px solid #ccc;
+  min-height: 45px;
+  text-align: center;
+  padding-top: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.holiday {
+  color: orange;
+}
+
+.label {
+  font-size: 16px;
+  line-height: 1;
+}
+
+#eventPopup {
   position: fixed;
   top: 50%;
   left: 20px;
   transform: translateY(-50%);
-  background:#fff;
-  border:1px solid #666;
-  padding:10px;
-  border-radius:6px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
-  display:none;
-  max-width:300px;
-  max-height:400px;
-  overflow-y:auto;
-  z-index:1000;
+  background: #fff;
+  border: 1px solid #666;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  display: none;
+  max-width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
 }
 
-.top-btn{
-  display:inline-block;
-  margin:6px 4px;
-  padding:8px 14px;
-  border:none;
-  border-radius:20px;
-  background:#f1f1f1;
-  font-size:14px;
-  font-weight:bold;
-  cursor:pointer;
+.top-btn {
+  display: inline-block;
+  margin: 6px 4px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 20px;
+  background: #f1f1f1;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-.top-btn:active{
-  transform:scale(0.98);
+.top-btn:active {
+  transform: scale(0.98);
 }
 
-#legendBox{
-  margin-top:10px;
+#legendBox {
+  margin-top: 10px;
 }
-  
+
+/* 練習当番入力 */
+#adminPracticeDuty {
+  display: none;
+}
+
+/* 編集画面 */
+.edit-box label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.edit-box input,
+.edit-box select,
+.edit-box textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.edit-box textarea {
+  min-height: 70px;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.save-btn,
+.cancel-btn {
+  flex: 1;
+  padding: 9px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.save-btn {
+  background: #2a8cff;
+  color: #fff;
+}
+
+.cancel-btn {
+  background: #eee;
+  color: #333;
+}
 </style>
 </head>
 
 <body>
-  
+
 <div class="header-fixed">
 
   <h1>📅 2026年度 年間スケジュール</h1>
 
   <!-- 親システムに戻るボタン -->
-  <button id="backBtn" style="display:none; margin-bottom:12px;">← 戻る</button>
+  <button id="backBtn" style="display:none; margin-bottom:12px;">
+    ← 戻る
+  </button>
 
-<button class="top-btn" onclick="toggleLegend()">📘 凡例</button>
+  <button class="top-btn" onclick="toggleLegend()">
+    📘 凡例
+  </button>
 
-<div id="legendBox" style="display:none;">
-  <div id="calendarLegend">
-    <span>🟢練習</span>
-    <span>🔵公式戦</span>
-    <span>🟡カップ戦</span>
-    <span>🟣交流戦</span>
-    <span>🔴その他</span>
+  <div id="legendBox" style="display:none;">
+    <div id="calendarLegend">
+      <span>🟢練習</span>
+      <span>🔵公式戦</span>
+      <span>🟡カップ戦</span>
+      <span>🟣交流戦</span>
+      <span>🔴その他</span>
+    </div>
   </div>
-</div>
 
-<button class="top-btn" onclick="toggleAdmin()">⚙️ 管理者モード</button>
+  <button class="top-btn" onclick="toggleAdmin()">
+    ⚙️ 管理者モード
+  </button>
 
-<div id="adminPanel" style="display:none; margin:15px 0;">
+  <div id="adminPanel" style="display:none; margin:15px 0;">
 
     <input type="date" id="adminDate">
+
     <select id="adminTeam">
       <option value="A">チームA</option>
       <option value="B">チームB</option>
@@ -98,18 +195,46 @@ h1 { white-space: nowrap; }
       <option value="etc">その他</option>
     </select>
 
-    <input type="text" id="adminText" placeholder="内容">
-    <input type="text" id="adminLocation" placeholder="場所（例：〇〇グラウンド）">
-    <input type="text" id="adminTime" placeholder="時間（例：18:00〜20:00）">
-    <textarea id="adminFileUrl" placeholder="資料URL（1行に1つ）"></textarea>
+    <input
+      type="text"
+      id="adminText"
+      placeholder="内容"
+    >
+
+    <input
+      type="text"
+      id="adminLocation"
+      placeholder="場所（例：〇〇グラウンド）"
+    >
+
+    <input
+      type="text"
+      id="adminTime"
+      placeholder="時間（例：18:00〜20:00）"
+    >
+
+    <!-- 練習当番 -->
+    <input
+      type="text"
+      id="adminPracticeDuty"
+      placeholder="🧑‍✈️ 練習当番（例：松岡さん）"
+    >
+
+    <textarea
+      id="adminFileUrl"
+      placeholder="資料URL（1行に1つ）"
+    ></textarea>
+
     <button onclick="addEvent()">追加</button>
+
   </div>
 
-</div> <!-- ← ここで閉じる -->
+</div>
 
 <div id="calendarContainer"></div>
+
 <div id="eventPopup"></div>
-  
+
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -129,5 +254,6 @@ const db = firebase.firestore();
 </script>
 
 <script src="main.js"></script>
+
 </body>
 </html>
