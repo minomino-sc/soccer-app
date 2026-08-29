@@ -96,39 +96,63 @@ h1 {
   display: none;
 }
 
-/* 編集画面 */
+/* =========================
+   編集画面
+========================= */
+
+.edit-box {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-box h3 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+}
+
 .edit-box label {
   display: block;
-  margin-top: 10px;
-  margin-bottom: 4px;
+  margin-top: 7px;
+  margin-bottom: 3px;
   font-weight: bold;
+  font-size: 15px;
 }
 
 .edit-box input,
 .edit-box select,
 .edit-box textarea {
-  width: 100%;
+  width: 100% !important;
   box-sizing: border-box;
-  padding: 8px;
+  padding: 6px 8px !important;
+  margin: 0 !important;
   border: 1px solid #ccc;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 15px !important;
+  line-height: 1.2;
+}
+
+.edit-box input,
+.edit-box select {
+  height: 38px !important;
 }
 
 .edit-box textarea {
-  min-height: 70px;
+  height: 55px !important;
+  min-height: 55px !important;
+  resize: vertical;
 }
 
 .edit-buttons {
   display: flex;
   gap: 8px;
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
 .save-btn,
 .cancel-btn {
   flex: 1;
-  padding: 9px;
+  padding: 8px !important;
+  height: 38px;
   border: none;
   border-radius: 6px;
   font-weight: bold;
@@ -144,6 +168,7 @@ h1 {
   background: #eee;
   color: #333;
 }
+  
 </style>
 </head>
 
