@@ -37,68 +37,13 @@ const typeMap = {
 
 let events = {};
 
-
-// ============================================================
-// 練習当番入力欄の表示・非表示
-// ============================================================
-
-function updatePracticeDutyVisibility(){
-
-  const typeSelect =
-    document.getElementById("adminType");
-
-  const dutyInput =
-    document.getElementById("adminPracticeDuty");
-
-  if(!typeSelect || !dutyInput){
-    return;
-  }
-
-  if(typeSelect.value === "practice"){
-
-    dutyInput.style.display = "block";
-
-  }else{
-
-    dutyInput.style.display = "none";
-    dutyInput.value = "";
-
-  }
-
-}
-
-
-// ============================================================
-// 種別変更時
-// ============================================================
-
-const adminType =
-  document.getElementById("adminType");
-
-if(adminType){
-
-  adminType.addEventListener(
-    "change",
-    updatePracticeDutyVisibility
-  );
-
-  updatePracticeDutyVisibility();
-
-}
-
-
-// ============================================================
-// Firestoreリアルタイム同期
-// ============================================================
-
+// 🔥 Firestoreリアルタイム同期
 db.collection("calendar_events")
   //.orderBy("createdAt","asc")
   .onSnapshot(snapshot => {
-
     events = {};
 
     snapshot.forEach(doc => {
-
       const data = doc.data();
 
       const {
@@ -112,131 +57,73 @@ db.collection("calendar_events")
         practiceDuty
       } = data;
 
-      if(!events[date]){
-        events[date] = {};
-      }
-
-      if(!events[date][team]){
-        events[date][team] = [];
-      }
+      if (!events[date]) events[date] = {};
+      if (!events[date][team]) events[date][team] = [];
 
       events[date][team].push({
-
         type,
         text,
         location,
         time,
         driveUrls,
-
-        // ★ 練習当番
-        practiceDuty: practiceDuty || "",
-
+        practiceDuty,
         id: doc.id
-
       });
-
     });
 
     renderCalendar();
-
   });
 
-
-// ============================================================
-// カレンダー表示
-// ============================================================
-
 function renderCalendar(){
-
   container.innerHTML="";
 
-  for(let m=4;m<=12;m++){
-    createMonth(m,year);
-  }
-
-  for(let m=1;m<=3;m++){
-    createMonth(m,year+1);
-  }
+  for(let m=4;m<=12;m++) createMonth(m,year);
+  for(let m=1;m<=3;m++) createMonth(m,year+1);
 
   scrollToCurrentMonth();
-
 }
 
-
-// ============================================================
-// 月作成
-// ============================================================
-
 function createMonth(month,y){
-
   const monthDiv=document.createElement("div");
 
   monthDiv.id = `month-${y}-${month}`;
 
   const title=document.createElement("h2");
-
   title.textContent=`${y}年 ${month}月`;
-
   monthDiv.appendChild(title);
 
   const calendar=document.createElement("div");
-
   calendar.className="calendar";
 
   ["日","月","火","水","木","金","土"].forEach((d,i)=>{
-
     const h=document.createElement("div");
-
     h.textContent=d;
-
     h.className="weekday-header";
 
-    if(i===0){
-      h.classList.add("sunday");
-    }
-
-    if(i===6){
-      h.classList.add("saturday");
-    }
+    if(i===0)h.classList.add("sunday");
+    if(i===6)h.classList.add("saturday");
 
     calendar.appendChild(h);
-
   });
 
-  const firstDay =
-    new Date(y,month-1,1).getDay();
-
-  const days =
-    new Date(y,month,0).getDate();
+  const firstDay=new Date(y,month-1,1).getDay();
+  const days=new Date(y,month,0).getDate();
 
   for(let i=0;i<firstDay;i++){
-    calendar.appendChild(
-      document.createElement("div")
-    );
+    calendar.appendChild(document.createElement("div"));
   }
 
   for(let day=1;day<=days;day++){
 
-    const dateStr =
-      `${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-
+    const dateStr=`${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
     const dateObj=new Date(dateStr);
 
     const dDiv=document.createElement("div");
-
     dDiv.className="day";
 
-    if(dateObj.getDay()===0){
-      dDiv.classList.add("sunday");
-    }
-
-    if(dateObj.getDay()===6){
-      dDiv.classList.add("saturday");
-    }
-
-    if(holidays.includes(dateStr)){
-      dDiv.classList.add("holiday");
-    }
+    if(dateObj.getDay()===0)dDiv.classList.add("sunday");
+    if(dateObj.getDay()===6)dDiv.classList.add("saturday");
+    if(holidays.includes(dateStr))dDiv.classList.add("holiday");
 
     dDiv.innerHTML=`<div>${day}</div>`;
 
@@ -247,13 +134,8 @@ function createMonth(month,y){
         teamEvents.forEach(ev=>{
 
           const l=document.createElement("div");
-
           l.className="label";
-
-          l.textContent =
-            typeMap[ev.type]
-              ? typeMap[ev.type].emoji
-              : "🔴";
+          l.textContent = typeMap[ev.type].emoji;
 
           dDiv.appendChild(l);
 
@@ -264,229 +146,110 @@ function createMonth(month,y){
     }
 
     dDiv.addEventListener("click",e=>{
-
       e.stopPropagation();
-
       showPopup(dateStr);
-
     });
 
     calendar.appendChild(dDiv);
-
   }
 
   monthDiv.appendChild(calendar);
-
   container.appendChild(monthDiv);
-
 }
 
+document.addEventListener("click", (e) => {
 
-// ============================================================
-// ポップアップ外クリック
-// ============================================================
-
-document.addEventListener("click",(e)=>{
-
-  if(
-    !popup.contains(e.target) &&
-    !e.target.closest(".day")
-  ){
-
-    popup.style.display="none";
-
+  // popupの外 かつ dayセルでもない場合のみ閉じる
+  if (!popup.contains(e.target) && !e.target.closest(".day")) {
+    popup.style.display = "none";
   }
 
 });
 
-
-// ============================================================
-// 管理者モード
-// ============================================================
-
 function toggleAdmin(){
 
-  const p =
-    document.getElementById("adminPanel");
+  const p=document.getElementById("adminPanel");
 
   p.style.display =
-    p.style.display==="none"
-      ? "block"
-      : "none";
+    p.style.display==="none" ? "block" : "none";
 
 }
 
-
-// ============================================================
-// 新規予定追加
-// ============================================================
-
 async function addEvent(){
 
-  const date =
-    document.getElementById("adminDate").value;
+  const date = document.getElementById("adminDate").value;
+  const team = document.getElementById("adminTeam").value;
+  const type = document.getElementById("adminType").value;
+  const text = document.getElementById("adminText").value;
+  const location = document.getElementById("adminLocation").value;
+  const time = document.getElementById("adminTime").value;
 
-  const team =
-    document.getElementById("adminTeam").value;
-
-  const type =
-    document.getElementById("adminType").value;
-
-  const text =
-    document.getElementById("adminText").value;
-
-  const location =
-    document.getElementById("adminLocation").value;
-
-  const time =
-    document.getElementById("adminTime").value;
-
-
-  // ★ 練習当番
-  const practiceDutyInput =
-    document.getElementById("adminPracticeDuty");
-
+  // 🧑‍✈️ 練習当番
   const practiceDuty =
-    practiceDutyInput
-      ? practiceDutyInput.value.trim()
-      : "";
-
+    document.getElementById("adminPracticeDuty").value.trim();
 
   const raw =
     document.getElementById("adminFileUrl").value || "";
 
-  const driveUrls =
-    raw
-      .split("\n")
-      .map(v=>v.trim())
-      .filter(v=>v!=="");
+  const driveUrls = raw
+    .split("\n")
+    .map(v => v.trim())
+    .filter(v => v !== "");
 
-
-  if(!date || !text){
-
+  if (!date || !text) {
     alert("日付と内容は必須です");
-
     return;
-
   }
-
-
-  // ★ 練習の場合だけ保存
-  const savedPracticeDuty =
-    type === "practice"
-      ? practiceDuty
-      : "";
-
 
   await db.collection("calendar_events").add({
 
     date: date,
-
     team: team,
-
     type: type,
-
     text: text,
-
     location: location,
-
     time: time,
 
-    driveUrls: driveUrls,
+    // 🧑‍✈️ 練習当番
+    practiceDuty: type === "practice"
+      ? practiceDuty
+      : "",
 
-    // ★ 練習当番
-    practiceDuty: savedPracticeDuty,
+    driveUrls: driveUrls,
 
     createdAt:
       firebase.firestore.FieldValue.serverTimestamp()
 
   });
 
-
-  // ==========================================================
-  // 入力欄リセット
-  // ==========================================================
-
-  document.getElementById("adminDate").value="";
-
-  document.getElementById("adminText").value="";
-
-  document.getElementById("adminLocation").value="";
-
-  document.getElementById("adminTime").value="";
-
-  if(practiceDutyInput){
-    practiceDutyInput.value="";
-  }
-
-  document.getElementById("adminFileUrl").value="";
-
-
-  // 入力欄を再表示状態に戻す
-  updatePracticeDutyVisibility();
-
+  // リセット
+  document.getElementById("adminDate").value = "";
+  document.getElementById("adminText").value = "";
+  document.getElementById("adminLocation").value = "";
+  document.getElementById("adminTime").value = "";
+  document.getElementById("adminPracticeDuty").value = "";
+  document.getElementById("adminFileUrl").value = "";
 }
-
-
-// ============================================================
-// 予定詳細
-// ============================================================
 
 function showPopup(date){
 
-  let html="";
+  let html = "";
 
   if(events[date]){
 
-    Object.keys(events[date]).forEach(team=>{
+    Object.keys(events[date]).forEach(team => {
 
-      events[date][team].forEach((ev,i)=>{
+      events[date][team].forEach((ev,i) => {
 
         // チームごとの背景色
-        let bgColor="#f0f0f0";
+        let bgColor = "#f0f0f0";
 
-        if(team==="A"){
-          bgColor="#d6e4ff";
-        }
-
-        if(team==="B"){
-          bgColor="#d4f4dd";
-        }
-
-        if(team==="AB"){
-          bgColor="#e8d6f0";
-        }
-
-        if(team==="Z"){
-          bgColor="#ffe0e0";
-        }
-
-
-        const typeInfo =
-          typeMap[ev.type] || {
-            emoji:"🔴",
-            label:"その他"
-          };
-
-
-        // ★ 練習当番表示
-        let practiceDutyHtml="";
-
-        if(
-          ev.type==="practice" &&
-          ev.practiceDuty
-        ){
-
-          practiceDutyHtml = `
-            <strong>🧑‍✈️ 練習当番:</strong>
-            ${ev.practiceDuty}<br>
-          `;
-
-        }
-
+        if(team === "A") bgColor = "#d6e4ff";
+        if(team === "B") bgColor = "#d4f4dd";
+        if(team === "AB") bgColor = "#e8d6f0";
+        if(team === "Z") bgColor = "#ffe0e0";
 
         html += `
-
         <div style="
           display:flex;
           justify-content:space-between;
@@ -507,50 +270,41 @@ function showPopup(date){
               color:#000;
               font-weight:bold;
             ">
-
               ${
-                team==="A"
-                  ? "チームA"
-                  : team==="B"
-                  ? "チームB"
-                  : team==="AB"
-                  ? "チームA/B"
-                  : team==="Z"
-                  ? "その他"
-                  : `チーム${team}`
+                team === "A" ? "チームA"
+                : team === "B" ? "チームB"
+                : team === "AB" ? "チームA/B"
+                : team === "Z" ? "その他"
+                : `チーム${team}`
               }
-
             </span>
 
-            ${typeInfo.emoji}
-            ${typeInfo.label}
-            <br>
+            ${typeMap[ev.type].emoji}
+            ${typeMap[ev.type].label}<br>
 
             <strong>内容:</strong>
-            ${ev.text}
-            <br>
+            ${ev.text}<br>
 
             <strong>場所:</strong>
-            ${ev.location || "未設定"}
-            <br>
+            ${ev.location || "未設定"}<br>
 
             <strong>時間:</strong>
-            ${ev.time || "未設定"}
-            <br>
-
-            ${practiceDutyHtml}
+            ${ev.time || "未設定"}<br>
 
             ${
-              (
-                ev.driveUrls ||
-                (ev.driveUrl
-                  ? [ev.driveUrl]
-                  : [])
-              )
-              .map(url=>`
+              ev.type === "practice" && ev.practiceDuty
+              ? `
+                <strong>🧑‍✈️ 練習当番:</strong>
+                ${ev.practiceDuty}<br>
+              `
+              : ""
+            }
 
-                <a href="${url}"
-                  target="_blank"
+            ${
+              (ev.driveUrls ||
+              (ev.driveUrl ? [ev.driveUrl] : []))
+              .map(url => `
+                <a href="${url}" target="_blank"
                   style="
                     display:block;
                     margin-top:6px;
@@ -561,17 +315,13 @@ function showPopup(date){
                     text-decoration:none;
                     font-size:12px;
                   ">
-
                   📄 資料を見る
-
                 </a>
-
               `)
               .join("")
             }
 
           </div>
-
 
           <div style="
             flex-shrink:0;
@@ -581,163 +331,118 @@ function showPopup(date){
             margin-left:8px;
           ">
 
-            <button
-              style="
-                width:28px;
-                height:28px;
-                border-radius:50%;
-                border:none;
-                background:#fff;
-                box-shadow:0 1px 3px rgba(0,0,0,0.2);
-                cursor:pointer;
-              "
-              onclick="
-                editEvent(
-                  event,
-                  '${date}',
-                  '${team}',
-                  ${i}
-                )
-              "
-            >
+            <button style="
+              width:28px;
+              height:28px;
+              border-radius:50%;
+              border:none;
+              background:#fff;
+              box-shadow:0 1px 3px rgba(0,0,0,0.2);
+              cursor:pointer;
+            "
+            onclick="editEvent(
+              event,
+              '${date}',
+              '${team}',
+              ${i}
+            )">
               ✏️
             </button>
 
-
-            <button
-              style="
-                width:28px;
-                height:28px;
-                border-radius:50%;
-                border:none;
-                background:#fff;
-                box-shadow:0 1px 3px rgba(0,0,0,0.2);
-                cursor:pointer;
-              "
-              onclick="
-                deleteEvent(
-                  event,
-                  '${date}',
-                  '${team}',
-                  ${i}
-                )
-              "
-            >
+            <button style="
+              width:28px;
+              height:28px;
+              border-radius:50%;
+              border:none;
+              background:#fff;
+              box-shadow:0 1px 3px rgba(0,0,0,0.2);
+              cursor:pointer;
+            "
+            onclick="deleteEvent(
+              event,
+              '${date}',
+              '${team}',
+              ${i}
+            )">
               🗑️
             </button>
 
           </div>
 
-        </div>
-
-        `;
-
+        </div>`;
       });
 
     });
 
-  }else{
+  } else {
 
-    html="<div>イベントはありません</div>";
+    html = "<div>イベントはありません</div>";
 
   }
 
+  popup.innerHTML = html;
+  popup.style.display = "block";
 
-  popup.innerHTML=html;
+  Object.assign(popup.style, {
 
-  popup.style.display="block";
-
-
-  Object.assign(popup.style,{
-
-    position:"fixed",
-
-    top:"50%",
-
-    left:"50%",
-
-    transform:"translate(-50%,-50%)",
-
-    background:"#fff",
-
-    borderRadius:"10px",
-
-    padding:"16px",
-
-    boxShadow:
-      "0 5px 15px rgba(0,0,0,0.3)",
-
-    maxWidth:"90%",
-
-    width:"500px",
-
-    maxHeight:"80%",
-
-    overflowY:"auto",
-
-    overflowX:"hidden",
-
-    zIndex:"1000",
-
-    wordBreak:"break-word"
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "#fff",
+    borderRadius: "10px",
+    padding: "16px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+    maxWidth: "90%",
+    width: "500px",
+    maxHeight: "80%",
+    overflowY: "auto",
+    overflowX: "hidden",
+    zIndex: "1000",
+    wordBreak: "break-word"
 
   });
 
 }
 
-
-// ============================================================
-// イベント編集
-// ============================================================
-
-async function editEvent(e,date,team,index){
+async function editEvent(e, date, team, index){
 
   e.stopPropagation();
 
-  const ev =
-    events[date][team][index];
+  const ev = events[date][team][index];
 
-
-  popup.innerHTML=`
+  popup.innerHTML = `
 
     <div class="edit-box">
 
       <h3>✏️ イベント編集</h3>
 
-
       <label>チーム</label>
 
       <select id="editTeam">
-
         <option value="A">チームA</option>
         <option value="B">チームB</option>
         <option value="AB">チームA/B</option>
         <option value="Z">その他</option>
-
       </select>
-
 
       <label>種別</label>
 
       <select id="editType">
-
         <option value="practice">練習</option>
         <option value="official">公式戦</option>
         <option value="cup">カップ戦</option>
         <option value="friendly">交流戦</option>
         <option value="etc">その他</option>
-
       </select>
-
 
       <label>内容</label>
 
       <input
         type="text"
         id="editText"
-        value="${ev.text || ""}"
+        value="${ev.text}"
       >
-
 
       <label>場所</label>
 
@@ -747,7 +452,6 @@ async function editEvent(e,date,team,index){
         value="${ev.location || ""}"
       >
 
-
       <label>時間</label>
 
       <input
@@ -756,123 +460,51 @@ async function editEvent(e,date,team,index){
         value="${ev.time || ""}"
       >
 
+      ${
+        ev.type === "practice"
+        ? `
+          <label>🧑‍✈️ 練習当番</label>
 
-      <!-- ★ 練習当番 -->
-
-      <div id="editPracticeDutyBox">
-
-        <label>🧑‍✈️ 練習当番</label>
-
-        <input
-          type="text"
-          id="editPracticeDuty"
-          placeholder="例：松岡さん"
-          value="${ev.practiceDuty || ""}"
-        >
-
-      </div>
-
+          <input
+            type="text"
+            id="editPracticeDuty"
+            value="${ev.practiceDuty || ""}"
+            placeholder="練習当番（1名）"
+          >
+        `
+        : ""
+      }
 
       <label>資料URL</label>
 
-      <textarea id="editDriveUrls">${
-        (ev.driveUrls || []).join("\n")
-      }</textarea>
-
+      <textarea id="editDriveUrls">
+${(ev.driveUrls || []).join("\n")}
+      </textarea>
 
       <div class="edit-buttons">
 
         <button
           class="save-btn"
-          onclick="saveEdit('${ev.id}')"
-        >
+          onclick="saveEdit('${ev.id}')">
           保存
         </button>
 
         <button
           class="cancel-btn"
-          onclick="popup.style.display='none'"
-        >
+          onclick="popup.style.display='none'">
           キャンセル
         </button>
 
       </div>
 
     </div>
-
   `;
 
+  popup.style.display = "block";
 
-  popup.style.display="block";
-
-
-  document.getElementById("editTeam").value =
-    team;
-
-  document.getElementById("editType").value =
-    ev.type;
-
-
-  // ★ 編集画面の当番表示
-  updateEditPracticeDutyVisibility();
-
-
-  // ★ 種別変更
-  document
-    .getElementById("editType")
-    .addEventListener(
-      "change",
-      updateEditPracticeDutyVisibility
-    );
-
+  document.getElementById("editTeam").value = team;
+  document.getElementById("editType").value = ev.type;
 }
-
-
-// ============================================================
-// 編集画面：練習当番表示・非表示
-// ============================================================
-
-function updateEditPracticeDutyVisibility(){
-
-  const typeSelect =
-    document.getElementById("editType");
-
-  const dutyBox =
-    document.getElementById("editPracticeDutyBox");
-
-  const dutyInput =
-    document.getElementById("editPracticeDuty");
-
-
-  if(
-    !typeSelect ||
-    !dutyBox ||
-    !dutyInput
-  ){
-
-    return;
-
-  }
-
-
-  if(typeSelect.value==="practice"){
-
-    dutyBox.style.display="block";
-
-  }else{
-
-    dutyBox.style.display="none";
-
-    dutyInput.value="";
-
-  }
-
-}
-
-
-// ============================================================
-// イベント編集保存
-// ============================================================
 
 async function saveEdit(id){
 
@@ -891,122 +523,88 @@ async function saveEdit(id){
   const newTime =
     document.getElementById("editTime").value;
 
+  // 🧑‍✈️ 練習当番
+  let newPracticeDuty = "";
 
-  const newDriveUrls =
-    document
-      .getElementById("editDriveUrls")
-      .value
-      .split("\n")
-      .map(v=>v.trim())
-      .filter(v=>v!=="");
-
-
-  // ★ 練習当番
-  const dutyInput =
+  const practiceDutyInput =
     document.getElementById("editPracticeDuty");
 
-  const newPracticeDuty =
-    newType==="practice" &&
-    dutyInput
-      ? dutyInput.value.trim()
-      : "";
+  if(practiceDutyInput){
 
+    newPracticeDuty =
+      practiceDutyInput.value.trim();
 
-  await db
-    .collection("calendar_events")
+  }
+
+  const newDriveUrls =
+    document.getElementById("editDriveUrls").value
+      .split("\n")
+      .map(v => v.trim())
+      .filter(v => v !== "");
+
+  await db.collection("calendar_events")
     .doc(id)
     .update({
 
-      team:newTeam,
+      team: newTeam,
+      type: newType,
+      text: newText,
+      location: newLocation,
+      time: newTime,
 
-      type:newType,
+      // 練習の場合のみ保存
+      practiceDuty:
+        newType === "practice"
+          ? newPracticeDuty
+          : "",
 
-      text:newText,
-
-      location:newLocation,
-
-      time:newTime,
-
-      driveUrls:newDriveUrls,
-
-      // ★ 練習当番
-      practiceDuty:newPracticeDuty
+      driveUrls: newDriveUrls
 
     });
 
-
-  popup.style.display="none";
-
+  popup.style.display = "none";
 }
 
-
-// ============================================================
-// イベント削除
-// ============================================================
-
-async function deleteEvent(e,date,team,index){
+async function deleteEvent(e, date, team, index){
 
   e.stopPropagation();
 
-  const ev =
-    events[date][team][index];
-
+  const ev = events[date][team][index];
 
   if(confirm("削除しますか？")){
 
-    await db
-      .collection("calendar_events")
+    await db.collection("calendar_events")
       .doc(ev.id)
       .delete();
 
-
-    // 削除後にポップアップを再描画
+    // 🔥 削除後にポップアップを再描画
     showPopup(date);
 
   }
 
 }
 
-
-// ============================================================
-// 現在月へスクロール
-// ============================================================
-
 function scrollToCurrentMonth(){
 
-  const now=new Date();
+  const now = new Date();
 
-  const currentYear =
-    now.getFullYear();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
 
-  const currentMonth =
-    now.getMonth()+1;
-
-
-  const target =
-    document.getElementById(
-      `month-${currentYear}-${currentMonth}`
-    );
-
+  const target = document.getElementById(
+    `month-${currentYear}-${currentMonth}`
+  );
 
   if(target){
 
     target.scrollIntoView({
-
-      behavior:"auto",
-
-      block:"start"
-
+      behavior: "auto",
+      block: "start"
     });
 
   }
 
 }
-
-
-// ============================================================
-// 凡例
-// ============================================================
 
 function toggleLegend(){
 
@@ -1014,7 +612,7 @@ function toggleLegend(){
     document.getElementById("legendBox");
 
   box.style.display =
-    box.style.display==="none"
+    box.style.display === "none"
       ? "block"
       : "none";
 
