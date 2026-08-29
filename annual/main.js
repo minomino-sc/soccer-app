@@ -203,7 +203,7 @@ async function addEvent(){
   const time =
     document.getElementById("adminTime").value;
 
-  // 🧑‍✈️ 練習当番
+  // 👩🏻 練習当番
   const practiceDutyInput =
     document.getElementById("adminPracticeDuty");
 
