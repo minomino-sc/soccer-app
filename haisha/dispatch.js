@@ -2263,8 +2263,24 @@ document
         // =========================
         // PDFファイルを作成
         // =========================
-        const fileName =
-          `配車表_${new Date().toISOString().slice(0,10)}.pdf`;
+        // =========================
+// 日本時間の日付でPDFファイル名を作成
+// =========================
+const now = new Date();
+
+const year =
+  now.getFullYear();
+
+const month =
+  String(now.getMonth() + 1)
+    .padStart(2, "0");
+
+const day =
+  String(now.getDate())
+    .padStart(2, "0");
+
+const fileName =
+  `配車表_${year}-${month}-${day}.pdf`;
 
         const pdfBlob =
           pdf.output("blob");
