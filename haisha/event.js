@@ -219,7 +219,6 @@ async function loadEvent(id) {
     // 年間スケジュールのチームを照合
     const teamMatch =
       calendarData.team === "AB" ||
-      calendarData.team === "Z" ||
       (data.target === "箕谷A" && calendarData.team === "A") ||
       (data.target === "箕谷B" && calendarData.team === "B") ||
       (data.target === "箕谷A/B" && calendarData.team === "AB");
