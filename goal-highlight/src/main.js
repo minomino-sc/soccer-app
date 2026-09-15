@@ -72,6 +72,11 @@ function formatTime(sec) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+
+
+
+
+
 // ===============================
 // 動画読み込み
 // ===============================
@@ -90,29 +95,71 @@ videoInput?.addEventListener('change', () => {
   sourceUrl = URL.createObjectURL(file);
 
   video.src = sourceUrl;
+  video.preload = 'metadata';
   video.load();
 
   addLog(`動画読み込み: ${file.name}`);
   addLog(`ファイルサイズ: ${(file.size / 1024 / 1024).toFixed(1)} MB`);
 
-  video.onloadedmetadata = () => {
-    duration = video.duration;
+  if (videoInfo) {
+    videoInfo.textContent = '動画情報を読み込み中…';
+  }
 
-    if (videoInfo) {
-      videoInfo.textContent =
-        `${formatTime(duration)} / ${video.videoWidth}×${video.videoHeight}`;
-    }
-
-    addLog(
-      `動画情報: ${formatTime(duration)} / ` +
-      `${video.videoWidth}×${video.videoHeight}`
-    );
-
-    if (analyzeBtn) {
-      analyzeBtn.disabled = false;
-    }
-  };
+  if (analyzeBtn) {
+    analyzeBtn.disabled = true;
+  }
 });
+
+
+// ===============================
+// 動画情報更新
+// ===============================
+
+function updateVideoInfo() {
+  if (!video) return;
+
+  const d = video.duration;
+
+  if (!Number.isFinite(d) || d <= 0) {
+    return;
+  }
+
+  duration = d;
+
+  if (videoInfo) {
+    videoInfo.textContent =
+      `${formatTime(duration)} / ${video.videoWidth}×${video.videoHeight}`;
+  }
+
+  addLog(
+    `動画情報: ${formatTime(duration)} / ` +
+    `${video.videoWidth}×${video.videoHeight}`
+  );
+
+  if (analyzeBtn) {
+    analyzeBtn.disabled = false;
+  }
+}
+
+
+// ===============================
+// Safari / iPhone 対策
+// ===============================
+
+video.addEventListener('loadedmetadata', updateVideoInfo);
+video.addEventListener('durationchange', updateVideoInfo);
+video.addEventListener('loadeddata', updateVideoInfo);
+
+
+// すでに読み込み済みの場合
+if (video.readyState >= 1) {
+  updateVideoInfo();
+}
+
+
+
+
+
 
 // ===============================
 // フレーム取得
