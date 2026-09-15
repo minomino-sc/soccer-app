@@ -1,4 +1,4 @@
-import './styles.css';
+import './style.css';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
 import { createWorker } from 'tesseract.js';
