@@ -45,15 +45,62 @@ fileInput.addEventListener('change', async () => {
   status(`動画を読み込みました（${fmt(duration)}）`); log(`動画: ${sourceFile.name} / ${(sourceFile.size/1024/1024).toFixed(1)}MB`);
 });
 
+
+
+
 async function seekTo(t){
-  const target=clamp(t,0,Math.max(0,duration-0.02));
-  if(Math.abs(video.currentTime-target)<0.03) return;
-  await new Promise((resolve,reject)=>{
-    let done=false; const timer=setTimeout(()=>finish(new Error('seek timeout')),10000);
-    const finish=(err)=>{if(done)return;done=true;clearTimeout(timer);video.removeEventListener('seeked',onSeeked);err?reject(err):resolve()};
-    const onSeeked=()=>finish(); video.addEventListener('seeked',onSeeked,{once:true}); video.currentTime=target;
+  const target = clamp(t, 0, Math.max(0, duration - 0.02));
+
+  // ほぼ同じ位置ならseekしない
+  if (Math.abs(video.currentTime - target) < 0.05) {
+    return;
+  }
+
+  await new Promise((resolve) => {
+    let finished = false;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+
+      video.removeEventListener('seeked', onSeeked);
+      video.removeEventListener('error', onError);
+
+      resolve();
+    };
+
+    const onSeeked = () => finish();
+    const onError = () => {
+      // 長時間動画ではSafariがseekイベントを正常に返さない場合がある。
+      // その場合も解析を停止せず、その時点のフレームで続行する。
+      log(`seek警告: ${fmt(target)} へ移動できませんでした。解析を継続します`);
+      finish();
+    };
+
+    video.addEventListener('seeked', onSeeked, { once: true });
+    video.addEventListener('error', onError, { once: true });
+
+    try {
+      video.currentTime = target;
+    } catch (e) {
+      log(`seek例外: ${e.message}`);
+      finish();
+      return;
+    }
+
+    // 30分動画では10秒待ってエラー終了させない
+    // Safariの処理状況を見ながら最大3秒だけ待つ。
+    setTimeout(finish, 3000);
   });
+
+  // Safariがseek後のフレームを描画する時間を少し与える
+  await sleep(30);
 }
+
+
+
+
+
 
 // Calibrated from the supplied 910x512 Minotani/Tomaimai scoreboard.
 function drawScoreCrop(){
