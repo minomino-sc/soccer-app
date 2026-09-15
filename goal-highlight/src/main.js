@@ -90,39 +90,283 @@ function renderResults(){
   goals.forEach((g,i)=>{const row=document.createElement('div');row.className='goal';row.innerHTML=`<div><b>⚽ GOAL ${i+1}</b><br><span>${g.from} → <strong>${g.to}</strong></span></div><div>${fmt(g.time)}</div>`;results.appendChild(row)});
 }
 
+
+
+
+
 scanBtn.addEventListener('click',async()=>{
-  if(!sourceFile||scanBusy)return; scanBusy=true;scanBtn.disabled=true;extractBtn.disabled=true;goals=[];results.innerHTML='';
-  const interval=Math.max(.5,Number(intervalEl.value)||1),target=targetEl.value;
-  let previous=null,candidate=null,previousImage=null;
+  if(!sourceFile||scanBusy)return;
+
+  scanBusy=true;
+  scanBtn.disabled=true;
+  extractBtn.disabled=true;
+  goals=[];
+  results.innerHTML='';
+
+  const interval=Math.max(0.5,Number(intervalEl.value)||1);
+  const target=targetEl.value;
+
+  // 誤検出防止設定
+  const SCORE_CONFIRM_COUNT=3;   // 新スコアを3回連続確認
+  const MIN_GOAL_GAP=20;         // ゴール同士は最低20秒空ける
+  const MAX_SCORE_JUMP=1;        // 1回の判定で増えるのは1点まで
+
+  let previous=null;
+  let candidate=null;
+  let previousImage=null;
+
   try{
+
     status('スコア解析中…');
+
     for(let t=0;t<duration;t+=interval){
-      await seekTo(t); drawScoreCrop();
-      const img=ctx.getImageData(0,0,canvas.width,canvas.height);
-      const changed=imageDifference(previousImage,img)>7.5; previousImage=img;
+
+      await seekTo(t);
+      drawScoreCrop();
+
+      const img=ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      const changed=imageDifference(previousImage,img)>7.5;
+      previousImage=img;
+
+      /*
+       * OCRは、
+       * ①初期スコア
+       * ②表示が変化した可能性がある
+       * ③新スコア候補を確認中
+       * の場合だけ実行
+       */
       if(!previous||changed||candidate){
-        let sc=null; try{sc=await recognizeScore()}catch(e){log(`OCR: ${e.message}`)}
+
+        let sc=null;
+
+        try{
+          sc=await recognizeScore();
+        }catch(e){
+          log(`OCR: ${e.message}`);
+        }
+
         if(sc){
+
           const key=scoreKey(sc);
-          if(!previous){previous={...sc};candidate=null;log(`初期スコア ${key} @ ${fmt(t)}`);}
-          else if(key!==scoreKey(previous)){
-            if(candidate?.key===key) candidate.count++; else candidate={key,home:sc.home,away:sc.away,time:t,count:1};
-            if(candidate.count>=2){
-              const old=previous,newScore={home:sc.home,away:sc.away};
-              const homeChanged=newScore.home>old.home,awayChanged=newScore.away>old.away;
-              const wanted=target==='both'||(target==='minotani'&&homeChanged)||(target==='opponent'&&awayChanged);
-              if(wanted && (!goals.length||t-goals.at(-1).time>20)) goals.push({time:candidate.time,from:scoreKey(old),to:scoreKey(newScore)});
-              previous=newScore;candidate=null;
+
+          // --------------------------------
+          // 初期スコア
+          // --------------------------------
+          if(!previous){
+
+            previous={...sc};
+            candidate=null;
+
+            log(`初期スコア ${key} @ ${fmt(t)}`);
+
+          }
+
+          // --------------------------------
+          // 現在のスコアと同じ
+          // --------------------------------
+          else if(key===scoreKey(previous)){
+
+            // 候補が消えたので誤検出扱い
+            if(candidate){
+
+              log(
+                `スコア候補取消: ${candidate.key} → ${key} @ ${fmt(t)}`
+              );
+
+              candidate=null;
             }
-          }else candidate=null;
+
+          }
+
+          // --------------------------------
+          // 新しいスコア
+          // --------------------------------
+          else{
+
+            const homeDiff=sc.home-previous.home;
+            const awayDiff=sc.away-previous.away;
+
+            /*
+             * 正常な得点変化だけを候補にする。
+             *
+             * 例：
+             * 0-0 → 1-0  OK
+             * 0-0 → 0-1  OK
+             *
+             * 0-0 → 2-0  NG
+             * 0-0 → 1-1  NG
+             * 1-0 → 0-0  NG
+             */
+            const validScoreChange =
+              (
+                homeDiff===1 &&
+                awayDiff===0
+              ) ||
+              (
+                homeDiff===0 &&
+                awayDiff===1
+              );
+
+            if(!validScoreChange){
+
+              log(
+                `異常スコア変化を無視: ` +
+                `${scoreKey(previous)} → ${key} @ ${fmt(t)}`
+              );
+
+              candidate=null;
+
+            }else{
+
+              // --------------------------------
+              // 新しいスコア候補を作成
+              // --------------------------------
+              if(
+                !candidate ||
+                candidate.key!==key
+              ){
+
+                candidate={
+                  key,
+                  home:sc.home,
+                  away:sc.away,
+                  time:t,
+                  count:1
+                };
+
+                log(
+                  `ゴール候補: ` +
+                  `${scoreKey(previous)} → ${key} ` +
+                  `@ ${fmt(t)} / 確認1`
+                );
+
+              }else{
+
+                candidate.count++;
+
+                log(
+                  `ゴール候補確認: ` +
+                  `${key} / ` +
+                  `${candidate.count}/${SCORE_CONFIRM_COUNT}`
+                );
+              }
+
+              // --------------------------------
+              // 新スコアを3回連続確認
+              // --------------------------------
+              if(candidate.count>=SCORE_CONFIRM_COUNT){
+
+                const old={...previous};
+                const newScore={
+                  home:candidate.home,
+                  away:candidate.away
+                };
+
+                const homeChanged=
+                  newScore.home>old.home;
+
+                const awayChanged=
+                  newScore.away>old.away;
+
+                const wanted =
+                  target==='both' ||
+                  (target==='minotani'&&homeChanged) ||
+                  (target==='opponent'&&awayChanged);
+
+                /*
+                 * 直前のゴールから近すぎる場合は
+                 * 二重検出を防止
+                 */
+                const tooClose =
+                  goals.length>0 &&
+                  candidate.time-goals.at(-1).time<MIN_GOAL_GAP;
+
+                if(wanted&&!tooClose){
+
+                  goals.push({
+                    time:candidate.time,
+                    from:scoreKey(old),
+                    to:scoreKey(newScore)
+                  });
+
+                  log(
+                    `⚽ GOAL確定: ` +
+                    `${scoreKey(old)} → ${scoreKey(newScore)} ` +
+                    `@ ${fmt(candidate.time)}`
+                  );
+
+                }else if(tooClose){
+
+                  log(
+                    `ゴール重複を無視: ` +
+                    `${scoreKey(old)} → ${scoreKey(newScore)} ` +
+                    `@ ${fmt(candidate.time)}`
+                  );
+
+                }
+
+                /*
+                 * ここで正式な現在スコアを更新
+                 */
+                previous=newScore;
+
+                candidate=null;
+              }
+            }
+          }
         }
       }
-      const pct=Math.round(t/duration*100);progressEl.value=pct;status(`解析中… ${fmt(t)} / ${fmt(duration)}（${pct}%）`);await sleep(0);
+
+      const pct=Math.round(t/duration*100);
+
+      progressEl.value=pct;
+
+      status(
+        `解析中… ${fmt(t)} / ${fmt(duration)}（${pct}%）`
+      );
+
+      await sleep(0);
     }
-    renderResults();extractBtn.disabled=goals.length===0;status(`解析完了：${goals.length}ゴールを検出`);log(`解析完了: ${goals.length}ゴール`);
-  }catch(e){console.error(e);status(`エラー: ${e.message}`);log(`ERROR: ${e.stack||e.message}`)}
-  finally{scanBusy=false;scanBtn.disabled=false}
+
+    renderResults();
+
+    extractBtn.disabled=goals.length===0;
+
+    status(
+      `解析完了：${goals.length}ゴールを検出`
+    );
+
+    log(
+      `解析完了: ${goals.length}ゴール`
+    );
+
+  }catch(e){
+
+    console.error(e);
+
+    status(`エラー: ${e.message}`);
+
+    log(
+      `ERROR: ${e.stack||e.message}`
+    );
+
+  }finally{
+
+    scanBusy=false;
+    scanBtn.disabled=false;
+  }
 });
+
+
+
+
+
 
 loadEngineBtn.addEventListener('click',async()=>{
   if(ffmpegLoaded)return;
