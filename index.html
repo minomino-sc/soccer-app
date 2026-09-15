@@ -1,58 +1,312 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b0d10">
-  <title>⚽ ゴールハイライト</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+
+<title>箕谷SC 動画共有システム</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json" />
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="app">
-    <header class="hero">
-      <div class="ball">⚽</div>
-      <div><h1>ゴールハイライト</h1><p>スコア変化からゴール前後を自動抽出</p></div>
-    </header>
 
-    <section class="card">
-      <label class="file-label">🎥 試合動画を選択
-        <input id="videoFile" type="file" accept="video/*">
-      </label>
-      <div class="meta"><span>動画時間</span><strong id="duration">--:--</strong></div>
-      <video id="video" playsinline muted preload="metadata"></video>
-    </section>
+<main class="container">
+  <header class="header card">
+    <h1 id="title">⚽️箕谷SC 動画共有システム⚽️</h1>
+  </header>
 
-    <section class="card controls">
-      <h2>⚙️ 解析設定</h2>
-      <label>ゴール判定
-        <select id="targetTeam"><option value="minotani">箕谷のゴールだけ</option><option value="both">両チーム</option><option value="opponent">相手のゴールだけ</option></select>
-      </label>
-      <label>解析間隔
-        <select id="intervalSec"><option value="1">1秒（おすすめ）</option><option value="2">2秒（速め）</option></select>
-      </label>
-      <div class="two">
-        <label>ゴール前<input id="beforeSec" type="number" min="0" max="60" value="15">秒</label>
-        <label>ゴール後<input id="afterSec" type="number" min="0" max="60" value="10">秒</label>
+  <!-- ▼ チーム参加 / ログイン -->
+  <section class="section-card" id="teamSection">
+<!-- 背景エンブレムを外に出す -->
+<img src="minotani-logo.png" class="login-bg-logo" alt="minotani logo">
+
+<div class="login-header">
+  <h2 class="page-title center-title">チーム登録 ／ ログイン</h2>
+</div>
+<div class="row" style="position:relative;">
+  <input id="teamNameInput" placeholder="チーム名（例：箕谷SC-A）" />
+  <div id="teamSuggestions" class="suggestions"></div>
+</div>
+<div class="row" style="position:relative;">
+  <input id="inviteCodeInput" placeholder="招待コード" />
+  <div id="inviteSuggestions" class="suggestions"></div>
+</div>
+ 
+    <div class="row">
+      <button id="btnJoin" class="btn primary">登録 ／ ログイン</button>
+    </div>
+    <p class="muted small">招待コードを使ってチーム共有できます。完全無料の YouTube 限定公開方式です。</p>
+  </section>
+
+<!-- ===== ログイン後ポータルメニュー ===== -->
+<div id="portalMenu" style="display:none; margin-top:20px;">
+
+  <div class="portal-link" onclick="location.href='https://minomino-sc.github.io/soccer-app/annual/?from=video'">
+    <span>📅 年間スケジュール</span>
+    <span>›</span>
+  </div>
+
+  <div class="portal-link" onclick="location.href='https://minomino-sc.github.io/soccer-app/attendance/?from=video'">
+    <span>📝 出欠管理</span>
+    <span>›</span>
+  </div>
+
+</div>
+ 
+  <!-- ▼ YouTube動画追加 -->
+  <section class="section-card" id="addVideoSection" style="display:none;">
+    <h2>YouTube動画追加</h2>
+    <div class="row">
+      <input id="youtubeUrl" placeholder="YouTube の共有URL（例 https://youtu.be/xxxxx）" />
+      <button id="btnAddYouTube" class="btn primary">追加</button>
+    </div>
+    <p class="muted small">動画は YouTube に限定公開でアップロードして共有してください。</p>
+  </section>
+
+  <!-- ▼ 試合作成 -->
+  <section class="section-card" id="createMatchSection" style="display:none;">
+    <h2>試合結果作成</h2>
+
+    <div class="row vertical">
+      <label class="lbl">試合種別</label>
+      <select id="matchTypeCreate">
+        <option value="">種別を選択</option>
+        <option value="公式戦">公式戦</option>
+        <option value="カップ戦">カップ戦</option>
+        <option value="交流戦">交流戦</option>
+      </select>
+    </div>
+
+    <div class="row vertical date-wrapper">
+      <label class="lbl" for="matchDate">試合日</label>
+      <div class="date-input-wrapper">
+        <input id="matchDate" type="date" required />
+        <span class="placeholder-text">日付を選択</span>
       </div>
-      <button id="scanBtn" class="primary">🔍 スコア解析開始</button>
-      <progress id="progress" value="0" max="100"></progress>
-      <div id="status" class="status">動画を選択してください</div>
-    </section>
+    </div>
 
-    <section class="card">
-      <h2>⚽ 検出結果</h2>
-      <div id="results" class="results"><p class="muted">まだ解析していません。</p></div>
-    </section>
+    <div class="row vertical">
+      <label class="lbl">対戦相手</label>
+      <input id="opponent" placeholder="例：○○SC" />
+    </div>
 
-    <section class="card">
-      <h2>🎬 動画作成</h2>
-      <button id="loadEngineBtn" class="secondary" disabled>① 切り出しエンジンを準備</button>
-      <button id="extractBtn" class="primary" disabled>② ゴール動画を作成</button>
-      <p class="note">動画は端末内で処理します。サーバーへ動画をアップロードしません。</p>
-    </section>
+    <div class="row vertical">
+      <label class="lbl">会場</label>
+      <input id="place" placeholder="例：しあわせの村　球技場" />
+    </div>
 
-    <section class="card log-card"><h2>ログ</h2><pre id="log"></pre></section>
-    <canvas id="canvas" hidden></canvas>
-  </main>
-  <script type="module" src="/src/main.js"></script>
+    <div class="row vertical">
+      <label class="lbl">得点</label>
+      <div class="row">
+        <input id="scoreA" type="number" min="0" placeholder="自チーム得点" />
+        <input id="scoreB" type="number" min="0" placeholder="相手チーム得点" />
+      </div>
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">PK（任意）</label>
+      <div class="row">
+        <input id="pkA" type="number" min="0" placeholder="自チームPK得点" />
+        <input id="pkB" type="number" min="0" placeholder="相手PK得点" />
+      </div>
+      <p class="muted small">同点でPK決着時のみ入力してください</p>
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">紐づけ動画</label>
+      <select id="videoYear"></select>
+<select id="videoMonth" disabled></select>
+<select id="videoSelect" disabled></select>
+      <button id="btnCreateMatch" class="btn" style="margin-top:6px;">作成</button>
+    </div>
+    <p class="muted small">作成後に試合結果一覧で編集できます。</p>
+  </section>
+
+<section class="section-card" id="backupSection" style="display:none; margin-top:12px;">
+  <h2>Firestore 一括バックアップ / 復元</h2>
+
+  <!-- ダウンロードボタン -->
+  <button id="btnBackupAllFirestore" class="btn primary">Firestore データを一括バックアップ</button>
+  <p class="muted small">管理者専用。クリックすると JSON 形式で全データをダウンロードします。</p>
+ <p class="muted small" id="backupTimestamp"></p> 
+
+  <!-- アップロードボタン -->
+  <input type="file" id="uploadBackupFile" style="display:none" accept=".json">
+  <button id="btnRestoreBackup" class="btn danger">バックアップ JSON を Firestore に復元</button>
+  <p class="muted small">管理者専用。JSON ファイルを選択すると Firestore に一括復元します。</p>
+</section>
+  
+  <!-- ▼ 試合結果一覧 -->
+  <section class="section-card" id="scoresSection" style="display:none;">
+    <h2>試合結果一覧</h2>
+    <div id="scoreGroups"></div>
+  </section>
+
+  <!-- ▼ ログイン画面に戻る -->
+  <div style="margin-top:18px; text-align:center;">
+    <button id="btnBackLogin" class="btn" style="background:#888; width:90%;">ログイン画面に戻る</button>
+  </div>
+
+<div class="team-photo-area">
+  <svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <!-- ぼかしマスク -->
+      <radialGradient id="fadeGradient" cx="50%" cy="50%" r="50%">
+        <stop offset="70%" stop-color="white" />
+        <stop offset="100%" stop-color="black" />
+      </radialGradient>
+
+      <mask id="ellipseFadeMask">
+        <rect width="100%" height="100%" fill="black" />
+        <ellipse cx="500" cy="250" rx="500" ry="250"
+                 fill="url(#fadeGradient)" />
+      </mask>
+    </defs>
+
+    <image 
+      href="team.jpeg"
+      width="1000"
+      height="500"
+      preserveAspectRatio="xMidYMid slice"
+      mask="url(#ellipseFadeMask)"
+    />
+  </svg>
+</div>
+
+  <footer class="card small muted">
+    © 箕谷SC 動画共有システム — YouTube限定公開方式（完全無料）
+  </footer>
+</main>
+
+<!-- ▼ 編集モーダル -->
+<div id="editModal" class="modal hidden">
+  <div class="modal-content section-card">
+    <h2>試合編集</h2>
+
+    <div class="row vertical">
+      <label class="lbl">試合種別</label>
+      <select id="matchType">
+        <option value="">選択してください</option>
+        <option value="公式戦">公式戦</option>
+        <option value="カップ戦">カップ戦</option>
+        <option value="交流戦">交流戦</option>
+      </select>
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">試合日</label>
+      <input type="date" id="edit-date">
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">対戦相手</label>
+      <input type="text" id="edit-opponent">
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">会場</label>
+      <input type="text" id="edit-place">
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">自チーム得点</label>
+      <input type="number" id="edit-my-score">
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">相手チーム得点</label>
+      <input type="number" id="edit-opponent-score">
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">PK（任意）</label>
+      <div class="row">
+        <input id="edit-pkA" type="number" placeholder="自PK" />
+        <input id="edit-pkB" type="number" placeholder="相手PK" />
+      </div>
+    </div>
+
+    <div class="row vertical">
+      <label class="lbl">紐づけ動画</label>
+<select id="editVideoYear"></select>
+<select id="editVideoMonth" disabled></select>
+<select id="edit-video-select" disabled></select>     
+    </div>
+
+<div class="row vertical">
+  <label class="lbl">ゴール登録</label>
+
+  <!-- 秒数入力 -->
+  <div class="row">
+    <input id="goalTime" type="number" placeholder="秒数（例：85）" />
+  </div>
+
+  <!-- ボタン -->
+  <div class="row">
+    <button id="btnAddMyGoal" class="btn">⚽ 得点</button>
+    <button id="btnAddOpponentGoal" class="btn danger">🔴 失点</button>
+  </div>
+
+  <!-- タイムライン表示 -->
+  <div id="goalTimelineList" class="muted small" style="margin-top:8px;"></div>
+</div>
+
+    <div class="row" style="margin-top:12px;">
+      <button id="saveEdit" class="save-btn" style="flex:1;">保存</button>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <button id="deleteMatch" class="delete-btn" style="flex:1;">この試合を削除</button>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <button id="modalClose" class="close-btn" style="flex:1;">閉じる</button>
+    </div>
+  </div>
+</div>
+<!-- ▲ 編集モーダル -->
+
+<!-- ▼ 月別成績モーダル -->
+<div id="monthlyModal" class="modal hidden">
+  <div class="modal-content section-card">
+    <h2 id="monthlyTitle">📊 月別成績</h2>
+
+    <div id="monthlyContent"></div>
+
+    <div class="row" style="margin-top:12px;">
+      <button id="monthlyClose" class="close-btn">閉じる</button>
+    </div>
+  </div>
+</div>
+<!-- ▲ 月別成績モーダル -->
+
+<div id="creatorLabel">⭐️製作者：Y.Ninomiya</div>
+
+<!-- ▼ Firebase 初期化 & main.js -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMJfAd5BffteapT51ZUO06VP-XDReFSwY",
+  authDomain: "minotani-sc-app.firebaseapp.com",
+  projectId: "minotani-sc-app",
+  storageBucket: "minotani-sc-app.firebasestorage.app",
+  messagingSenderId: "757066295000",
+  appId: "1:757066295000:web:1c7a90f968af75d26099ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window._firebaseDB = db;
+window._firebaseFns = { collection, addDoc, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc, query, where };
+
+// Firebase 初期化後に main.js を module として読み込む
+import './main.js';
+</script>
+
 </body>
 </html>
