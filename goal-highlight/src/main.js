@@ -126,14 +126,46 @@ scanBtn.addEventListener('click',async()=>{
 
 loadEngineBtn.addEventListener('click',async()=>{
   if(ffmpegLoaded)return;
-  loadEngineBtn.disabled=true;status('動画切り出しエンジンを準備中…');
+
+  loadEngineBtn.disabled=true;
+  status('動画切り出しエンジンを準備中…');
+
   try{
     ffmpeg=new FFmpeg();
-    ffmpeg.on('progress',({progress})=>progressEl.value=Math.round(progress*100));
+
+    ffmpeg.on('progress',({progress})=>{
+      progressEl.value=Math.round(progress*100);
+    });
+
     const baseURL='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
-    await ffmpeg.load({coreURL:await toBlobURL(`${baseURL}/ffmpeg-core.js`,'text/javascript'),wasmURL:await toBlobURL(`${baseURL}/ffmpeg-core.wasm`,'application/wasm')});
-    ffmpegLoaded=true;status('切り出しエンジン準備完了');log('FFmpeg WASM loaded');
-  }catch(e){loadEngineBtn.disabled=false;status(`FFmpeg読み込み失敗: ${e.message}`);log(`FFmpeg ERROR: ${e.stack||e.message}`)}
+
+    const classWorkerURL=new URL(
+      './ffmpeg-worker.js',
+      import.meta.url
+    ).href;
+
+    await ffmpeg.load({
+      coreURL:await toBlobURL(
+        `${baseURL}/ffmpeg-core.js`,
+        'text/javascript'
+      ),
+      wasmURL:await toBlobURL(
+        `${baseURL}/ffmpeg-core.wasm`,
+        'application/wasm'
+      ),
+      classWorkerURL
+    });
+
+    ffmpegLoaded=true;
+    status('切り出しエンジン準備完了');
+    log('FFmpeg WASM loaded');
+
+  }catch(e){
+    console.error(e);
+    loadEngineBtn.disabled=false;
+    status(`FFmpeg読み込み失敗: ${e.message}`);
+    log(`FFmpeg ERROR: ${e.stack||e.message}`);
+  }
 });
 
 extractBtn.addEventListener('click',async()=>{
