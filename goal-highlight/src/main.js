@@ -1,7 +1,7 @@
 import './style.css';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { toBlobURL } from '@ffmpeg/util';
-import { createWorker } from 'tesseract.js';
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.10';
+import { toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.2';
+import { createWorker } from 'https://esm.sh/tesseract.js@5.1.1';
 
 const $ = (s) => document.querySelector(s);
 const video = $('#video');
