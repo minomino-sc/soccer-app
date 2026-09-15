@@ -168,40 +168,220 @@ loadEngineBtn.addEventListener('click',async()=>{
   }
 });
 
+
+
+
+
+
 extractBtn.addEventListener('click',async()=>{
   if(!sourceFile||!goals.length)return;
-  if(!ffmpegLoaded)await loadEngineBtn.click(); if(!ffmpegLoaded)return;
+  if(!ffmpegLoaded)await loadEngineBtn.click();
+  if(!ffmpegLoaded)return;
+
   extractBtn.disabled=true;
-  const before=Math.max(0,Number(beforeEl.value)||15),after=Math.max(0,Number(afterEl.value)||10);
+
+  const before=Math.max(0,Number(beforeEl.value)||15);
+  const after=Math.max(0,Number(afterEl.value)||10);
+
   try{
-    try{await ffmpeg.mount('WORKERFS',{files:[sourceFile]},'/input')}catch{}
-    const clipNames=[];
-    for(let i=0;i<goals.length;i++){
-      const g=goals[i],start=Math.max(0,g.time-before),len=Math.min(before+after,duration-start),out=`goal_${String(i+1).padStart(2,'0')}.mp4`;
-      status(`GOAL ${i+1}/${goals.length} を作成中…`);
-      await ffmpeg.exec(['-ss',String(start),'-i',`/input/${sourceFile.name}`,'-t',String(len),'-map','0:v:0','-map','0:a:0?','-c:v','libx264','-preset','ultrafast','-crf','28','-c:a','aac','-b:a','96k','-movflags','+faststart',out]);
-      clipNames.push(out);
-      const data=await ffmpeg.readFile(out);const blob=new Blob([data],{type:'video/mp4'});const url=URL.createObjectURL(blob);
-      renderDownload(out,url,g,start,len);
+    status('動画ファイルをFFmpegに接続中…');
+    log(`入力動画: ${sourceFile.name} / ${(sourceFile.size/1024/1024).toFixed(1)}MB`);
+
+    // 既存のマウントを解除
+    try{
+      await ffmpeg.unmount('/input');
+    }catch{}
+
+    // 元動画をWORKERFSでマウント
+    try{
+      await ffmpeg.mount(
+        'WORKERFS',
+        {files:[sourceFile]},
+        '/input'
+      );
+      log('WORKERFS mount OK');
+    }catch(e){
+      const msg=e?.message||String(e);
+      log(`WORKERFS ERROR: ${msg}`);
+      throw new Error(`動画ファイルをFFmpegへ渡せませんでした: ${msg}`);
     }
+
+    const inputPath=`/input/${sourceFile.name}`;
+    const clipNames=[];
+
+    for(let i=0;i<goals.length;i++){
+      const g=goals[i];
+
+      const start=Math.max(0,g.time-before);
+      const len=Math.min(
+        before+after,
+        duration-start
+      );
+
+      const out=`goal_${String(i+1).padStart(2,'0')}.mp4`;
+
+      status(`GOAL ${i+1}/${goals.length} を作成中…`);
+      log(`GOAL ${i+1}: ${fmt(start)} ～ ${fmt(start+len)}`);
+
+      const result=await ffmpeg.exec([
+        '-ss',String(start),
+        '-i',inputPath,
+        '-t',String(len),
+        '-map','0:v:0',
+        '-map','0:a:0?',
+        '-c:v','libx264',
+        '-preset','ultrafast',
+        '-crf','28',
+        '-c:a','aac',
+        '-b:a','96k',
+        '-movflags','+faststart',
+        '-y',
+        out
+      ]);
+
+      log(`FFmpeg exec result: ${result}`);
+
+      if(result!==0){
+        throw new Error(`FFmpeg処理に失敗しました（終了コード: ${result}）`);
+      }
+
+      clipNames.push(out);
+
+      const data=await ffmpeg.readFile(out);
+
+      if(!data||!data.length){
+        throw new Error(`${out} が作成されませんでした`);
+      }
+
+      const blob=new Blob(
+        [data],
+        {type:'video/mp4'}
+      );
+
+      const url=URL.createObjectURL(blob);
+
+      renderDownload(
+        out,
+        url,
+        g,
+        start,
+        len
+      );
+    }
+
     if(clipNames.length>1){
       status('ゴール動画を1本に結合中…');
-      const concatText=clipNames.map(n=>`file '${n}'`).join('\n')+'\n';
-      await ffmpeg.writeFile('concat.txt',concatText);
-      await ffmpeg.exec(['-f','concat','-safe','0','-i','concat.txt','-c','copy','all_goals.mp4']);
-      const allData=await ffmpeg.readFile('all_goals.mp4');
-      const allUrl=URL.createObjectURL(new Blob([allData],{type:'video/mp4'}));
-      renderCombinedDownload(allUrl,goals.length);
-    } else if(clipNames.length===1){
-      const single=await ffmpeg.readFile(clipNames[0]);
-      const allUrl=URL.createObjectURL(new Blob([single],{type:'video/mp4'}));
-      renderCombinedDownload(allUrl,1);
+
+      const concatText=
+        clipNames
+          .map(n=>`file '${n}'`)
+          .join('\n')+'\n';
+
+      await ffmpeg.writeFile(
+        'concat.txt',
+        concatText
+      );
+
+      const result=await ffmpeg.exec([
+        '-f','concat',
+        '-safe','0',
+        '-i','concat.txt',
+        '-c','copy',
+        '-y',
+        'all_goals.mp4'
+      ]);
+
+      log(`結合結果: ${result}`);
+
+      if(result!==0){
+        throw new Error(
+          `ゴール動画の結合に失敗しました（終了コード: ${result}）`
+        );
+      }
+
+      const allData=
+        await ffmpeg.readFile('all_goals.mp4');
+
+      const allUrl=
+        URL.createObjectURL(
+          new Blob(
+            [allData],
+            {type:'video/mp4'}
+          )
+        );
+
+      renderCombinedDownload(
+        allUrl,
+        goals.length
+      );
     }
-    for(const name of [...clipNames,'concat.txt','all_goals.mp4']){try{await ffmpeg.deleteFile(name)}catch{}}
-    status(`完了：${goals.length}本のゴール動画を作成しました`);log(`${goals.length} clips created`);
-  }catch(e){console.error(e);status(`切り出しエラー: ${e.message}`);log(`CUT ERROR: ${e.stack||e.message}`)}
-  finally{extractBtn.disabled=false}
+    else if(clipNames.length===1){
+
+      const single=
+        await ffmpeg.readFile(
+          clipNames[0]
+        );
+
+      const allUrl=
+        URL.createObjectURL(
+          new Blob(
+            [single],
+            {type:'video/mp4'}
+          )
+        );
+
+      renderCombinedDownload(
+        allUrl,
+        1
+      );
+    }
+
+    for(
+      const name of [
+        ...clipNames,
+        'concat.txt',
+        'all_goals.mp4'
+      ]
+    ){
+      try{
+        await ffmpeg.deleteFile(name);
+      }catch{}
+    }
+
+    status(
+      `完了：${goals.length}本のゴール動画を作成しました`
+    );
+
+    log(
+      `${goals.length} clips created`
+    );
+
+  }catch(e){
+
+    console.error('CUT ERROR',e);
+
+    const message=
+      e?.message ||
+      e?.toString?.() ||
+      String(e);
+
+    status(
+      `切り出しエラー: ${message}`
+    );
+
+    log(
+      `CUT ERROR: ${message}`
+    );
+
+  }finally{
+    extractBtn.disabled=false;
+  }
 });
+
+
+
+
+
 
 
 function renderCombinedDownload(url,count){
