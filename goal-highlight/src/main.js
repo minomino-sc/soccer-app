@@ -171,8 +171,6 @@ loadEngineBtn.addEventListener('click',async()=>{
 
 
 
-
-
 extractBtn.addEventListener('click',async()=>{
   if(!sourceFile||!goals.length)return;
   if(!ffmpegLoaded)await loadEngineBtn.click();
@@ -187,19 +185,21 @@ extractBtn.addEventListener('click',async()=>{
     status('動画ファイルをFFmpegに接続中…');
     log(`入力動画: ${sourceFile.name} / ${(sourceFile.size/1024/1024).toFixed(1)}MB`);
 
-    // 既存のマウントを解除
+    // 入力フォルダを作成
     try{
-      await ffmpeg.unmount('/input');
+      await ffmpeg.createDir('/input');
     }catch{}
 
-    // 元動画をWORKERFSでマウント
+    // WORKERFSで元動画をマウント
     try{
       await ffmpeg.mount(
         'WORKERFS',
         {files:[sourceFile]},
         '/input'
       );
+
       log('WORKERFS mount OK');
+
     }catch(e){
       const msg=e?.message||String(e);
       log(`WORKERFS ERROR: ${msg}`);
@@ -210,6 +210,7 @@ extractBtn.addEventListener('click',async()=>{
     const clipNames=[];
 
     for(let i=0;i<goals.length;i++){
+
       const g=goals[i];
 
       const start=Math.max(0,g.time-before);
@@ -242,7 +243,9 @@ extractBtn.addEventListener('click',async()=>{
       log(`FFmpeg exec result: ${result}`);
 
       if(result!==0){
-        throw new Error(`FFmpeg処理に失敗しました（終了コード: ${result}）`);
+        throw new Error(
+          `FFmpeg処理に失敗しました（終了コード: ${result}）`
+        );
       }
 
       clipNames.push(out);
@@ -270,6 +273,7 @@ extractBtn.addEventListener('click',async()=>{
     }
 
     if(clipNames.length>1){
+
       status('ゴール動画を1本に結合中…');
 
       const concatText=
@@ -314,8 +318,8 @@ extractBtn.addEventListener('click',async()=>{
         allUrl,
         goals.length
       );
-    }
-    else if(clipNames.length===1){
+
+    }else if(clipNames.length===1){
 
       const single=
         await ffmpeg.readFile(
@@ -336,6 +340,7 @@ extractBtn.addEventListener('click',async()=>{
       );
     }
 
+    // 後片付け
     for(
       const name of [
         ...clipNames,
@@ -347,6 +352,14 @@ extractBtn.addEventListener('click',async()=>{
         await ffmpeg.deleteFile(name);
       }catch{}
     }
+
+    try{
+      await ffmpeg.unmount('/input');
+    }catch{}
+
+    try{
+      await ffmpeg.deleteDir('/input');
+    }catch{}
 
     status(
       `完了：${goals.length}本のゴール動画を作成しました`
@@ -377,6 +390,8 @@ extractBtn.addEventListener('click',async()=>{
     extractBtn.disabled=false;
   }
 });
+
+
 
 
 
