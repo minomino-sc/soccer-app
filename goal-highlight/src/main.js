@@ -131,9 +131,14 @@ loadEngineBtn.addEventListener('click',async()=>{
   status('動画切り出しエンジンを準備中…');
 
   try{
-    ffmpeg=new FFmpeg();
+ffmpeg=new FFmpeg();
 
-    ffmpeg.on('progress',({progress})=>{
+ffmpeg.on('log',({message})=>{
+  log(`FFmpeg: ${message}`);
+});
+
+ffmpeg.on('progress',({progress})=>{  
+     
       progressEl.value=Math.round(progress*100);
     });
 
@@ -171,76 +176,134 @@ loadEngineBtn.addEventListener('click',async()=>{
 
 
 
+
+
 extractBtn.addEventListener('click',async()=>{
   if(!sourceFile||!goals.length)return;
-  if(!ffmpegLoaded)await loadEngineBtn.click();
+
+  if(!ffmpegLoaded){
+    await loadEngineBtn.click();
+  }
+
   if(!ffmpegLoaded)return;
 
   extractBtn.disabled=true;
 
-  const before=Math.max(0,Number(beforeEl.value)||15);
-  const after=Math.max(0,Number(afterEl.value)||10);
+  const before=Math.max(
+    0,
+    Number(beforeEl.value)||15
+  );
+
+  const after=Math.max(
+    0,
+    Number(afterEl.value)||10
+  );
+
+  const inputName='input.mp4';
+  const clipNames=[];
 
   try{
-    status('動画ファイルをFFmpegに接続中…');
-    log(`入力動画: ${sourceFile.name} / ${(sourceFile.size/1024/1024).toFixed(1)}MB`);
 
-    // 入力フォルダを作成
-    try{
-      await ffmpeg.createDir('/input');
-    }catch{}
+    status('動画ファイルをFFmpegへ転送中…');
 
-    // WORKERFSで元動画をマウント
-    try{
-      await ffmpeg.mount(
-        'WORKERFS',
-        {files:[sourceFile]},
-        '/input'
-      );
+    log(
+      `入力動画: ${sourceFile.name} / `+
+      `${(sourceFile.size/1024/1024).toFixed(1)}MB`
+    );
 
-      log('WORKERFS mount OK');
+    /*
+     * 元動画をFFmpegへ書き込む
+     *
+     * WORKERFSは使用しない。
+     */
+    log('FFmpegへ動画を書き込み中…');
 
-    }catch(e){
-      const msg=e?.message||String(e);
-      log(`WORKERFS ERROR: ${msg}`);
-      throw new Error(`動画ファイルをFFmpegへ渡せませんでした: ${msg}`);
-    }
+    const inputData=new Uint8Array(
+      await sourceFile.arrayBuffer()
+    );
 
-    const inputPath=`/input/${sourceFile.name}`;
-    const clipNames=[];
+    await ffmpeg.writeFile(
+      inputName,
+      inputData
+    );
 
+    log(
+      `FFmpegへの動画転送完了: `+
+      `${(inputData.byteLength/1024/1024).toFixed(1)}MB`
+    );
+
+    /*
+     * 元データをJS側から解放
+     */
+    // inputDataはconstなので明示的な解放はできないが、
+    // FFmpeg側のinput.mp4を使用して処理する。
     for(let i=0;i<goals.length;i++){
 
       const g=goals[i];
 
-      const start=Math.max(0,g.time-before);
+      const start=Math.max(
+        0,
+        g.time-before
+      );
+
       const len=Math.min(
         before+after,
         duration-start
       );
 
-      const out=`goal_${String(i+1).padStart(2,'0')}.mp4`;
+      const out=
+        `goal_${String(i+1).padStart(2,'0')}.mp4`;
 
-      status(`GOAL ${i+1}/${goals.length} を作成中…`);
-      log(`GOAL ${i+1}: ${fmt(start)} ～ ${fmt(start+len)}`);
+      status(
+        `GOAL ${i+1}/${goals.length} を作成中…`
+      );
+
+      log(
+        `GOAL ${i+1}: `+
+        `${fmt(start)} ～ ${fmt(start+len)}`
+      );
 
       const result=await ffmpeg.exec([
-        '-ss',String(start),
-        '-i',inputPath,
-        '-t',String(len),
-        '-map','0:v:0',
-        '-map','0:a:0?',
-        '-c:v','libx264',
-        '-preset','ultrafast',
-        '-crf','28',
-        '-c:a','aac',
-        '-b:a','96k',
-        '-movflags','+faststart',
+        '-ss',
+        String(start),
+
+        '-i',
+        inputName,
+
+        '-t',
+        String(len),
+
+        '-map',
+        '0:v:0',
+
+        '-map',
+        '0:a:0?',
+
+        '-c:v',
+        'libx264',
+
+        '-preset',
+        'ultrafast',
+
+        '-crf',
+        '28',
+
+        '-c:a',
+        'aac',
+
+        '-b:a',
+        '96k',
+
+        '-movflags',
+        '+faststart',
+
         '-y',
         out
       ]);
 
-      log(`FFmpeg exec result: ${result}`);
+      log(
+        `FFmpeg exec result: ${result}`
+      );
 
       if(result!==0){
         throw new Error(
@@ -248,20 +311,31 @@ extractBtn.addEventListener('click',async()=>{
         );
       }
 
-      clipNames.push(out);
-
-      const data=await ffmpeg.readFile(out);
+      /*
+       * 作成されたゴール動画を確認
+       */
+      const data=
+        await ffmpeg.readFile(out);
 
       if(!data||!data.length){
-        throw new Error(`${out} が作成されませんでした`);
+        throw new Error(
+          `${out} が作成されませんでした`
+        );
       }
 
-      const blob=new Blob(
-        [data],
-        {type:'video/mp4'}
-      );
+      clipNames.push(out);
 
-      const url=URL.createObjectURL(blob);
+      /*
+       * 個別ゴール動画を画面に表示
+       */
+      const blob=
+        new Blob(
+          [data],
+          {type:'video/mp4'}
+        );
+
+      const url=
+        URL.createObjectURL(blob);
 
       renderDownload(
         out,
@@ -270,32 +344,77 @@ extractBtn.addEventListener('click',async()=>{
         start,
         len
       );
+
+      /*
+       * 次のゴールへ
+       */
+      progressEl.value=
+        Math.round(
+          ((i+1)/goals.length)*100
+        );
     }
 
+    /*
+     * 元動画はもう不要なので削除
+     */
+    try{
+      await ffmpeg.deleteFile(inputName);
+      log('元動画をFFmpegから削除しました');
+    }catch(e){
+      log(
+        `元動画削除: ${e.message||e}`
+      );
+    }
+
+    /*
+     * ゴール動画が複数ある場合
+     * 1本のALL_GOALS.mp4へ結合
+     */
     if(clipNames.length>1){
 
-      status('ゴール動画を1本に結合中…');
+      status(
+        'ゴール動画を1本に結合中…'
+      );
+
+      log(
+        `${clipNames.length}本のゴール動画を結合します`
+      );
 
       const concatText=
         clipNames
-          .map(n=>`file '${n}'`)
-          .join('\n')+'\n';
+          .map(
+            n=>`file '${n}'`
+          )
+          .join('\n')+
+        '\n';
 
       await ffmpeg.writeFile(
         'concat.txt',
         concatText
       );
 
-      const result=await ffmpeg.exec([
-        '-f','concat',
-        '-safe','0',
-        '-i','concat.txt',
-        '-c','copy',
-        '-y',
-        'all_goals.mp4'
-      ]);
+      const result=
+        await ffmpeg.exec([
+          '-f',
+          'concat',
 
-      log(`結合結果: ${result}`);
+          '-safe',
+          '0',
+
+          '-i',
+          'concat.txt',
+
+          '-c',
+          'copy',
+
+          '-y',
+
+          'all_goals.mp4'
+        ]);
+
+      log(
+        `結合結果: ${result}`
+      );
 
       if(result!==0){
         throw new Error(
@@ -304,7 +423,18 @@ extractBtn.addEventListener('click',async()=>{
       }
 
       const allData=
-        await ffmpeg.readFile('all_goals.mp4');
+        await ffmpeg.readFile(
+          'all_goals.mp4'
+        );
+
+      if(
+        !allData||
+        !allData.length
+      ){
+        throw new Error(
+          'ALL_GOALS.mp4 が作成されませんでした'
+        );
+      }
 
       const allUrl=
         URL.createObjectURL(
@@ -321,6 +451,9 @@ extractBtn.addEventListener('click',async()=>{
 
     }else if(clipNames.length===1){
 
+      /*
+       * ゴールが1本だけの場合
+       */
       const single=
         await ffmpeg.readFile(
           clipNames[0]
@@ -340,7 +473,9 @@ extractBtn.addEventListener('click',async()=>{
       );
     }
 
-    // 後片付け
+    /*
+     * FFmpeg内の不要ファイルを削除
+     */
     for(
       const name of [
         ...clipNames,
@@ -348,18 +483,11 @@ extractBtn.addEventListener('click',async()=>{
         'all_goals.mp4'
       ]
     ){
+
       try{
         await ffmpeg.deleteFile(name);
       }catch{}
     }
-
-    try{
-      await ffmpeg.unmount('/input');
-    }catch{}
-
-    try{
-      await ffmpeg.deleteDir('/input');
-    }catch{}
 
     status(
       `完了：${goals.length}本のゴール動画を作成しました`
@@ -371,11 +499,14 @@ extractBtn.addEventListener('click',async()=>{
 
   }catch(e){
 
-    console.error('CUT ERROR',e);
+    console.error(
+      'CUT ERROR',
+      e
+    );
 
     const message=
-      e?.message ||
-      e?.toString?.() ||
+      e?.message||
+      e?.toString?.()||
       String(e);
 
     status(
@@ -387,9 +518,12 @@ extractBtn.addEventListener('click',async()=>{
     );
 
   }finally{
+
     extractBtn.disabled=false;
+
   }
 });
+
 
 
 
