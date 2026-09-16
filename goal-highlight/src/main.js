@@ -2,25 +2,14 @@ import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.10';
 import { toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.2';
 import { createWorker } from 'https://esm.sh/tesseract.js@5.1.1';
 
-/* =========================================================
-   箕谷SC ゴールハイライト
-   最終スコア手入力方式
-
-   重要な変更点
-   - 最終スコアはユーザーが事前入力
-   - OCRで最終スコアを推定しない
-   - 入力された最終スコアまでの1点ずつの得点変化を探索
-   - OCRの「3-0」「12-0」などの誤読は最終スコアにならない
-   - 箕谷・相手の両方のゴールを検出可能
-   - iPhone / Safariの動画時間表示にも対応
-   - 動画メタデータは複数イベント＋直接duration確認で取得
-========================================================= */
-
 const $ = (s) => document.querySelector(s);
 
 const video = $('#video');
 const canvas = $('#canvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+const ctx = canvas.getContext('2d', {
+  willReadFrequently: true
+});
 
 const fileInput = $('#videoFile');
 const scanBtn = $('#scanBtn');
@@ -36,18 +25,21 @@ const targetEl = $('#targetTeam');
 const beforeEl = $('#beforeSec');
 const afterEl = $('#afterSec');
 const intervalEl = $('#intervalSec');
+
 const finalHomeEl = $('#finalHome');
 const finalAwayEl = $('#finalAway');
 
 let sourceFile = null;
-let sourceUrl = null;
 let duration = 0;
-let goals = [];
-let scanBusy = false;
 
-let ocrWorker = null;
+let goals = [];
+
 let ffmpeg = null;
 let ffmpegLoaded = false;
+
+let scanBusy = false;
+let ocrWorker = null;
+let sourceUrl = null;
 
 
 /* =========================================================
@@ -55,95 +47,54 @@ let ffmpegLoaded = false;
 ========================================================= */
 
 function log(msg) {
-  const now = new Date().toLocaleTimeString('ja-JP', {
-    hour12: false
-  });
+
+  const now =
+    new Date().toLocaleTimeString('ja-JP', {
+      hour12: false
+    });
 
   logEl.textContent =
-    `[${now}] ${msg}\n` + logEl.textContent;
+    `[${now}] ${msg}\n` +
+    logEl.textContent;
 }
+
 
 function status(msg) {
   statusEl.textContent = msg;
 }
 
-function fmt(t) {
-  const s = Math.max(0, Math.floor(t));
 
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+function fmt(t) {
+
+  const s =
+    Math.max(
+      0,
+      Math.floor(t)
+    );
+
+  return (
+    `${Math.floor(s / 60)}:` +
+    `${String(s % 60).padStart(2, '0')}`
+  );
 }
+
 
 function clamp(v, a, b) {
   return Math.max(a, Math.min(b, v));
 }
 
+
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-
-/* =========================================================
-   スコア
-========================================================= */
-
-function scoreKey(score) {
-  return score
-    ? `${score.home}-${score.away}`
-    : '';
-}
-
-function sameScore(a, b) {
-  return !!a &&
-    !!b &&
-    a.home === b.home &&
-    a.away === b.away;
-}
-
-function scoreDistance(a, b) {
-  if (!a || !b) return 99;
-
-  return Math.abs(a.home - b.home) +
-         Math.abs(a.away - b.away);
-}
-
-function isOneGoalChange(from, to) {
-  if (!from || !to) return false;
-
-  const dh = to.home - from.home;
-  const da = to.away - from.away;
-
-  return (
-    (dh === 1 && da === 0) ||
-    (dh === 0 && da === 1)
+  return new Promise(
+    resolve => setTimeout(resolve, ms)
   );
 }
-
-function getGoalType(from, to) {
-  if (!from || !to) return null;
-
-  const dh = to.home - from.home;
-  const da = to.away - from.away;
-
-  if (dh === 1 && da === 0) {
-    return 'minotani';
-  }
-
-  if (dh === 0 && da === 1) {
-    return 'opponent';
-  }
-
-  return null;
-}
-
-
-/* =========================================================
-   動画メタデータ読み込み
-========================================================= */
 
 
 /* =========================================================
    動画選択
 ========================================================= */
+
 fileInput.addEventListener(
   'change',
   async () => {
@@ -301,6 +252,7 @@ fileInput.addEventListener(
   }
 );
 
+
 /* =========================================================
    シーク
 ========================================================= */
@@ -319,8 +271,7 @@ async function seekTo(t) {
 
   if (
     Math.abs(
-      video.currentTime -
-      target
+      video.currentTime - target
     ) < 0.03
   ) {
     return;
@@ -333,18 +284,23 @@ async function seekTo(t) {
 
       const timer =
         setTimeout(
-          () =>
+          () => {
+
             finish(
               new Error(
                 'seek timeout'
               )
-            ),
+            );
+
+          },
           10000
         );
 
       const finish = (err) => {
 
-        if (done) return;
+        if (done) {
+          return;
+        }
 
         done = true;
 
@@ -355,13 +311,17 @@ async function seekTo(t) {
           onSeeked
         );
 
-        err
-          ? reject(err)
-          : resolve();
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+
       };
 
-      const onSeeked = () =>
+      const onSeeked = () => {
         finish();
+      };
 
       video.addEventListener(
         'seeked',
@@ -371,13 +331,14 @@ async function seekTo(t) {
 
       video.currentTime =
         target;
+
     }
   );
 }
 
 
 /* =========================================================
-   スコア部分切り出し
+   スコア画像
 ========================================================= */
 
 function drawScoreCrop() {
@@ -388,17 +349,12 @@ function drawScoreCrop() {
   const h =
     video.videoHeight;
 
-  /*
-     現在の動画のスコア表示位置
-  */
-
   const sx =
     Math.round(
       w * 145 / 910
     );
 
-  const sy =
-    0;
+  const sy = 0;
 
   const sw =
     Math.round(
@@ -410,14 +366,10 @@ function drawScoreCrop() {
       h * 70 / 512
     );
 
-  canvas.width =
-    380;
+  canvas.width = 380;
+  canvas.height = 280;
 
-  canvas.height =
-    280;
-
-  ctx.fillStyle =
-    '#fff';
+  ctx.fillStyle = '#fff';
 
   ctx.fillRect(
     0,
@@ -437,6 +389,13 @@ function drawScoreCrop() {
     380,
     280
   );
+
+  return {
+    sx,
+    sy,
+    sw,
+    sh
+  };
 }
 
 
@@ -468,10 +427,11 @@ async function getOCRWorker() {
 
             progressEl.value =
               Math.round(
-                (m.progress || 0) *
-                100
+                (m.progress || 0) * 100
               );
+
           }
+
         }
       }
     );
@@ -483,11 +443,16 @@ async function getOCRWorker() {
 
     tessedit_pageseg_mode:
       '7'
+
   });
 
   return ocrWorker;
 }
 
+
+/* =========================================================
+   スコアOCR
+========================================================= */
 
 async function recognizeScore() {
 
@@ -505,14 +470,8 @@ async function recognizeScore() {
 
   const normalized =
     raw
-      .replace(
-        /[—–_]/g,
-        '-'
-      )
-      .replace(
-        /[ー―]/g,
-        '-'
-      );
+      .replace(/[—–_]/g, '-')
+      .replace(/[ー―]/g, '-');
 
   const m =
     normalized.match(
@@ -553,20 +512,85 @@ async function recognizeScore() {
 }
 
 
-async function readScoreAt(t) {
+/* =========================================================
+   スコア関連
+========================================================= */
 
-  try {
+function scoreKey(score) {
 
-    await seekTo(t);
+  if (!score) {
+    return '';
+  }
 
-    drawScoreCrop();
+  return (
+    `${score.home}-${score.away}`
+  );
+}
 
-    return await recognizeScore();
 
-  } catch {
+function sameScore(a, b) {
 
+  return (
+    !!a &&
+    !!b &&
+    a.home === b.home &&
+    a.away === b.away
+  );
+}
+
+
+function isOneGoalChange(from, to) {
+
+  if (!from || !to) {
+    return false;
+  }
+
+  const dh =
+    to.home - from.home;
+
+  const da =
+    to.away - from.away;
+
+  return (
+    (
+      dh === 1 &&
+      da === 0
+    ) ||
+    (
+      dh === 0 &&
+      da === 1
+    )
+  );
+}
+
+
+function getGoalType(from, to) {
+
+  if (!from || !to) {
     return null;
   }
+
+  const dh =
+    to.home - from.home;
+
+  const da =
+    to.away - from.away;
+
+  if (
+    dh === 1 &&
+    da === 0
+  ) {
+    return 'minotani';
+  }
+
+  if (
+    dh === 0 &&
+    da === 1
+  ) {
+    return 'opponent';
+  }
+
+  return null;
 }
 
 
@@ -584,164 +608,245 @@ async function readInitialScore() {
       20
     );
 
+  /*
+   * 開始直後はスコア表示が安定しない場合があるため、
+   * 1秒～20秒の間から複数回取得。
+   */
+
+  const sampleCount = 6;
+
   for (
-    let t = 0.5;
-    t <= end;
-    t += 1
+    let i = 0;
+    i < sampleCount;
+    i++
   ) {
 
-    const score =
-      await readScoreAt(t);
+    const ratio =
+      i /
+      (sampleCount - 1);
 
-    if (score) {
+    const t =
+      1 +
+      (
+        Math.max(
+          0,
+          end - 2
+        ) *
+        ratio
+      );
 
-      samples.push({
-        time: t,
-        score
-      });
+    try {
+
+      await seekTo(t);
+
+      drawScoreCrop();
+
+      const score =
+        await recognizeScore();
+
+      if (score) {
+
+        samples.push({
+          time: t,
+          score
+        });
+
+        log(
+          `初期スコア候補: ` +
+          `${scoreKey(score)} @ ${fmt(t)}`
+        );
+
+      }
+
+    } catch (e) {
 
       log(
-        `初期スコア候補: ` +
-        `${scoreKey(score)} @ ${fmt(t)}`
+        `初期スコアOCRエラー: ${e.message}`
       );
+
     }
 
-    await sleep(0);
   }
 
   if (!samples.length) {
     return null;
   }
 
-  const runs =
-    buildRuns(
-      samples
-    );
+  const counts = {};
+
+  samples.forEach(
+    item => {
+
+      const key =
+        scoreKey(item.score);
+
+      counts[key] =
+        (counts[key] || 0) + 1;
+
+    }
+  );
 
   const best =
-    runs
-      .filter(
-        r => r.count >= 3
-      )
+    Object.entries(counts)
       .sort(
-        (a, b) => {
-
-          if (
-            b.count !==
-            a.count
-          ) {
-            return (
-              b.count -
-              a.count
-            );
-          }
-
-          return (
-            b.lastTime -
-            a.lastTime
-          );
-        }
-      )[0]
-      ||
-      runs.sort(
         (a, b) =>
-          b.count -
-          a.count
+          b[1] - a[1]
       )[0];
 
   if (!best) {
     return null;
   }
 
+  const m =
+    best[0].match(
+      /^(\d+)-(\d+)$/
+    );
+
+  if (!m) {
+    return null;
+  }
+
+  const result = {
+
+    home:
+      Number(m[1]),
+
+    away:
+      Number(m[2])
+
+  };
+
   log(
-    `初期スコア: ${best.key} ` +
-    `（連続${best.count}回）`
+    `初期スコア確定: ` +
+    `${scoreKey(result)} ` +
+    `（${best[1]}/${samples.length}回）`
   );
 
-  return {
-    ...best.score
-  };
+  return result;
 }
 
 
 /* =========================================================
-   OCR時系列
+   ★重要
+   動画全体のスコアを時系列で取得
 ========================================================= */
 
-async function scanScoreTimeline(
-  interval
-) {
+/*
+ * ここでは最終スコアをOCRで決めない。
+ *
+ * HTMLで入力された最終スコアを正解として、
+ * 動画中のスコア変化だけをOCRで探す。
+ *
+ * 例：
+ *
+ * 0-0
+ * 0-0
+ * 1-0  ← ゴール1
+ * 1-0
+ * 1-0
+ * 2-0  ← ゴール2
+ * 2-0
+ * 2-1  ← ゴール3
+ * 2-1
+ * 3-1  ← ゴール4
+ */
+
+async function scanScoreTimeline(interval) {
 
   const samples = [];
 
-  const end =
+  const startTime = 3;
+
+  const endTime =
     Math.max(
-      0,
-      duration - 0.25
+      startTime,
+      duration - 15
     );
-
-  log(
-    '------------------------------------'
-  );
-
-  log(
-    `全試合のスコア時系列を解析 ` +
-    `（${interval}秒間隔）`
-  );
-
-  let count = 0;
 
   const total =
     Math.max(
-      1,
-      Math.floor(
-        end / interval
-      ) + 1
+      0.1,
+      endTime - startTime
     );
 
+  let index = 0;
+
   for (
-    let t = 0;
-    t <= end;
+    let t = startTime;
+    t <= endTime;
     t += interval
   ) {
 
-    const score =
-      await readScoreAt(t);
+    try {
 
-    samples.push({
-      time: t,
-      score
-    });
+      await seekTo(t);
 
-    count++;
+      drawScoreCrop();
 
-    progressEl.value =
-      Math.min(
-        70,
-        20 +
-        Math.round(
-          count /
-          total *
-          50
-        )
-      );
+      const score =
+        await recognizeScore();
 
-    if (score) {
+      samples.push({
+        time: t,
+        score
+      });
+
+      if (score) {
+
+        log(
+          `OCR ${fmt(t)} → ` +
+          `${scoreKey(score)}`
+        );
+
+      }
+
+    } catch (e) {
+
+      samples.push({
+        time: t,
+        score: null
+      });
 
       log(
-        `スコア確認: ` +
-        `${scoreKey(score)} @ ${fmt(t)}`
+        `OCR失敗 @ ${fmt(t)}`
       );
+
     }
+
+    index++;
+
+    const pct =
+      20 +
+      Math.round(
+        (
+          (t - startTime) /
+          total
+        ) *
+        60
+      );
+
+    progressEl.value =
+      clamp(
+        pct,
+        20,
+        80
+      );
+
+    status(
+      `試合中のスコアを解析中… ` +
+      `${fmt(t)} / ${fmt(duration)}`
+    );
+
+    /*
+     * iPhone/SafariでUIが固まらないように
+     * 少しだけ制御を返す。
+     */
 
     await sleep(0);
   }
 
   log(
-    `スコア時系列解析完了: ` +
-    `${samples.filter(
-      x => x.score
-    ).length}件`
+    `スコア解析完了: ${index}サンプル`
   );
 
   return samples;
@@ -749,228 +854,10 @@ async function scanScoreTimeline(
 
 
 /* =========================================================
-   スコア連続区間
+   次に期待されるスコア
 ========================================================= */
 
-function buildRuns(
-  samples,
-  maxGap = 1.6
-) {
-
-  const valid =
-    samples
-      .filter(
-        x =>
-          x &&
-          x.score
-      )
-      .slice()
-      .sort(
-        (a, b) =>
-          a.time -
-          b.time
-      );
-
-  const runs = [];
-
-  let current = null;
-
-  for (
-    const item of valid
-  ) {
-
-    const key =
-      scoreKey(
-        item.score
-      );
-
-    if (
-      !current ||
-      current.key !== key ||
-      item.time -
-        current.lastTime >
-        maxGap
-    ) {
-
-      if (current) {
-        runs.push(
-          current
-        );
-      }
-
-      current = {
-
-        key,
-
-        score: {
-          ...item.score
-        },
-
-        firstTime:
-          item.time,
-
-        lastTime:
-          item.time,
-
-        count: 1
-      };
-
-    } else {
-
-      current.lastTime =
-        item.time;
-
-      current.count++;
-    }
-  }
-
-  if (current) {
-    runs.push(current);
-  }
-
-  return runs;
-}
-
-
-/* =========================================================
-   安定したスコア表示位置を探す
-
-   入力された最終スコアまでの
-   「次の1点」を探す。
-
-   例：
-   現在 1-0
-   最終 2-0
-
-   探すのは 2-0 だけ。
-
-   3-0 や 12-0 は候補にならない。
-========================================================= */
-
-function findStableSampleTime(
-  targetScore,
-  samples,
-  startTime
-) {
-
-  const valid =
-    samples
-      .filter(
-        x =>
-          x &&
-          x.score &&
-          x.time >= startTime
-      )
-      .sort(
-        (a, b) =>
-          a.time -
-          b.time
-      );
-
-  if (!valid.length) {
-    return null;
-  }
-
-  /*
-     1秒間隔の場合、
-     4回中3回以上同じなら
-     安定表示と判断。
-  */
-
-  const WINDOW = 4;
-  const REQUIRED = 3;
-
-  const recent = [];
-
-  for (
-    const item of valid
-  ) {
-
-    recent.push(item);
-
-    if (
-      recent.length >
-      WINDOW
-    ) {
-      recent.shift();
-    }
-
-    let hits = 0;
-
-    for (
-      const r of recent
-    ) {
-
-      if (
-        sameScore(
-          r.score,
-          targetScore
-        )
-      ) {
-        hits++;
-      }
-    }
-
-    if (
-      hits >= REQUIRED
-    ) {
-
-      const firstHit =
-        recent.find(
-          r =>
-            sameScore(
-              r.score,
-              targetScore
-            )
-        );
-
-      return firstHit
-        ? firstHit.time
-        : item.time;
-    }
-  }
-
-  /*
-     安定区間が短い場合。
-
-     2回連続で同じスコアなら
-     候補として採用。
-  */
-
-  for (
-    let i = 0;
-    i < valid.length - 1;
-    i++
-  ) {
-
-    if (
-      sameScore(
-        valid[i].score,
-        targetScore
-      ) &&
-      sameScore(
-        valid[i + 1].score,
-        targetScore
-      ) &&
-      valid[i + 1].time -
-        valid[i].time <=
-        2.5
-    ) {
-
-      return valid[i].time;
-    }
-  }
-
-  return null;
-}
-
-
-/* =========================================================
-   入力された最終スコアから
-   次にあり得るスコアを作る
-========================================================= */
-
-function buildExpectedNextScores(
+function getNextExpectedScores(
   current,
   finalScore
 ) {
@@ -983,13 +870,15 @@ function buildExpectedNextScores(
   ) {
 
     candidates.push({
-
-      home:
-        current.home + 1,
-
-      away:
-        current.away
+      score: {
+        home:
+          current.home + 1,
+        away:
+          current.away
+      },
+      type: 'minotani'
     });
+
   }
 
   if (
@@ -998,13 +887,15 @@ function buildExpectedNextScores(
   ) {
 
     candidates.push({
-
-      home:
-        current.home,
-
-      away:
-        current.away + 1
+      score: {
+        home:
+          current.home,
+        away:
+          current.away + 1
+      },
+      type: 'opponent'
     });
+
   }
 
   return candidates;
@@ -1012,265 +903,384 @@ function buildExpectedNextScores(
 
 
 /* =========================================================
-   ゴール検出
-
-   最終スコアはユーザー入力。
-
-   例えば 2-0 の場合：
-
-   0-0
-     ↓
-   1-0
-     ↓
-   2-0
-
-   この2回だけを探す。
-
-   OCRが途中で
-
-   3-0
-   12-0
-   1-0
-
-   などと誤認識しても、
-   3-0や12-0は最終スコアまでの
-   正規ルートに存在しないため採用しない。
+   タイムラインからゴールを検出
 ========================================================= */
 
-async function detectGoalsFromTimeline(
+function detectGoalsFromTimeline(
   initialScore,
   finalScore,
   samples
 ) {
 
-  if (
-    finalScore.home <
-      initialScore.home ||
-    finalScore.away <
+  const expectedGoalCount =
+    (
+      finalScore.home -
+      initialScore.home
+    ) +
+    (
+      finalScore.away -
       initialScore.away
+    );
+
+  if (
+    expectedGoalCount <= 0
   ) {
-
-    throw new Error(
-      `入力した最終スコア ` +
-      `${scoreKey(finalScore)} が ` +
-      `初期スコア ` +
-      `${scoreKey(initialScore)} ` +
-      `より小さくなっています`
-    );
+    return [];
   }
 
-  const expected =
-    (finalScore.home -
-      initialScore.home) +
-    (finalScore.away -
-      initialScore.away);
-
   log(
-    '------------------------------------'
+    `必要ゴール数: ${expectedGoalCount}`
   );
-
-  log(
-    `入力された最終スコア: ` +
-    `${scoreKey(finalScore)}`
-  );
-
-  log(
-    `必要ゴール数: ${expected}本`
-  );
-
-  log(
-    'OCRは最終スコアを決定せず、' +
-    '入力スコアまでの得点変化の時刻だけを探索します。'
-  );
-
-  if (expected <= 0) {
-
-    log(
-      '0-0など、ゴールなしの試合です。'
-    );
-
-    return {
-      finalScore: {
-        ...finalScore
-      },
-
-      goals: []
-    };
-  }
-
-  const goalsFound = [];
 
   let currentScore = {
-    ...initialScore
+    home:
+      initialScore.home,
+    away:
+      initialScore.away
   };
 
-  /*
-     最初の探索位置。
+  let cursorIndex = 0;
 
-     試合開始直後の
-     OCRノイズを避ける。
-  */
-
-  let cursorTime = 0.5;
+  const detected = [];
 
   /*
-     各ゴールを1点ずつ探す。
-  */
+   * ゴールごとに、
+   *
+   * 現在 0-0
+   * ↓
+   * 次は 1-0 または 0-1
+   *
+   * のように探す。
+   */
 
   for (
-    let goalIndex = 0;
-    goalIndex < expected;
-    goalIndex++
+    let goalNo = 0;
+    goalNo < expectedGoalCount;
+    goalNo++
   ) {
 
     const candidates =
-      buildExpectedNextScores(
+      getNextExpectedScores(
         currentScore,
         finalScore
       );
 
+    if (!candidates.length) {
+      break;
+    }
+
     let best = null;
 
     /*
-       次にあり得るスコアだけを見る。
-    */
+     * 現在位置以降から
+     * 各候補スコアが安定して現れる場所を探す。
+     */
 
     for (
       const candidate of candidates
     ) {
 
-      const roughTime =
-        findStableSampleTime(
-          candidate,
+      const found =
+        findStableScoreInSamples(
           samples,
-          cursorTime + 0.5
+          candidate.score,
+          cursorIndex
         );
 
-      if (
-        roughTime == null
-      ) {
+      if (!found) {
         continue;
       }
 
       if (
         !best ||
-        roughTime <
-          best.roughTime
+        found.index <
+        best.index
       ) {
 
         best = {
-          candidate,
-          roughTime
+          index:
+            found.index,
+
+          time:
+            found.time,
+
+          score:
+            candidate.score,
+
+          type:
+            candidate.type
         };
+
       }
+
     }
 
     if (!best) {
 
       log(
-        `⚠️ ${goalIndex + 1}点目を検出できませんでした。` +
-        ` 探索対象は ` +
-        `${candidates.map(scoreKey).join(' / ')}`
+        `⚠️ ゴール${goalNo + 1}件目を検出できませんでした`
       );
 
       break;
     }
 
+    const fromScore = {
+      home:
+        currentScore.home,
+      away:
+        currentScore.away
+    };
+
+    const toScore = {
+      home:
+        best.score.home,
+      away:
+        best.score.away
+    };
+
     /*
-       OCRの1秒単位の検出位置を
-       0.25秒単位まで精密化。
-    */
+     * 念のため1ゴール分の変化か確認。
+     */
 
-    const refined =
-      await refineGoalTime(
-        best.roughTime,
-        currentScore,
-        best.candidate
+    if (
+      !isOneGoalChange(
+        fromScore,
+        toScore
+      )
+    ) {
+
+      log(
+        `⚠️ 不正なスコア変化を無視: ` +
+        `${scoreKey(fromScore)} → ` +
+        `${scoreKey(toScore)}`
       );
 
-    const type =
-      getGoalType(
-        currentScore,
-        best.candidate
-      );
+      cursorIndex =
+        best.index + 1;
 
-    const goal = {
+      continue;
+    }
 
-      time:
-        refined,
+    detected.push({
+
+      roughTime:
+        best.time,
 
       from:
-        scoreKey(currentScore),
+        scoreKey(fromScore),
 
       to:
-        scoreKey(best.candidate),
+        scoreKey(toScore),
 
-      type,
+      type:
+        best.type,
 
-      home:
-        best.candidate.home,
+      fromScore,
+      toScore
 
-      away:
-        best.candidate.away
-    };
-
-    goalsFound.push(
-      goal
-    );
+    });
 
     log(
-      `⚽ GOAL ${goalsFound.length}: ` +
-      `${goal.from} → ${goal.to} @ ` +
-      `${fmt(goal.time)} ` +
-      `[${type === 'minotani'
-        ? '箕谷'
-        : '相手'}]`
+      `🎯 ゴール${goalNo + 1}: ` +
+      `${scoreKey(fromScore)} → ` +
+      `${scoreKey(toScore)} ` +
+      `@ ${fmt(best.time)}`
     );
 
-    currentScore = {
-      ...best.candidate
-    };
+    currentScore = toScore;
 
-    cursorTime =
-      Math.max(
-        cursorTime,
-        best.roughTime + 1.0
-      );
+    cursorIndex =
+      best.index + 1;
   }
 
+  /*
+   * 最終スコアまで到達できたか確認。
+   */
+
   if (
-    goalsFound.length !== expected
+    !sameScore(
+      currentScore,
+      finalScore
+    )
   ) {
 
     log(
-      `⚠️ ゴール数不一致: ` +
-      `検出${goalsFound.length}本 / ` +
-      `必要${expected}本`
+      `⚠️ 最終スコアまで検出できませんでした`
+    );
+
+    log(
+      `検出終了スコア: ` +
+      `${scoreKey(currentScore)}`
+    );
+
+    log(
+      `入力された最終スコア: ` +
+      `${scoreKey(finalScore)}`
     );
 
   } else {
 
     log(
-      `✅ 全ゴール確認完了: ` +
-      `${scoreKey(initialScore)} → ` +
-      `${scoreKey(finalScore)}`
+      `✅ 最終スコアまで正常に検出: ` +
+      `${scoreKey(currentScore)}`
     );
+
   }
 
-  return {
-
-    finalScore: {
-      ...finalScore
-    },
-
-    goals:
-      goalsFound
-  };
+  return detected;
 }
 
 
 /* =========================================================
-   ゴール時刻を精密化
+   スコアが安定して現れる位置を探す
+========================================================= */
+
+function findStableScoreInSamples(
+  samples,
+  targetScore,
+  startIndex
+) {
+
+  /*
+   * 1秒間隔なら、
+   *
+   * 1-0
+   * 1-0
+   *
+   * の2連続でかなり強い。
+   *
+   * 2秒間隔の場合も、
+   * 2回連続なら約4秒間維持されたことになる。
+   */
+
+  const REQUIRED =
+    2;
+
+  let consecutive = 0;
+
+  for (
+    let i = startIndex;
+    i < samples.length;
+    i++
+  ) {
+
+    const item =
+      samples[i];
+
+    if (
+      item.score &&
+      sameScore(
+        item.score,
+        targetScore
+      )
+    ) {
+
+      consecutive++;
+
+      if (
+        consecutive >=
+        REQUIRED
+      ) {
+
+        /*
+         * 2回目ではなく、
+         * 最初に対象スコアが出た時刻を返す。
+         */
+
+        const firstIndex =
+          i -
+          REQUIRED +
+          1;
+
+        return {
+          index:
+            firstIndex,
+
+          time:
+            samples[firstIndex].time
+        };
+
+      }
+
+    } else {
+
+      consecutive = 0;
+
+    }
+
+  }
+
+  /*
+   * 連続2回が取れない場合。
+   *
+   * ゴール直後に次のゴールがある、
+   * 動画が短い、
+   * OCRが1回失敗した、
+   * などを考慮して、
+   * 3サンプル中2回でも採用。
+   */
+
+  for (
+    let i = startIndex;
+    i < samples.length;
+    i++
+  ) {
+
+    let count = 0;
+    let firstIndex = -1;
+
+    for (
+      let j = i;
+      j < Math.min(
+        samples.length,
+        i + 3
+      );
+      j++
+    ) {
+
+      if (
+        samples[j].score &&
+        sameScore(
+          samples[j].score,
+          targetScore
+        )
+      ) {
+
+        count++;
+
+        if (
+          firstIndex === -1
+        ) {
+          firstIndex = j;
+        }
+
+      }
+
+    }
+
+    if (
+      count >= 2 &&
+      firstIndex !== -1
+    ) {
+
+      return {
+        index:
+          firstIndex,
+
+        time:
+          samples[firstIndex].time
+      };
+
+    }
+
+  }
+
+  return null;
+}
+
+
+/* =========================================================
+   ゴール時刻を0.25秒単位で精密化
 ========================================================= */
 
 async function refineGoalTime(
@@ -1280,17 +1290,22 @@ async function refineGoalTime(
 ) {
 
   if (
-    roughTime == null ||
+    roughTime === null ||
     !previousScore ||
     !newScore
   ) {
     return roughTime;
   }
 
+  /*
+   * OCRで新スコアが表示された位置より
+   * 最大4秒前まで戻って調べる。
+   */
+
   const start =
     Math.max(
       0,
-      roughTime - 4.0
+      roughTime - 4
     );
 
   const end =
@@ -1299,92 +1314,75 @@ async function refineGoalTime(
       roughTime + 0.5
     );
 
-  let firstNewScore = null;
+  const step =
+    0.25;
 
-  /*
-     0.25秒刻みで
-     新しいスコアが出始めた瞬間を探す。
-  */
+  let firstDetected = null;
 
   for (
     let t = start;
-    t <= end;
-    t += 0.25
+    t <= end + 0.001;
+    t += step
   ) {
 
-    const score =
-      await readScoreAt(t);
+    try {
 
-    if (
-      score &&
-      sameScore(
-        score,
-        newScore
-      )
-    ) {
+      await seekTo(t);
 
-      /*
-         直後にも同じスコアが
-         続いているか確認。
-      */
+      drawScoreCrop();
 
-      let confirmation = 0;
-
-      for (
-        let j = 1;
-        j <= 2;
-        j++
-      ) {
-
-        const checkTime =
-          Math.min(
-            end,
-            t + j * 0.25
-          );
-
-        const s2 =
-          await readScoreAt(
-            checkTime
-          );
-
-        if (
-          s2 &&
-          sameScore(
-            s2,
-            newScore
-          )
-        ) {
-
-          confirmation++;
-        }
-      }
+      const score =
+        await recognizeScore();
 
       if (
-        confirmation >= 1
+        score &&
+        sameScore(
+          score,
+          newScore
+        )
       ) {
 
-        firstNewScore =
-          t;
+        /*
+         * 新スコアが初めて出た時刻。
+         */
+
+        firstDetected = t;
 
         break;
       }
-    }
+
+    } catch {}
+
   }
 
   if (
-    firstNewScore == null
+    firstDetected === null
   ) {
+
+    log(
+      `精密化失敗: ${fmt(roughTime)} を使用`
+    );
 
     return roughTime;
   }
 
   log(
-    `🎯 ゴール時刻を精密化: ` +
+    `🎯 ゴール時刻精密化: ` +
     `${fmt(roughTime)} → ` +
-    `${fmt(firstNewScore)}`
+    `${fmt(firstDetected)}`
   );
 
-  return firstNewScore;
+  /*
+   * スコア表示はゴール直後なので、
+   * 実際のゴール時刻は表示より少し前。
+   *
+   * ただしここで勝手に何秒も戻すと
+   * 誤差が大きくなるため、
+   * 今回は元の正常版と同じ考え方で
+   * 「スコア変化位置」をゴール時刻として扱う。
+   */
+
+  return firstDetected;
 }
 
 
@@ -1401,9 +1399,8 @@ function filterGoals(
     target === 'both'
   ) {
 
-    return [
-      ...allGoals
-    ];
+    return [...allGoals];
+
   }
 
   if (
@@ -1415,6 +1412,7 @@ function filterGoals(
         g.type ===
         'minotani'
     );
+
   }
 
   if (
@@ -1426,6 +1424,7 @@ function filterGoals(
         g.type ===
         'opponent'
     );
+
   }
 
   return [];
@@ -1438,8 +1437,7 @@ function filterGoals(
 
 function renderResults() {
 
-  results.innerHTML =
-    '';
+  results.innerHTML = '';
 
   if (!goals.length) {
 
@@ -1467,36 +1465,29 @@ function renderResults() {
           ? '相手ゴール'
           : '箕谷ゴール';
 
-      row.innerHTML = `
-
-        <div>
-
+      row.innerHTML =
+        `<div>
           <b>⚽ GOAL ${i + 1}</b><br>
-
           <span>
             ${goalLabel}<br>
             ${g.from}
             →
             <strong>${g.to}</strong>
           </span>
-
         </div>
-
-        <div>
-          ${fmt(g.time)}
-        </div>
-      `;
+        <div>${fmt(g.time)}</div>`;
 
       results.appendChild(
         row
       );
+
     }
   );
 }
 
 
 /* =========================================================
-   スコア解析開始
+   スコア解析
 ========================================================= */
 
 scanBtn.addEventListener(
@@ -1510,19 +1501,16 @@ scanBtn.addEventListener(
       return;
     }
 
-    scanBusy =
-      true;
+    scanBusy = true;
 
-    scanBtn.disabled =
-      true;
+    scanBtn.disabled = true;
 
-    extractBtn.disabled =
-      true;
+    extractBtn.disabled = true;
 
     goals = [];
 
     results.innerHTML =
-      '';
+      '<p class="muted">解析中…</p>';
 
     const target =
       targetEl.value;
@@ -1535,43 +1523,12 @@ scanBtn.addEventListener(
         ) || 1
       );
 
-    const finalHome =
-      Number(
-        finalHomeEl?.value
-      );
-
-    const finalAway =
-      Number(
-        finalAwayEl?.value
-      );
-
     try {
 
-      /*
-         最終スコア入力チェック
-      */
-
-      if (
-        !Number.isInteger(
-          finalHome
-        ) ||
-        !Number.isInteger(
-          finalAway
-        ) ||
-        finalHome < 0 ||
-        finalAway < 0
-      ) {
-
-        throw new Error(
-          '最終スコアを正しく入力してください'
-        );
-      }
-
-      progressEl.value =
-        0;
+      progressEl.value = 0;
 
       status(
-        '試合開始時のスコアを確認中…'
+        'スコア解析を開始します…'
       );
 
       log(
@@ -1579,7 +1536,7 @@ scanBtn.addEventListener(
       );
 
       log(
-        'ゴール解析開始'
+        '⚽ ゴール解析開始'
       );
 
       log(
@@ -1593,13 +1550,13 @@ scanBtn.addEventListener(
       );
 
       log(
-        `ユーザー入力 最終スコア: ` +
-        `${finalHome}-${finalAway}`
+        `解析間隔: ${interval}秒`
       );
 
-      /*
-         試合開始時のスコアをOCR。
-      */
+
+      /* =====================================================
+         ① 初期スコア
+      ===================================================== */
 
       const initialScore =
         await readInitialScore();
@@ -1609,40 +1566,49 @@ scanBtn.addEventListener(
         throw new Error(
           '試合開始時のスコアを読み取れませんでした'
         );
+
       }
 
       log(
-        `初期スコア確定: ` +
+        `初期スコア: ` +
         `${scoreKey(initialScore)}`
       );
 
-      progressEl.value =
-        10;
+      progressEl.value = 10;
 
-      /*
-         動画全体をOCR。
-      */
 
-      status(
-        '試合全体のスコア変化を確認中…'
-      );
+      /* =====================================================
+         ② HTML入力の最終スコア
+      ===================================================== */
 
-      const samples =
-        await scanScoreTimeline(
-          interval
+      const finalHome =
+        Number(
+          finalHomeEl.value
         );
 
-      progressEl.value =
-        70;
+      const finalAway =
+        Number(
+          finalAwayEl.value
+        );
 
-      /*
-         ユーザーが入力した
-         最終スコアを使用。
-      */
+      if (
+        !Number.isInteger(
+          finalHome
+        ) ||
+        !Number.isInteger(
+          finalAway
+        ) ||
+        finalHome < 0 ||
+        finalAway < 0 ||
+        finalHome > 20 ||
+        finalAway > 20
+      ) {
 
-      status(
-        '入力された最終スコアまでのゴール時刻を特定中…'
-      );
+        throw new Error(
+          '最終スコアを正しく入力してください'
+        );
+
+      }
 
       const finalScore = {
 
@@ -1651,89 +1617,249 @@ scanBtn.addEventListener(
 
         away:
           finalAway
+
       };
 
-      const analyzed =
-        await detectGoalsFromTimeline(
-          initialScore,
-          finalScore,
-          samples
+      log(
+        `入力された最終スコア: ` +
+        `${scoreKey(finalScore)}`
+      );
+
+      progressEl.value = 15;
+
+
+      /* =====================================================
+         ③ スコアの整合性確認
+      ===================================================== */
+
+      if (
+        finalScore.home <
+        initialScore.home ||
+        finalScore.away <
+        initialScore.away
+      ) {
+
+        throw new Error(
+          `最終スコア ${scoreKey(finalScore)} が ` +
+          `初期スコア ${scoreKey(initialScore)} より低くなっています`
         );
 
-      /*
-         全ゴール。
-      */
+      }
 
-      const allGoals =
-        analyzed.goals;
+      const expectedGoalCount =
+        (
+          finalScore.home -
+          initialScore.home
+        ) +
+        (
+          finalScore.away -
+          initialScore.away
+        );
 
-      /*
-         「箕谷だけ」
-         「相手だけ」
-         「両チーム」
-         をここで切り替える。
-      */
+      log(
+        `検出予定ゴール数: ${expectedGoalCount}`
+      );
+
+
+      /* =====================================================
+         ④ ゴールなし
+      ===================================================== */
+
+      if (
+        expectedGoalCount === 0
+      ) {
+
+        status(
+          '解析完了：ゴールはありません'
+        );
+
+        progressEl.value = 100;
+
+        renderResults();
+
+        return;
+      }
+
+
+      /* =====================================================
+         ⑤ 動画全体のスコアを時系列解析
+      ===================================================== */
+
+      status(
+        '試合中のスコアを解析中…'
+      );
+
+      const timeline =
+        await scanScoreTimeline(
+          interval
+        );
+
+      if (
+        !timeline.length
+      ) {
+
+        throw new Error(
+          'スコア解析データを取得できませんでした'
+        );
+
+      }
+
+
+      /* =====================================================
+         ⑥ 複数ゴール検出
+      ===================================================== */
+
+      status(
+        '複数ゴールを判定中…'
+      );
+
+      const detected =
+        detectGoalsFromTimeline(
+          initialScore,
+          finalScore,
+          timeline
+        );
+
+      if (
+        detected.length === 0
+      ) {
+
+        throw new Error(
+          'ゴールを検出できませんでした'
+        );
+
+      }
+
+
+      /* =====================================================
+         ⑦ 各ゴールの時刻を精密化
+      ===================================================== */
+
+      const refinedGoals = [];
+
+      for (
+        let i = 0;
+        i < detected.length;
+        i++
+      ) {
+
+        const g =
+          detected[i];
+
+        status(
+          `ゴール ${i + 1}/${detected.length} ` +
+          `を精密確認中…`
+        );
+
+        const refinedTime =
+          await refineGoalTime(
+            g.roughTime,
+            g.fromScore,
+            g.toScore
+          );
+
+        refinedGoals.push({
+
+          time:
+            refinedTime,
+
+          from:
+            g.from,
+
+          to:
+            g.to,
+
+          type:
+            g.type,
+
+          home:
+            g.toScore.home,
+
+          away:
+            g.toScore.away
+
+        });
+
+        progressEl.value =
+          85 +
+          Math.round(
+            (
+              (i + 1) /
+              detected.length
+            ) *
+            10
+          );
+
+      }
+
+
+      /* =====================================================
+         ⑧ チームフィルター
+      ===================================================== */
 
       goals =
         filterGoals(
-          allGoals,
+          refinedGoals,
           target
         );
 
       goals.sort(
         (a, b) =>
-          a.time -
-          b.time
+          a.time - b.time
       );
+
+
+      /* =====================================================
+         ⑨ 結果ログ
+      ===================================================== */
 
       log(
         '===================================='
       );
 
       log(
-        `入力最終スコア: ` +
-        `${scoreKey(finalScore)}`
+        `全ゴール検出数: ${refinedGoals.length}`
       );
 
-      log(
-        `全ゴール: ` +
-        `${allGoals.length}本`
-      );
-
-      log(
-        `対象設定後: ` +
-        `${goals.length}本`
-      );
-
-      allGoals.forEach(
+      refinedGoals.forEach(
         (g, i) => {
 
           log(
             `⚽ GOAL ${i + 1}: ` +
-            `${g.from} → ${g.to} @ ` +
-            `${fmt(g.time)} ` +
-            `[${g.type === 'minotani'
-              ? '箕谷'
-              : '相手'}]`
+            `${g.from} → ${g.to} / ` +
+            `${
+              g.type === 'minotani'
+                ? '箕谷'
+                : '相手'
+            } / ` +
+            `${fmt(g.time)}`
           );
+
         }
+      );
+
+      log(
+        `対象設定後: ${goals.length}本`
       );
 
       log(
         '===================================='
       );
+
+
+      /* =====================================================
+         ⑩ 表示
+      ===================================================== */
 
       renderResults();
 
       extractBtn.disabled =
         goals.length === 0;
 
-      progressEl.value =
-        100;
+      progressEl.value = 100;
 
       status(
-        `解析完了：${goals.length}ゴールを検出 ` +
-        `（最終スコア ${scoreKey(finalScore)}）`
+        `解析完了：${goals.length}ゴールを検出`
       );
 
     } catch (e) {
@@ -1745,20 +1871,21 @@ scanBtn.addEventListener(
       );
 
       log(
-        `ERROR: ${
-          e.stack ||
-          e.message
-        }`
+        `ERROR: ${e.stack || e.message}`
       );
+
+      goals = [];
+
+      renderResults();
 
     } finally {
 
-      scanBusy =
-        false;
+      scanBusy = false;
 
-      scanBtn.disabled =
-        false;
+      scanBtn.disabled = false;
+
     }
+
   }
 );
 
@@ -1775,8 +1902,7 @@ loadEngineBtn.addEventListener(
       return;
     }
 
-    loadEngineBtn.disabled =
-      true;
+    loadEngineBtn.disabled = true;
 
     status(
       '動画切り出しエンジンを準備中…'
@@ -1795,11 +1921,13 @@ loadEngineBtn.addEventListener(
             Math.round(
               progress * 100
             );
+
         }
       );
 
       const baseURL =
-        'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+        'https://cdn.jsdelivr.net/npm/' +
+        '@ffmpeg/core@0.12.10/dist/esm';
 
       const classWorkerURL =
         new URL(
@@ -1822,10 +1950,10 @@ loadEngineBtn.addEventListener(
           ),
 
         classWorkerURL
+
       });
 
-      ffmpegLoaded =
-        true;
+      ffmpegLoaded = true;
 
       status(
         '切り出しエンジン準備完了'
@@ -1839,20 +1967,18 @@ loadEngineBtn.addEventListener(
 
       console.error(e);
 
-      loadEngineBtn.disabled =
-        false;
+      loadEngineBtn.disabled = false;
 
       status(
         `FFmpeg読み込み失敗: ${e.message}`
       );
 
       log(
-        `FFmpeg ERROR: ${
-          e.stack ||
-          e.message
-        }`
+        `FFmpeg ERROR: ${e.stack || e.message}`
       );
+
     }
+
   }
 );
 
@@ -1873,7 +1999,6 @@ extractBtn.addEventListener(
     }
 
     if (!ffmpegLoaded) {
-
       await loadEngineBtn.click();
     }
 
@@ -1881,8 +2006,7 @@ extractBtn.addEventListener(
       return;
     }
 
-    extractBtn.disabled =
-      true;
+    extractBtn.disabled = true;
 
     const before =
       Math.max(
@@ -1923,38 +2047,30 @@ extractBtn.addEventListener(
 
       } catch {}
 
-      try {
 
-        await ffmpeg.mount(
-          'WORKERFS',
-          {
-            files: [
-              sourceFile
-            ]
-          },
-          '/input'
-        );
+      await ffmpeg.mount(
+        'WORKERFS',
+        {
+          files: [
+            sourceFile
+          ]
+        },
+        '/input'
+      );
 
-        log(
-          'WORKERFS mount OK'
-        );
-
-      } catch (e) {
-
-        throw new Error(
-          `動画ファイルをFFmpegへ渡せませんでした: ` +
-          `${e.message || e}`
-        );
-      }
+      log(
+        'WORKERFS mount OK'
+      );
 
       const inputPath =
         `/input/${sourceFile.name}`;
 
       const clipNames = [];
 
-      /*
-         ゴールごとに切り出す。
-      */
+
+      /* =====================================================
+         各ゴール
+      ===================================================== */
 
       for (
         let i = 0;
@@ -1984,13 +2100,16 @@ extractBtn.addEventListener(
           );
 
         const out =
-          `goal_${
-            String(i + 1)
-              .padStart(2, '0')
-          }.mp4`;
+          `goal_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
 
         status(
-          `GOAL ${i + 1}/${goals.length} を作成中…`
+          `GOAL ${i + 1}/${goals.length} ` +
+          `を作成中…`
         );
 
         log(
@@ -2036,7 +2155,9 @@ extractBtn.addEventListener(
             '+faststart',
 
             '-y',
+
             out
+
           ]);
 
         if (result !== 0) {
@@ -2045,11 +2166,10 @@ extractBtn.addEventListener(
             `FFmpeg処理に失敗しました ` +
             `（終了コード: ${result}）`
           );
+
         }
 
-        clipNames.push(
-          out
-        );
+        clipNames.push(out);
 
         const data =
           await ffmpeg.readFile(
@@ -2064,17 +2184,21 @@ extractBtn.addEventListener(
           throw new Error(
             `${out} が作成されませんでした`
           );
+
         }
+
+        const blob =
+          new Blob(
+            [data],
+            {
+              type:
+                'video/mp4'
+            }
+          );
 
         const url =
           URL.createObjectURL(
-            new Blob(
-              [data],
-              {
-                type:
-                  'video/mp4'
-              }
-            )
+            blob
           );
 
         renderDownload(
@@ -2084,12 +2208,13 @@ extractBtn.addEventListener(
           start,
           len
         );
+
       }
 
-      /*
-         複数ゴールの場合、
-         1本に結合。
-      */
+
+      /* =====================================================
+         全ゴール結合
+      ===================================================== */
 
       if (
         clipNames.length > 1
@@ -2129,7 +2254,9 @@ extractBtn.addEventListener(
             'copy',
 
             '-y',
+
             'all_goals.mp4'
+
           ]);
 
         if (result !== 0) {
@@ -2137,6 +2264,7 @@ extractBtn.addEventListener(
           throw new Error(
             'ゴール動画の結合に失敗しました'
           );
+
         }
 
         const allData =
@@ -2184,11 +2312,13 @@ extractBtn.addEventListener(
           allUrl,
           1
         );
+
       }
 
-      /*
-         一時ファイル削除。
-      */
+
+      /* =====================================================
+         後片付け
+      ===================================================== */
 
       for (
         const name of [
@@ -2205,6 +2335,7 @@ extractBtn.addEventListener(
           );
 
         } catch {}
+
       }
 
       try {
@@ -2222,6 +2353,7 @@ extractBtn.addEventListener(
         );
 
       } catch {}
+
 
       status(
         `完了：${goals.length}本のゴール動画を作成しました`
@@ -2253,15 +2385,16 @@ extractBtn.addEventListener(
 
     } finally {
 
-      extractBtn.disabled =
-        false;
+      extractBtn.disabled = false;
+
     }
+
   }
 );
 
 
 /* =========================================================
-   結合動画表示
+   ALL_GOALS
 ========================================================= */
 
 function renderCombinedDownload(
@@ -2283,38 +2416,32 @@ function renderCombinedDownload(
     );
 
   info.innerHTML =
-    `<b>🎬 ALL_GOALS.mp4</b><br>` +
-    `<span>${count}本のゴールを1本にまとめた動画</span>`;
+    `<b>🎬 ALL_GOALS.mp4</b><br>
+     <span>
+       ${count}本のゴールを1本にまとめた動画
+     </span>`;
 
-  wrap.appendChild(
-    info
-  );
+  wrap.appendChild(info);
 
   const v =
     document.createElement(
       'video'
     );
 
-  v.controls =
-    true;
+  v.controls = true;
 
-  v.playsInline =
-    true;
+  v.playsInline = true;
 
-  v.src =
-    url;
+  v.src = url;
 
-  wrap.appendChild(
-    v
-  );
+  wrap.appendChild(v);
 
   const a =
     document.createElement(
       'a'
     );
 
-  a.href =
-    url;
+  a.href = url;
 
   a.download =
     'ALL_GOALS.mp4';
@@ -2322,18 +2449,14 @@ function renderCombinedDownload(
   a.textContent =
     '⬇️ ALL_GOALS.mp4 を保存';
 
-  wrap.appendChild(
-    a
-  );
+  wrap.appendChild(a);
 
-  results.prepend(
-    wrap
-  );
+  results.prepend(wrap);
 }
 
 
 /* =========================================================
-   個別動画表示
+   個別ゴール
 ========================================================= */
 
 function renderDownload(
@@ -2363,41 +2486,35 @@ function renderDownload(
       : '箕谷ゴール';
 
   info.innerHTML =
-    `<b>${name}</b><br>` +
-    `<span>${goalLabel} / ` +
-    `${fmt(start)} ～ ` +
-    `${fmt(start + len)} ` +
-    `（${fmt(len)}）</span>`;
+    `<b>${name}</b><br>
+     <span>
+       ${goalLabel} /
+       ${fmt(start)}
+       ～ ${fmt(start + len)}
+       （${fmt(len)}）
+     </span>`;
 
-  wrap.appendChild(
-    info
-  );
+  wrap.appendChild(info);
 
   const v =
     document.createElement(
       'video'
     );
 
-  v.controls =
-    true;
+  v.controls = true;
 
-  v.playsInline =
-    true;
+  v.playsInline = true;
 
-  v.src =
-    url;
+  v.src = url;
 
-  wrap.appendChild(
-    v
-  );
+  wrap.appendChild(v);
 
   const a =
     document.createElement(
       'a'
     );
 
-  a.href =
-    url;
+  a.href = url;
 
   a.download =
     name;
@@ -2405,11 +2522,7 @@ function renderDownload(
   a.textContent =
     '⬇️ 動画を保存';
 
-  wrap.appendChild(
-    a
-  );
+  wrap.appendChild(a);
 
-  results.appendChild(
-    wrap
-  );
+  results.appendChild(wrap);
 }
