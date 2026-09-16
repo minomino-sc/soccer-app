@@ -145,172 +145,128 @@ async function loadVideoFile(file) {
     throw new Error('動画ファイルが選択されていません');
   }
 
-  // 以前の動画URLを解放
   if (sourceUrl) {
     URL.revokeObjectURL(sourceUrl);
-    sourceUrl = null;
   }
 
-  duration = 0;
-
-  $('#duration').textContent = '--:--';
-
-  sourceUrl = URL.createObjectURL(file);
-
-  status('動画を読み込み中…');
-
-  await new Promise((resolve, reject) => {
-
-    let done = false;
-
-    const cleanup = () => {
-      video.removeEventListener(
-        'loadedmetadata',
-        onLoadedMetadata
-      );
-
-      video.removeEventListener(
-        'durationchange',
-        onDurationChange
-      );
-
-      video.removeEventListener(
-        'error',
-        onError
-      );
-    };
-
-    const finish = () => {
-
-      if (done) return;
-
-      const d = Number(video.duration);
-
-      if (!Number.isFinite(d) || d <= 0) {
-        return;
-      }
-
-      done = true;
-
-      cleanup();
-
-      duration = d;
-
-      $('#duration').textContent =
-        fmt(duration);
-
-      status(
-        `動画を読み込みました（${fmt(duration)}）`
-      );
-
-      log(
-        `動画: ${file.name} / ` +
-        `${(file.size / 1024 / 1024).toFixed(1)}MB / ` +
-        `duration=${duration.toFixed(3)}秒`
-      );
-
-      resolve();
-    };
-
-    const onLoadedMetadata = () => {
-      finish();
-    };
-
-    const onDurationChange = () => {
-      finish();
-    };
-
-    const onError = () => {
-
-      if (done) return;
-
-      done = true;
-
-      cleanup();
-
-      const code =
-        video.error?.code;
-
-      reject(
-        new Error(
-          code
-            ? `動画を読み込めませんでした（MediaError code ${code}）`
-            : '動画を読み込めませんでした'
-        )
-      );
-    };
-
-    /*
-     * 先にイベントを登録
-     */
-    video.addEventListener(
-      'loadedmetadata',
-      onLoadedMetadata
+  sourceUrl =
+    URL.createObjectURL(
+      file
     );
 
-    video.addEventListener(
-      'durationchange',
-      onDurationChange
-    );
+  /*
+   * ここが以前正常に動いていたコードと同じ順番。
+   *
+   * 先に src を設定して load()
+   */
+  video.src = sourceUrl;
+  video.load();
 
-    video.addEventListener(
-      'error',
-      onError
-    );
+  status(
+    '動画を読み込み中…'
+  );
 
-    /*
-     * iPhone Safari向け
-     */
-    video.preload = 'metadata';
-    video.muted = true;
-    video.playsInline = true;
+  await new Promise(
+    (resolve, reject) => {
 
-    /*
-     * ここは余計なremoveAttribute/loadをしない。
-     * 元々動いていた基本方式。
-     */
-    video.src = sourceUrl;
-    video.load();
+      let finished = false;
 
-    /*
-     * イベントを取り逃した場合に直接確認
-     */
-    setTimeout(() => {
+      const timer =
+        setTimeout(
+          () => {
 
-      finish();
+            finish(
+              new Error(
+                '動画の読み込みがタイムアウトしました'
+              )
+            );
 
-    }, 300);
+          },
+          15000
+        );
 
-    /*
-     * 念のため最大30秒待つ
-     */
-    setTimeout(() => {
+      const cleanup = () => {
 
-      if (done) return;
+        clearTimeout(timer);
 
-      const d =
-        Number(video.duration);
+        video.removeEventListener(
+          'loadedmetadata',
+          onLoaded
+        );
 
-      if (
-        Number.isFinite(d) &&
-        d > 0
-      ) {
+        video.removeEventListener(
+          'error',
+          onError
+        );
+      };
+
+      const finish = (err) => {
+
+        if (finished) {
+          return;
+        }
+
+        finished = true;
+
+        cleanup();
+
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      };
+
+      const onLoaded = () => {
         finish();
-        return;
-      }
+      };
 
-      done = true;
+      const onError = () => {
 
-      cleanup();
+        finish(
+          new Error(
+            '動画を読み込めませんでした'
+          )
+        );
 
-      reject(
-        new Error(
-          '動画時間を取得できませんでした'
-        )
+      };
+
+      /*
+       * 以前正常だった方式。
+       */
+      video.addEventListener(
+        'loadedmetadata',
+        onLoaded,
+        { once: true }
       );
 
-    }, 30000);
-  });
+      video.addEventListener(
+        'error',
+        onError,
+        { once: true }
+      );
+
+    }
+  );
+
+  duration =
+    video.duration;
+
+  $('#duration').textContent =
+    fmt(duration);
+
+  status(
+    `動画を読み込みました（${fmt(duration)}）`
+  );
+
+  log(
+    `動画: ${file.name} / ` +
+    `${(
+      file.size /
+      1024 /
+      1024
+    ).toFixed(1)}MB`
+  );
 }
 
 /* =========================================================
