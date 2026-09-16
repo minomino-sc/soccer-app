@@ -147,110 +147,171 @@ async function loadVideoFile(file) {
 
   if (sourceUrl) {
     URL.revokeObjectURL(sourceUrl);
+    sourceUrl = null;
   }
 
-  sourceUrl =
-    URL.createObjectURL(
-      file
-    );
+  sourceUrl = URL.createObjectURL(file);
+
+  status('動画を読み込み中…');
 
   /*
-   * ここが以前正常に動いていたコードと同じ順番。
-   *
-   * 先に src を設定して load()
+   * 重要：
+   * src / load() より先にイベントを登録する。
    */
-  video.src = sourceUrl;
-  video.load();
+  await new Promise((resolve, reject) => {
 
-  status(
-    '動画を読み込み中…'
-  );
+    let finished = false;
 
-  await new Promise(
-    (resolve, reject) => {
+    const finish = (err) => {
 
-      let finished = false;
+      if (finished) {
+        return;
+      }
 
-      const timer =
-        setTimeout(
-          () => {
+      finished = true;
 
-            finish(
-              new Error(
-                '動画の読み込みがタイムアウトしました'
-              )
-            );
+      clearTimeout(timeout);
 
-          },
-          15000
-        );
-
-      const cleanup = () => {
-
-        clearTimeout(timer);
-
-        video.removeEventListener(
-          'loadedmetadata',
-          onLoaded
-        );
-
-        video.removeEventListener(
-          'error',
-          onError
-        );
-      };
-
-      const finish = (err) => {
-
-        if (finished) {
-          return;
-        }
-
-        finished = true;
-
-        cleanup();
-
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      };
-
-      const onLoaded = () => {
-        finish();
-      };
-
-      const onError = () => {
-
-        finish(
-          new Error(
-            '動画を読み込めませんでした'
-          )
-        );
-
-      };
-
-      /*
-       * 以前正常だった方式。
-       */
-      video.addEventListener(
+      video.removeEventListener(
         'loadedmetadata',
-        onLoaded,
-        { once: true }
+        onLoadedMetadata
       );
 
-      video.addEventListener(
+      video.removeEventListener(
+        'durationchange',
+        onDurationChange
+      );
+
+      video.removeEventListener(
+        'loadeddata',
+        onLoadedData
+      );
+
+      video.removeEventListener(
+        'canplay',
+        onCanPlay
+      );
+
+      video.removeEventListener(
         'error',
-        onError,
-        { once: true }
+        onError
       );
 
-    }
-  );
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    };
 
-  duration =
-    video.duration;
+    const checkDuration = () => {
+
+      if (
+        Number.isFinite(video.duration) &&
+        video.duration > 0
+      ) {
+        finish();
+      }
+    };
+
+    const onLoadedMetadata = () => {
+      checkDuration();
+    };
+
+    const onDurationChange = () => {
+      checkDuration();
+    };
+
+    const onLoadedData = () => {
+      checkDuration();
+    };
+
+    const onCanPlay = () => {
+      checkDuration();
+    };
+
+    const onError = () => {
+
+      finish(
+        new Error(
+          '動画を読み込めませんでした'
+        )
+      );
+    };
+
+    /*
+     * iPhoneの大容量動画も考慮して
+     * 60秒待つ。
+     */
+    const timeout =
+      setTimeout(() => {
+
+        if (
+          Number.isFinite(video.duration) &&
+          video.duration > 0
+        ) {
+          finish();
+        } else {
+          finish(
+            new Error(
+              '動画のメタデータを取得できませんでした'
+            )
+          );
+        }
+
+      }, 60000);
+
+    /*
+     * イベント登録を先に行う。
+     */
+    video.addEventListener(
+      'loadedmetadata',
+      onLoadedMetadata
+    );
+
+    video.addEventListener(
+      'durationchange',
+      onDurationChange
+    );
+
+    video.addEventListener(
+      'loadeddata',
+      onLoadedData
+    );
+
+    video.addEventListener(
+      'canplay',
+      onCanPlay
+    );
+
+    video.addEventListener(
+      'error',
+      onError
+    );
+
+    /*
+     * ここで初めて動画をセット。
+     */
+    video.src = sourceUrl;
+
+    video.load();
+
+    /*
+     * すでにdurationが取れている場合にも対応。
+     */
+    checkDuration();
+  });
+
+  duration = video.duration;
+
+  if (
+    !Number.isFinite(duration) ||
+    duration <= 0
+  ) {
+    throw new Error(
+      '動画時間を取得できませんでした'
+    );
+  }
 
   $('#duration').textContent =
     fmt(duration);
