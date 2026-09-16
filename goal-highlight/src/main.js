@@ -338,6 +338,8 @@ fileInput.addEventListener(
   'change',
   async () => {
 
+alert('動画ファイルのchangeイベントが発火しました');
+
     sourceFile =
       fileInput.files?.[0] ||
       null;
