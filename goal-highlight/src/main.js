@@ -138,21 +138,14 @@ function getGoalType(from, to) {
 
 /* =========================================================
    動画メタデータ読み込み
-
-   iPhone / Safariでは、ファイルを選択した直後に
-   loadedmetadata が発火済みになっているケースや、
-   durationchange / loadeddata 側で duration が確定する
-   ケースがあるため、複数のイベントを監視する。
 ========================================================= */
-
 async function loadVideoFile(file) {
 
   if (!file) {
-    throw new Error(
-      '動画ファイルが選択されていません'
-    );
+    throw new Error('動画ファイルが選択されていません');
   }
 
+  // 以前の動画URLを解放
   if (sourceUrl) {
     URL.revokeObjectURL(sourceUrl);
     sourceUrl = null;
@@ -160,45 +153,25 @@ async function loadVideoFile(file) {
 
   duration = 0;
 
-  $('#duration').textContent =
-    '--:--';
+  $('#duration').textContent = '--:--';
 
-  sourceUrl =
-    URL.createObjectURL(file);
+  sourceUrl = URL.createObjectURL(file);
 
-  status(
-    '動画の時間情報を読み込み中…'
-  );
+  status('動画を読み込み中…');
 
   await new Promise((resolve, reject) => {
 
-    let finished = false;
-    let timer = null;
+    let done = false;
 
     const cleanup = () => {
-
-      if (timer) {
-        clearTimeout(timer);
-      }
-
       video.removeEventListener(
         'loadedmetadata',
-        onReady
+        onLoadedMetadata
       );
 
       video.removeEventListener(
         'durationchange',
-        onReady
-      );
-
-      video.removeEventListener(
-        'loadeddata',
-        onReady
-      );
-
-      video.removeEventListener(
-        'canplay',
-        onReady
+        onDurationChange
       );
 
       video.removeEventListener(
@@ -207,82 +180,77 @@ async function loadVideoFile(file) {
       );
     };
 
-    const finish = (err) => {
+    const finish = () => {
 
-      if (finished) return;
+      if (done) return;
 
-      /*
-         イベントが発火しても
-         duration がまだ確定していない場合は待つ。
-      */
+      const d = Number(video.duration);
 
-      if (!err) {
-
-        const d =
-          Number(video.duration);
-
-        if (
-          !Number.isFinite(d) ||
-          d <= 0
-        ) {
-          return;
-        }
+      if (!Number.isFinite(d) || d <= 0) {
+        return;
       }
 
-      finished = true;
+      done = true;
 
       cleanup();
 
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
+      duration = d;
+
+      $('#duration').textContent =
+        fmt(duration);
+
+      status(
+        `動画を読み込みました（${fmt(duration)}）`
+      );
+
+      log(
+        `動画: ${file.name} / ` +
+        `${(file.size / 1024 / 1024).toFixed(1)}MB / ` +
+        `duration=${duration.toFixed(3)}秒`
+      );
+
+      resolve();
     };
 
-    const onReady = () => {
+    const onLoadedMetadata = () => {
+      finish();
+    };
+
+    const onDurationChange = () => {
       finish();
     };
 
     const onError = () => {
 
+      if (done) return;
+
+      done = true;
+
+      cleanup();
+
       const code =
         video.error?.code;
 
-      const detail =
-        code
-          ? `（MediaError code ${code}）`
-          : '';
-
-      finish(
+      reject(
         new Error(
-          `動画を読み込めませんでした${detail}`
+          code
+            ? `動画を読み込めませんでした（MediaError code ${code}）`
+            : '動画を読み込めませんでした'
         )
       );
     };
 
     /*
-       先にイベントを登録する。
-    */
-
+     * 先にイベントを登録
+     */
     video.addEventListener(
       'loadedmetadata',
-      onReady
+      onLoadedMetadata
     );
 
     video.addEventListener(
       'durationchange',
-      onReady
-    );
-
-    video.addEventListener(
-      'loadeddata',
-      onReady
-    );
-
-    video.addEventListener(
-      'canplay',
-      onReady
+      onDurationChange
     );
 
     video.addEventListener(
@@ -290,57 +258,35 @@ async function loadVideoFile(file) {
       onError
     );
 
-    video.preload =
-      'metadata';
-
-    video.muted =
-      true;
-
-    video.playsInline =
-      true;
+    /*
+     * iPhone Safari向け
+     */
+    video.preload = 'metadata';
+    video.muted = true;
+    video.playsInline = true;
 
     /*
-       イベントを登録してから
-       srcを設定する。
-
-       これがiPhone Safariでは重要。
-    */
-
-    video.removeAttribute(
-      'src'
-    );
-
-    video.load();
-
-    video.src =
-      sourceUrl;
-
+     * ここは余計なremoveAttribute/loadをしない。
+     * 元々動いていた基本方式。
+     */
+    video.src = sourceUrl;
     video.load();
 
     /*
-       Safariでイベント登録より前に
-       metadataが確定していた場合にも対応。
-    */
-
+     * イベントを取り逃した場合に直接確認
+     */
     setTimeout(() => {
 
-      const d =
-        Number(video.duration);
+      finish();
 
-      if (
-        Number.isFinite(d) &&
-        d > 0
-      ) {
-        finish();
-      }
-
-    }, 100);
+    }, 300);
 
     /*
-       最終タイムアウト。
-    */
+     * 念のため最大30秒待つ
+     */
+    setTimeout(() => {
 
-    timer = setTimeout(() => {
+      if (done) return;
 
       const d =
         Number(video.duration);
@@ -349,51 +295,23 @@ async function loadVideoFile(file) {
         Number.isFinite(d) &&
         d > 0
       ) {
-
         finish();
-
         return;
       }
 
-      finish(
+      done = true;
+
+      cleanup();
+
+      reject(
         new Error(
-          '動画の時間情報を取得できませんでした。iPhoneで動画を選び直してください。'
+          '動画時間を取得できませんでした'
         )
       );
 
     }, 30000);
   });
-
-  const d =
-    Number(video.duration);
-
-  if (
-    !Number.isFinite(d) ||
-    d <= 0
-  ) {
-
-    throw new Error(
-      '動画時間を取得できませんでした'
-    );
-  }
-
-  duration =
-    d;
-
-  $('#duration').textContent =
-    fmt(duration);
-
-  status(
-    `動画を読み込みました（${fmt(duration)}）`
-  );
-
-  log(
-    `動画: ${sourceFile.name} / ` +
-    `${(sourceFile.size / 1024 / 1024).toFixed(1)}MB / ` +
-    `duration=${duration.toFixed(3)}秒`
-  );
 }
-
 
 /* =========================================================
    動画選択
