@@ -93,6 +93,7 @@ function sleep(ms) {
 
 /* =========================================================
    動画選択
+   iPhone / Safari対応
 ========================================================= */
 
 fileInput.addEventListener(
@@ -104,6 +105,8 @@ fileInput.addEventListener(
 
     goals = [];
 
+    duration = 0;
+
     results.innerHTML =
       '<p class="muted">まだ解析していません。</p>';
 
@@ -112,7 +115,11 @@ fileInput.addEventListener(
     loadEngineBtn.disabled =
       !sourceFile;
 
+    $('#duration').textContent =
+      '--:--';
+
     if (!sourceFile) {
+      status('動画を選択してください');
       return;
     }
 
@@ -125,99 +132,43 @@ fileInput.addEventListener(
         sourceFile
       );
 
-    video.src = sourceUrl;
+    /*
+     * 重要：
+     * Safariでは src を設定しただけでは
+     * duration が確定しない場合があるため、
+     * loadedmetadata / durationchange / loadeddata
+     * のいずれかで取得する。
+     */
+
+    video.pause();
+
+    video.removeAttribute('src');
+
+    video.load();
+
+    video.src =
+      sourceUrl;
+
+    video.preload =
+      'metadata';
+
     video.load();
 
     status(
-      '動画を読み込み中…'
+      '動画時間を取得中…'
+    );
+
+    log(
+      `動画選択: ${sourceFile.name}`
     );
 
     try {
 
-      await new Promise(
-        (resolve, reject) => {
-
-          let finished = false;
-
-          const timer =
-            setTimeout(
-              () => {
-
-                finish(
-                  new Error(
-                    '動画の読み込みがタイムアウトしました'
-                  )
-                );
-
-              },
-              15000
-            );
-
-          const cleanup = () => {
-
-            clearTimeout(timer);
-
-            video.removeEventListener(
-              'loadedmetadata',
-              onLoaded
-            );
-
-            video.removeEventListener(
-              'error',
-              onError
-            );
-
-          };
-
-          const finish = (err) => {
-
-            if (finished) {
-              return;
-            }
-
-            finished = true;
-
-            cleanup();
-
-            if (err) {
-              reject(err);
-            } else {
-              resolve();
-            }
-
-          };
-
-          const onLoaded = () => {
-            finish();
-          };
-
-          const onError = () => {
-
-            finish(
-              new Error(
-                '動画を読み込めませんでした'
-              )
-            );
-
-          };
-
-          video.addEventListener(
-            'loadedmetadata',
-            onLoaded,
-            { once: true }
-          );
-
-          video.addEventListener(
-            'error',
-            onError,
-            { once: true }
-          );
-
-        }
-      );
+      const loadedDuration =
+        await getVideoDuration();
 
       duration =
-        video.duration;
+        loadedDuration;
 
       $('#duration').textContent =
         fmt(duration);
@@ -227,24 +178,34 @@ fileInput.addEventListener(
       );
 
       log(
-        `動画: ${sourceFile.name} / ` +
-        `${(
-          sourceFile.size /
-          1024 /
-          1024
-        ).toFixed(1)}MB`
+        `動画時間: ${fmt(duration)}`
+      );
+
+      log(
+        `動画サイズ: ${
+          (
+            sourceFile.size /
+            1024 /
+            1024
+          ).toFixed(1)
+        }MB`
       );
 
     } catch (e) {
 
       console.error(e);
 
+      duration = 0;
+
+      $('#duration').textContent =
+        '--:--';
+
       status(
-        `動画読み込みエラー: ${e.message}`
+        `動画時間を取得できませんでした: ${e.message}`
       );
 
       log(
-        `VIDEO ERROR: ${e.message}`
+        `VIDEO DURATION ERROR: ${e.message}`
       );
 
     }
@@ -252,6 +213,201 @@ fileInput.addEventListener(
   }
 );
 
+
+/* =========================================================
+   動画時間取得
+   iPhone / Safari対応
+========================================================= */
+
+function getVideoDuration() {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      let finished = false;
+
+      const timeout =
+        setTimeout(
+          () => {
+
+            finish(
+              new Error(
+                '動画時間の取得がタイムアウトしました'
+              )
+            );
+
+          },
+          20000
+        );
+
+      const cleanup = () => {
+
+        clearTimeout(timeout);
+
+        video.removeEventListener(
+          'loadedmetadata',
+          onLoadedMetadata
+        );
+
+        video.removeEventListener(
+          'durationchange',
+          onDurationChange
+        );
+
+        video.removeEventListener(
+          'loadeddata',
+          onLoadedData
+        );
+
+        video.removeEventListener(
+          'canplay',
+          onCanPlay
+        );
+
+        video.removeEventListener(
+          'error',
+          onError
+        );
+
+      };
+
+
+      const finish = (err) => {
+
+        if (finished) {
+          return;
+        }
+
+        finished = true;
+
+        cleanup();
+
+        if (err) {
+          reject(err);
+        } else {
+
+          resolve(
+            video.duration
+          );
+
+        }
+
+      };
+
+
+      const checkDuration = () => {
+
+        const d =
+          Number(
+            video.duration
+          );
+
+        /*
+         * Safariでは最初に Infinity が返る場合がある。
+         */
+
+        if (
+          Number.isFinite(d) &&
+          d > 0
+        ) {
+
+          finish();
+
+        }
+
+      };
+
+
+      const onLoadedMetadata = () => {
+
+        log(
+          'loadedmetadata 発火'
+        );
+
+        checkDuration();
+
+      };
+
+
+      const onDurationChange = () => {
+
+        log(
+          `durationchange: ${video.duration}`
+        );
+
+        checkDuration();
+
+      };
+
+
+      const onLoadedData = () => {
+
+        log(
+          'loadeddata 発火'
+        );
+
+        checkDuration();
+
+      };
+
+
+      const onCanPlay = () => {
+
+        log(
+          'canplay 発火'
+        );
+
+        checkDuration();
+
+      };
+
+
+      const onError = () => {
+
+        finish(
+          new Error(
+            '動画を読み込めませんでした'
+          )
+        );
+
+      };
+
+
+      video.addEventListener(
+        'loadedmetadata',
+        onLoadedMetadata
+      );
+
+      video.addEventListener(
+        'durationchange',
+        onDurationChange
+      );
+
+      video.addEventListener(
+        'loadeddata',
+        onLoadedData
+      );
+
+      video.addEventListener(
+        'canplay',
+        onCanPlay
+      );
+
+      video.addEventListener(
+        'error',
+        onError
+      );
+
+
+      /*
+       * すでにmetadataが取得済みの場合。
+       */
+
+      checkDuration();
+
+    }
+  );
+}
 
 /* =========================================================
    シーク
