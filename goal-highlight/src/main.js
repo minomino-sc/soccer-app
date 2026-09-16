@@ -1169,4 +1169,1072 @@ async function detectGoalsFromTimeline(
       log(
         `⚠️ ${goalIndex + 1}点目を検出できませんでした。` +
         ` 探索対象は ` +
-        `${candidates.map(scoreKey).
+        `${candidates.map(scoreKey).join(' / ')}`
+      );
+
+      break;
+    }
+
+    /*
+       OCRの1秒単位の検出位置を
+       0.25秒単位まで精密化。
+    */
+
+    const refined =
+      await refineGoalTime(
+        best.roughTime,
+        currentScore,
+        best.candidate
+      );
+
+    const type =
+      getGoalType(
+        currentScore,
+        best.candidate
+      );
+
+    const goal = {
+
+      time: refined,
+
+      from:
+        scoreKey(currentScore),
+
+      to:
+        scoreKey(best.candidate),
+
+      type,
+
+      home:
+        best.candidate.home,
+
+      away:
+        best.candidate.away
+    };
+
+    goalsFound.push(goal);
+
+    log(
+      `⚽ GOAL ${goalsFound.length}: ` +
+      `${goal.from} → ${goal.to} @ ` +
+      `${fmt(goal.time)} ` +
+      `[${type === 'minotani'
+        ? '箕谷'
+        : '相手'}]`
+    );
+
+    /*
+       次のゴールは、
+       今回のスコアより後だけを探す。
+    */
+
+    currentScore = {
+      ...best.candidate
+    };
+
+    cursorTime =
+      Math.max(
+        cursorTime,
+        best.roughTime + 1.0
+      );
+  }
+
+  if (
+    goalsFound.length !== expected
+  ) {
+
+    log(
+      `⚠️ ゴール数不一致: ` +
+      `検出${goalsFound.length}本 / ` +
+      `必要${expected}本`
+    );
+
+  } else {
+
+    log(
+      `✅ 全ゴール確認完了: ` +
+      `${scoreKey(initialScore)} → ` +
+      `${scoreKey(finalScore)}`
+    );
+  }
+
+  return {
+
+    finalScore: {
+      ...finalScore
+    },
+
+    goals: goalsFound
+  };
+}
+
+
+/* =========================================================
+   対象チームでフィルター
+========================================================= */
+
+function filterGoals(
+  allGoals,
+  target
+) {
+
+  if (target === 'both') {
+    return [...allGoals];
+  }
+
+  if (target === 'minotani') {
+
+    return allGoals.filter(
+      g =>
+        g.type === 'minotani'
+    );
+  }
+
+  if (target === 'opponent') {
+
+    return allGoals.filter(
+      g =>
+        g.type === 'opponent'
+    );
+  }
+
+  return [];
+}
+
+
+/* =========================================================
+   結果表示
+========================================================= */
+
+function renderResults() {
+
+  results.innerHTML = '';
+
+  if (!goals.length) {
+
+    results.innerHTML =
+      '<p class="muted">' +
+      'ゴールは検出されませんでした。' +
+      '</p>';
+
+    return;
+  }
+
+  goals.forEach((g, i) => {
+
+    const row =
+      document.createElement('div');
+
+    row.className = 'goal';
+
+    const goalLabel =
+      g.type === 'opponent'
+        ? '相手ゴール'
+        : '箕谷ゴール';
+
+    row.innerHTML = `
+
+      <div>
+
+        <b>⚽ GOAL ${i + 1}</b><br>
+
+        <span>
+          ${goalLabel}<br>
+          ${g.from}
+          →
+          <strong>${g.to}</strong>
+        </span>
+
+      </div>
+
+      <div>
+        ${fmt(g.time)}
+      </div>
+    `;
+
+    results.appendChild(row);
+  });
+}
+
+
+/* =========================================================
+   スコア解析開始
+========================================================= */
+
+scanBtn.addEventListener(
+  'click',
+  async () => {
+
+    if (
+      !sourceFile ||
+      scanBusy
+    ) {
+      return;
+    }
+
+    scanBusy = true;
+
+    scanBtn.disabled = true;
+    extractBtn.disabled = true;
+
+    goals = [];
+
+    results.innerHTML = '';
+
+    const target =
+      targetEl.value;
+
+    const interval =
+      Math.max(
+        1,
+        Number(
+          intervalEl.value
+        ) || 1
+      );
+
+    const finalHome =
+      Number(
+        finalHomeEl?.value
+      );
+
+    const finalAway =
+      Number(
+        finalAwayEl?.value
+      );
+
+    try {
+
+      /*
+         最終スコア入力チェック
+      */
+
+      if (
+        !Number.isInteger(
+          finalHome
+        ) ||
+        !Number.isInteger(
+          finalAway
+        ) ||
+        finalHome < 0 ||
+        finalAway < 0
+      ) {
+
+        throw new Error(
+          '最終スコアを正しく入力してください'
+        );
+      }
+
+      progressEl.value = 0;
+
+      status(
+        '試合開始時のスコアを確認中…'
+      );
+
+      log(
+        '===================================='
+      );
+
+      log(
+        'ゴール解析開始'
+      );
+
+      log(
+        `対象: ${
+          target === 'both'
+            ? '両チーム'
+            : target === 'minotani'
+              ? '箕谷のゴールだけ'
+              : '相手のゴールだけ'
+        }`
+      );
+
+      log(
+        `ユーザー入力 最終スコア: ` +
+        `${finalHome}-${finalAway}`
+      );
+
+      /*
+         試合開始時のスコアをOCR。
+      */
+
+      const initialScore =
+        await readInitialScore();
+
+      if (!initialScore) {
+
+        throw new Error(
+          '試合開始時のスコアを読み取れませんでした'
+        );
+      }
+
+      log(
+        `初期スコア確定: ` +
+        `${scoreKey(initialScore)}`
+      );
+
+      progressEl.value = 10;
+
+      /*
+         動画全体をOCR。
+      */
+
+      status(
+        '試合全体のスコア変化を確認中…'
+      );
+
+      const samples =
+        await scanScoreTimeline(
+          interval
+        );
+
+      progressEl.value = 70;
+
+      /*
+         ユーザーが入力した
+         最終スコアを使用。
+      */
+
+      status(
+        '入力された最終スコアまでのゴール時刻を特定中…'
+      );
+
+      const finalScore = {
+
+        home:
+          finalHome,
+
+        away:
+          finalAway
+      };
+
+      const analyzed =
+        await detectGoalsFromTimeline(
+          initialScore,
+          finalScore,
+          samples
+        );
+
+      /*
+         全ゴール。
+      */
+
+      const allGoals =
+        analyzed.goals;
+
+      /*
+         「箕谷だけ」
+         「相手だけ」
+         「両チーム」
+         をここで切り替える。
+      */
+
+      goals =
+        filterGoals(
+          allGoals,
+          target
+        );
+
+      goals.sort(
+        (a, b) =>
+          a.time - b.time
+      );
+
+      log(
+        '===================================='
+      );
+
+      log(
+        `入力最終スコア: ` +
+        `${scoreKey(finalScore)}`
+      );
+
+      log(
+        `全ゴール: ` +
+        `${allGoals.length}本`
+      );
+
+      log(
+        `対象設定後: ` +
+        `${goals.length}本`
+      );
+
+      allGoals.forEach(
+        (g, i) => {
+
+          log(
+            `⚽ GOAL ${i + 1}: ` +
+            `${g.from} → ${g.to} @ ` +
+            `${fmt(g.time)} ` +
+            `[${g.type === 'minotani'
+              ? '箕谷'
+              : '相手'}]`
+          );
+        }
+      );
+
+      log(
+        '===================================='
+      );
+
+      renderResults();
+
+      extractBtn.disabled =
+        goals.length === 0;
+
+      progressEl.value = 100;
+
+      status(
+        `解析完了：${goals.length}ゴールを検出 ` +
+        `（最終スコア ${scoreKey(finalScore)}）`
+      );
+
+    } catch (e) {
+
+      console.error(e);
+
+      status(
+        `エラー: ${e.message}`
+      );
+
+      log(
+        `ERROR: ${
+          e.stack ||
+          e.message
+        }`
+      );
+
+    } finally {
+
+      scanBusy = false;
+
+      scanBtn.disabled = false;
+    }
+  }
+);
+
+
+/* =========================================================
+   FFmpeg準備
+========================================================= */
+
+loadEngineBtn.addEventListener(
+  'click',
+  async () => {
+
+    if (ffmpegLoaded) {
+      return;
+    }
+
+    loadEngineBtn.disabled = true;
+
+    status(
+      '動画切り出しエンジンを準備中…'
+    );
+
+    try {
+
+      ffmpeg = new FFmpeg();
+
+      ffmpeg.on(
+        'progress',
+        ({ progress }) => {
+
+          progressEl.value =
+            Math.round(
+              progress * 100
+            );
+        }
+      );
+
+      const baseURL =
+        'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+
+      const classWorkerURL =
+        new URL(
+          './ffmpeg-worker.js',
+          import.meta.url
+        ).href;
+
+      await ffmpeg.load({
+
+        coreURL:
+          await toBlobURL(
+            `${baseURL}/ffmpeg-core.js`,
+            'text/javascript'
+          ),
+
+        wasmURL:
+          await toBlobURL(
+            `${baseURL}/ffmpeg-core.wasm`,
+            'application/wasm'
+          ),
+
+        classWorkerURL
+      });
+
+      ffmpegLoaded = true;
+
+      status(
+        '切り出しエンジン準備完了'
+      );
+
+      log(
+        'FFmpeg WASM loaded'
+      );
+
+    } catch (e) {
+
+      console.error(e);
+
+      loadEngineBtn.disabled = false;
+
+      status(
+        `FFmpeg読み込み失敗: ${e.message}`
+      );
+
+      log(
+        `FFmpeg ERROR: ${
+          e.stack ||
+          e.message
+        }`
+      );
+    }
+  }
+);
+
+
+/* =========================================================
+   ゴール動画作成
+========================================================= */
+
+extractBtn.addEventListener(
+  'click',
+  async () => {
+
+    if (
+      !sourceFile ||
+      !goals.length
+    ) {
+      return;
+    }
+
+    if (!ffmpegLoaded) {
+
+      await loadEngineBtn.click();
+    }
+
+    if (!ffmpegLoaded) {
+      return;
+    }
+
+    extractBtn.disabled = true;
+
+    const before =
+      Math.max(
+        0,
+        Number(
+          beforeEl.value
+        ) || 15
+      );
+
+    const after =
+      Math.max(
+        0,
+        Number(
+          afterEl.value
+        ) || 10
+      );
+
+    try {
+
+      status(
+        '動画ファイルをFFmpegに接続中…'
+      );
+
+      log(
+        `入力動画: ${sourceFile.name} / ` +
+        `${(
+          sourceFile.size /
+          1024 /
+          1024
+        ).toFixed(1)}MB`
+      );
+
+      try {
+
+        await ffmpeg.createDir(
+          '/input'
+        );
+
+      } catch {}
+
+      try {
+
+        await ffmpeg.mount(
+          'WORKERFS',
+          {
+            files: [
+              sourceFile
+            ]
+          },
+          '/input'
+        );
+
+        log(
+          'WORKERFS mount OK'
+        );
+
+      } catch (e) {
+
+        throw new Error(
+          `動画ファイルをFFmpegへ渡せませんでした: ` +
+          `${e.message || e}`
+        );
+      }
+
+      const inputPath =
+        `/input/${sourceFile.name}`;
+
+      const clipNames = [];
+
+      /*
+         ゴールごとに切り出す。
+      */
+
+      for (
+        let i = 0;
+        i < goals.length;
+        i++
+      ) {
+
+        const g =
+          goals[i];
+
+        const start =
+          Math.max(
+            0,
+            g.time - before
+          );
+
+        const end =
+          Math.min(
+            duration,
+            g.time + after
+          );
+
+        const len =
+          Math.max(
+            0.5,
+            end - start
+          );
+
+        const out =
+          `goal_${
+            String(i + 1)
+              .padStart(2, '0')
+          }.mp4`;
+
+        status(
+          `GOAL ${i + 1}/${goals.length} を作成中…`
+        );
+
+        log(
+          `GOAL ${i + 1}: ` +
+          `${fmt(start)} ～ ` +
+          `${fmt(end)}`
+        );
+
+        const result =
+          await ffmpeg.exec([
+
+            '-ss',
+            String(start),
+
+            '-i',
+            inputPath,
+
+            '-t',
+            String(len),
+
+            '-map',
+            '0:v:0',
+
+            '-map',
+            '0:a:0?',
+
+            '-c:v',
+            'libx264',
+
+            '-preset',
+            'ultrafast',
+
+            '-crf',
+            '28',
+
+            '-c:a',
+            'aac',
+
+            '-b:a',
+            '96k',
+
+            '-movflags',
+            '+faststart',
+
+            '-y',
+            out
+          ]);
+
+        if (result !== 0) {
+
+          throw new Error(
+            `FFmpeg処理に失敗しました ` +
+            `（終了コード: ${result}）`
+          );
+        }
+
+        clipNames.push(out);
+
+        const data =
+          await ffmpeg.readFile(
+            out
+          );
+
+        if (
+          !data ||
+          !data.length
+        ) {
+
+          throw new Error(
+            `${out} が作成されませんでした`
+          );
+        }
+
+        const url =
+          URL.createObjectURL(
+            new Blob(
+              [data],
+              {
+                type: 'video/mp4'
+              }
+            )
+          );
+
+        renderDownload(
+          out,
+          url,
+          g,
+          start,
+          len
+        );
+      }
+
+      /*
+         複数ゴールの場合、
+         1本に結合。
+      */
+
+      if (
+        clipNames.length > 1
+      ) {
+
+        status(
+          'ゴール動画を1本に結合中…'
+        );
+
+        const concatText =
+          clipNames
+            .map(
+              n => `file '${n}'`
+            )
+            .join('\n') +
+          '\n';
+
+        await ffmpeg.writeFile(
+          'concat.txt',
+          concatText
+        );
+
+        const result =
+          await ffmpeg.exec([
+
+            '-f',
+            'concat',
+
+            '-safe',
+            '0',
+
+            '-i',
+            'concat.txt',
+
+            '-c',
+            'copy',
+
+            '-y',
+            'all_goals.mp4'
+          ]);
+
+        if (result !== 0) {
+
+          throw new Error(
+            'ゴール動画の結合に失敗しました'
+          );
+        }
+
+        const allData =
+          await ffmpeg.readFile(
+            'all_goals.mp4'
+          );
+
+        const allUrl =
+          URL.createObjectURL(
+            new Blob(
+              [allData],
+              {
+                type: 'video/mp4'
+              }
+            )
+          );
+
+        renderCombinedDownload(
+          allUrl,
+          goals.length
+        );
+
+      } else if (
+        clipNames.length === 1
+      ) {
+
+        const single =
+          await ffmpeg.readFile(
+            clipNames[0]
+          );
+
+        const allUrl =
+          URL.createObjectURL(
+            new Blob(
+              [single],
+              {
+                type: 'video/mp4'
+              }
+            )
+          );
+
+        renderCombinedDownload(
+          allUrl,
+          1
+        );
+      }
+
+      /*
+         一時ファイル削除。
+      */
+
+      for (
+        const name of [
+          ...clipNames,
+          'concat.txt',
+          'all_goals.mp4'
+        ]
+      ) {
+
+        try {
+
+          await ffmpeg.deleteFile(
+            name
+          );
+
+        } catch {}
+      }
+
+      try {
+
+        await ffmpeg.unmount(
+          '/input'
+        );
+
+      } catch {}
+
+      try {
+
+        await ffmpeg.deleteDir(
+          '/input'
+        );
+
+      } catch {}
+
+      status(
+        `完了：${goals.length}本のゴール動画を作成しました`
+      );
+
+      log(
+        `${goals.length} clips created`
+      );
+
+    } catch (e) {
+
+      console.error(
+        'CUT ERROR',
+        e
+      );
+
+      const message =
+        e?.message ||
+        e?.toString?.() ||
+        String(e);
+
+      status(
+        `切り出しエラー: ${message}`
+      );
+
+      log(
+        `CUT ERROR: ${message}`
+      );
+
+    } finally {
+
+      extractBtn.disabled = false;
+    }
+  }
+);
+
+
+/* =========================================================
+   結合動画表示
+========================================================= */
+
+function renderCombinedDownload(
+  url,
+  count
+) {
+
+  const wrap =
+    document.createElement(
+      'div'
+    );
+
+  wrap.className =
+    'download combined';
+
+  const info =
+    document.createElement(
+      'div'
+    );
+
+  info.innerHTML =
+    `<b>🎬 ALL_GOALS.mp4</b><br>` +
+    `<span>${count}本のゴールを1本にまとめた動画</span>`;
+
+  wrap.appendChild(
+    info
+  );
+
+  const v =
+    document.createElement(
+      'video'
+    );
+
+  v.controls = true;
+  v.playsInline = true;
+  v.src = url;
+
+  wrap.appendChild(
+    v
+  );
+
+  const a =
+    document.createElement(
+      'a'
+    );
+
+  a.href = url;
+
+  a.download =
+    'ALL_GOALS.mp4';
+
+  a.textContent =
+    '⬇️ ALL_GOALS.mp4 を保存';
+
+  wrap.appendChild(
+    a
+  );
+
+  results.prepend(
+    wrap
+  );
+}
+
+
+/* =========================================================
+   個別動画表示
+========================================================= */
+
+function renderDownload(
+  name,
+  url,
+  g,
+  start,
+  len
+) {
+
+  const wrap =
+    document.createElement(
+      'div'
+    );
+
+  wrap.className =
+    'download';
+
+  const info =
+    document.createElement(
+      'div'
+    );
+
+  const goalLabel =
+    g.type === 'opponent'
+      ? '相手ゴール'
+      : '箕谷ゴール';
+
+  info.innerHTML =
+    `<b>${name}</b><br>` +
+    `<span>${goalLabel} / ` +
+    `${fmt(start)} ～ ` +
+    `${fmt(start + len)} ` +
+    `（${fmt(len)}）</span>`;
+
+  wrap.appendChild(
+    info
+  );
+
+  const v =
+    document.createElement(
+      'video'
+    );
+
+  v.controls = true;
+  v.playsInline = true;
+  v.src = url;
+
+  wrap.appendChild(
+    v
+  );
+
+  const a =
+    document.createElement(
+      'a'
+    );
+
+  a.href = url;
+
+  a.download = name;
+
+  a.textContent =
+    '⬇️ 動画を保存';
+
+  wrap.appendChild(
+    a
+  );
+
+  results.appendChild(
+    wrap
+  );
+}
