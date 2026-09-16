@@ -472,13 +472,12 @@ function scoreDiff(from, to) {
 
 
 /*
- * 「本当にゴールとして成立するスコア変化か」
- *
- * 基本ルール：
+ * 本当にゴールとして成立するスコア変化か。
  *
  * 0-0 → 1-0  OK
+ * 0-0 → 0-1  OK
  * 1-0 → 2-0  OK
- * 2-0 → 2-1  OK
+ * 1-0 → 1-1  OK
  *
  * 0-0 → 2-0  NG
  * 2-0 → 2-2  NG
@@ -510,34 +509,81 @@ function isValidGoalChange(from, to) {
 
 
 /*
- * 対象チームのゴールか判定。
+ * ゴールの種類を判定。
+ *
+ * home側 = 箕谷
+ * away側 = 相手
+ *
+ * ※ここでは対象設定を見ない。
+ *   まず純粋に「どちらが得点したか」を判定する。
  */
-function isWantedGoal(from, to, target) {
+function getGoalType(from, to) {
+
+  if (!from || !to) {
+    return null;
+  }
 
   const d = scoreDiff(from, to);
 
   if (!d) {
+    return null;
+  }
+
+  if (
+    d.home === 1 &&
+    d.away === 0
+  ) {
+    return 'minotani';
+  }
+
+  if (
+    d.home === 0 &&
+    d.away === 1
+  ) {
+    return 'opponent';
+  }
+
+  return null;
+}
+
+
+/*
+ * 対象設定に応じて採用するか判定。
+ */
+function isWantedGoal(from, to, target) {
+
+  const goalType =
+    getGoalType(from, to);
+
+  if (!goalType) {
     return false;
   }
 
-  const minotaniGoal =
-    d.home === 1 &&
-    d.away === 0;
-
-  const opponentGoal =
-    d.home === 0 &&
-    d.away === 1;
-
+  /*
+   * 両チーム
+   */
   if (target === 'both') {
-    return minotaniGoal || opponentGoal;
+    return true;
   }
 
-  if (target === 'minotani') {
-    return minotaniGoal;
+  /*
+   * 箕谷だけ
+   */
+  if (
+    target === 'minotani' &&
+    goalType === 'minotani'
+  ) {
+    return true;
   }
 
-  if (target === 'opponent') {
-    return opponentGoal;
+  /*
+   * 相手だけ
+   */
+  if (
+    target === 'opponent' &&
+    goalType === 'opponent'
+  ) {
+    return true;
   }
 
   return false;
@@ -567,10 +613,16 @@ function renderResults() {
 
     row.className = 'goal';
 
+    const goalLabel =
+      g.type === 'opponent'
+        ? '相手ゴール'
+        : '箕谷ゴール';
+
     row.innerHTML =
       `<div>
         <b>⚽ GOAL ${i + 1}</b><br>
         <span>
+          ${goalLabel}<br>
           ${g.from}
           →
           <strong>${g.to}</strong>
@@ -610,20 +662,26 @@ function reconcileGoals(
     finalScore.away - initialScore.away;
 
   /*
-   * 最終スコアから考えられる実際のゴール数。
+   * 最終スコアから考えられるゴール数。
    */
   let expectedCount = 0;
 
   if (target === 'minotani') {
 
-    expectedCount = totalHome;
+    expectedCount =
+      Math.max(0, totalHome);
 
   } else if (target === 'opponent') {
 
-    expectedCount = totalAway;
+    expectedCount =
+      Math.max(0, totalAway);
 
   } else {
 
+    /*
+     * 両チームの場合は
+     * 両方の得点数を合計。
+     */
     expectedCount =
       Math.max(0, totalHome) +
       Math.max(0, totalAway);
@@ -631,11 +689,20 @@ function reconcileGoals(
   }
 
   /*
-   * マイナスになっている場合は
-   * 最終スコア自体がOCR誤認識の可能性があるので
-   * この段階では削らない。
+   * 最終スコア自体がおかしい場合は
+   * ゴールを削らない。
    */
-  if (expectedCount < 0) {
+  if (
+    totalHome < 0 ||
+    totalAway < 0
+  ) {
+
+    log(
+      `最終スコア不整合のため補正なし: ` +
+      `${scoreKey(initialScore)} → ` +
+      `${scoreKey(finalScore)}`
+    );
+
     return detectedGoals;
   }
 
@@ -657,51 +724,8 @@ function reconcileGoals(
   }
 
   /*
-   * 例えば
+   * 検出数が少ない場合。
    *
-   * 初期 0-0
-   * 最終 2-0
-   * 検出 3本
-   *
-   * なら余分な1本がある。
-   */
-  if (
-    detectedGoals.length > expectedCount
-  ) {
-
-    log(
-      `検出数補正: ` +
-      `${detectedGoals.length}本 → ` +
-      `${expectedCount}本`
-    );
-
-    /*
-     * ゴール候補には信頼度を持たせている。
-     * 信頼度の低いものから除外する。
-     */
-    const sorted =
-      [...detectedGoals]
-        .sort(
-          (a, b) =>
-            (b.confidence || 0) -
-            (a.confidence || 0)
-        );
-
-    const kept =
-      sorted.slice(0, expectedCount);
-
-    /*
-     * 時系列順に戻す。
-     */
-    kept.sort(
-      (a, b) => a.time - b.time
-    );
-
-    return kept;
-  }
-
-  /*
-   * 検出数が少ない場合は、
    * 勝手にゴールを増やさない。
    */
   if (
@@ -715,6 +739,77 @@ function reconcileGoals(
     );
 
     return detectedGoals;
+  }
+
+  /*
+   * 検出数が多い場合。
+   */
+  if (
+    detectedGoals.length > expectedCount
+  ) {
+
+    /*
+     * 両チームでは、3回以上確認できた
+     * ゴール候補を優先して残す。
+     */
+    if (target === 'both') {
+
+      const highConfidence =
+        detectedGoals.filter(
+          g =>
+            (g.confidence || 0) >= 3
+        );
+
+      if (
+        highConfidence.length >= expectedCount
+      ) {
+
+        highConfidence.sort(
+          (a, b) =>
+            a.time - b.time
+        );
+
+        log(
+          `両チーム解析: ` +
+          `${detectedGoals.length}本検出 / ` +
+          `高信頼${highConfidence.length}本`
+        );
+
+        /*
+         * expectedCountより多い高信頼候補が
+         * あっても、時系列上の候補を残す。
+         */
+        if (
+          highConfidence.length === expectedCount
+        ) {
+          return highConfidence;
+        }
+      }
+    }
+
+    log(
+      `検出数補正: ` +
+      `${detectedGoals.length}本 → ` +
+      `${expectedCount}本`
+    );
+
+    const sorted =
+      [...detectedGoals]
+        .sort(
+          (a, b) =>
+            (b.confidence || 0) -
+            (a.confidence || 0)
+        );
+
+    const kept =
+      sorted.slice(0, expectedCount);
+
+    kept.sort(
+      (a, b) =>
+        a.time - b.time
+    );
+
+    return kept;
   }
 
   return detectedGoals;
@@ -753,16 +848,11 @@ scanBtn.addEventListener(
 
     /*
      * 確定に必要な連続確認回数。
-     *
-     * 以前：2回
-     * 今回：3回
      */
     const REQUIRED_CONFIRMATIONS = 3;
 
     /*
-     * ゴール直後はスコア表示が変化したり
-     * カメラが動いたりするため、短時間は
-     * 同じ候補を繰り返し拾わない。
+     * 同一ゴールの二重登録防止。
      */
     const GOAL_COOLDOWN = 12;
 
@@ -778,10 +868,6 @@ scanBtn.addEventListener(
 
     let lastGoalTime = -999;
 
-    /*
-     * 解析中に取得した有効スコア。
-     * 最後の安定したスコアを保存する。
-     */
     let lastStableScore = null;
 
     try {
@@ -790,7 +876,12 @@ scanBtn.addEventListener(
 
       log(
         `解析開始 / 間隔 ${interval}秒 / ` +
-        `確認回数 ${REQUIRED_CONFIRMATIONS}回`
+        `確認回数 ${REQUIRED_CONFIRMATIONS}回 / ` +
+        `対象 ${target === 'both'
+          ? '両チーム'
+          : target === 'minotani'
+            ? '箕谷'
+            : '相手'}`
       );
 
       for (
@@ -821,9 +912,9 @@ scanBtn.addEventListener(
 
         /*
          * 初期スコアがまだ取れていない間は
-         * 毎回OCRする。
+         * 毎回OCR。
          *
-         * それ以降も、画像変化または候補中ならOCR。
+         * それ以降も画像変化または候補中ならOCR。
          */
         if (
           !previousScore ||
@@ -896,7 +987,7 @@ scanBtn.addEventListener(
 
               /*
                * 候補中に元のスコアへ戻った場合、
-               * その候補は誤検出と判断。
+               * その候補は誤検出。
                */
               if (candidate) {
 
@@ -909,9 +1000,6 @@ scanBtn.addEventListener(
                 candidate = null;
               }
 
-              /*
-               * 同じスコアが安定している。
-               */
               lastStableScore = {
                 ...score
               };
@@ -927,8 +1015,7 @@ scanBtn.addEventListener(
             else {
 
               /*
-               * 現在スコアから+1点になっているか
-               * まず確認する。
+               * +1点の変化か確認。
                */
               const validChange =
                 isValidGoalChange(
@@ -938,13 +1025,6 @@ scanBtn.addEventListener(
 
               if (!validChange) {
 
-                /*
-                 * 2-0 → 2-2
-                 * 2-0 → 3-1
-                 * 2-0 → 1-0
-                 *
-                 * のような変化は候補にしない。
-                 */
                 log(
                   `無効なスコア変化を無視: ` +
                   `${scoreKey(previousScore)} → ` +
@@ -954,6 +1034,15 @@ scanBtn.addEventListener(
                 candidate = null;
 
               } else {
+
+                /*
+                 * どちらのチームのゴールか判定。
+                 */
+                const goalType =
+                  getGoalType(
+                    previousScore,
+                    score
+                  );
 
                 /*
                  * -------------------------------------
@@ -980,6 +1069,8 @@ scanBtn.addEventListener(
 
                     away: score.away,
 
+                    type: goalType,
+
                     time: t,
 
                     firstSeen: t,
@@ -988,16 +1079,15 @@ scanBtn.addEventListener(
 
                     count: 1,
 
-                    /*
-                     * 3回確認されるほど
-                     * 信頼度を高くする。
-                     */
                     confidence: 1
 
                   };
 
                   log(
                     `ゴール候補: ` +
+                    `${goalType === 'minotani'
+                      ? '箕谷'
+                      : '相手'} ` +
                     `${scoreKey(previousScore)} → ` +
                     `${key} @ ${fmt(t)}`
                   );
@@ -1024,6 +1114,12 @@ scanBtn.addEventListener(
                     away: score.away
                   };
 
+                  const confirmedGoalType =
+                    getGoalType(
+                      oldScore,
+                      newScore
+                    );
+
                   const wanted =
                     isWantedGoal(
                       oldScore,
@@ -1032,13 +1128,8 @@ scanBtn.addEventListener(
                     );
 
                   /*
-                   * ゴール時刻は、候補が最初に
-                   * 現れた時刻を採用。
-                   *
-                   * OCRがスコア変更を認識するまで
-                   * 数秒遅れることがあるため、
-                   * 最初に変化を確認した時刻の方が
-                   * ゴール位置に近い。
+                   * ゴール時刻は最初に
+                   * 新スコアを確認した時刻。
                    */
                   const goalTime =
                     candidate.firstSeen;
@@ -1055,15 +1146,11 @@ scanBtn.addEventListener(
                     );
 
                   if (
+                    confirmedGoalType &&
                     wanted &&
                     !duplicate
                   ) {
 
-                    /*
-                     * 信頼度：
-                     *
-                     * 3回確認 → 3
-                     */
                     goals.push({
 
                       time: goalTime,
@@ -1073,6 +1160,9 @@ scanBtn.addEventListener(
 
                       to:
                         scoreKey(newScore),
+
+                      type:
+                        confirmedGoalType,
 
                       confidence:
                         candidate.count
@@ -1084,6 +1174,9 @@ scanBtn.addEventListener(
 
                     log(
                       `⚽ ゴール確定: ` +
+                      `${confirmedGoalType === 'minotani'
+                        ? '箕谷'
+                        : '相手'} ` +
                       `${scoreKey(oldScore)} → ` +
                       `${scoreKey(newScore)} ` +
                       `@ ${fmt(goalTime)} ` +
@@ -1092,10 +1185,16 @@ scanBtn.addEventListener(
 
                   } else {
 
-                    if (!wanted) {
+                    if (
+                      confirmedGoalType &&
+                      !wanted
+                    ) {
 
                       log(
                         `対象外ゴール: ` +
+                        `${confirmedGoalType === 'minotani'
+                          ? '箕谷'
+                          : '相手'} ` +
                         `${scoreKey(oldScore)} → ` +
                         `${scoreKey(newScore)}`
                       );
@@ -1105,15 +1204,21 @@ scanBtn.addEventListener(
                     if (duplicate) {
 
                       log(
-                        `重複ゴールを除外: ` +
-                        `${key}`
+                        `重複ゴールを除外: ${key}`
                       );
 
                     }
+
                   }
 
                   /*
                    * このスコアを新しい確定スコアにする。
+                   *
+                   * ここが重要。
+                   *
+                   * 「両チーム」の場合でも、
+                   * 箕谷ゴール・相手ゴールの両方を
+                   * 次の基準スコアとして処理する。
                    */
                   previousScore = {
                     ...newScore
@@ -1166,11 +1271,6 @@ scanBtn.addEventListener(
 
       let finalScore = null;
 
-      /*
-       * 動画の最後付近を数回確認。
-       * 最後のOCR誤読を避けるため、
-       * 同じスコアが確認できたものを採用。
-       */
       const finalSamples = [];
 
       const finalStart =
@@ -1217,6 +1317,7 @@ scanBtn.addEventListener(
         }
 
       }
+
 
       /*
        * 最も多く確認されたスコアを
@@ -1916,9 +2017,15 @@ function renderDownload(
   const info =
     document.createElement('div');
 
+  const goalLabel =
+    g.type === 'opponent'
+      ? '相手ゴール'
+      : '箕谷ゴール';
+
   info.innerHTML =
     `<b>${name}</b><br>
      <span>
+       ${goalLabel} /
        ${fmt(start)}
        ～ ${fmt(start + len)}
        （${fmt(len)}）
