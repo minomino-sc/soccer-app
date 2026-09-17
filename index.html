@@ -56,17 +56,29 @@
   </div>
 
 </div>
- 
-  <!-- ▼ YouTube動画追加 -->
-  <section class="section-card" id="addVideoSection" style="display:none;">
-    <h2>YouTube動画追加</h2>
-    <div class="row">
-      <input id="youtubeUrl" placeholder="YouTube の共有URL（例 https://youtu.be/xxxxx）" />
-      <button id="btnAddYouTube" class="btn primary">追加</button>
-    </div>
-    <p class="muted small">動画は YouTube に限定公開でアップロードして共有してください。</p>
-  </section>
 
+<!-- ▼ YouTube動画追加 -->
+<section class="section-card" id="addVideoSection" style="display:none;">
+  <h2>YouTube動画追加</h2>
+
+  <div class="row vertical">
+    <label class="lbl">動画種類</label>
+    <select id="videoType">
+      <option value="match">🎥 試合動画</option>
+      <option value="highlight">🔥 ゴールハイライト</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <input id="youtubeUrl" placeholder="YouTube の共有URL（例 https://youtu.be/xxxxx）" />
+    <button id="btnAddYouTube" class="btn primary">追加</button>
+  </div>
+
+  <p class="muted small">
+    動画は YouTube に限定公開でアップロードして共有してください。
+  </p>
+</section>
+  
   <!-- ▼ 試合作成 -->
   <section class="section-card" id="createMatchSection" style="display:none;">
     <h2>試合結果作成</h2>
@@ -116,13 +128,21 @@
       <p class="muted small">同点でPK決着時のみ入力してください</p>
     </div>
 
-    <div class="row vertical">
-      <label class="lbl">紐づけ動画</label>
-      <select id="videoYear"></select>
-<select id="videoMonth" disabled></select>
-<select id="videoSelect" disabled></select>
-      <button id="btnCreateMatch" class="btn" style="margin-top:6px;">作成</button>
-    </div>
+<div class="row vertical">
+
+  <label class="lbl">🎥 試合動画</label>
+  <select id="videoYear"></select>
+  <select id="videoMonth" disabled></select>
+  <select id="videoSelect" disabled></select>
+
+  <label class="lbl" style="margin-top:12px;">🔥 ゴールハイライト</label>
+  <select id="highlightVideoYear"></select>
+  <select id="highlightVideoMonth" disabled></select>
+  <select id="highlightVideoSelect" disabled></select>
+
+  <button id="btnCreateMatch" class="btn" style="margin-top:6px;">作成</button>
+</div>
+    
     <p class="muted small">作成後に試合結果一覧で編集できます。</p>
   </section>
 
@@ -230,12 +250,19 @@
       </div>
     </div>
 
-    <div class="row vertical">
-      <label class="lbl">紐づけ動画</label>
-<select id="editVideoYear"></select>
-<select id="editVideoMonth" disabled></select>
-<select id="edit-video-select" disabled></select>     
-    </div>
+<div class="row vertical">
+
+  <label class="lbl">🎥 試合動画</label>
+  <select id="editVideoYear"></select>
+  <select id="editVideoMonth" disabled></select>
+  <select id="edit-video-select" disabled></select>
+
+  <label class="lbl" style="margin-top:12px;">🔥 ゴールハイライト</label>
+  <select id="editHighlightVideoYear"></select>
+  <select id="editHighlightVideoMonth" disabled></select>
+  <select id="edit-highlight-video-select" disabled></select>
+
+</div>
 
 <div class="row vertical">
   <label class="lbl">ゴール登録</label>
