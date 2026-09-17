@@ -721,46 +721,27 @@ async function seekTo(t) {
 
 function drawScoreCrop() {
 
-  /*
-   * スコア表示位置が動画によって多少変わるため、
-   * 固定の95px幅ではなく、左上の広めの範囲を取得する。
-   *
-   * 元動画の基準サイズ：
-   * 910 x 512
-   *
-   * 左上から
-   * x: 80 ～ 360
-   * y: 0 ～ 100
-   *
-   * をOCR対象とする。
-   */
-
   const vw = video.videoWidth || 910;
   const vh = video.videoHeight || 512;
 
   const sx =
-    Math.round(vw * (80 / 910));
+    Math.round(vw * (145 / 910));
 
   const sy = 0;
 
   const sw =
-    Math.round(vw * (280 / 910));
+    Math.round(vw * (95 / 910));
 
   const sh =
-    Math.round(vh * (100 / 512));
+    Math.round(vh * (70 / 512));
 
 
-  /*
-   * OCRしやすいように拡大
-   */
-  canvas.width = 840;
-  canvas.height = 300;
+  canvas.width = 380;
+  canvas.height = 280;
 
 
-  /*
-   * 白背景
-   */
   ctx.fillStyle = '#ffffff';
+
   ctx.fillRect(
     0,
     0,
@@ -769,9 +750,6 @@ function drawScoreCrop() {
   );
 
 
-  /*
-   * スコア表示部分を拡大して描画
-   */
   ctx.drawImage(
     video,
     sx,
