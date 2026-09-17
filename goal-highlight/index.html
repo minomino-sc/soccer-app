@@ -5,55 +5,261 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b0d10">
   <title>⚽ ゴールハイライト</title>
-  <link rel="stylesheet" href="./src/style.css">  
+  <link rel="stylesheet" href="./src/style.css">
 </head>
+
 <body>
+
   <main class="app">
+
     <header class="hero">
       <div class="ball">⚽</div>
-      <div><h1>ゴールハイライト</h1><p>スコア変化からゴール前後を自動抽出</p></div>
+
+      <div>
+        <h1>ゴールハイライト</h1>
+        <p>スコア変化からゴール前後を自動抽出</p>
+      </div>
     </header>
 
+
     <section class="card">
-      <label class="file-label">🎥 試合動画を選択
-        <input id="videoFile" type="file" accept="video/*">
+
+      <label class="file-label">
+        🎥 試合動画を選択
+
+        <input
+          id="videoFile"
+          type="file"
+          accept="video/*"
+        >
       </label>
-      <div class="meta"><span>動画時間</span><strong id="duration">--:--</strong></div>
-      <video id="video" playsinline muted preload="metadata"></video>
+
+      <div class="meta">
+        <span>動画時間</span>
+        <strong id="duration">--:--</strong>
+      </div>
+
+      <video
+        id="video"
+        playsinline
+        muted
+        preload="metadata"
+      ></video>
+
     </section>
+
 
     <section class="card controls">
+
       <h2>⚙️ 解析設定</h2>
-      <label>ゴール判定
-        <select id="targetTeam"><option value="minotani">箕谷のゴールだけ</option><option value="both">両チーム</option><option value="opponent">相手のゴールだけ</option></select>
+
+
+      <label>
+        ゴール判定
+
+        <select id="targetTeam">
+
+          <option value="minotani">
+            箕谷のゴールだけ
+          </option>
+
+          <option value="both">
+            両チーム
+          </option>
+
+          <option value="opponent">
+            相手のゴールだけ
+          </option>
+
+        </select>
       </label>
-      <label>解析間隔
-        <select id="intervalSec"><option value="1">1秒（おすすめ）</option><option value="2">2秒（速め）</option></select>
-      </label>
-      <div class="two">
-        <label>ゴール前<input id="beforeSec" type="number" min="0" max="60" value="15">秒</label>
-        <label>ゴール後<input id="afterSec" type="number" min="0" max="60" value="10">秒</label>
+
+
+      <div class="score-input">
+
+        <label>
+          最終スコア（必須）
+        </label>
+
+        <div class="two">
+
+          <label>
+            箕谷
+
+            <input
+              id="finalHome"
+              type="number"
+              min="0"
+              max="20"
+              value="0"
+              inputmode="numeric"
+            >
+          </label>
+
+
+          <label>
+            相手
+
+            <input
+              id="finalAway"
+              type="number"
+              min="0"
+              max="20"
+              value="0"
+              inputmode="numeric"
+            >
+          </label>
+
+        </div>
+
+
+        <p class="note">
+          例：2-0なら「箕谷 2」「相手 0」。
+          最終スコアはOCRで判定せず、この入力値を使用します。
+        </p>
+
       </div>
-      <button id="scanBtn" class="primary">🔍 スコア解析開始</button>
-      <progress id="progress" value="0" max="100"></progress>
-      <div id="status" class="status">動画を選択してください</div>
+
+
+      <label>
+        解析間隔
+
+        <select id="intervalSec">
+
+          <option value="1">
+            1秒（おすすめ）
+          </option>
+
+          <option value="2">
+            2秒（速め）
+          </option>
+
+        </select>
+      </label>
+
+
+      <div class="two">
+
+        <label>
+          ゴール前
+
+          <input
+            id="beforeSec"
+            type="number"
+            min="0"
+            max="60"
+            value="15"
+          >
+          秒
+        </label>
+
+
+        <label>
+          ゴール後
+
+          <input
+            id="afterSec"
+            type="number"
+            min="0"
+            max="60"
+            value="10"
+          >
+          秒
+        </label>
+
+      </div>
+
+
+      <button
+        id="scanBtn"
+        class="primary"
+      >
+        🔍 スコア解析開始
+      </button>
+
+
+      <progress
+        id="progress"
+        value="0"
+        max="100"
+      ></progress>
+
+
+      <div
+        id="status"
+        class="status"
+      >
+        動画を選択してください
+      </div>
+
     </section>
 
+
     <section class="card">
+
       <h2>⚽ 検出結果</h2>
-      <div id="results" class="results"><p class="muted">まだ解析していません。</p></div>
+
+      <div
+        id="results"
+        class="results"
+      >
+        <p class="muted">
+          まだ解析していません。
+        </p>
+      </div>
+
     </section>
+
 
     <section class="card">
+
       <h2>🎬 動画作成</h2>
-      <button id="loadEngineBtn" class="secondary" disabled>① 切り出しエンジンを準備</button>
-      <button id="extractBtn" class="primary" disabled>② ゴール動画を作成</button>
-      <p class="note">動画は端末内で処理します。サーバーへ動画をアップロードしません。</p>
+
+      <button
+        id="loadEngineBtn"
+        class="secondary"
+        disabled
+      >
+        ① 切り出しエンジンを準備
+      </button>
+
+      <button
+        id="extractBtn"
+        class="primary"
+        disabled
+      >
+        ② ゴール動画を作成
+      </button>
+
+      <p class="note">
+        動画は端末内で処理します。
+        サーバーへ動画をアップロードしません。
+      </p>
+
     </section>
 
-    <section class="card log-card"><h2>ログ</h2><pre id="log"></pre></section>
-    <canvas id="canvas" hidden></canvas>
+
+    <section class="card log-card">
+
+      <h2>ログ</h2>
+
+      <pre id="log"></pre>
+
+    </section>
+
+
+    <canvas
+      id="canvas"
+      hidden
+    ></canvas>
+
   </main>
-  <script type="module" src="./src/main.js?v=20260916-1"></script>
+
+
+  <script
+    type="module"
+    src="./src/main.js?v=20260917-3"
+  ></script>
+
 </body>
 </html>
