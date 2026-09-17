@@ -1073,6 +1073,9 @@ async function readInitialScore() {
         await recognizeScore();
 
 
+      /*
+       * OCRで何を読み取ったかをログに残す
+       */
       if (score) {
 
         samples.push({
@@ -1086,7 +1089,15 @@ async function readInitialScore() {
           `${scoreKey(score)} @ ${fmt(t)}`
         );
 
+      } else {
+
+        log(
+          `初期スコアOCR: ` +
+          `${fmt(t)} → スコア認識できず`
+        );
+
       }
+
 
     } catch (e) {
 
@@ -1100,7 +1111,13 @@ async function readInitialScore() {
 
 
   if (!samples.length) {
+
+    log(
+      '初期スコアOCR: 有効なスコアを1件も取得できませんでした'
+    );
+
     return null;
+
   }
 
 
