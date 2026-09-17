@@ -41,6 +41,8 @@ let scanBusy = false;
 let ocrWorker = null;
 let sourceUrl = null;
 
+// スコア表示のX位置
+let scoreCropX = 145;
 
 /* =========================================================
    共通
@@ -719,13 +721,13 @@ async function seekTo(t) {
    スコア画像
 ========================================================= */
 
-function drawScoreCrop() {
+function drawScoreCrop(x = scoreCropX) {
 
   const vw = video.videoWidth || 910;
   const vh = video.videoHeight || 512;
 
   const sx =
-    Math.round(vw * (145 / 910));
+    Math.round(vw * (x / 910));
 
   const sy = 0;
 
@@ -735,10 +737,8 @@ function drawScoreCrop() {
   const sh =
     Math.round(vh * (70 / 512));
 
-
   canvas.width = 380;
   canvas.height = 280;
-
 
   ctx.fillStyle = '#ffffff';
 
@@ -748,7 +748,6 @@ function drawScoreCrop() {
     canvas.width,
     canvas.height
   );
-
 
   ctx.drawImage(
     video,
@@ -761,6 +760,17 @@ function drawScoreCrop() {
     canvas.width,
     canvas.height
   );
+}
+
+async function recognizeInitialScoreAtX(t, x) {
+
+  await seekTo(t);
+
+  drawScoreCrop(x);
+
+  const score = await recognizeScore();
+
+  return score;
 }
 
 /* =========================================================
@@ -999,167 +1009,202 @@ function getGoalType(
 
 async function readInitialScore() {
 
-  const samples = [];
-
-
   const end =
     Math.min(
       duration,
       20
     );
 
+  /*
+   * 開始直後の数秒を使って、
+   * スコアの横位置を探索する。
+   *
+   * 縦位置・大きさは従来のまま。
+   */
+  const sampleTimes = [
+    1,
+    4,
+    8,
+    12,
+    16
+  ].filter(
+    t => t < end
+  );
 
   /*
-   * 開始直後はスコア表示が安定しない場合があるため、
-   * 1秒～20秒の間から複数回取得。
+   * 従来のX=145を中心に、
+   * 左右方向だけ探索する。
    */
+  const xCandidates = [
+    145,
+    125,
+    165,
+    105,
+    185,
+    85,
+    205,
+    65,
+    225
+  ];
 
-  const sampleCount = 6;
+  const results = [];
 
+  log(
+    '初期スコア位置を横方向に探索します'
+  );
 
-  for (
-    let i = 0;
-    i < sampleCount;
-    i++
-  ) {
+  for (const x of xCandidates) {
 
-    const ratio =
-      i /
-      (sampleCount - 1);
+    let successCount = 0;
+    const scores = [];
 
+    for (const t of sampleTimes) {
 
-    const t =
-      1 +
-      (
-        Math.max(
-          0,
-          end - 2
-        ) *
-        ratio
-      );
+      try {
 
+        const score =
+          await recognizeInitialScoreAtX(
+            t,
+            x
+          );
 
-    try {
+        if (score) {
 
-      await seekTo(t);
+          successCount++;
 
-      drawScoreCrop();
+          scores.push({
+            time: t,
+            score
+          });
 
+          log(
+            `初期スコア探索: ` +
+            `X=${x} / ${fmt(t)} → ` +
+            `${scoreKey(score)}`
+          );
 
-      const score =
-        await recognizeScore();
+        }
 
-
-      /*
-       * OCRで何を読み取ったかをログに残す
-       */
-      if (score) {
-
-        samples.push({
-          time: t,
-          score
-        });
-
-
-        log(
-          `初期スコア候補: ` +
-          `${scoreKey(score)} @ ${fmt(t)}`
-        );
-
-      } else {
+      } catch (e) {
 
         log(
-          `初期スコアOCR: ` +
-          `${fmt(t)} → スコア認識できず`
+          `初期スコア探索エラー: ` +
+          `X=${x} / ${fmt(t)} → ` +
+          `${e.message}`
         );
 
       }
+    }
 
+    /*
+     * このX位置で何回同じスコアを
+     * 認識できたか確認
+     */
+    if (scores.length) {
 
-    } catch (e) {
+      const counts = {};
 
-      log(
-        `初期スコアOCRエラー: ${e.message}`
+      scores.forEach(
+        item => {
+
+          const key =
+            scoreKey(item.score);
+
+          counts[key] =
+            (counts[key] || 0) + 1;
+
+        }
+      );
+
+      const best =
+        Object.entries(counts)
+          .sort(
+            (a, b) =>
+              b[1] - a[1]
+          )[0];
+
+      if (best) {
+
+        const m =
+          best[0].match(
+            /^(\d+)-(\d+)$/
+          );
+
+        if (m) {
+
+          results.push({
+
+            x,
+
+            score: {
+              home: Number(m[1]),
+              away: Number(m[2])
+            },
+
+            count: best[1],
+
+            total: scores.length
+
+          });
+        }
+      }
+    }
+  }
+
+  /*
+   * どのX位置でも読めなかった
+   */
+  if (!results.length) {
+
+    log(
+      '初期スコアOCR: ' +
+      'どの横位置でも認識できませんでした'
+    );
+
+    return null;
+  }
+
+  /*
+   * 最も安定して認識できた位置を採用。
+   *
+   * 同じ回数なら従来の145pxに近い方。
+   */
+  results.sort(
+    (a, b) => {
+
+      if (b.count !== a.count) {
+        return b.count - a.count;
+      }
+
+      return (
+        Math.abs(a.x - 145) -
+        Math.abs(b.x - 145)
       );
 
     }
-
-  }
-
-
-  if (!samples.length) {
-
-    log(
-      '初期スコアOCR: 有効なスコアを1件も取得できませんでした'
-    );
-
-    return null;
-
-  }
-
-
-  const counts = {};
-
-
-  samples.forEach(
-    item => {
-
-      const key =
-        scoreKey(item.score);
-
-
-      counts[key] =
-        (counts[key] || 0) + 1;
-
-    }
   );
-
 
   const best =
-    Object.entries(counts)
-      .sort(
-        (a, b) =>
-          b[1] - a[1]
-      )[0];
+    results[0];
 
-
-  if (!best) {
-    return null;
-  }
-
-
-  const m =
-    best[0].match(
-      /^(\d+)-(\d+)$/
-    );
-
-
-  if (!m) {
-    return null;
-  }
-
-
-  const result = {
-
-    home:
-      Number(m[1]),
-
-    away:
-      Number(m[2])
-
-  };
-
+  /*
+   * この動画のスコア位置として記憶
+   */
+  scoreCropX = best.x;
 
   log(
-    `初期スコア確定: ` +
-    `${scoreKey(result)} ` +
-    `（${best[1]}/${samples.length}回）`
+    `スコア位置確定: ` +
+    `X=${scoreCropX} / ` +
+    `${scoreKey(best.score)} ` +
+    `（${best.count}/${best.total}回）`
   );
 
+  status(
+    `初期スコア: ${scoreKey(best.score)}`
+  );
 
-  return result;
+  return best.score;
 }
-
 
 /* =========================================================
    動画全体のスコアを時系列で取得
