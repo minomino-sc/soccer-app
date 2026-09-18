@@ -2980,8 +2980,8 @@ extractBtn.addEventListener(
                * 1.04倍ズーム
                */
               '-vf',
-              'scale=iw*1.04:ih*1.04:flags=lanczos,' +
-              'crop=iw/1.04:ih/1.04',
+              'scale=iw*2:ih*2:flags=lanczos,' +
+              'crop=iw/2:ih/2',
 
               '-map',
               '0:v:0',
