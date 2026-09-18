@@ -28,6 +28,7 @@ const intervalEl = $('#intervalSec');
 
 const finalHomeEl = $('#finalHome');
 const finalAwayEl = $('#finalAway');
+const effectModeEl = $('#effectMode');
 
 let sourceFile = null;
 let duration = 0;
@@ -2615,7 +2616,7 @@ loadEngineBtn.addEventListener(
 
 /* =========================================================
    ゴール動画作成
-   ズーム ＋ スロー版
+   演出あり / なし対応
 ========================================================= */
 
 extractBtn.addEventListener(
@@ -2648,6 +2649,12 @@ extractBtn.addEventListener(
         Number(afterEl.value) || 10
       );
 
+    const effectMode =
+      effectModeEl?.value || 'on';
+
+    const useEffect =
+      effectMode === 'on';
+
     try {
 
       status(
@@ -2661,6 +2668,12 @@ extractBtn.addEventListener(
           1024 /
           1024
         ).toFixed(1)}MB`
+      );
+
+      log(
+        useEffect
+          ? '🎬 演出加工：あり'
+          : '🎬 演出加工：なし'
       );
 
       try {
@@ -2688,7 +2701,8 @@ extractBtn.addEventListener(
         i++
       ) {
 
-        const g = goals[i];
+        const g =
+          goals[i];
 
         const start =
           Math.max(
@@ -2702,21 +2716,143 @@ extractBtn.addEventListener(
             g.time + after
           );
 
-        /*
-         * =============================================
-         * 演出区間
-         *
-         * ゴール4秒前
-         *      ↓
-         * 1.08倍ズーム
-         *      ↓
-         * ゴール2秒前
-         *      ↓
-         * 0.5倍スロー
-         *      ↓
-         * ゴール
-         * =============================================
-         */
+        const len =
+          Math.max(
+            0.5,
+            end - start
+          );
+
+        const finalOut =
+          `goal_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
+
+        status(
+          `GOAL ${i + 1}/${goals.length} を作成中…`
+        );
+
+        log(
+          `GOAL ${i + 1}: ` +
+          `${fmt(start)} ～ ${fmt(end)}`
+        );
+
+        /* =====================================================
+           演出なし
+        ===================================================== */
+
+        if (!useEffect) {
+
+          const result =
+            await ffmpeg.exec([
+              '-ss',
+              String(start),
+
+              '-i',
+              inputPath,
+
+              '-t',
+              String(len),
+
+              '-map',
+              '0:v:0',
+
+              '-map',
+              '0:a:0?',
+
+              '-c:v',
+              'libx264',
+
+              '-preset',
+              'ultrafast',
+
+              '-crf',
+              '28',
+
+              '-c:a',
+              'aac',
+
+              '-b:a',
+              '96k',
+
+              '-movflags',
+              '+faststart',
+
+              '-y',
+              finalOut
+            ]);
+
+          if (result !== 0) {
+            throw new Error(
+              `GOAL ${i + 1} の通常切り出しに失敗しました`
+            );
+          }
+
+          const data =
+            await ffmpeg.readFile(
+              finalOut
+            );
+
+          if (
+            !data ||
+            !data.length
+          ) {
+            throw new Error(
+              `${finalOut} が作成されませんでした`
+            );
+          }
+
+          const url =
+            URL.createObjectURL(
+              new Blob(
+                [data],
+                {
+                  type:
+                    'video/mp4'
+                }
+              )
+            );
+
+          renderDownload(
+            finalOut,
+            url,
+            g,
+            start,
+            len
+          );
+
+          clipNames.push(
+            finalOut
+          );
+
+          log(
+            `　✅ GOAL ${i + 1} 通常版作成完了`
+          );
+
+          continue;
+        }
+
+        /* =====================================================
+           演出あり
+           
+           通常
+              ↓
+           ゴール4秒前～2秒前
+              ↓
+           1.08倍ズーム
+              ↓
+           ゴール2秒前～ゴール
+              ↓
+           0.5倍スロー
+              ↓
+           ゴール～2秒後
+              ↓
+           0.5倍スロー
+              ↓
+           通常
+        ===================================================== */
 
         const zoomStart =
           Math.max(
@@ -2730,16 +2866,10 @@ extractBtn.addEventListener(
             g.time - 2
           );
 
-        const zoomDuration =
-          Math.max(
-            0.5,
-            slowStart - zoomStart
-          );
-
-        const slowDuration =
-          Math.max(
-            0.5,
-            g.time - slowStart
+        const slowEnd =
+          Math.min(
+            end,
+            g.time + 2
           );
 
         const preDuration =
@@ -2748,44 +2878,59 @@ extractBtn.addEventListener(
             zoomStart - start
           );
 
-        const postStart =
-          g.time;
+        const zoomDuration =
+          Math.max(
+            0,
+            slowStart - zoomStart
+          );
+
+        const slowDuration =
+          Math.max(
+            0,
+            slowEnd - slowStart
+          );
 
         const postDuration =
           Math.max(
             0,
-            end - postStart
+            end - slowEnd
           );
 
         const preOut =
-          `pre_${String(i + 1).padStart(2, '0')}.mp4`;
+          `pre_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
 
         const zoomOut =
-          `zoom_${String(i + 1).padStart(2, '0')}.mp4`;
+          `zoom_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
 
         const slowOut =
-          `slow_${String(i + 1).padStart(2, '0')}.mp4`;
+          `slow_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
 
         const postOut =
-          `post_${String(i + 1).padStart(2, '0')}.mp4`;
+          `post_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
 
-        const finalOut =
-          `goal_${String(i + 1).padStart(2, '0')}.mp4`;
-
-        status(
-          `GOAL ${i + 1}/${goals.length} を作成中…`
-        );
-
-        log(
-          `GOAL ${i + 1}: ` +
-          `${fmt(start)} ～ ${fmt(end)}`
-        );
-
-        /*
-         * =============================================
-         * ① 通常部分
-         * =============================================
-         */
+        /* =====================================================
+           ① 通常部分
+        ===================================================== */
 
         if (preDuration > 0.1) {
 
@@ -2802,6 +2947,7 @@ extractBtn.addEventListener(
 
               '-map',
               '0:v:0',
+
               '-map',
               '0:a:0?',
 
@@ -2834,152 +2980,152 @@ extractBtn.addEventListener(
           }
 
           log(
-            `　通常: ${fmt(start)} ～ ${fmt(zoomStart)}`
+            `　通常: ` +
+            `${fmt(start)} ～ ${fmt(zoomStart)}`
           );
         }
 
-        /*
-         * =============================================
-         * ② ゴール4〜2秒前
-         *    1.08倍ズーム
-         * =============================================
-         */
+        /* =====================================================
+           ② ズーム
+        ===================================================== */
 
-        log(
-          `　⚡ ズーム: ` +
-          `${fmt(zoomStart)} ～ ${fmt(slowStart)}`
-        );
+        if (zoomDuration > 0.1) {
 
-        const zoomResult =
-          await ffmpeg.exec([
-            '-ss',
-            String(zoomStart),
+          log(
+            `　⚡ ズーム: ` +
+            `${fmt(zoomStart)} ～ ${fmt(slowStart)}`
+          );
 
-            '-i',
-            inputPath,
+          const result =
+            await ffmpeg.exec([
+              '-ss',
+              String(zoomStart),
 
-            '-t',
-            String(zoomDuration),
+              '-i',
+              inputPath,
 
-            '-map',
-            '0:v:0',
-            '-map',
-            '0:a:0?',
+              '-t',
+              String(zoomDuration),
 
-            '-vf',
-            'scale=iw*1.08:ih*1.08:flags=lanczos,crop=iw/1.08:ih/1.08',
+              '-map',
+              '0:v:0',
 
-            '-c:v',
-            'libx264',
+              '-map',
+              '0:a:0?',
 
-            '-preset',
-            'ultrafast',
+              '-vf',
+              'scale=iw*1.08:ih*1.08:flags=lanczos,crop=iw/1.08:ih/1.08',
 
-            '-crf',
-            '28',
+              '-c:v',
+              'libx264',
 
-            '-c:a',
-            'aac',
+              '-preset',
+              'ultrafast',
 
-            '-b:a',
-            '96k',
+              '-crf',
+              '28',
 
-            '-movflags',
-            '+faststart',
+              '-c:a',
+              'aac',
 
-            '-y',
-            zoomOut
-          ]);
+              '-b:a',
+              '96k',
 
-        if (zoomResult !== 0) {
-          throw new Error(
-            'ズーム処理に失敗しました'
+              '-movflags',
+              '+faststart',
+
+              '-y',
+              zoomOut
+            ]);
+
+          if (result !== 0) {
+            throw new Error(
+              'ズーム処理に失敗しました'
+            );
+          }
+
+          log(
+            '　✅ ズーム動画作成成功'
           );
         }
 
-        log(
-          '　✅ ズーム動画作成成功'
-        );
+        /* =====================================================
+           ③ ゴール前後のスロー
+        ===================================================== */
 
-        /*
-         * =============================================
-         * ③ ゴール直前2秒
-         *    0.5倍スロー
-         * =============================================
-         */
+        if (slowDuration > 0.1) {
 
-        log(
-          `　🐢 スロー: ` +
-          `${fmt(slowStart)} ～ ${fmt(g.time)}`
-        );
+          log(
+            `　🐢 スロー: ` +
+            `${fmt(slowStart)} ～ ${fmt(slowEnd)}`
+          );
 
-        const slowResult =
-          await ffmpeg.exec([
-            '-ss',
-            String(slowStart),
+          const result =
+            await ffmpeg.exec([
+              '-ss',
+              String(slowStart),
 
-            '-i',
-            inputPath,
+              '-i',
+              inputPath,
 
-            '-t',
-            String(slowDuration),
+              '-t',
+              String(slowDuration),
 
-            '-map',
-            '0:v:0',
-            '-map',
-            '0:a:0?',
+              '-map',
+              '0:v:0',
 
-            '-vf',
-            'setpts=2*PTS',
+              '-map',
+              '0:a:0?',
 
-            '-af',
-            'atempo=0.5',
+              '-vf',
+              'setpts=2*PTS',
 
-            '-c:v',
-            'libx264',
+              '-af',
+              'atempo=0.5',
 
-            '-preset',
-            'ultrafast',
+              '-c:v',
+              'libx264',
 
-            '-crf',
-            '28',
+              '-preset',
+              'ultrafast',
 
-            '-c:a',
-            'aac',
+              '-crf',
+              '28',
 
-            '-b:a',
-            '96k',
+              '-c:a',
+              'aac',
 
-            '-movflags',
-            '+faststart',
+              '-b:a',
+              '96k',
 
-            '-y',
-            slowOut
-          ]);
+              '-movflags',
+              '+faststart',
 
-        if (slowResult !== 0) {
-          throw new Error(
-            'スロー処理に失敗しました'
+              '-y',
+              slowOut
+            ]);
+
+          if (result !== 0) {
+            throw new Error(
+              'スロー処理に失敗しました'
+            );
+          }
+
+          log(
+            '　✅ スロー動画作成成功'
           );
         }
 
-        log(
-          '　✅ スロー動画作成成功'
-        );
-
-        /*
-         * =============================================
-         * ④ ゴール後
-         *    通常再生
-         * =============================================
-         */
+        /* =====================================================
+           ④ ゴール後通常
+        ===================================================== */
 
         if (postDuration > 0.1) {
 
-          const postResult =
+          const result =
             await ffmpeg.exec([
               '-ss',
-              String(postStart),
+              String(slowEnd),
 
               '-i',
               inputPath,
@@ -2989,6 +3135,7 @@ extractBtn.addEventListener(
 
               '-map',
               '0:v:0',
+
               '-map',
               '0:a:0?',
 
@@ -3014,22 +3161,21 @@ extractBtn.addEventListener(
               postOut
             ]);
 
-          if (postResult !== 0) {
+          if (result !== 0) {
             throw new Error(
-              'ゴール後の動画作成に失敗しました'
+              'ゴール後の通常部分の作成に失敗しました'
             );
           }
 
           log(
-            `　通常: ${fmt(postStart)} ～ ${fmt(end)}`
+            `　通常: ` +
+            `${fmt(slowEnd)} ～ ${fmt(end)}`
           );
         }
 
-        /*
-         * =============================================
-         * ⑤ 4つの動画を結合
-         * =============================================
-         */
+        /* =====================================================
+           ⑤ 結合
+        ===================================================== */
 
         const concatParts = [];
 
@@ -3039,13 +3185,17 @@ extractBtn.addEventListener(
           );
         }
 
-        concatParts.push(
-          `file '${zoomOut}'`
-        );
+        if (zoomDuration > 0.1) {
+          concatParts.push(
+            `file '${zoomOut}'`
+          );
+        }
 
-        concatParts.push(
-          `file '${slowOut}'`
-        );
+        if (slowDuration > 0.1) {
+          concatParts.push(
+            `file '${slowOut}'`
+          );
+        }
 
         if (postDuration > 0.1) {
           concatParts.push(
@@ -3053,16 +3203,17 @@ extractBtn.addEventListener(
           );
         }
 
-        const concatText =
-          concatParts.join('\n') +
-          '\n';
-
         const concatFile =
-          `concat_${String(i + 1).padStart(2, '0')}.txt`;
+          `concat_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.txt`;
 
         await ffmpeg.writeFile(
           concatFile,
-          concatText
+          concatParts.join('\n') + '\n'
         );
 
         const concatResult =
@@ -3085,15 +3236,13 @@ extractBtn.addEventListener(
 
         if (concatResult !== 0) {
           throw new Error(
-            '動画の結合に失敗しました'
+            '演出動画の結合に失敗しました'
           );
         }
 
-        /*
-         * =============================================
-         * ⑥ 完成動画を表示
-         * =============================================
-         */
+        /* =====================================================
+           ⑥ 完成動画
+        ===================================================== */
 
         const data =
           await ffmpeg.readFile(
@@ -3109,26 +3258,28 @@ extractBtn.addEventListener(
           );
         }
 
-        const blob =
-          new Blob(
-            [data],
-            {
-              type: 'video/mp4'
-            }
-          );
-
         const url =
-          URL.createObjectURL(blob);
+          URL.createObjectURL(
+            new Blob(
+              [data],
+              {
+                type:
+                  'video/mp4'
+              }
+            )
+          );
 
         renderDownload(
           finalOut,
           url,
           g,
           start,
-          end - start
+          len
         );
 
-        clipNames.push(finalOut);
+        clipNames.push(
+          finalOut
+        );
 
         log(
           `　✅ GOAL ${i + 1} ` +
@@ -3136,11 +3287,9 @@ extractBtn.addEventListener(
         );
       }
 
-      /*
-       * =============================================
-       * 複数ゴールを1本に結合
-       * =============================================
-       */
+      /* =====================================================
+         複数ゴールを1本に結合
+      ===================================================== */
 
       if (clipNames.length > 1) {
 
@@ -3195,7 +3344,8 @@ extractBtn.addEventListener(
             new Blob(
               [allData],
               {
-                type: 'video/mp4'
+                type:
+                  'video/mp4'
               }
             )
           );
@@ -3205,7 +3355,9 @@ extractBtn.addEventListener(
           goals.length
         );
 
-      } else if (clipNames.length === 1) {
+      } else if (
+        clipNames.length === 1
+      ) {
 
         const single =
           await ffmpeg.readFile(
@@ -3217,7 +3369,8 @@ extractBtn.addEventListener(
             new Blob(
               [single],
               {
-                type: 'video/mp4'
+                type:
+                  'video/mp4'
               }
             )
           );
@@ -3228,56 +3381,50 @@ extractBtn.addEventListener(
         );
       }
 
-      /*
-       * =============================================
-       * 一時ファイル削除
-       * =============================================
-       */
+      /* =====================================================
+         一時ファイル削除
+      ===================================================== */
+
+      const tempNames = [
+        ...clipNames,
+        'concat_all.txt',
+        'all_goals.mp4'
+      ];
 
       for (
-        const name of [
-          ...clipNames,
+        let i = 0;
+        i < goals.length;
+        i++
+      ) {
+        tempNames.push(
+          `pre_${String(i + 1).padStart(2, '0')}.mp4`,
+          `zoom_${String(i + 1).padStart(2, '0')}.mp4`,
+          `slow_${String(i + 1).padStart(2, '0')}.mp4`,
+          `post_${String(i + 1).padStart(2, '0')}.mp4`,
+          `concat_${String(i + 1).padStart(2, '0')}.txt`
+        );
+      }
 
-          ...goals.map(
-            (_, i) =>
-              `pre_${String(i + 1).padStart(2, '0')}.mp4`
-          ),
-
-          ...goals.map(
-            (_, i) =>
-              `zoom_${String(i + 1).padStart(2, '0')}.mp4`
-          ),
-
-          ...goals.map(
-            (_, i) =>
-              `slow_${String(i + 1).padStart(2, '0')}.mp4`
-          ),
-
-          ...goals.map(
-            (_, i) =>
-              `post_${String(i + 1).padStart(2, '0')}.mp4`
-          ),
-
-          ...goals.map(
-            (_, i) =>
-              `concat_${String(i + 1).padStart(2, '0')}.txt`
-          ),
-
-          'concat_all.txt',
-          'all_goals.mp4'
-        ]
+      for (
+        const name of tempNames
       ) {
         try {
-          await ffmpeg.deleteFile(name);
+          await ffmpeg.deleteFile(
+            name
+          );
         } catch {}
       }
 
       try {
-        await ffmpeg.unmount('/input');
+        await ffmpeg.unmount(
+          '/input'
+        );
       } catch {}
 
       try {
-        await ffmpeg.deleteDir('/input');
+        await ffmpeg.deleteDir(
+          '/input'
+        );
       } catch {}
 
       status(
