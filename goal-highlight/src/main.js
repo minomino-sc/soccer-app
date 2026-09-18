@@ -2610,10 +2610,15 @@ loadEngineBtn.addEventListener(
 
 
 
+
+
+
+
 /* =========================================================
    ゴール動画作成
-   ・通常切り出し
-   ・ゴール直前2秒だけ軽くズーム
+   ・ゴール直前2秒：1.04倍ズーム
+   ・それ以外：通常速度
+   ・WORKERFS方式を維持
 ========================================================= */
 
 extractBtn.addEventListener(
@@ -2749,34 +2754,10 @@ extractBtn.addEventListener(
           );
 
 
-        const out =
-          `goal_${String(
-            i + 1
-          ).padStart(
-            2,
-            '0'
-          )}.mp4`;
-
-
-        status(
-          `GOAL ${i + 1}/${goals.length} ` +
-          `を作成中…`
-        );
-
-
-        log(
-          `GOAL ${i + 1}: ` +
-          `${fmt(start)} ～ ` +
-          `${fmt(end)}`
-        );
-
-
         /*
-         * =================================================
-         * ゴール直前2秒の位置
-         * =================================================
+         * ゴール検出時刻が
+         * 切り出し動画の何秒目か
          */
-
         const goalAt =
           Math.min(
             len,
@@ -2786,6 +2767,15 @@ extractBtn.addEventListener(
             )
           );
 
+
+        /*
+         * ===============================================
+         * ズーム設定
+         * ===============================================
+         *
+         * ゴール直前2秒
+         * 1.04倍
+         */
 
         const zoomDuration =
           Math.min(
@@ -2801,175 +2791,158 @@ extractBtn.addEventListener(
           );
 
 
-        log(
-          `　⚡ ゴール直前 ` +
-          `${fmt(start + zoomStart)} ～ ` +
-          `${fmt(start + goalAt)} をズーム`
+        const zoomEnd =
+          goalAt;
+
+
+        const out =
+          `goal_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
+
+
+        const preFile =
+          `pre_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
+
+
+        const zoomFile =
+          `zoom_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
+
+
+        const postFile =
+          `post_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.mp4`;
+
+
+        const concatFile =
+          `goal_concat_${String(
+            i + 1
+          ).padStart(
+            2,
+            '0'
+          )}.txt`;
+
+
+        status(
+          `GOAL ${i + 1}/${goals.length} ` +
+          `を作成中…`
         );
 
 
-        let result = 0;
+        log(
+          `GOAL ${i + 1}: ` +
+          `${fmt(start)} ～ ` +
+          `${fmt(end)}`
+        );
+
+
+        log(
+          `　⚡ ズーム: ` +
+          `${fmt(start + zoomStart)} ～ ` +
+          `${fmt(start + zoomEnd)}`
+        );
 
 
         /* =================================================
-           ① まず通常のゴール動画を作成
-           → 現在正常に動いている処理
+           区間の長さ
         ================================================= */
 
-        result =
-          await ffmpeg.exec([
-
-            '-ss',
-            String(start),
-
-            '-i',
-            inputPath,
-
-            '-t',
-            String(len),
-
-            '-map',
-            '0:v:0',
-
-            '-map',
-            '0:a:0?',
-
-            '-c:v',
-            'libx264',
-
-            '-preset',
-            'ultrafast',
-
-            '-crf',
-            '28',
-
-            '-pix_fmt',
-            'yuv420p',
-
-            '-c:a',
-            'aac',
-
-            '-b:a',
-            '96k',
-
-            '-movflags',
-            '+faststart',
-
-            '-y',
-
-            'normal_' + out
-
-          ]);
-
-
-        if (
-          result !== 0
-        ) {
-
-          throw new Error(
-            `通常動画の作成に失敗しました ` +
-            `（終了コード: ${result}）`
+        const preDuration =
+          Math.max(
+            0,
+            zoomStart
           );
 
-        }
+
+        const zoomDurationActual =
+          Math.max(
+            0,
+            zoomEnd - zoomStart
+          );
 
 
-        /*
-         * =================================================
-         * ② ズーム加工
-         *
-         * ゴール直前2秒だけ1.04倍
-         *
-         * 音声には触らない
-         * =================================================
-         */
+        const postDuration =
+          Math.max(
+            0,
+            len - zoomEnd
+          );
 
-        let zoomSucceeded =
-          false;
 
+        /* =================================================
+           ① ゴール前通常部分
+        ================================================= */
 
         if (
-          zoomDuration >
-          0.1
+          preDuration >
+          0.01
         ) {
 
-          try {
+          const result =
+            await ffmpeg.exec([
 
-            /*
-             * ゴール直前部分だけを
-             * 軽くズームして作成
-             */
-            result =
-              await ffmpeg.exec([
+              '-ss',
+              String(start),
 
-                '-ss',
-                String(
-                  start +
-                  zoomStart
-                ),
+              '-i',
+              inputPath,
 
-                '-i',
-                inputPath,
+              '-t',
+              String(preDuration),
 
-                '-t',
-                String(
-                  zoomDuration
-                ),
+              '-map',
+              '0:v:0',
 
-                '-vf',
-                'scale=iw*1.04:ih*1.04,' +
-                'crop=iw/1.04:ih/1.04',
+              '-map',
+              '0:a:0?',
 
-                '-an',
+              '-c:v',
+              'libx264',
 
-                '-c:v',
-                'libx264',
+              '-preset',
+              'ultrafast',
 
-                '-preset',
-                'ultrafast',
+              '-crf',
+              '28',
 
-                '-crf',
-                '28',
+              '-pix_fmt',
+              'yuv420p',
 
-                '-pix_fmt',
-                'yuv420p',
+              '-c:a',
+              'aac',
 
-                '-y',
+              '-b:a',
+              '96k',
 
-                'zoom_' + out
+              '-y',
 
-              ]);
+              preFile
+
+            ]);
 
 
-            if (
-              result === 0
-            ) {
-
-              const zoomData =
-                await ffmpeg.readFile(
-                  'zoom_' + out
-                );
-
-
-              if (
-                zoomData &&
-                zoomData.length
-              ) {
-
-                zoomSucceeded =
-                  true;
-
-              }
-
-            }
-
-          } catch (
-            zoomError
+          if (
+            result !== 0
           ) {
 
-            console.warn(
-              'ZOOM ERROR',
-              zoomError
+            throw new Error(
+              'ゴール前動画の作成に失敗しました'
             );
 
           }
@@ -2977,47 +2950,254 @@ extractBtn.addEventListener(
         }
 
 
-        /*
-         * =================================================
-         * 今回は安全性を優先
-         *
-         * ズーム加工そのものが成功した場合でも、
-         * 元動画との結合はまだ行わない。
-         *
-         * → まずズーム処理がiPhoneで動くか確認する。
-         * =================================================
-         */
+        /* =================================================
+           ② ゴール直前ズーム
+        ================================================= */
 
         if (
-          zoomSucceeded
+          zoomDurationActual >
+          0.01
         ) {
 
-          log(
-            `　✅ ズーム加工成功`
-          );
+          const result =
+            await ffmpeg.exec([
 
-        } else {
+              '-ss',
+              String(
+                start +
+                zoomStart
+              ),
+
+              '-i',
+              inputPath,
+
+              '-t',
+              String(
+                zoomDurationActual
+              ),
+
+              /*
+               * 1.04倍ズーム
+               */
+              '-vf',
+              'scale=iw*1.04:ih*1.04:flags=lanczos,' +
+              'crop=iw/1.04:ih/1.04',
+
+              '-map',
+              '0:v:0',
+
+              '-map',
+              '0:a:0?',
+
+              '-c:v',
+              'libx264',
+
+              '-preset',
+              'ultrafast',
+
+              '-crf',
+              '28',
+
+              '-pix_fmt',
+              'yuv420p',
+
+              '-c:a',
+              'aac',
+
+              '-b:a',
+              '96k',
+
+              '-y',
+
+              zoomFile
+
+            ]);
+
+
+          if (
+            result !== 0
+          ) {
+
+            throw new Error(
+              'ズーム動画の作成に失敗しました'
+            );
+
+          }
+
 
           log(
-            `　⚠️ ズーム加工は使用せず ` +
-            `通常版を使用`
+            `　✅ ズーム動画作成成功`
           );
 
         }
 
 
-        /*
-         * =================================================
-         * 今回の出力は「通常版」
-         *
-         * ※ズーム部分を実際に一本へ結合するのは、
-         *   ズーム処理が正常に動くことを確認してから。
-         * =================================================
-         */
+        /* =================================================
+           ③ ゴール後通常部分
+        ================================================= */
+
+        if (
+          postDuration >
+          0.01
+        ) {
+
+          const result =
+            await ffmpeg.exec([
+
+              '-ss',
+              String(
+                start +
+                zoomEnd
+              ),
+
+              '-i',
+              inputPath,
+
+              '-t',
+              String(
+                postDuration
+              ),
+
+              '-map',
+              '0:v:0',
+
+              '-map',
+              '0:a:0?',
+
+              '-c:v',
+              'libx264',
+
+              '-preset',
+              'ultrafast',
+
+              '-crf',
+              '28',
+
+              '-pix_fmt',
+              'yuv420p',
+
+              '-c:a',
+              'aac',
+
+              '-b:a',
+              '96k',
+
+              '-y',
+
+              postFile
+
+            ]);
+
+
+          if (
+            result !== 0
+          ) {
+
+            throw new Error(
+              'ゴール後動画の作成に失敗しました'
+            );
+
+          }
+
+        }
+
+
+        /* =================================================
+           ④ 3区間を結合
+        ================================================= */
+
+        const concatParts = [];
+
+
+        if (
+          preDuration >
+          0.01
+        ) {
+
+          concatParts.push(
+            `file '${preFile}'`
+          );
+
+        }
+
+
+        if (
+          zoomDurationActual >
+          0.01
+        ) {
+
+          concatParts.push(
+            `file '${zoomFile}'`
+          );
+
+        }
+
+
+        if (
+          postDuration >
+          0.01
+        ) {
+
+          concatParts.push(
+            `file '${postFile}'`
+          );
+
+        }
+
+
+        await ffmpeg.writeFile(
+          concatFile,
+          concatParts.join('\n') +
+          '\n'
+        );
+
+
+        const concatResult =
+          await ffmpeg.exec([
+
+            '-f',
+            'concat',
+
+            '-safe',
+            '0',
+
+            '-i',
+            concatFile,
+
+            '-c',
+            'copy',
+
+            '-y',
+
+            out
+
+          ]);
+
+
+        if (
+          concatResult !== 0
+        ) {
+
+          throw new Error(
+            'ズーム動画の結合に失敗しました'
+          );
+
+        }
+
+
+        log(
+          `　✅ GOAL ${i + 1} ` +
+          `ズーム反映完了`
+        );
+
+
+        /* =================================================
+           完成動画確認
+        ================================================= */
 
         const data =
           await ffmpeg.readFile(
-            'normal_' + out
+            out
           );
 
 
@@ -3034,7 +3214,7 @@ extractBtn.addEventListener(
 
 
         clipNames.push(
-          'normal_' + out
+          out
         );
 
 
@@ -3061,6 +3241,30 @@ extractBtn.addEventListener(
           start,
           len
         );
+
+
+        /* =================================================
+           中間ファイル削除
+        ================================================= */
+
+        for (
+          const name of [
+            preFile,
+            zoomFile,
+            postFile,
+            concatFile
+          ]
+        ) {
+
+          try {
+
+            await ffmpeg.deleteFile(
+              name
+            );
+
+          } catch {}
+
+        }
 
       }
 
@@ -3204,55 +3408,6 @@ extractBtn.addEventListener(
       }
 
 
-      /*
-       * 演出テスト用ファイルも削除
-       */
-      for (
-        const name of goals.map(
-          (_, i) =>
-            `zoom_goal_${String(
-              i + 1
-            ).padStart(
-              2,
-              '0'
-            )}.mp4`
-        )
-      ) {
-
-        try {
-
-          await ffmpeg.deleteFile(
-            name
-          );
-
-        } catch {}
-
-      }
-
-
-      for (
-        const name of goals.map(
-          (_, i) =>
-            `normal_goal_${String(
-              i + 1
-            ).padStart(
-              2,
-              '0'
-            )}.mp4`
-        )
-      ) {
-
-        try {
-
-          await ffmpeg.deleteFile(
-            name
-          );
-
-        } catch {}
-
-      }
-
-
       try {
 
         await ffmpeg.unmount(
@@ -3313,6 +3468,9 @@ extractBtn.addEventListener(
 
   }
 );
+
+
+
 
 
 
