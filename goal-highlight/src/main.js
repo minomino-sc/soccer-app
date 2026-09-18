@@ -2607,9 +2607,11 @@ loadEngineBtn.addEventListener(
   }
 );
 
-
 /* =========================================================
    ゴール動画作成
+   ・ゴール直前：軽くズーム
+   ・ゴール付近：0.5倍スロー
+   ・その後：通常速度
 ========================================================= */
 
 extractBtn.addEventListener(
@@ -2675,6 +2677,10 @@ extractBtn.addEventListener(
         ).toFixed(1)}MB`
       );
 
+
+      /* ===================================================
+         WORKERFS
+      =================================================== */
 
       try {
 
@@ -2743,6 +2749,68 @@ extractBtn.addEventListener(
           );
 
 
+        /*
+         * 切り出した動画の中で、
+         * ゴール検出時刻が何秒目なのか
+         */
+        const goalAt =
+          Math.min(
+            len,
+            Math.max(
+              0,
+              g.time - start
+            )
+          );
+
+
+        /*
+         * ===============================================
+         * 演出設定
+         * ===============================================
+         *
+         * ゴール0.5秒前からスロー開始
+         * ゴール後2秒までスロー
+         *
+         * ゴール直前2秒は軽くズーム
+         */
+
+        const slowLead = 0.5;
+
+        const slowAfter = 2.0;
+
+        const zoomDuration = 2.0;
+
+
+        /*
+         * スロー開始位置
+         */
+        const slowStart =
+          Math.max(
+            0,
+            goalAt - slowLead
+          );
+
+
+        /*
+         * スロー終了位置
+         */
+        const slowEnd =
+          Math.min(
+            len,
+            goalAt + slowAfter
+          );
+
+
+        /*
+         * ズーム開始位置
+         */
+        const zoomStart =
+          Math.max(
+            0,
+            slowStart - zoomDuration
+          );
+
+
         const out =
           `goal_${String(
             i + 1
@@ -2754,7 +2822,7 @@ extractBtn.addEventListener(
 
         status(
           `GOAL ${i + 1}/${goals.length} ` +
-          `を作成中…`
+          `を演出加工中…`
         );
 
 
@@ -2765,61 +2833,536 @@ extractBtn.addEventListener(
         );
 
 
-        const result =
-          await ffmpeg.exec([
-
-            '-ss',
-            String(start),
-
-            '-i',
-            inputPath,
-
-            '-t',
-            String(len),
-
-            '-map',
-            '0:v:0',
-
-            '-map',
-            '0:a:0?',
-
-            '-c:v',
-            'libx264',
-
-            '-preset',
-            'ultrafast',
-
-            '-crf',
-            '28',
-
-            '-c:a',
-            'aac',
-
-            '-b:a',
-            '96k',
-
-            '-movflags',
-            '+faststart',
-
-            '-y',
-
-            out
-
-          ]);
+        log(
+          `　⚡ ${fmt(start + zoomStart)} ～ ` +
+          `${fmt(start + slowStart)} ズーム`
+        );
 
 
-        if (result !== 0) {
+        log(
+          `　🐢 ${fmt(start + slowStart)} ～ ` +
+          `${fmt(start + slowEnd)} スロー`
+        );
 
-          throw new Error(
-            `FFmpeg処理に失敗しました ` +
-            `（終了コード: ${result}）`
+
+        /* =================================================
+           演出区間を作成
+        ================================================= */
+
+        const segments = [];
+
+
+        /*
+         * ① ゴール前の通常速度
+         */
+        if (
+          zoomStart >
+          0.01
+        ) {
+
+          segments.push({
+
+            start: 0,
+
+            end: zoomStart,
+
+            type: 'normal'
+
+          });
+
+        }
+
+
+        /*
+         * ② ゴール直前ズーム
+         */
+        if (
+          slowStart >
+          zoomStart + 0.01
+        ) {
+
+          segments.push({
+
+            start: zoomStart,
+
+            end: slowStart,
+
+            type: 'zoom'
+
+          });
+
+        }
+
+
+        /*
+         * ③ ゴール付近スロー
+         */
+        if (
+          slowEnd >
+          slowStart + 0.01
+        ) {
+
+          segments.push({
+
+            start: slowStart,
+
+            end: slowEnd,
+
+            type: 'slow'
+
+          });
+
+        }
+
+
+        /*
+         * ④ ゴール後通常速度
+         */
+        if (
+          len >
+          slowEnd + 0.01
+        ) {
+
+          segments.push({
+
+            start: slowEnd,
+
+            end: len,
+
+            type: 'normal'
+
+          });
+
+        }
+
+
+        /*
+         * 万一短すぎる動画の場合
+         */
+        if (
+          !segments.length
+        ) {
+
+          segments.push({
+
+            start: 0,
+
+            end: len,
+
+            type: 'normal'
+
+          });
+
+        }
+
+
+        const segmentCount =
+          segments.length;
+
+
+        /* =================================================
+           FFmpegフィルター構築
+        ================================================= */
+
+        const filterParts = [];
+
+
+        /*
+         * 映像を分割
+         */
+        const videoLabels =
+          segments
+            .map(
+              (_, index) =>
+                `[vsrc${index}]`
+            )
+            .join('');
+
+
+        filterParts.push(
+          `[0:v]split=${segmentCount}` +
+          `${videoLabels};`
+        );
+
+
+        /*
+         * 音声を分割
+         */
+        const audioLabels =
+          segments
+            .map(
+              (_, index) =>
+                `[asrc${index}]`
+            )
+            .join('');
+
+
+        filterParts.push(
+          `[0:a]asplit=${segmentCount}` +
+          `${audioLabels};`
+        );
+
+
+        /*
+         * 各区間を加工
+         */
+        segments.forEach(
+          (
+            segment,
+            index
+          ) => {
+
+            const s =
+              Number(
+                segment.start.toFixed(
+                  3
+                )
+              );
+
+
+            const e =
+              Number(
+                segment.end.toFixed(
+                  3
+                )
+              );
+
+
+            let videoFilter =
+              `[vsrc${index}]` +
+              `trim=start=${s}:end=${e}`;
+
+
+            let audioFilter =
+              `[asrc${index}]` +
+              `atrim=start=${s}:end=${e}`;
+
+
+            /* =========================================
+               ズーム
+            ========================================= */
+
+            if (
+              segment.type ===
+              'zoom'
+            ) {
+
+              /*
+               * 1.06倍に拡大して中央を切り出す
+               */
+              videoFilter +=
+                `,scale=iw*1.06:` +
+                `ih*1.06:flags=lanczos` +
+                `,crop=iw/1.06:` +
+                `ih/1.06` +
+                `,setpts=PTS-STARTPTS`;
+
+
+              audioFilter +=
+                `,asetpts=PTS-STARTPTS`;
+
+            }
+
+
+            /* =========================================
+               スロー
+            ========================================= */
+
+            else if (
+              segment.type ===
+              'slow'
+            ) {
+
+              /*
+               * 映像：0.5倍速
+               */
+              videoFilter +=
+                `,setpts=2*(PTS-STARTPTS)`;
+
+
+              /*
+               * 音声：0.5倍速
+               *
+               * 映像と音声を同期させる
+               */
+              audioFilter +=
+                `,asetpts=PTS-STARTPTS` +
+                `,atempo=0.5`;
+
+            }
+
+
+            /* =========================================
+               通常速度
+            ========================================= */
+
+            else {
+
+              videoFilter +=
+                `,setpts=PTS-STARTPTS`;
+
+
+              audioFilter +=
+                `,asetpts=PTS-STARTPTS`;
+
+            }
+
+
+            videoFilter +=
+              `[v${index}];`;
+
+
+            audioFilter +=
+              `[a${index}];`;
+
+
+            filterParts.push(
+              videoFilter
+            );
+
+
+            filterParts.push(
+              audioFilter
+            );
+
+          }
+        );
+
+
+        /*
+         * 全区間を一本に結合
+         */
+        const concatInputs =
+          segments
+            .map(
+              (_, index) =>
+                `[v${index}][a${index}]`
+            )
+            .join('');
+
+
+        filterParts.push(
+          concatInputs +
+          `concat=n=${segmentCount}` +
+          `:v=1:a=1` +
+          `[outv][outa]`
+        );
+
+
+        const filterGraph =
+          filterParts.join('');
+
+
+        /*
+         * スローによって伸びる時間
+         */
+        const slowDuration =
+          Math.max(
+            0,
+            slowEnd - slowStart
+          );
+
+
+        const processedLen =
+          len +
+          slowDuration;
+
+
+        /* =================================================
+           FFmpeg実行
+        ================================================= */
+
+        let result = 0;
+
+        let effectSucceeded =
+          false;
+
+
+        try {
+
+          result =
+            await ffmpeg.exec([
+
+              /*
+               * 入力開始位置
+               */
+              '-ss',
+              String(start),
+
+              /*
+               * 入力する長さ
+               */
+              '-t',
+              String(len),
+
+              '-i',
+              inputPath,
+
+
+              /*
+               * 演出フィルター
+               */
+              '-filter_complex',
+              filterGraph,
+
+
+              /*
+               * 加工後映像
+               */
+              '-map',
+              '[outv]',
+
+
+              /*
+               * 加工後音声
+               */
+              '-map',
+              '[outa]',
+
+
+              /*
+               * 映像
+               */
+              '-c:v',
+              'libx264',
+
+              '-preset',
+              'ultrafast',
+
+              '-crf',
+              '28',
+
+              '-pix_fmt',
+              'yuv420p',
+
+
+              /*
+               * 音声
+               */
+              '-c:a',
+              'aac',
+
+              '-b:a',
+              '96k',
+
+
+              '-movflags',
+              '+faststart',
+
+              '-y',
+
+              out
+
+            ]);
+
+
+          if (
+            result === 0
+          ) {
+
+            effectSucceeded =
+              true;
+
+          }
+
+        } catch (
+          effectError
+        ) {
+
+          console.warn(
+            'EFFECT ERROR',
+            effectError
           );
 
         }
 
 
-        clipNames.push(out);
+        /* =================================================
+           演出加工に失敗した場合
+           → 通常版で作成
+        ================================================= */
 
+        if (
+          !effectSucceeded
+        ) {
+
+          log(
+            `⚠️ GOAL ${i + 1} ` +
+            `演出加工に失敗したため ` +
+            `通常版で作成します`
+          );
+
+
+          result =
+            await ffmpeg.exec([
+
+              '-ss',
+              String(start),
+
+              '-i',
+              inputPath,
+
+              '-t',
+              String(len),
+
+              '-map',
+              '0:v:0',
+
+              '-map',
+              '0:a:0?',
+
+              '-c:v',
+              'libx264',
+
+              '-preset',
+              'ultrafast',
+
+              '-crf',
+              '28',
+
+              '-pix_fmt',
+              'yuv420p',
+
+              '-c:a',
+              'aac',
+
+              '-b:a',
+              '96k',
+
+              '-movflags',
+              '+faststart',
+
+              '-y',
+
+              out
+
+            ]);
+
+
+          if (
+            result !== 0
+          ) {
+
+            throw new Error(
+              `FFmpeg処理に失敗しました ` +
+              `（終了コード: ${result}）`
+            );
+
+          }
+
+        } else {
+
+          log(
+            `　✅ GOAL ${i + 1} ` +
+            `演出加工完了`
+          );
+
+        }
+
+
+        /* =================================================
+           作成ファイル確認
+        ================================================= */
 
         const data =
           await ffmpeg.readFile(
@@ -2838,6 +3381,15 @@ extractBtn.addEventListener(
 
         }
 
+
+        clipNames.push(
+          out
+        );
+
+
+        /* =================================================
+           ブラウザ表示
+        ================================================= */
 
         const blob =
           new Blob(
@@ -2860,7 +3412,9 @@ extractBtn.addEventListener(
           url,
           g,
           start,
-          len
+          effectSucceeded
+            ? processedLen
+            : len
         );
 
       }
@@ -2917,7 +3471,9 @@ extractBtn.addEventListener(
           ]);
 
 
-        if (result !== 0) {
+        if (
+          result !== 0
+        ) {
 
           throw new Error(
             'ゴール動画の結合に失敗しました'
@@ -3063,7 +3619,6 @@ extractBtn.addEventListener(
 
   }
 );
-
 
 /* =========================================================
    ALL_GOALS
