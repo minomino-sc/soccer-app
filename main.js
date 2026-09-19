@@ -270,7 +270,8 @@ function renderVideoSelectGroup(
   yearId,
   monthId,
   videoId,
-  selectedVideoId
+  selectedVideoId,
+  videoType = "match"
 ){
   const yearSel  = document.getElementById(yearId);
   const monthSel = document.getElementById(monthId);
@@ -278,45 +279,71 @@ function renderVideoSelectGroup(
 
   if(!yearSel || !monthSel || !videoSel) return;
 
-  const grouped = groupVideosByYearMonth(videos);
+  // 既存動画には videoType がないため、
+  // videoTypeなしは「試合動画」として扱う
+  const filteredVideos = videos.filter(v => {
+    if(videoType === "highlight"){
+      return v.videoType === "highlight";
+    }
+
+    return !v.videoType || v.videoType === "match";
+  });
+
+  const grouped = groupVideosByYearMonth(filteredVideos);
 
   // --- 年 ---
   yearSel.innerHTML = `<option value="">年を選択</option>`;
-  Object.keys(grouped).sort((a,b)=>b-a).forEach(y=>{
-    const opt = document.createElement("option");
-    opt.value = y;
-    opt.textContent = y + "年";
-    yearSel.appendChild(opt);
-  });
+
+  Object.keys(grouped)
+    .sort((a,b)=>b-a)
+    .forEach(y=>{
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y + "年";
+      yearSel.appendChild(opt);
+    });
 
   monthSel.innerHTML = `<option value="">月を選択</option>`;
   videoSel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+
   monthSel.disabled = true;
   videoSel.disabled = true;
 
   yearSel.onchange = ()=>{
     const y = yearSel.value;
+
     monthSel.innerHTML = `<option value="">月を選択</option>`;
     videoSel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
+
     videoSel.disabled = true;
 
-    if(!y) return (monthSel.disabled = true);
+    if(!y){
+      monthSel.disabled = true;
+      return;
+    }
 
-    Object.keys(grouped[y]).sort((a,b)=>b-a).forEach(m=>{
-      const opt = document.createElement("option");
-      opt.value = m;
-      opt.textContent = m + "月";
-      monthSel.appendChild(opt);
-    });
+    Object.keys(grouped[y])
+      .sort((a,b)=>b-a)
+      .forEach(m=>{
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m + "月";
+        monthSel.appendChild(opt);
+      });
+
     monthSel.disabled = false;
   };
 
   monthSel.onchange = ()=>{
     const y = yearSel.value;
     const m = monthSel.value;
+
     videoSel.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
 
-    if(!y || !m) return (videoSel.disabled = true);
+    if(!y || !m){
+      videoSel.disabled = true;
+      return;
+    }
 
     grouped[y][m].forEach(v=>{
       const opt = document.createElement("option");
@@ -324,6 +351,7 @@ function renderVideoSelectGroup(
       opt.textContent = v.title || v.url || v.id;
       videoSel.appendChild(opt);
     });
+
     videoSel.disabled = false;
 
     if(selectedVideoId){
@@ -333,14 +361,18 @@ function renderVideoSelectGroup(
 
   // --- 編集時：既存選択を復元 ---
   if(selectedVideoId){
-    const v = videos.find(v=>v.id === selectedVideoId);
+    const v = filteredVideos.find(v=>v.id === selectedVideoId);
+
     if(v?.createdAt){
       const d = new Date(v.createdAt);
+
       if(!isNaN(d)){
         yearSel.value = d.getFullYear();
         yearSel.dispatchEvent(new Event("change"));
+
         monthSel.value = d.getMonth() + 1;
         monthSel.dispatchEvent(new Event("change"));
+
         videoSel.value = selectedVideoId;
       }
     }
