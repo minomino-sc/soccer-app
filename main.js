@@ -379,19 +379,44 @@ function renderVideoSelectGroup(
   }
 }
 
-function renderVideoSelects(selectedVideoId){
+function renderVideoSelects(
+  selectedVideoId = null,
+  selectedHighlightVideoId = null
+){
+  // 新規作成：試合動画
   renderVideoSelectGroup(
     "videoYear",
     "videoMonth",
     "videoSelect",
-    selectedVideoId
+    selectedVideoId,
+    "match"
   );
 
+  // 新規作成：ゴールハイライト
+  renderVideoSelectGroup(
+    "highlightVideoYear",
+    "highlightVideoMonth",
+    "highlightVideoSelect",
+    selectedHighlightVideoId,
+    "highlight"
+  );
+
+  // 編集：試合動画
   renderVideoSelectGroup(
     "editVideoYear",
     "editVideoMonth",
     "edit-video-select",
-    selectedVideoId
+    selectedVideoId,
+    "match"
+  );
+
+  // 編集：ゴールハイライト
+  renderVideoSelectGroup(
+    "editHighlightVideoYear",
+    "editHighlightVideoMonth",
+    "edit-highlight-video-select",
+    selectedHighlightVideoId,
+    "highlight"
   );
 }
 
