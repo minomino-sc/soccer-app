@@ -1131,12 +1131,17 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     e.target.value = "";
   });
 
-  document.getElementById("btnAddYouTube")?.addEventListener("click", ()=>{
-    const url = (document.getElementById("youtubeUrl")?.value||"").trim();
-    if(!url) return alert("URLを入力してください");
-    addYouTubeVideo(url);
-    document.getElementById("youtubeUrl").value = "";
-  });
+document.getElementById("btnAddYouTube")?.addEventListener("click", ()=>{
+  const url = (document.getElementById("youtubeUrl")?.value||"").trim();
+  const videoType =
+    document.getElementById("videoType")?.value || "match";
+
+  if(!url) return alert("URLを入力してください");
+
+  addYouTubeVideo(url, videoType);
+
+  document.getElementById("youtubeUrl").value = "";
+});
 
   document.getElementById("btnCreateMatch")?.addEventListener("click", createMatch);
   document.getElementById("modalClose")?.addEventListener("click", closeEditModal);
