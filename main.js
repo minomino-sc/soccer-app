@@ -581,6 +581,32 @@ hlSeconds: [],
       videoSelect.innerHTML = `<option value="">— 紐づけ動画なし —</option>`;
       videoSelect.disabled = true;
     }
+
+    // ★ ゴールハイライト動画も完全リセット
+    const highlightYearSel =
+      document.getElementById("highlightVideoYear");
+    const highlightMonthSel =
+      document.getElementById("highlightVideoMonth");
+    const highlightVideoSelect =
+      document.getElementById("highlightVideoSelect");
+
+    if(highlightYearSel){
+      highlightYearSel.value = "";
+    }
+
+    if(highlightMonthSel){
+      highlightMonthSel.value = "";
+      highlightMonthSel.innerHTML =
+        `<option value="">月を選択</option>`;
+      highlightMonthSel.disabled = true;
+    }
+
+    if(highlightVideoSelect){
+      highlightVideoSelect.value = "";
+      highlightVideoSelect.innerHTML =
+        `<option value="">— 紐づけ動画なし —</option>`;
+      highlightVideoSelect.disabled = true;
+    }
   }
 }
 
