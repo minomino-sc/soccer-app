@@ -511,8 +511,14 @@ async function createMatch(){
 
 const pkScoreAEl = document.getElementById("pkA");
 const pkScoreBEl = document.getElementById("pkB");
- 
-  const videoId = videoSelect?.value || null;
+
+const videoSelect = document.getElementById("videoSelect");
+const highlightVideoSelect =
+  document.getElementById("highlightVideoSelect");
+
+const videoId = videoSelect?.value || null;
+const highlightVideoId =
+  highlightVideoSelect?.value || null;
 
   if(!date || !opponent) return alert("日付と対戦相手は必須です");
 
