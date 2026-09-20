@@ -914,15 +914,8 @@ select {
 .match-type-row {
   display: flex;
   align-items: center;
-  gap: 2px !important;
-  flex-wrap: nowrap;
-  margin: 0;
-  padding: 0;
-}
-
-/* カップ戦などの種別バッジ */
-.match-type-row .type-badge {
-  margin: 0 !important;
+  gap: 3px;
+  flex-wrap: wrap;
 }
 
 /* ゴールハイライト */
@@ -936,9 +929,14 @@ select {
   background: #fff3cd;
   color: #b45309;
   white-space: nowrap;
-  margin: 0 !important;
+  margin: 6px 0;
 }
 
 .highlight-badge:active {
   transform: scale(0.97);
 }
+
+/* 種別バッジとハイライトの間だけ調整 */
+.match-type-row .type-badge {
+  margin-right: 0;
+}　
