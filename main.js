@@ -943,12 +943,35 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
 
       card.appendChild(meta);
 
-      // action row
-      const actionRow = document.createElement("div");
-      actionRow.className = "action-row";
-      if(it.videoId) actionRow.appendChild(createPlayButton(it.videoId,null));
-      else { const spacer = document.createElement("div"); spacer.style.flex="1 1 0"; actionRow.appendChild(spacer); }
+// action row
+const actionRow = document.createElement("div");
+actionRow.className = "action-row";
 
+// 🎥 試合動画
+if(it.videoId){
+  actionRow.appendChild(createPlayButton(it.videoId,null));
+}
+
+// 🔥 ゴールハイライト
+if(it.highlightVideoId){
+  const highlightBtn = document.createElement("button");
+  highlightBtn.type = "button";
+  highlightBtn.className = "wide-btn";
+  highlightBtn.textContent = "🔥 ゴールハイライト";
+
+  highlightBtn.addEventListener("click", (e)=>{
+    e.stopPropagation();
+
+    window.open(
+      `https://youtu.be/${it.highlightVideoId}`,
+      "_blank",
+      "noopener"
+    );
+  });
+
+  actionRow.appendChild(highlightBtn);
+}
+       
       const editBtn = document.createElement("button");
       editBtn.type="button"; editBtn.className="wide-btn"; editBtn.textContent="編集";
       editBtn.addEventListener("click", async (e)=>{
