@@ -911,11 +911,44 @@ if(it.pkScoreA != null && it.pkScoreB != null){
   scoreText += ` （PK ${it.pkScoreA} - ${it.pkScoreB}）`;
 }
 
-meta.innerHTML = `<div class="title"><span class="type-icon ${typeClass}">${icon}</span> ${it.date} — ${it.opponent}</div>
-                  <div class="type-badge ${typeClass}">${it.matchType||"未設定"}</div>
-                  <div class="sub match-venue">${it.place||""}</div>
-                  <div class="sub">得点: ${scoreText}</div>`;     
+// 試合情報
+meta.innerHTML = `
+  <div class="title">
+    <span class="type-icon ${typeClass}">${icon}</span>
+    ${it.date} — ${it.opponent}
+  </div>
 
+  <div class="match-type-row">
+    <span class="type-badge ${typeClass}">
+      ${it.matchType || "未設定"}
+    </span>
+  </div>
+
+  <div class="sub match-venue">${it.place || ""}</div>
+  <div class="sub">得点: ${scoreText}</div>
+`;
+
+// 🔥 ゴールハイライト
+if(it.highlightVideoId){
+  const highlightBtn = document.createElement("button");
+
+  highlightBtn.type = "button";
+  highlightBtn.className = "highlight-badge";
+  highlightBtn.textContent = "🔥 ゴールハイライト";
+
+  highlightBtn.addEventListener("click", (e)=>{
+    e.stopPropagation();
+
+    window.open(
+      `https://youtu.be/${it.highlightVideoId}`,
+      "_blank",
+      "noopener"
+    );
+  });
+
+  meta.querySelector(".match-type-row").appendChild(highlightBtn);
+}
+              
 // highlights（新方式）
 if(Array.isArray(it.highlights) && it.highlights.length){
   const hlWrap = document.createElement("div");
@@ -950,26 +983,6 @@ actionRow.className = "action-row";
 // 🎥 試合動画
 if(it.videoId){
   actionRow.appendChild(createPlayButton(it.videoId,null));
-}
-
-// 🔥 ゴールハイライト
-if(it.highlightVideoId){
-  const highlightBtn = document.createElement("button");
-  highlightBtn.type = "button";
-  highlightBtn.className = "wide-btn";
-  highlightBtn.textContent = "🔥 ゴールハイライト";
-
-  highlightBtn.addEventListener("click", (e)=>{
-    e.stopPropagation();
-
-    window.open(
-      `https://youtu.be/${it.highlightVideoId}`,
-      "_blank",
-      "noopener"
-    );
-  });
-
-  actionRow.appendChild(highlightBtn);
 }
        
       const editBtn = document.createElement("button");
