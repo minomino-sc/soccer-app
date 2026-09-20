@@ -421,7 +421,7 @@ function renderVideoSelects(
 }
 
 /* ---------- YouTube 動画追加（Firestore 保存） ---------- */
-async function addYouTubeVideo(url){
+async function addYouTubeVideo(url, videoType = "match"){
   const id = extractYouTubeId(url);
   if(!id) return alert("YouTube のURLが正しくありません。");
 
@@ -458,13 +458,16 @@ if(!snap.empty){
   return alert("この動画は既に追加されています（Firestore）");
 }
  
-    const payload = {
-      id, url, title,
-      teamName: team.teamName,
-      inviteCode: team.inviteCode,
-      createdAt: new Date().toISOString()
-    };
-
+const payload = {
+  id,
+  url,
+  title,
+  videoType: videoType === "highlight" ? "highlight" : "match",
+  teamName: team.teamName,
+  inviteCode: team.inviteCode,
+  createdAt: new Date().toISOString()
+};
+     
     await addDoc(videosCol, payload);
     // 再読み込み
     await loadVideosFromFirestore();
