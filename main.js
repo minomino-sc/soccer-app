@@ -1078,9 +1078,15 @@ async function saveEditGeneric(){
 const pkScoreAVal = document.getElementById("edit-pkA")?.value;
 const pkScoreBVal = document.getElementById("edit-pkB")?.value;
 
-  const videoSelect = document.getElementById("edit-video-select");
-  const videoId = videoSelect?.value || null;
+const videoSelect = document.getElementById("edit-video-select");
+const videoId = videoSelect?.value || null;
 
+const highlightVideoSelect =
+  document.getElementById("edit-highlight-video-select");
+
+const highlightVideoId =
+  highlightVideoSelect?.value || null;
+   
   const hlList = document.getElementById("hlList");
   const hlSeconds = [];
   if(hlList) Array.from(hlList.children).forEach(child=>{
@@ -1099,7 +1105,8 @@ const pkScoreBVal = document.getElementById("edit-pkB")?.value;
   pkScoreA: pkScoreAVal==="" ? null : Number(pkScoreAVal),
   pkScoreB: pkScoreBVal==="" ? null : Number(pkScoreBVal),
 highlights: editingHighlights,
-videoId
+videoId,
+highlightVideoId    
     });
     alert("Firestore に保存しました！");
     closeEditModal();
