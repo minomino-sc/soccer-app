@@ -913,9 +913,9 @@ select {
 /* 試合種別 + ゴールハイライト */
 .match-type-row {
   display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 /* ゴールハイライト */
@@ -929,14 +929,9 @@ select {
   background: #fff3cd;
   color: #b45309;
   white-space: nowrap;
-  margin: 6px 0;
+  margin: 0;
 }
 
 .highlight-badge:active {
   transform: scale(0.97);
 }
-
-/* 種別バッジとハイライトの間だけ調整 */
-.match-type-row .type-badge {
-  margin-right: 0;
-}　
