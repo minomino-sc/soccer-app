@@ -909,3 +909,28 @@ select {
 .portal-link:active{
   transform:scale(0.98);
 }
+
+/* 試合種別 + ゴールハイライト */
+.match-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ゴールハイライト */
+.highlight-badge {
+  border: none;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fff3cd;
+  color: #b45309;
+  white-space: nowrap;
+}
+
+.highlight-badge:active {
+  transform: scale(0.97);
+}
