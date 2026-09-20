@@ -512,7 +512,6 @@ async function createMatch(){
 const pkScoreAEl = document.getElementById("pkA");
 const pkScoreBEl = document.getElementById("pkB");
 
-const videoSelect = document.getElementById("videoSelect");
 const highlightVideoSelect =
   document.getElementById("highlightVideoSelect");
 
