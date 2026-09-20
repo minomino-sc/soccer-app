@@ -1015,7 +1015,18 @@ header.addEventListener("click", ()=>{
 }
 
 /* ---------- 編集モーダル関連（open/save/delete/highlight） ---------- */
-function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSeconds,videoId){
+function openEditModal(
+  index,
+  date,
+  matchType,
+  opponent,
+  place,
+  scoreA,
+  scoreB,
+  hlSeconds,
+  videoId,
+  highlightVideoId
+){
 
   // ★ ① 編集用ハイライトを必ずリセット
   editingHighlights = [];
@@ -1037,7 +1048,7 @@ function openEditModal(index,date,matchType,opponent,place,scoreA,scoreB,hlSecon
   document.getElementById("edit-my-score").value = scoreA ?? "";
   document.getElementById("edit-opponent-score").value = scoreB ?? "";
 
-  renderVideoSelects(videoId);
+renderVideoSelects(videoId, highlightVideoId);
 
   document.getElementById("editModal").classList.remove("hidden");
 }
