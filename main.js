@@ -536,9 +536,11 @@ const highlightVideoId =
     scoreA: scoreA === "" ? null : Number(scoreA),
     scoreB: scoreB === "" ? null : Number(scoreB),
   pkScoreA: pkScoreAEl?.value === "" ? null : Number(pkScoreAEl.value),
-  pkScoreB: pkScoreBEl?.value === "" ? null : Number(pkScoreBEl.value),     
-    videoId,
-    hlSeconds: [],
+  pkScoreB: pkScoreBEl?.value === "" ? null : Number(pkScoreBEl.value),          
+videoId,
+highlightVideoId,
+hlSeconds: [],
+
     createdAt: new Date().toISOString()
   };
 
