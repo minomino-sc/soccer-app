@@ -955,7 +955,7 @@ btn.textContent = `${ev.time}' ${ev.team==="my"?"⚽ 得点シーン":"🔴 失�
         e.stopPropagation();
         const pass = prompt("編集にはパスワードが必要です。");
         if(pass !== "mino2025") return alert("パスワードが違います");
-        openEditModal(idx, it.date, it.matchType||"", it.opponent, it.place, it.scoreA, it.scoreB, it.hlSeconds||[], it.videoId);
+openEditModal(idx, it.date, it.matchType||"", it.opponent, it.place, it.scoreA, it.scoreB, it.hlSeconds||[], it.videoId, it.highlightVideoId);
       });
       actionRow.appendChild(editBtn);
 
