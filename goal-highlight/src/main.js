@@ -987,12 +987,12 @@ function getGoalType(from, to) {
   return null;
 }
 
-
 /* =========================================================
    初期スコア
+   ★最終スコアを先に確認してから初期スコアを決定
 ========================================================= */
 
-async function readInitialScore() {
+async function readInitialScore(finalScore) {
 
   const end =
     Math.min(
@@ -1002,9 +1002,12 @@ async function readInitialScore() {
 
   const sampleTimes = [
     1,
+    2,
     3,
+    4,
     5,
-    8,
+    7,
+    9,
     12,
     16
   ].filter(
@@ -1029,11 +1032,74 @@ async function readInitialScore() {
     '初期スコア位置を横方向に探索します'
   );
 
-  for (const x of xCandidates) {
+
+  /* =======================================================
+     最終スコアから見て
+     絶対にあり得ない初期スコアを除外
+  ======================================================= */
+
+  const isPossibleInitialScore = (
+    score
+  ) => {
+
+    if (
+      !score ||
+      !finalScore
+    ) {
+      return false;
+    }
+
+
+    if (
+      score.home < 0 ||
+      score.away < 0 ||
+      score.home > 20 ||
+      score.away > 20
+    ) {
+      return false;
+    }
+
+
+    /*
+     * 最終スコアより大きいスコアは
+     * 初期スコアとしてあり得ない。
+     *
+     * 例：
+     * 最終 1-0
+     * OCR 0-2
+     *
+     * → これは絶対におかしいので除外。
+     */
+
+    if (
+      score.home >
+      finalScore.home ||
+      score.away >
+      finalScore.away
+    ) {
+
+      return false;
+    }
+
+
+    return true;
+  };
+
+
+  /* =======================================================
+     横方向にスコア位置を探索
+  ======================================================= */
+
+  for (
+    const x of xCandidates
+  ) {
 
     const scores = [];
 
-    for (const t of sampleTimes) {
+
+    for (
+      const t of sampleTimes
+    ) {
 
       try {
 
@@ -1043,19 +1109,45 @@ async function readInitialScore() {
             x
           );
 
-        if (score) {
 
-          scores.push({
-            time: t,
+        if (!score) {
+          continue;
+        }
+
+
+        /* ===============================================
+           最終スコアと矛盾するOCRは捨てる
+        =============================================== */
+
+        if (
+          !isPossibleInitialScore(
             score
-          });
+          )
+        ) {
 
           log(
-            `初期スコア探索: ` +
+            `初期スコア候補を除外: ` +
             `X=${x} / ${fmt(t)} → ` +
-            `${scoreKey(score)}`
+            `${scoreKey(score)} ` +
+            `(最終 ${scoreKey(finalScore)} と矛盾)`
           );
+
+          continue;
         }
+
+
+        scores.push({
+          time: t,
+          score
+        });
+
+
+        log(
+          `初期スコア探索: ` +
+          `X=${x} / ${fmt(t)} → ` +
+          `${scoreKey(score)}`
+        );
+
 
       } catch (e) {
 
@@ -1064,102 +1156,246 @@ async function readInitialScore() {
           `X=${x} / ${fmt(t)} → ` +
           `${e.message}`
         );
+
       }
+
     }
 
-    if (!scores.length) {
+
+    if (
+      !scores.length
+    ) {
       continue;
     }
+
+
+    /* =====================================================
+       同じスコアが何回読めたか集計
+    ===================================================== */
 
     const counts = {};
 
-    for (const item of scores) {
+
+    for (
+      const item of scores
+    ) {
 
       const key =
-        scoreKey(item.score);
+        scoreKey(
+          item.score
+        );
+
 
       counts[key] =
-        (counts[key] || 0) + 1;
+        (
+          counts[key] || 0
+        ) + 1;
     }
 
-    const best =
-      Object.entries(counts)
+
+    const candidates =
+      Object.entries(
+        counts
+      )
+        .map(
+          ([key, count]) => {
+
+            const first =
+              scores.find(
+                item =>
+                  scoreKey(
+                    item.score
+                  ) === key
+              );
+
+
+            const m =
+              key.match(
+                /^(\d+)-(\d+)$/
+              );
+
+
+            if (!m) {
+              return null;
+            }
+
+
+            return {
+
+              score: {
+
+                home:
+                  Number(m[1]),
+
+                away:
+                  Number(m[2])
+
+              },
+
+              count,
+
+              firstTime:
+                first?.time ?? 999
+
+            };
+
+          }
+        )
+        .filter(
+          Boolean
+        )
         .sort(
           (a, b) => {
 
-            if (b[1] !== a[1]) {
-              return b[1] - a[1];
+            /*
+             * 同じスコアを
+             * より多く読めたものを優先
+             */
+
+            if (
+              b.count !==
+              a.count
+            ) {
+
+              return (
+                b.count -
+                a.count
+              );
+
             }
 
+
             /*
-             * 同数なら早い時刻で
-             * 読めているものを優先。
+             * 同数なら
+             * より早い時間を優先
              */
-            return 0;
+
+            return (
+              a.firstTime -
+              b.firstTime
+            );
+
           }
-        )[0];
+        );
 
-    if (!best) {
+
+    if (
+      !candidates.length
+    ) {
       continue;
     }
 
-    const m =
-      best[0].match(
-        /^(\d+)-(\d+)$/
-      );
 
-    if (!m) {
-      continue;
-    }
+    const best =
+      candidates[0];
+
 
     results.push({
 
       x,
 
-      score: {
-        home: Number(m[1]),
-        away: Number(m[2])
-      },
+      score:
+        best.score,
 
-      count: best[1],
+      count:
+        best.count,
 
-      total: scores.length
+      total:
+        scores.length,
+
+      firstTime:
+        best.firstTime
 
     });
+
   }
 
-  if (!results.length) {
+
+  /* =====================================================
+     候補が1つもなかった
+  ===================================================== */
+
+  if (
+    !results.length
+  ) {
 
     log(
       '初期スコアOCR: ' +
-      'どの横位置でも認識できませんでした'
+      '最終スコアと矛盾しない候補がありません'
     );
 
     return null;
   }
 
-  /*
-   * 安定して読めるX位置を採用。
-   */
+
+  /* =====================================================
+     最終的なスコア位置を決定
+  ===================================================== */
+
   results.sort(
     (a, b) => {
 
-      if (b.count !== a.count) {
-        return b.count - a.count;
+      /*
+       * 同じスコアを
+       * より多く読めた位置を優先
+       */
+
+      if (
+        b.count !==
+        a.count
+      ) {
+
+        return (
+          b.count -
+          a.count
+        );
+
       }
 
+
+      /*
+       * 読み取れた回数も同じなら
+       * より多く読み取れた位置を優先
+       */
+
+      if (
+        a.total !==
+        b.total
+      ) {
+
+        return (
+          b.total -
+          a.total
+        );
+
+      }
+
+
+      /*
+       * 最初から想定していた
+       * X=145に近い位置を優先
+       */
+
       return (
-        Math.abs(a.x - 145) -
-        Math.abs(b.x - 145)
+        Math.abs(
+          a.x - 145
+        ) -
+        Math.abs(
+          b.x - 145
+        )
       );
+
     }
   );
+
 
   const best =
     results[0];
 
+
   scoreCropX =
     best.x;
+
 
   log(
     `スコア位置確定: ` +
@@ -1168,13 +1404,15 @@ async function readInitialScore() {
     `（${best.count}/${best.total}回）`
   );
 
+
   status(
-    `初期スコア: ${scoreKey(best.score)}`
+    `初期スコア: ` +
+    `${scoreKey(best.score)}`
   );
+
 
   return best.score;
 }
-
 
 /* =========================================================
    動画全体のスコアを時系列で取得
@@ -2376,88 +2614,91 @@ scanBtn.addEventListener(
         `解析間隔: ${interval}秒`
       );
 
+/* ===================================================
+   ① HTML入力の最終スコア
+   ★先に最終スコアを取得する
+=================================================== */
 
-      /* ===================================================
-         ① 初期スコア
-      =================================================== */
+const finalHome =
+  Number(
+    finalHomeEl.value
+  );
 
-      const initialScore =
-        await readInitialScore();
-
-
-      if (!initialScore) {
-
-        throw new Error(
-          '試合開始時のスコアを読み取れませんでした'
-        );
-
-      }
+const finalAway =
+  Number(
+    finalAwayEl.value
+  );
 
 
-      log(
-        `初期スコア: ` +
-        `${scoreKey(initialScore)}`
-      );
+if (
+  !Number.isInteger(
+    finalHome
+  ) ||
+  !Number.isInteger(
+    finalAway
+  ) ||
+  finalHome < 0 ||
+  finalAway < 0 ||
+  finalHome > 20 ||
+  finalAway > 20
+) {
+
+  throw new Error(
+    '最終スコアを正しく入力してください'
+  );
+
+}
 
 
-      progressEl.value = 10;
+const finalScore = {
+
+  home:
+    finalHome,
+
+  away:
+    finalAway
+
+};
 
 
-      /* ===================================================
-         ② HTML入力の最終スコア
-      =================================================== */
-
-      const finalHome =
-        Number(
-          finalHomeEl.value
-        );
+log(
+  `入力された最終スコア: ` +
+  `${scoreKey(finalScore)}`
+);
 
 
-      const finalAway =
-        Number(
-          finalAwayEl.value
-        );
+progressEl.value = 10;
 
 
-      if (
-        !Number.isInteger(
-          finalHome
-        ) ||
-        !Number.isInteger(
-          finalAway
-        ) ||
-        finalHome < 0 ||
-        finalAway < 0 ||
-        finalHome > 20 ||
-        finalAway > 20
-      ) {
+/* ===================================================
+   ② 初期スコア
+   ★最終スコアを基準にしてOCRする
+=================================================== */
 
-        throw new Error(
-          '最終スコアを正しく入力してください'
-        );
-
-      }
+const initialScore =
+  await readInitialScore(
+    finalScore
+  );
 
 
-      const finalScore = {
+if (
+  !initialScore
+) {
 
-        home:
-          finalHome,
+  throw new Error(
+    '試合開始時のスコアを読み取れませんでした'
+  );
 
-        away:
-          finalAway
-
-      };
-
-
-      log(
-        `入力された最終スコア: ` +
-        `${scoreKey(finalScore)}`
-      );
+}
 
 
-      progressEl.value = 15;
+log(
+  `初期スコア: ` +
+  `${scoreKey(initialScore)}`
+);
 
+
+progressEl.value = 15;      
 
       /* ===================================================
          ③ スコアの整合性確認
