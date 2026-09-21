@@ -1759,41 +1759,33 @@ function buildScoreRuns(
 
 /* =========================================================
    安定スコア探索
-   ★スコア変化の前後関係まで確認する
+   ★OCRの取りこぼしを許容
+   ★最終スコアを超える誤認識だけ除外
 ========================================================= */
 
 function findStableScoreInSamples(
   samples,
   targetScore,
   startIndex,
+  previousScore = null,
   initialScore = null,
-  finalScore = null,
-  previousScore = null
+  finalScore = null
 ) {
 
-  const validStart =
-    Math.max(
-      0,
-      startIndex || 0
-    );
+  const validStart = Math.max(
+    0,
+    startIndex || 0
+  );
 
   /*
-   * ★今回の重要ポイント
+   * OCRは連続して正しく読めるとは限らない。
    *
-   * targetScore が2回出ただけでは
-   * ゴールとは認めない。
+   * そのため、
    *
-   * targetScore の直前に
-   * previousScore が存在している必要がある。
-   */
-
-  const maxGap =
-    3.5;
-
-  /*
-   * =====================================================
-   * ① targetScore の候補を探す
-   * =====================================================
+   *  ① targetScore が一定区間内で複数回出る
+   *  ② 最終スコアを超えていない
+   *
+   * を重視する。
    */
 
   for (
@@ -1802,280 +1794,89 @@ function findStableScoreInSamples(
     i++
   ) {
 
-    const item =
-      samples[i];
+    const first = samples[i];
 
     if (
-      !item.score ||
+      !first.score ||
       !sameScore(
-        item.score,
+        first.score,
         targetScore
       )
     ) {
-
       continue;
     }
 
     /*
-     * ===================================================
-     * ② targetScore の直前に
-     *    previousScore が存在するか確認
-     * ===================================================
+     * targetScore を一定範囲内で再確認する。
+     *
+     * OCR失敗(null)は無視する。
+     * 別スコアが1回出ただけでは即失格にしない。
      */
-
-    if (
-      previousScore
-    ) {
-
-      let previousIndex =
-        -1;
-
-      /*
-       * 直前の有効OCRを探す。
-       */
-      for (
-        let p = i - 1;
-        p >= validStart;
-        p--
-      ) {
-
-        if (
-          samples[p].score
-        ) {
-
-          previousIndex = p;
-
-          break;
-        }
-      }
-
-      /*
-       * 直前の有効スコアが
-       * previousScore でなければ
-       * この候補は却下。
-       */
-      if (
-        previousIndex < 0 ||
-        !sameScore(
-          samples[previousIndex].score,
-          previousScore
-        )
-      ) {
-
-        continue;
-      }
-
-      /*
-       * 前回のスコアから
-       * 長時間空いていた場合も却下。
-       *
-       * これで「かなり前に0-0があった」
-       * →「突然1-0」
-       * をゴールとして扱わない。
-       */
-      if (
-        item.time -
-        samples[previousIndex].time
-        >
-        maxGap
-      ) {
-
-        continue;
-      }
-
-    }
-
-
-    /*
-     * ===================================================
-     * ③ targetScore がその後も安定しているか確認
-     * ===================================================
-     */
-
-    const targetIndexes = [];
+    let targetCount = 0;
+    let lastTargetTime = first.time;
 
     for (
       let j = i;
-      j < samples.length;
+      j < Math.min(
+        samples.length,
+        i + 7
+      );
       j++
     ) {
 
+      const item = samples[j];
+
+      if (!item.score) {
+        continue;
+      }
+
       /*
-       * 最大4サンプルを見る。
+       * 最終スコアを超えるスコアは
+       * ゴール判定には使わない。
        */
       if (
-        samples[j].time -
-        item.time
-        >
-        4
+        finalScore &&
+        (
+          item.score.home > finalScore.home ||
+          item.score.away > finalScore.away
+        )
       ) {
-
-        break;
+        continue;
       }
 
       if (
-        samples[j].score &&
         sameScore(
-          samples[j].score,
+          item.score,
           targetScore
         )
       ) {
 
-        targetIndexes.push(j);
+        targetCount++;
+        lastTargetTime = item.time;
 
+        /*
+         * 2回以上確認できれば候補確定。
+         */
+        if (
+          targetCount >= 2 &&
+          lastTargetTime - first.time <= 6
+        ) {
+
+          log(
+            `✅ スコア候補確認: ` +
+            `${scoreKey(targetScore)} ` +
+            `(${targetCount}回) ` +
+            `@ ${fmt(first.time)}`
+          );
+
+          return {
+            index: i,
+            time: first.time
+          };
+        }
       }
-
     }
-
-
-    /*
-     * ★最低3回一致
-     *
-     * 1回だけ
-     * 2回だけ
-     * はゴールにしない。
-     */
-    if (
-      targetIndexes.length < 3
-    ) {
-
-      continue;
-
-    }
-
-
-    /*
-     * ===================================================
-     * ④ targetScore が連続的に確認されているか
-     * ===================================================
-     */
-
-    let continuousCount = 1;
-
-    let lastTime =
-      samples[targetIndexes[0]].time;
-
-    for (
-      let k = 1;
-      k < targetIndexes.length;
-      k++
-    ) {
-
-      const currentTime =
-        samples[
-          targetIndexes[k]
-        ].time;
-
-      if (
-        currentTime -
-        lastTime
-        <=
-        maxGap
-      ) {
-
-        continuousCount++;
-
-      } else {
-
-        break;
-
-      }
-
-      lastTime =
-        currentTime;
-    }
-
-
-    if (
-      continuousCount < 3
-    ) {
-
-      continue;
-
-    }
-
-
-    /*
-     * ===================================================
-     * ⑤ targetScore の後に
-     *    previousScoreへ戻っていないか確認
-     * ===================================================
-     */
-
-    const confirmEnd =
-      Math.min(
-        samples.length,
-        targetIndexes[
-          continuousCount - 1
-        ] + 2
-      );
-
-    let returnedToPrevious =
-      false;
-
-    for (
-      let k =
-        targetIndexes[
-          continuousCount - 1
-        ] + 1;
-      k < confirmEnd;
-      k++
-    ) {
-
-      if (
-        samples[k].score &&
-        previousScore &&
-        sameScore(
-          samples[k].score,
-          previousScore
-        )
-      ) {
-
-        returnedToPrevious = true;
-
-        break;
-      }
-
-    }
-
-
-    /*
-     * すぐ元のスコアに戻るなら
-     * OCR誤認識の可能性が高い。
-     */
-    if (
-      returnedToPrevious
-    ) {
-
-      log(
-        `スコア変化候補を却下: ` +
-        `${scoreKey(previousScore)} → ` +
-        `${scoreKey(targetScore)} → ` +
-        `${scoreKey(previousScore)}`
-      );
-
-      continue;
-    }
-
-
-    /*
-     * ===================================================
-     * ⑥ 全条件を通過
-     * ===================================================
-     */
-
-    return {
-
-      index:
-        i,
-
-      time:
-        item.time
-
-    };
-
   }
-
 
   return null;
 }
@@ -2231,23 +2032,22 @@ function detectGoalsFromTimeline(
       const candidate of candidates
     ) {
 
-      const found =
-        findStableScoreInSamples(
+const found =
+  findStableScoreInSamples(
 
-          cleanedSamples,
+    cleanedSamples,
 
-          candidate.score,
+    candidate.score,
 
-          cursorIndex,
+    cursorIndex,
 
-          initialScore,
+    currentScore,
 
-          finalScore,
+    initialScore,
 
-          currentScore
+    finalScore
 
-        );
-
+  );
 
       if (
         !found
