@@ -2082,7 +2082,7 @@ function findStableScoreInSamples(
 
 /* =========================================================
    ゴール検出
-   ★最終スコアを基準に誤認識を排除
+   ★スコアの状態遷移を確認してゴールを確定
 ========================================================= */
 
 function detectGoalsFromTimeline(
@@ -2101,30 +2101,49 @@ function detectGoalsFromTimeline(
       initialScore.away
     );
 
+
   if (
     expectedGoalCount <= 0
   ) {
 
     return [];
+
   }
+
 
   log(
     `必要ゴール数: ${expectedGoalCount}`
   );
 
+
   /*
-   * まず、最終スコアより上のOCRは
-   * 完全に無視する。
+   * =====================================================
+   * ① OCR結果を整理
+   * =====================================================
    */
+
   const cleanedSamples =
     samples.map(
       item => {
 
         if (
+          !item ||
           !item.score
         ) {
-          return item;
+
+          return {
+            ...item,
+            score: null
+          };
+
         }
+
+
+        /*
+         * 初期スコアより下
+         * または最終スコアより上は
+         * OCR誤認識として無効。
+         */
 
         if (
           !isValidScoreForFinal(
@@ -2144,52 +2163,39 @@ function detectGoalsFromTimeline(
             ...item,
             score: null
           };
+
         }
 
+
         return item;
+
       }
     );
 
+
   /*
-   * スコアの連続区間をログに残す。
+   * =====================================================
+   * ② ゴールを1点ずつ追跡
+   * =====================================================
    */
-  const runs =
-    buildScoreRuns(
-      cleanedSamples,
-      initialScore,
-      finalScore
-    );
-
-  log(
-    `有効スコア区間: ${runs.length}区間`
-  );
-
-  runs.forEach(
-    run => {
-
-      log(
-        `  ${run.key}: ` +
-        `${fmt(run.startTime)} ～ ` +
-        `${fmt(run.endTime)}`
-      );
-    }
-  );
 
   let currentScore = {
+
     home:
       initialScore.home,
 
     away:
       initialScore.away
+
   };
+
 
   let cursorIndex = 0;
 
+
   const detected = [];
 
-  /*
-   * ゴールを1点ずつ追跡。
-   */
+
   for (
     let goalNo = 0;
     goalNo < expectedGoalCount;
@@ -2202,11 +2208,24 @@ function detectGoalsFromTimeline(
         finalScore
       );
 
-    if (!candidates.length) {
+
+    if (
+      !candidates.length
+    ) {
+
       break;
+
     }
 
+
     let best = null;
+
+
+    /*
+     * ===================================================
+     * 次にあり得る1点だけを探す
+     * ===================================================
+     */
 
     for (
       const candidate of candidates
@@ -2214,20 +2233,36 @@ function detectGoalsFromTimeline(
 
       const found =
         findStableScoreInSamples(
+
           cleanedSamples,
+
           candidate.score,
+
           cursorIndex,
+
           initialScore,
-          finalScore
+
+          finalScore,
+
+          currentScore
+
         );
 
-      if (!found) {
+
+      if (
+        !found
+      ) {
+
         continue;
+
       }
 
+
       /*
-       * 最初に現れた候補を採用。
+       * 最も早く確認できた
+       * 正しいスコア遷移を候補にする。
        */
+
       if (
         !best ||
         found.index <
@@ -2247,37 +2282,62 @@ function detectGoalsFromTimeline(
 
           type:
             candidate.type
+
         };
+
       }
+
     }
 
-    if (!best) {
+
+    /*
+     * ===================================================
+     * ゴール候補が見つからない
+     * ===================================================
+     */
+
+    if (
+      !best
+    ) {
 
       log(
         `⚠️ ゴール${goalNo + 1}件目を ` +
-        `安定検出できませんでした`
+        `確実に確認できませんでした`
       );
 
       break;
+
     }
 
+
     const fromScore = {
+
       home:
         currentScore.home,
+
       away:
         currentScore.away
+
     };
+
 
     const toScore = {
+
       home:
         best.score.home,
+
       away:
         best.score.away
+
     };
 
+
     /*
-     * 必ず1ゴール分であることを確認。
+     * ===================================================
+     * 必ず1点だけの変化であることを確認
+     * ===================================================
      */
+
     if (
       !isOneGoalChange(
         fromScore,
@@ -2286,7 +2346,7 @@ function detectGoalsFromTimeline(
     ) {
 
       log(
-        `⚠️ 不正なスコア変化を無視: ` +
+        `⚠️ 不正なスコア変化を却下: ` +
         `${scoreKey(fromScore)} → ` +
         `${scoreKey(toScore)}`
       );
@@ -2294,8 +2354,18 @@ function detectGoalsFromTimeline(
       cursorIndex =
         best.index + 1;
 
+      goalNo--;
+
       continue;
+
     }
+
+
+    /*
+     * ===================================================
+     * ゴール確定
+     * ===================================================
+     */
 
     detected.push({
 
@@ -2314,7 +2384,9 @@ function detectGoalsFromTimeline(
       fromScore,
 
       toScore
+
     });
+
 
     log(
       `🎯 ゴール${goalNo + 1}: ` +
@@ -2323,19 +2395,33 @@ function detectGoalsFromTimeline(
       `@ ${fmt(best.time)}`
     );
 
+
     currentScore =
       toScore;
 
+
+    /*
+     * ★重要
+     *
+     * 同じOCR結果を
+     * 次のゴールでも使わない。
+     *
+     * ゴール後の安定区間を
+     * 通過してから次へ進む。
+     */
+
     cursorIndex =
-      best.index + 1;
+      best.index + 3;
+
   }
 
+
   /*
-   * ★最重要
-   *
-   * ゴール数と最終スコアが一致しない場合、
-   * 不完全な検出結果を返さない。
+   * =====================================================
+   * ③ ゴール数確認
+   * =====================================================
    */
+
   if (
     detected.length !==
     expectedGoalCount
@@ -2346,22 +2432,30 @@ function detectGoalsFromTimeline(
       `${detected.length}/${expectedGoalCount}`
     );
 
+
     log(
       `検出終了スコア: ` +
       `${scoreKey(currentScore)}`
     );
+
 
     log(
       `入力最終スコア: ` +
       `${scoreKey(finalScore)}`
     );
 
+
     return [];
+
   }
 
+
   /*
-   * 最終スコアそのものも確認。
+   * =====================================================
+   * ④ 最終スコア確認
+   * =====================================================
    */
+
   if (
     !sameScore(
       currentScore,
@@ -2370,20 +2464,25 @@ function detectGoalsFromTimeline(
   ) {
 
     log(
-      `❌ 最終スコア不一致`
+      `❌ 最終スコア不一致: ` +
+      `${scoreKey(currentScore)} / ` +
+      `${scoreKey(finalScore)}`
     );
 
     return [];
+
   }
 
+
   log(
-    `✅ 最終スコアまで正常に検出: ` +
-    `${scoreKey(currentScore)}`
+    `✅ スコア遷移確認完了: ` +
+    `${scoreKey(initialScore)} → ` +
+    `${scoreKey(finalScore)}`
   );
+
 
   return detected;
 }
-
 
 /* =========================================================
    ゴール時刻精密化
