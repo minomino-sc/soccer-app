@@ -1759,8 +1759,11 @@ function buildScoreRuns(
 
 /* =========================================================
    安定スコア探索
-   ★OCRの取りこぼしを許容
-   ★最終スコアを超える誤認識だけ除外
+   ★OCR取りこぼしを大幅に許容
+   ★現在スコアから1点進んだスコアだけを候補にする
+   ★15秒以内に2回確認できれば採用
+   ★OCR失敗(null)は無視
+   ★最終スコアを超えるスコアは無視
 ========================================================= */
 
 function findStableScoreInSamples(
@@ -1778,16 +1781,30 @@ function findStableScoreInSamples(
   );
 
   /*
-   * OCRは連続して正しく読めるとは限らない。
-   *
-   * そのため、
-   *
-   *  ① targetScore が一定区間内で複数回出る
-   *  ② 最終スコアを超えていない
-   *
-   * を重視する。
+   * targetScore が本当に
+   * 「現在スコアから1点進んだスコア」
+   * なのか確認する。
    */
+  if (
+    previousScore &&
+    !isOneGoalChange(
+      previousScore,
+      targetScore
+    )
+  ) {
 
+    log(
+      `⚠️ 不正なスコア遷移候補を除外: ` +
+      `${scoreKey(previousScore)} → ` +
+      `${scoreKey(targetScore)}`
+    );
+
+    return null;
+  }
+
+  /*
+   * まず targetScore の最初の出現を探す
+   */
   for (
     let i = validStart;
     i < samples.length;
@@ -1807,32 +1824,62 @@ function findStableScoreInSamples(
     }
 
     /*
-     * targetScore を一定範囲内で再確認する。
-     *
-     * OCR失敗(null)は無視する。
-     * 別スコアが1回出ただけでは即失格にしない。
+     * 最終スコアを超えている場合は除外
      */
-    let targetCount = 0;
+    if (
+      finalScore &&
+      (
+        first.score.home > finalScore.home ||
+        first.score.away > finalScore.away
+      )
+    ) {
+      continue;
+    }
+
+    let targetCount = 1;
     let lastTargetTime = first.time;
 
+    /*
+     * ★最大15秒まで再確認
+     *
+     * OCR失敗は無視する。
+     *
+     * 例：
+     *
+     * 10:21  3-0
+     * 10:22  null
+     * 10:23  null
+     * 10:24  null
+     * 10:25  3-0
+     *
+     * → 3-0を確認成功
+     */
     for (
-      let j = i;
-      j < Math.min(
-        samples.length,
-        i + 7
-      );
+      let j = i + 1;
+      j < samples.length;
       j++
     ) {
 
       const item = samples[j];
 
+      /*
+       * 15秒を超えたら終了
+       */
+      if (
+        item.time - first.time > 15
+      ) {
+        break;
+      }
+
+      /*
+       * OCR失敗は無視
+       */
       if (!item.score) {
         continue;
       }
 
       /*
-       * 最終スコアを超えるスコアは
-       * ゴール判定には使わない。
+       * 最終スコアを超えるOCRは無視
        */
       if (
         finalScore &&
@@ -1844,6 +1891,9 @@ function findStableScoreInSamples(
         continue;
       }
 
+      /*
+       * targetScore が再確認された
+       */
       if (
         sameScore(
           item.score,
@@ -1855,11 +1905,10 @@ function findStableScoreInSamples(
         lastTargetTime = item.time;
 
         /*
-         * 2回以上確認できれば候補確定。
+         * ★2回確認できたら採用
          */
         if (
-          targetCount >= 2 &&
-          lastTargetTime - first.time <= 6
+          targetCount >= 2
         ) {
 
           log(
