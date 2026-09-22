@@ -2335,7 +2335,10 @@ const found =
 
 /* =========================================================
    ゴール時刻精密化
-   ★新スコアを複数回確認して確定
+   ★「スコアが安定した時刻」ではなく
+     「前スコア → 新スコアへの変化点」を探す
+   ★OCR取りこぼしを許容
+   ★粗検出時刻より前を重点的に探索
 ========================================================= */
 
 async function refineGoalTime(
@@ -2344,37 +2347,48 @@ async function refineGoalTime(
   newScore
 ) {
 
-  if (
-    roughTime === null ||
-    !previousScore ||
-    !newScore
-  ) {
+  /*
+   * -------------------------------------------------------
+   * 探索範囲
+   *
+   * roughTime は「新スコアを安定認識できた時刻」なので、
+   * 実際のゴールは通常その前にある。
+   *
+   * 今回のように
+   *
+   * 実際のゴール 2:21
+   * OCR安定認識  2:52
+   *
+   * のようなズレを考慮し、
+   * 最大45秒前まで戻って探す。
+   * -------------------------------------------------------
+   */
 
-    return null;
-  }
+  const searchStart = Math.max(
+    0,
+    roughTime - 45
+  );
 
-  const start =
-    Math.max(
-      0,
-      roughTime - 4
-    );
+  const searchEnd = Math.min(
+    duration,
+    roughTime + 1
+  );
 
-  const end =
-    Math.min(
-      duration - 0.05,
-      roughTime + 0.75
-    );
-
-  const step = 0.25;
+  const step = 0.5;
 
   /*
-   * 各時刻のOCR結果を保存。
+   * -------------------------------------------------------
+   * スコアサンプル
+   *
+   * まず粗い間隔で全範囲を確認する。
+   * -------------------------------------------------------
    */
-  const checks = [];
+
+  const samples = [];
 
   for (
-    let t = start;
-    t <= end + 0.001;
+    let t = searchStart;
+    t <= searchEnd;
     t += step
   ) {
 
@@ -2387,14 +2401,14 @@ async function refineGoalTime(
       const score =
         await recognizeScore();
 
-      checks.push({
+      samples.push({
         time: t,
         score
       });
 
-    } catch {
+    } catch (e) {
 
-      checks.push({
+      samples.push({
         time: t,
         score: null
       });
@@ -2402,131 +2416,227 @@ async function refineGoalTime(
   }
 
   /*
-   * 新スコアが最初に出た場所を探す。
+   * -------------------------------------------------------
+   * 前スコア → 新スコアの変化を探す
    *
-   * ただし1回だけでは採用しない。
-   *
-   * 例：
-   * 80.00  1-0
-   * 80.25  1-0
-   * 80.50  1-0
-   *
-   * → 80.00付近をスコア変化点とする。
+   * OCRでは一時的にnullになることがあるので、
+   * nullは無視する。
+   * -------------------------------------------------------
    */
+
+  let previous = null;
+  let previousTime = null;
+
+  let transitionTime = null;
+
   for (
     let i = 0;
-    i < checks.length;
+    i < samples.length;
     i++
   ) {
 
-    if (
-      !sameScore(
-        checks[i].score,
-        newScore
-      )
-    ) {
+    const item = samples[i];
+
+    if (!item.score) {
       continue;
     }
 
-    let confirmed = 0;
-
     /*
-     * この時刻以降、
-     * 1秒程度の範囲で確認。
+     * 最初に previousScore を確認する
      */
-    for (
-      let j = i;
-      j < Math.min(
-        checks.length,
-        i + 5
-      );
-      j++
+    if (
+      previous === null
     ) {
 
       if (
         sameScore(
-          checks[j].score,
-          newScore
+          item.score,
+          previousScore
         )
       ) {
 
-        confirmed++;
+        previous = item.score;
+        previousTime = item.time;
       }
+
+      continue;
     }
 
     /*
-     * 5点中3点以上なら
-     * 新スコア表示開始地点として採用。
+     * 新スコアを確認
      */
     if (
-      confirmed >= 3
+      sameScore(
+        item.score,
+        newScore
+      )
     ) {
 
-      const refined =
-        checks[i].time;
+      /*
+       * ここが
+       *
+       * previousScore
+       * ↓
+       * newScore
+       *
+       * の変化点候補
+       */
 
-      log(
-        `🎯 ゴール時刻精密化: ` +
-        `${fmt(roughTime)} → ` +
-        `${fmt(refined)}`
-      );
+      transitionTime = item.time;
 
-      return refined;
+      break;
     }
+
+    /*
+     * まだ前スコアなら更新
+     */
+    if (
+      sameScore(
+        item.score,
+        previousScore
+      )
+    ) {
+
+      previousTime = item.time;
+
+      continue;
+    }
+
+    /*
+     * その他のスコアが出た場合
+     *
+     * OCR誤認識の可能性があるため、
+     * previousScoreを壊さない。
+     */
   }
 
   /*
-   * 次に4点中3点を確認。
+   * -------------------------------------------------------
+   * 変化点が見つからなかった場合
+   * -------------------------------------------------------
    */
-  for (
-    let i = 0;
-    i < checks.length - 3;
-    i++
+
+  if (
+    transitionTime === null
   ) {
 
-    let count = 0;
+    log(
+      `⚠️ ゴール時刻の粗探索失敗: ` +
+      `${fmt(roughTime)}`
+    );
 
-    for (
-      let j = i;
-      j < i + 4;
-      j++
-    ) {
+    return null;
+  }
 
+  /*
+   * -------------------------------------------------------
+   * 変化点の前後を0.1秒単位で再探索
+   *
+   * ここで実際のスコア変化位置を絞り込む。
+   * -------------------------------------------------------
+   */
+
+  const refineStart = Math.max(
+    searchStart,
+    transitionTime - 2
+  );
+
+  const refineEnd = Math.min(
+    duration,
+    transitionTime + 1
+  );
+
+  const refineStep = 0.1;
+
+  let firstNewScoreTime = null;
+
+  for (
+    let t = refineStart;
+    t <= refineEnd;
+    t += refineStep
+  ) {
+
+    try {
+
+      await seekTo(t);
+
+      drawScoreCrop();
+
+      const score =
+        await recognizeScore();
+
+      if (!score) {
+        continue;
+      }
+
+      /*
+       * 新スコアを初めて確認した位置
+       */
       if (
         sameScore(
-          checks[j].score,
+          score,
           newScore
         )
       ) {
 
-        count++;
+        firstNewScoreTime = t;
+        break;
       }
-    }
 
-    if (
-      count >= 3
-    ) {
+    } catch (e) {
 
-      const refined =
-        checks[i].time;
-
-      log(
-        `🎯 ゴール時刻精密化: ` +
-        `${fmt(roughTime)} → ` +
-        `${fmt(refined)}`
-      );
-
-      return refined;
+      continue;
     }
   }
 
   /*
-   * ★以前のように
-   * roughTimeをそのまま採用しない。
-   *
-   * 確認できなかったゴールは
-   * エラー扱いにする。
+   * -------------------------------------------------------
+   * 精密時刻が見つかった
+   * -------------------------------------------------------
    */
+
+  if (
+    firstNewScoreTime !== null
+  ) {
+
+    /*
+     * OCRで新スコアが表示されるのは、
+     * 実際のゴールより少し後になる場合がある。
+     *
+     * そのため、新スコア確認時刻から
+     * 表示遅延を一定量引く。
+     *
+     * ★まず1.0秒を基準値にする。
+     */
+
+    const estimatedGoalTime =
+      Math.max(
+        0,
+        firstNewScoreTime - 1.0
+      );
+
+    log(
+      `🎯 ゴール時刻精密化: ` +
+      `${fmt(roughTime)} → ` +
+      `${fmt(estimatedGoalTime)}`
+    );
+
+    log(
+      `   スコア変化: ` +
+      `${scoreKey(previousScore)} → ` +
+      `${scoreKey(newScore)}`
+    );
+
+    return estimatedGoalTime;
+  }
+
+  /*
+   * 精密確認できなかった場合
+   *
+   * ★ここでroughTimeを返さない。
+   * ★間違った時刻を採用しない。
+   */
+
   log(
     `❌ ゴール時刻の精密確認失敗: ` +
     `${fmt(roughTime)}`
@@ -2534,12 +2644,6 @@ async function refineGoalTime(
 
   return null;
 }
-
-
-
-
-
-
 
 /* =========================================================
    対象チームでフィルター
