@@ -1757,53 +1757,88 @@ function buildScoreRuns(
   return runs;
 }
 
+
 /* =========================================================
    安定スコア探索
-   ★OCR取りこぼしを大幅に許容
-   ★現在スコアから1点進んだスコアだけを候補にする
-   ★15秒以内に2回確認できれば採用
-   ★OCR失敗(null)は無視
-   ★最終スコアを超えるスコアは無視
 ========================================================= */
 
 function findStableScoreInSamples(
   samples,
   targetScore,
   startIndex,
-  previousScore = null,
   initialScore = null,
   finalScore = null
 ) {
 
-  const validStart = Math.max(
-    0,
-    startIndex || 0
-  );
-
   /*
-   * targetScore が本当に
-   * 「現在スコアから1点進んだスコア」
-   * なのか確認する。
+   * ★重要
+   *
+   * 1回だけOCRされたスコアを
+   * ゴールとは認めない。
    */
-  if (
-    previousScore &&
-    !isOneGoalChange(
-      previousScore,
-      targetScore
-    )
-  ) {
 
-    log(
-      `⚠️ 不正なスコア遷移候補を除外: ` +
-      `${scoreKey(previousScore)} → ` +
-      `${scoreKey(targetScore)}`
+  const validStart =
+    Math.max(
+      0,
+      startIndex || 0
     );
 
-    return null;
+  /*
+   * ① まず2回連続を探す
+   */
+  let consecutive = 0;
+  let firstIndex = -1;
+
+  for (
+    let i = validStart;
+    i < samples.length;
+    i++
+  ) {
+
+    const item =
+      samples[i];
+
+    if (
+      item.score &&
+      sameScore(
+        item.score,
+        targetScore
+      )
+    ) {
+
+      if (consecutive === 0) {
+        firstIndex = i;
+      }
+
+      consecutive++;
+
+      if (
+        consecutive >= 2
+      ) {
+
+        return {
+          index:
+            firstIndex,
+
+          time:
+            samples[firstIndex].time
+        };
+      }
+
+    } else {
+
+      consecutive = 0;
+      firstIndex = -1;
+    }
   }
 
   /*
-   * まず targetScore の最初の出現を探す
+   * ② 2連続が取れない場合
+   *
+   * 3サンプル中2回を確認。
+   *
+   * ただし、前後が大きく離れている場合は
+   * 採用しない。
    */
   for (
     let i = validStart;
@@ -1811,118 +1846,62 @@ function findStableScoreInSamples(
     i++
   ) {
 
-    const first = samples[i];
+    const indexes = [];
 
-    if (
-      !first.score ||
-      !sameScore(
-        first.score,
-        targetScore
-      )
-    ) {
-      continue;
-    }
-
-    /*
-     * 最終スコアを超えている場合は除外
-     */
-    if (
-      finalScore &&
-      (
-        first.score.home > finalScore.home ||
-        first.score.away > finalScore.away
-      )
-    ) {
-      continue;
-    }
-
-    let targetCount = 1;
-    let lastTargetTime = first.time;
-
-    /*
-     * ★最大15秒まで再確認
-     *
-     * OCR失敗は無視する。
-     *
-     * 例：
-     *
-     * 10:21  3-0
-     * 10:22  null
-     * 10:23  null
-     * 10:24  null
-     * 10:25  3-0
-     *
-     * → 3-0を確認成功
-     */
     for (
-      let j = i + 1;
-      j < samples.length;
+      let j = i;
+      j < Math.min(
+        samples.length,
+        i + 3
+      );
       j++
     ) {
 
-      const item = samples[j];
-
-      /*
-       * 15秒を超えたら終了
-       */
       if (
-        item.time - first.time > 15
-      ) {
-        break;
-      }
-
-      /*
-       * OCR失敗は無視
-       */
-      if (!item.score) {
-        continue;
-      }
-
-      /*
-       * 最終スコアを超えるOCRは無視
-       */
-      if (
-        finalScore &&
-        (
-          item.score.home > finalScore.home ||
-          item.score.away > finalScore.away
-        )
-      ) {
-        continue;
-      }
-
-      /*
-       * targetScore が再確認された
-       */
-      if (
+        samples[j].score &&
         sameScore(
-          item.score,
+          samples[j].score,
           targetScore
         )
       ) {
 
-        targetCount++;
-        lastTargetTime = item.time;
+        indexes.push(j);
+      }
+    }
 
-        /*
-         * ★2回確認できたら採用
-         */
-        if (
-          targetCount >= 2
-        ) {
+    if (
+      indexes.length >= 2
+    ) {
 
-          log(
-            `✅ スコア候補確認: ` +
-            `${scoreKey(targetScore)} ` +
-            `(${targetCount}回) ` +
-            `@ ${fmt(first.time)}`
-          );
+      const first =
+        indexes[0];
 
-          return {
-            index: i,
-            time: first.time
-          };
-        }
+      const second =
+        indexes[1];
+
+      /*
+       * 3サンプル以内なら採用。
+       */
+      if (
+        samples[second].time -
+        samples[first].time
+        <=
+        Math.max(
+          2.5,
+          (
+            samples[1]?.time -
+            samples[0]?.time
+          ) * 2.5
+        )
+      ) {
+
+        return {
+          index:
+            first,
+
+          time:
+            samples[first].time
+        };
       }
     }
   }
@@ -1930,233 +1909,315 @@ function findStableScoreInSamples(
   return null;
 }
 
+
 /* =========================================================
    ゴール検出
-   ★スコアの状態遷移を確認してゴールを確定
+   ★最終スコアを基準に誤認識を排除
 ========================================================= */
-function detectGoalsFromTimeline(initialScore, finalScore, samples) {
-  const expectedGoals =
-    (finalScore.home - initialScore.home) +
-    (finalScore.away - initialScore.away);
 
-  if (expectedGoals <= 0) {
-    log('⚠️ ゴール数が0以下のため、ゴール検出を終了します');
+function detectGoalsFromTimeline(
+  initialScore,
+  finalScore,
+  samples
+) {
+
+  const expectedGoalCount =
+    (
+      finalScore.home -
+      initialScore.home
+    ) +
+    (
+      finalScore.away -
+      initialScore.away
+    );
+
+  if (
+    expectedGoalCount <= 0
+  ) {
+
     return [];
   }
 
   log(
-    `ゴール検出開始: ${scoreKey(initialScore)} → ${scoreKey(finalScore)} / ` +
-    `予想ゴール数 ${expectedGoals}`
+    `必要ゴール数: ${expectedGoalCount}`
   );
 
-  const detectedGoals = [];
+  /*
+   * まず、最終スコアより上のOCRは
+   * 完全に無視する。
+   */
+  const cleanedSamples =
+    samples.map(
+      item => {
 
-  // 必ず0-0から開始
+        if (
+          !item.score
+        ) {
+          return item;
+        }
+
+        if (
+          !isValidScoreForFinal(
+            item.score,
+            initialScore,
+            finalScore
+          )
+        ) {
+
+          log(
+            `OCR誤認識候補を除外: ` +
+            `${fmt(item.time)} → ` +
+            `${scoreKey(item.score)}`
+          );
+
+          return {
+            ...item,
+            score: null
+          };
+        }
+
+        return item;
+      }
+    );
+
+  /*
+   * スコアの連続区間をログに残す。
+   */
+  const runs =
+    buildScoreRuns(
+      cleanedSamples,
+      initialScore,
+      finalScore
+    );
+
+  log(
+    `有効スコア区間: ${runs.length}区間`
+  );
+
+  runs.forEach(
+    run => {
+
+      log(
+        `  ${run.key}: ` +
+        `${fmt(run.startTime)} ～ ` +
+        `${fmt(run.endTime)}`
+      );
+    }
+  );
+
   let currentScore = {
-    home: initialScore.home,
-    away: initialScore.away
+    home:
+      initialScore.home,
+
+    away:
+      initialScore.away
   };
 
-  let currentIndex = 0;
+  let cursorIndex = 0;
 
-  while (detectedGoals.length < expectedGoals) {
-    const remainingGoals =
-      expectedGoals - detectedGoals.length;
+  const detected = [];
 
-    let found = null;
+  /*
+   * ゴールを1点ずつ追跡。
+   */
+  for (
+    let goalNo = 0;
+    goalNo < expectedGoalCount;
+    goalNo++
+  ) {
 
-    /*
-     * 次に起こり得るスコアは、
-     * ①ホームが1点増える
-     * ②アウェイが1点増える
-     *
-     * の2パターンだけ。
-     */
-    const candidates = [];
+    const candidates =
+      getNextExpectedScores(
+        currentScore,
+        finalScore
+      );
 
-    if (currentScore.home < finalScore.home) {
-      candidates.push({
-        home: currentScore.home + 1,
-        away: currentScore.away
-      });
-    }
-
-    if (currentScore.away < finalScore.away) {
-      candidates.push({
-        home: currentScore.home,
-        away: currentScore.away + 1
-      });
-    }
-
-    if (candidates.length === 0) {
+    if (!candidates.length) {
       break;
     }
 
-    /*
-     * OCR結果を時系列で確認し、
-     * 「次に起こる可能性のあるスコア」が
-     * 最初に安定して現れた場所を探す。
-     */
-    for (let i = currentIndex; i < samples.length; i++) {
-      const item = samples[i];
+    let best = null;
 
-      if (!item || !item.score) {
+    for (
+      const candidate of candidates
+    ) {
+
+      const found =
+        findStableScoreInSamples(
+          cleanedSamples,
+          candidate.score,
+          cursorIndex,
+          initialScore,
+          finalScore
+        );
+
+      if (!found) {
         continue;
       }
-
-      const score = item.score;
-
-      // 最終スコアを超えるOCR結果は無視
-      if (
-        score.home > finalScore.home ||
-        score.away > finalScore.away
-      ) {
-        continue;
-      }
-
-      // 現在のスコアより戻っているOCR結果は無視
-      if (
-        score.home < currentScore.home ||
-        score.away < currentScore.away
-      ) {
-        continue;
-      }
-
-      const candidateIndex = candidates.findIndex(
-        candidate => sameScore(score, candidate)
-      );
-
-      if (candidateIndex === -1) {
-        continue;
-      }
-
-      const candidate = candidates[candidateIndex];
 
       /*
-       * 一瞬だけOCRが誤認識した可能性を排除するため、
-       * 同じスコアがその後もう一度確認できるかを見る。
-       *
-       * 15秒以内に同じスコアが2回確認できれば、
-       * スコア変化として確定。
+       * 最初に現れた候補を採用。
        */
-      let confirmCount = 1;
-      let confirmed = false;
+      if (
+        !best ||
+        found.index <
+        best.index
+      ) {
 
-      for (let j = i + 1; j < samples.length; j++) {
-        const next = samples[j];
+        best = {
 
-        if (!next || !next.score) {
-          continue;
-        }
+          index:
+            found.index,
 
-        if (next.time - item.time > 15) {
-          break;
-        }
+          time:
+            found.time,
 
-        if (sameScore(next.score, candidate)) {
-          confirmCount++;
+          score:
+            candidate.score,
 
-          if (confirmCount >= 2) {
-            confirmed = true;
-            break;
-          }
-        }
+          type:
+            candidate.type
+        };
       }
-
-      if (!confirmed) {
-        continue;
-      }
-
-      found = {
-        index: i,
-        time: item.time,
-        score: candidate
-      };
-
-      break;
     }
 
-    if (!found) {
+    if (!best) {
+
       log(
-        `⚠️ ゴール${detectedGoals.length + 1}件目を ` +
-        `${candidates.map(scoreKey).join(' / ')} ` +
-        `のいずれとしても確実に確認できませんでした`
+        `⚠️ ゴール${goalNo + 1}件目を ` +
+        `安定検出できませんでした`
       );
 
       break;
     }
+
+    const fromScore = {
+      home:
+        currentScore.home,
+      away:
+        currentScore.away
+    };
+
+    const toScore = {
+      home:
+        best.score.home,
+      away:
+        best.score.away
+    };
 
     /*
-     * 現在スコアから1点だけ増えていることを最終確認。
+     * 必ず1ゴール分であることを確認。
      */
-    if (!isOneGoalChange(currentScore, found.score)) {
+    if (
+      !isOneGoalChange(
+        fromScore,
+        toScore
+      )
+    ) {
+
       log(
-        `⚠️ 不正なスコア遷移を除外: ` +
-        `${scoreKey(currentScore)} → ${scoreKey(found.score)}`
+        `⚠️ 不正なスコア変化を無視: ` +
+        `${scoreKey(fromScore)} → ` +
+        `${scoreKey(toScore)}`
       );
 
-      currentIndex = found.index + 1;
+      cursorIndex =
+        best.index + 1;
+
       continue;
     }
 
-    detectedGoals.push({
-      number: detectedGoals.length + 1,
-      previousScore: {
-        home: currentScore.home,
-        away: currentScore.away
-      },
-      newScore: {
-        home: found.score.home,
-        away: found.score.away
-      },
-      roughTime: found.time
+    detected.push({
+
+      roughTime:
+        best.time,
+
+      from:
+        scoreKey(fromScore),
+
+      to:
+        scoreKey(toScore),
+
+      type:
+        best.type,
+
+      fromScore,
+
+      toScore
     });
 
     log(
-      `🎯 ゴール${detectedGoals.length}: ` +
-      `${scoreKey(currentScore)} → ${scoreKey(found.score)} ` +
-      `@ ${fmt(found.time)}`
+      `🎯 ゴール${goalNo + 1}: ` +
+      `${scoreKey(fromScore)} → ` +
+      `${scoreKey(toScore)} ` +
+      `@ ${fmt(best.time)}`
     );
 
-    // 次は今回見つかったスコアより後だけを探す
-    currentIndex = found.index + 1;
+    currentScore =
+      toScore;
 
-    currentScore = {
-      home: found.score.home,
-      away: found.score.away
-    };
+    cursorIndex =
+      best.index + 1;
   }
 
   /*
-   * 最終確認
+   * ★最重要
+   *
+   * ゴール数と最終スコアが一致しない場合、
+   * 不完全な検出結果を返さない。
    */
   if (
-    currentScore.home === finalScore.home &&
-    currentScore.away === finalScore.away &&
-    detectedGoals.length === expectedGoals
+    detected.length !==
+    expectedGoalCount
   ) {
-    log(
-      `✅ スコア遷移確認完了: ` +
-      `${scoreKey(initialScore)} → ${scoreKey(finalScore)}`
-    );
-  } else {
+
     log(
       `❌ ゴール検出数不足: ` +
-      `${detectedGoals.length}/${expectedGoals}`
+      `${detected.length}/${expectedGoalCount}`
     );
 
     log(
-      `検出終了スコア: ${scoreKey(currentScore)}`
+      `検出終了スコア: ` +
+      `${scoreKey(currentScore)}`
     );
+
+    log(
+      `入力最終スコア: ` +
+      `${scoreKey(finalScore)}`
+    );
+
+    return [];
   }
 
-  return detectedGoals;
+  /*
+   * 最終スコアそのものも確認。
+   */
+  if (
+    !sameScore(
+      currentScore,
+      finalScore
+    )
+  ) {
+
+    log(
+      `❌ 最終スコア不一致`
+    );
+
+    return [];
+  }
+
+  log(
+    `✅ 最終スコアまで正常に検出: ` +
+    `${scoreKey(currentScore)}`
+  );
+
+  return detected;
 }
+
 
 /* =========================================================
    ゴール時刻精密化
-   ★精密OCRに失敗してもゴール検出自体は失敗させない
-   ★粗検出時刻をフォールバックとして採用
+   ★新スコアを複数回確認して確定
 ========================================================= */
 
 async function refineGoalTime(
@@ -2165,38 +2226,37 @@ async function refineGoalTime(
   newScore
 ) {
 
-  /*
-   * 精密確認範囲
-   *
-   * ゴール検出時刻の前後を細かく確認する。
-   */
-  const startTime = Math.max(
-    0,
-    roughTime - 4
-  );
+  if (
+    roughTime === null ||
+    !previousScore ||
+    !newScore
+  ) {
 
-  const endTime = Math.min(
-    duration,
-    roughTime + 2
-  );
+    return null;
+  }
 
-  /*
-   * 0.25秒単位で確認
-   */
+  const start =
+    Math.max(
+      0,
+      roughTime - 4
+    );
+
+  const end =
+    Math.min(
+      duration - 0.05,
+      roughTime + 0.75
+    );
+
   const step = 0.25;
 
   /*
-   * 精密確認用の候補
+   * 各時刻のOCR結果を保存。
    */
-  let bestTime = null;
+  const checks = [];
 
-  /*
-   * ゴール後スコアが最初に安定して
-   * 確認できた時刻を探す。
-   */
   for (
-    let t = startTime;
-    t <= endTime;
+    let t = start;
+    t <= end + 0.001;
     t += step
   ) {
 
@@ -2209,83 +2269,159 @@ async function refineGoalTime(
       const score =
         await recognizeScore();
 
-      /*
-       * OCR失敗は無視
-       */
-      if (!score) {
-        continue;
-      }
+      checks.push({
+        time: t,
+        score
+      });
 
-      /*
-       * ゴール後スコアと一致
-       */
-      if (
-        sameScore(
-          score,
-          newScore
-        )
-      ) {
+    } catch {
 
-        /*
-         * 最初に確認できた時刻を候補にする
-         */
-        if (bestTime === null) {
-          bestTime = t;
-        }
-      }
-
-    } catch (e) {
-
-      /*
-       * 精密確認中のOCR/seekエラーは
-       * ゴール全体の失敗にはしない。
-       */
-      continue;
+      checks.push({
+        time: t,
+        score: null
+      });
     }
   }
 
   /*
-   * 精密確認できた場合
+   * 新スコアが最初に出た場所を探す。
+   *
+   * ただし1回だけでは採用しない。
+   *
+   * 例：
+   * 80.00  1-0
+   * 80.25  1-0
+   * 80.50  1-0
+   *
+   * → 80.00付近をスコア変化点とする。
    */
-  if (bestTime !== null) {
+  for (
+    let i = 0;
+    i < checks.length;
+    i++
+  ) {
 
-    log(
-      `🎯 ゴール時刻精密化: ` +
-      `${fmt(roughTime)} → ${fmt(bestTime)}`
-    );
+    if (
+      !sameScore(
+        checks[i].score,
+        newScore
+      )
+    ) {
+      continue;
+    }
 
-    return bestTime;
+    let confirmed = 0;
+
+    /*
+     * この時刻以降、
+     * 1秒程度の範囲で確認。
+     */
+    for (
+      let j = i;
+      j < Math.min(
+        checks.length,
+        i + 5
+      );
+      j++
+    ) {
+
+      if (
+        sameScore(
+          checks[j].score,
+          newScore
+        )
+      ) {
+
+        confirmed++;
+      }
+    }
+
+    /*
+     * 5点中3点以上なら
+     * 新スコア表示開始地点として採用。
+     */
+    if (
+      confirmed >= 3
+    ) {
+
+      const refined =
+        checks[i].time;
+
+      log(
+        `🎯 ゴール時刻精密化: ` +
+        `${fmt(roughTime)} → ` +
+        `${fmt(refined)}`
+      );
+
+      return refined;
+    }
   }
 
   /*
-   * =====================================================
-   * ★重要
-   *
-   * 精密OCRに失敗しても、
-   * 既にスコア遷移で確認済みの
-   * roughTime を採用する。
-   *
-   * これによって
-   *
-   * 「ゴールは6件検出できたのに
-   *  精密確認だけで0/6になって停止」
-   *
-   * することを防ぐ。
-   * =====================================================
+   * 次に4点中3点を確認。
    */
+  for (
+    let i = 0;
+    i < checks.length - 3;
+    i++
+  ) {
 
+    let count = 0;
+
+    for (
+      let j = i;
+      j < i + 4;
+      j++
+    ) {
+
+      if (
+        sameScore(
+          checks[j].score,
+          newScore
+        )
+      ) {
+
+        count++;
+      }
+    }
+
+    if (
+      count >= 3
+    ) {
+
+      const refined =
+        checks[i].time;
+
+      log(
+        `🎯 ゴール時刻精密化: ` +
+        `${fmt(roughTime)} → ` +
+        `${fmt(refined)}`
+      );
+
+      return refined;
+    }
+  }
+
+  /*
+   * ★以前のように
+   * roughTimeをそのまま採用しない。
+   *
+   * 確認できなかったゴールは
+   * エラー扱いにする。
+   */
   log(
-    `⚠️ ゴール時刻精密確認失敗: ` +
+    `❌ ゴール時刻の精密確認失敗: ` +
     `${fmt(roughTime)}`
   );
 
-  log(
-    `↩️ 粗検出時刻を採用: ` +
-    `${fmt(roughTime)}`
-  );
-
-  return roughTime;
+  return null;
 }
+
+
+
+
+
+
 
 /* =========================================================
    対象チームでフィルター
