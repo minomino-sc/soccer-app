@@ -2155,10 +2155,8 @@ function detectGoalsFromTimeline(initialScore, finalScore, samples) {
 
 /* =========================================================
    ゴール時刻精密化
-   ★「スコアが安定した時刻」ではなく
-     「前スコア → 新スコアへの変化点」を探す
-   ★OCR取りこぼしを許容
-   ★粗検出時刻より前を重点的に探索
+   ★精密OCRに失敗してもゴール検出自体は失敗させない
+   ★粗検出時刻をフォールバックとして採用
 ========================================================= */
 
 async function refineGoalTime(
@@ -2168,47 +2166,37 @@ async function refineGoalTime(
 ) {
 
   /*
-   * -------------------------------------------------------
-   * 探索範囲
+   * 精密確認範囲
    *
-   * roughTime は「新スコアを安定認識できた時刻」なので、
-   * 実際のゴールは通常その前にある。
-   *
-   * 今回のように
-   *
-   * 実際のゴール 2:21
-   * OCR安定認識  2:52
-   *
-   * のようなズレを考慮し、
-   * 最大45秒前まで戻って探す。
-   * -------------------------------------------------------
+   * ゴール検出時刻の前後を細かく確認する。
    */
-
-  const searchStart = Math.max(
+  const startTime = Math.max(
     0,
-    roughTime - 45
+    roughTime - 4
   );
 
-  const searchEnd = Math.min(
+  const endTime = Math.min(
     duration,
-    roughTime + 1
+    roughTime + 2
   );
-
-  const step = 0.5;
 
   /*
-   * -------------------------------------------------------
-   * スコアサンプル
-   *
-   * まず粗い間隔で全範囲を確認する。
-   * -------------------------------------------------------
+   * 0.25秒単位で確認
    */
+  const step = 0.25;
 
-  const samples = [];
+  /*
+   * 精密確認用の候補
+   */
+  let bestTime = null;
 
+  /*
+   * ゴール後スコアが最初に安定して
+   * 確認できた時刻を探す。
+   */
   for (
-    let t = searchStart;
-    t <= searchEnd;
+    let t = startTime;
+    t <= endTime;
     t += step
   ) {
 
@@ -2221,176 +2209,15 @@ async function refineGoalTime(
       const score =
         await recognizeScore();
 
-      samples.push({
-        time: t,
-        score
-      });
-
-    } catch (e) {
-
-      samples.push({
-        time: t,
-        score: null
-      });
-    }
-  }
-
-  /*
-   * -------------------------------------------------------
-   * 前スコア → 新スコアの変化を探す
-   *
-   * OCRでは一時的にnullになることがあるので、
-   * nullは無視する。
-   * -------------------------------------------------------
-   */
-
-  let previous = null;
-  let previousTime = null;
-
-  let transitionTime = null;
-
-  for (
-    let i = 0;
-    i < samples.length;
-    i++
-  ) {
-
-    const item = samples[i];
-
-    if (!item.score) {
-      continue;
-    }
-
-    /*
-     * 最初に previousScore を確認する
-     */
-    if (
-      previous === null
-    ) {
-
-      if (
-        sameScore(
-          item.score,
-          previousScore
-        )
-      ) {
-
-        previous = item.score;
-        previousTime = item.time;
-      }
-
-      continue;
-    }
-
-    /*
-     * 新スコアを確認
-     */
-    if (
-      sameScore(
-        item.score,
-        newScore
-      )
-    ) {
-
       /*
-       * ここが
-       *
-       * previousScore
-       * ↓
-       * newScore
-       *
-       * の変化点候補
+       * OCR失敗は無視
        */
-
-      transitionTime = item.time;
-
-      break;
-    }
-
-    /*
-     * まだ前スコアなら更新
-     */
-    if (
-      sameScore(
-        item.score,
-        previousScore
-      )
-    ) {
-
-      previousTime = item.time;
-
-      continue;
-    }
-
-    /*
-     * その他のスコアが出た場合
-     *
-     * OCR誤認識の可能性があるため、
-     * previousScoreを壊さない。
-     */
-  }
-
-  /*
-   * -------------------------------------------------------
-   * 変化点が見つからなかった場合
-   * -------------------------------------------------------
-   */
-
-  if (
-    transitionTime === null
-  ) {
-
-    log(
-      `⚠️ ゴール時刻の粗探索失敗: ` +
-      `${fmt(roughTime)}`
-    );
-
-    return null;
-  }
-
-  /*
-   * -------------------------------------------------------
-   * 変化点の前後を0.1秒単位で再探索
-   *
-   * ここで実際のスコア変化位置を絞り込む。
-   * -------------------------------------------------------
-   */
-
-  const refineStart = Math.max(
-    searchStart,
-    transitionTime - 2
-  );
-
-  const refineEnd = Math.min(
-    duration,
-    transitionTime + 1
-  );
-
-  const refineStep = 0.1;
-
-  let firstNewScoreTime = null;
-
-  for (
-    let t = refineStart;
-    t <= refineEnd;
-    t += refineStep
-  ) {
-
-    try {
-
-      await seekTo(t);
-
-      drawScoreCrop();
-
-      const score =
-        await recognizeScore();
-
       if (!score) {
         continue;
       }
 
       /*
-       * 新スコアを初めて確認した位置
+       * ゴール後スコアと一致
        */
       if (
         sameScore(
@@ -2399,70 +2226,65 @@ async function refineGoalTime(
         )
       ) {
 
-        firstNewScoreTime = t;
-        break;
+        /*
+         * 最初に確認できた時刻を候補にする
+         */
+        if (bestTime === null) {
+          bestTime = t;
+        }
       }
 
     } catch (e) {
 
+      /*
+       * 精密確認中のOCR/seekエラーは
+       * ゴール全体の失敗にはしない。
+       */
       continue;
     }
   }
 
   /*
-   * -------------------------------------------------------
-   * 精密時刻が見つかった
-   * -------------------------------------------------------
+   * 精密確認できた場合
    */
-
-  if (
-    firstNewScoreTime !== null
-  ) {
-
-    /*
-     * OCRで新スコアが表示されるのは、
-     * 実際のゴールより少し後になる場合がある。
-     *
-     * そのため、新スコア確認時刻から
-     * 表示遅延を一定量引く。
-     *
-     * ★まず1.0秒を基準値にする。
-     */
-
-    const estimatedGoalTime =
-      Math.max(
-        0,
-        firstNewScoreTime - 1.0
-      );
+  if (bestTime !== null) {
 
     log(
       `🎯 ゴール時刻精密化: ` +
-      `${fmt(roughTime)} → ` +
-      `${fmt(estimatedGoalTime)}`
+      `${fmt(roughTime)} → ${fmt(bestTime)}`
     );
 
-    log(
-      `   スコア変化: ` +
-      `${scoreKey(previousScore)} → ` +
-      `${scoreKey(newScore)}`
-    );
-
-    return estimatedGoalTime;
+    return bestTime;
   }
 
   /*
-   * 精密確認できなかった場合
+   * =====================================================
+   * ★重要
    *
-   * ★ここでroughTimeを返さない。
-   * ★間違った時刻を採用しない。
+   * 精密OCRに失敗しても、
+   * 既にスコア遷移で確認済みの
+   * roughTime を採用する。
+   *
+   * これによって
+   *
+   * 「ゴールは6件検出できたのに
+   *  精密確認だけで0/6になって停止」
+   *
+   * することを防ぐ。
+   * =====================================================
    */
 
   log(
-    `❌ ゴール時刻の精密確認失敗: ` +
+    `⚠️ ゴール時刻精密確認失敗: ` +
     `${fmt(roughTime)}`
   );
 
-  return null;
+  log(
+    `↩️ 粗検出時刻を採用: ` +
+    `${fmt(roughTime)}`
+  );
+
+  return roughTime;
 }
 
 /* =========================================================
