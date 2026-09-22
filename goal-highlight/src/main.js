@@ -2835,50 +2835,65 @@ for (
     `を精密確認中…`
   );
 
-  const refinedTime =
-    await refineGoalTime(
-      g.roughTime,
-      g.fromScore,
-      g.toScore
-    );
+const refinedTime =
+  await refineGoalTime(
+    g.roughTime,
+    g.fromScore,
+    g.toScore
+  );
 
-  /*
-   * 精密確認できなかったゴールは
-   * 無理に採用しない。
-   */
-  if (
-    refinedTime === null
-  ) {
+let finalTime =
+  refinedTime;
 
-    log(
-      `❌ GOAL ${i + 1} ` +
-      `の時刻確認に失敗しました`
-    );
+/*
+ * 精密確認できなかった場合でも、
+ * ゴール検出そのものには成功しているため、
+ * roughTimeを採用して処理を継続する。
+ */
+if (
+  refinedTime === null
+) {
 
-    continue;
-  }
+  log(
+    `⚠️ GOAL ${i + 1} ` +
+    `の精密確認に失敗 → ` +
+    `${fmt(g.roughTime)} を採用`
+  );
 
-  refinedGoals.push({
+  finalTime =
+    g.roughTime;
 
-    time:
-      refinedTime,
+} else {
 
-    from:
-      g.from,
+  log(
+    `🎯 GOAL ${i + 1} ` +
+    `時刻確定: ` +
+    `${fmt(refinedTime)}`
+  );
 
-    to:
-      g.to,
+}
 
-    type:
-      g.type,
+refinedGoals.push({
 
-    home:
-      g.toScore.home,
+  time:
+    finalTime,
 
-    away:
-      g.toScore.away
+  from:
+    g.from,
 
-  });
+  to:
+    g.to,
+
+  type:
+    g.type,
+
+  home:
+    g.toScore.home,
+
+  away:
+    g.toScore.away
+
+});
 
   progressEl.value =
     85 +
