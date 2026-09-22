@@ -1934,403 +1934,223 @@ function findStableScoreInSamples(
    ゴール検出
    ★スコアの状態遷移を確認してゴールを確定
 ========================================================= */
+function detectGoalsFromTimeline(initialScore, finalScore, samples) {
+  const expectedGoals =
+    (finalScore.home - initialScore.home) +
+    (finalScore.away - initialScore.away);
 
-function detectGoalsFromTimeline(
-  initialScore,
-  finalScore,
-  samples
-) {
-
-  const expectedGoalCount =
-    (
-      finalScore.home -
-      initialScore.home
-    ) +
-    (
-      finalScore.away -
-      initialScore.away
-    );
-
-
-  if (
-    expectedGoalCount <= 0
-  ) {
-
+  if (expectedGoals <= 0) {
+    log('⚠️ ゴール数が0以下のため、ゴール検出を終了します');
     return [];
-
   }
 
-
   log(
-    `必要ゴール数: ${expectedGoalCount}`
+    `ゴール検出開始: ${scoreKey(initialScore)} → ${scoreKey(finalScore)} / ` +
+    `予想ゴール数 ${expectedGoals}`
   );
 
+  const detectedGoals = [];
 
-  /*
-   * =====================================================
-   * ① OCR結果を整理
-   * =====================================================
-   */
-
-  const cleanedSamples =
-    samples.map(
-      item => {
-
-        if (
-          !item ||
-          !item.score
-        ) {
-
-          return {
-            ...item,
-            score: null
-          };
-
-        }
-
-
-        /*
-         * 初期スコアより下
-         * または最終スコアより上は
-         * OCR誤認識として無効。
-         */
-
-        if (
-          !isValidScoreForFinal(
-            item.score,
-            initialScore,
-            finalScore
-          )
-        ) {
-
-          log(
-            `OCR誤認識候補を除外: ` +
-            `${fmt(item.time)} → ` +
-            `${scoreKey(item.score)}`
-          );
-
-          return {
-            ...item,
-            score: null
-          };
-
-        }
-
-
-        return item;
-
-      }
-    );
-
-
-  /*
-   * =====================================================
-   * ② ゴールを1点ずつ追跡
-   * =====================================================
-   */
-
+  // 必ず0-0から開始
   let currentScore = {
-
-    home:
-      initialScore.home,
-
-    away:
-      initialScore.away
-
+    home: initialScore.home,
+    away: initialScore.away
   };
 
+  let currentIndex = 0;
 
-  let cursorIndex = 0;
+  while (detectedGoals.length < expectedGoals) {
+    const remainingGoals =
+      expectedGoals - detectedGoals.length;
 
-
-  const detected = [];
-
-
-  for (
-    let goalNo = 0;
-    goalNo < expectedGoalCount;
-    goalNo++
-  ) {
-
-    const candidates =
-      getNextExpectedScores(
-        currentScore,
-        finalScore
-      );
-
-
-    if (
-      !candidates.length
-    ) {
-
-      break;
-
-    }
-
-
-    let best = null;
-
+    let found = null;
 
     /*
-     * ===================================================
-     * 次にあり得る1点だけを探す
-     * ===================================================
+     * 次に起こり得るスコアは、
+     * ①ホームが1点増える
+     * ②アウェイが1点増える
+     *
+     * の2パターンだけ。
      */
+    const candidates = [];
 
-    for (
-      const candidate of candidates
-    ) {
+    if (currentScore.home < finalScore.home) {
+      candidates.push({
+        home: currentScore.home + 1,
+        away: currentScore.away
+      });
+    }
 
-const found =
-  findStableScoreInSamples(
+    if (currentScore.away < finalScore.away) {
+      candidates.push({
+        home: currentScore.home,
+        away: currentScore.away + 1
+      });
+    }
 
-    cleanedSamples,
+    if (candidates.length === 0) {
+      break;
+    }
 
-    candidate.score,
+    /*
+     * OCR結果を時系列で確認し、
+     * 「次に起こる可能性のあるスコア」が
+     * 最初に安定して現れた場所を探す。
+     */
+    for (let i = currentIndex; i < samples.length; i++) {
+      const item = samples[i];
 
-    cursorIndex,
-
-    currentScore,
-
-    initialScore,
-
-    finalScore
-
-  );
-
-      if (
-        !found
-      ) {
-
+      if (!item || !item.score) {
         continue;
-
       }
 
+      const score = item.score;
+
+      // 最終スコアを超えるOCR結果は無視
+      if (
+        score.home > finalScore.home ||
+        score.away > finalScore.away
+      ) {
+        continue;
+      }
+
+      // 現在のスコアより戻っているOCR結果は無視
+      if (
+        score.home < currentScore.home ||
+        score.away < currentScore.away
+      ) {
+        continue;
+      }
+
+      const candidateIndex = candidates.findIndex(
+        candidate => sameScore(score, candidate)
+      );
+
+      if (candidateIndex === -1) {
+        continue;
+      }
+
+      const candidate = candidates[candidateIndex];
 
       /*
-       * 最も早く確認できた
-       * 正しいスコア遷移を候補にする。
+       * 一瞬だけOCRが誤認識した可能性を排除するため、
+       * 同じスコアがその後もう一度確認できるかを見る。
+       *
+       * 15秒以内に同じスコアが2回確認できれば、
+       * スコア変化として確定。
        */
+      let confirmCount = 1;
+      let confirmed = false;
 
-      if (
-        !best ||
-        found.index <
-        best.index
-      ) {
+      for (let j = i + 1; j < samples.length; j++) {
+        const next = samples[j];
 
-        best = {
+        if (!next || !next.score) {
+          continue;
+        }
 
-          index:
-            found.index,
+        if (next.time - item.time > 15) {
+          break;
+        }
 
-          time:
-            found.time,
+        if (sameScore(next.score, candidate)) {
+          confirmCount++;
 
-          score:
-            candidate.score,
-
-          type:
-            candidate.type
-
-        };
-
+          if (confirmCount >= 2) {
+            confirmed = true;
+            break;
+          }
+        }
       }
 
+      if (!confirmed) {
+        continue;
+      }
+
+      found = {
+        index: i,
+        time: item.time,
+        score: candidate
+      };
+
+      break;
     }
 
-
-    /*
-     * ===================================================
-     * ゴール候補が見つからない
-     * ===================================================
-     */
-
-    if (
-      !best
-    ) {
-
+    if (!found) {
       log(
-        `⚠️ ゴール${goalNo + 1}件目を ` +
-        `確実に確認できませんでした`
+        `⚠️ ゴール${detectedGoals.length + 1}件目を ` +
+        `${candidates.map(scoreKey).join(' / ')} ` +
+        `のいずれとしても確実に確認できませんでした`
       );
 
       break;
-
     }
 
-
-    const fromScore = {
-
-      home:
-        currentScore.home,
-
-      away:
-        currentScore.away
-
-    };
-
-
-    const toScore = {
-
-      home:
-        best.score.home,
-
-      away:
-        best.score.away
-
-    };
-
-
     /*
-     * ===================================================
-     * 必ず1点だけの変化であることを確認
-     * ===================================================
+     * 現在スコアから1点だけ増えていることを最終確認。
      */
-
-    if (
-      !isOneGoalChange(
-        fromScore,
-        toScore
-      )
-    ) {
-
+    if (!isOneGoalChange(currentScore, found.score)) {
       log(
-        `⚠️ 不正なスコア変化を却下: ` +
-        `${scoreKey(fromScore)} → ` +
-        `${scoreKey(toScore)}`
+        `⚠️ 不正なスコア遷移を除外: ` +
+        `${scoreKey(currentScore)} → ${scoreKey(found.score)}`
       );
 
-      cursorIndex =
-        best.index + 1;
-
-      goalNo--;
-
+      currentIndex = found.index + 1;
       continue;
-
     }
 
-
-    /*
-     * ===================================================
-     * ゴール確定
-     * ===================================================
-     */
-
-    detected.push({
-
-      roughTime:
-        best.time,
-
-      from:
-        scoreKey(fromScore),
-
-      to:
-        scoreKey(toScore),
-
-      type:
-        best.type,
-
-      fromScore,
-
-      toScore
-
+    detectedGoals.push({
+      number: detectedGoals.length + 1,
+      previousScore: {
+        home: currentScore.home,
+        away: currentScore.away
+      },
+      newScore: {
+        home: found.score.home,
+        away: found.score.away
+      },
+      roughTime: found.time
     });
 
-
     log(
-      `🎯 ゴール${goalNo + 1}: ` +
-      `${scoreKey(fromScore)} → ` +
-      `${scoreKey(toScore)} ` +
-      `@ ${fmt(best.time)}`
+      `🎯 ゴール${detectedGoals.length}: ` +
+      `${scoreKey(currentScore)} → ${scoreKey(found.score)} ` +
+      `@ ${fmt(found.time)}`
     );
 
+    // 次は今回見つかったスコアより後だけを探す
+    currentIndex = found.index + 1;
 
-    currentScore =
-      toScore;
-
-
-    /*
-     * ★重要
-     *
-     * 同じOCR結果を
-     * 次のゴールでも使わない。
-     *
-     * ゴール後の安定区間を
-     * 通過してから次へ進む。
-     */
-
-    cursorIndex =
-      best.index + 3;
-
+    currentScore = {
+      home: found.score.home,
+      away: found.score.away
+    };
   }
 
-
   /*
-   * =====================================================
-   * ③ ゴール数確認
-   * =====================================================
+   * 最終確認
    */
-
   if (
-    detected.length !==
-    expectedGoalCount
+    currentScore.home === finalScore.home &&
+    currentScore.away === finalScore.away &&
+    detectedGoals.length === expectedGoals
   ) {
-
+    log(
+      `✅ スコア遷移確認完了: ` +
+      `${scoreKey(initialScore)} → ${scoreKey(finalScore)}`
+    );
+  } else {
     log(
       `❌ ゴール検出数不足: ` +
-      `${detected.length}/${expectedGoalCount}`
+      `${detectedGoals.length}/${expectedGoals}`
     );
-
 
     log(
-      `検出終了スコア: ` +
-      `${scoreKey(currentScore)}`
+      `検出終了スコア: ${scoreKey(currentScore)}`
     );
-
-
-    log(
-      `入力最終スコア: ` +
-      `${scoreKey(finalScore)}`
-    );
-
-
-    return [];
-
   }
 
-
-  /*
-   * =====================================================
-   * ④ 最終スコア確認
-   * =====================================================
-   */
-
-  if (
-    !sameScore(
-      currentScore,
-      finalScore
-    )
-  ) {
-
-    log(
-      `❌ 最終スコア不一致: ` +
-      `${scoreKey(currentScore)} / ` +
-      `${scoreKey(finalScore)}`
-    );
-
-    return [];
-
-  }
-
-
-  log(
-    `✅ スコア遷移確認完了: ` +
-    `${scoreKey(initialScore)} → ` +
-    `${scoreKey(finalScore)}`
-  );
-
-
-  return detected;
+  return detectedGoals;
 }
 
 /* =========================================================
