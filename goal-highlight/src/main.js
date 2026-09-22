@@ -1757,9 +1757,9 @@ function buildScoreRuns(
   return runs;
 }
 
-
 /* =========================================================
    安定スコア探索
+   ★OCR誤認識・一時的な読み取り失敗に強い方式
 ========================================================= */
 
 function findStableScoreInSamples(
@@ -1770,12 +1770,14 @@ function findStableScoreInSamples(
   finalScore = null
 ) {
 
-  /*
-   * ★重要
-   *
-   * 1回だけOCRされたスコアを
-   * ゴールとは認めない。
-   */
+  if (
+    !targetScore ||
+    !Array.isArray(samples) ||
+    !samples.length
+  ) {
+    return null;
+  }
+
 
   const validStart =
     Math.max(
@@ -1783,11 +1785,19 @@ function findStableScoreInSamples(
       startIndex || 0
     );
 
+
   /*
-   * ① まず2回連続を探す
+   * =======================================================
+   * ① まず「次の得点スコア」が出現した最初の位置を探す
+   *
+   * 1回だけのOCRでは採用しない。
+   * ただし、連続していなくても一定時間内に
+   * 複数回確認できれば有効とする。
+   * =======================================================
    */
-  let consecutive = 0;
-  let firstIndex = -1;
+
+  const matches = [];
+
 
   for (
     let i = validStart;
@@ -1798,117 +1808,199 @@ function findStableScoreInSamples(
     const item =
       samples[i];
 
+
     if (
-      item.score &&
-      sameScore(
+      !item.score
+    ) {
+      continue;
+    }
+
+
+    if (
+      !sameScore(
         item.score,
         targetScore
       )
     ) {
-
-      if (consecutive === 0) {
-        firstIndex = i;
-      }
-
-      consecutive++;
-
-      if (
-        consecutive >= 2
-      ) {
-
-        return {
-          index:
-            firstIndex,
-
-          time:
-            samples[firstIndex].time
-        };
-      }
-
-    } else {
-
-      consecutive = 0;
-      firstIndex = -1;
+      continue;
     }
+
+
+    /*
+     * 最終スコアを超えるものは無視
+     */
+    if (
+      finalScore &&
+      !isValidScoreForFinal(
+        item.score,
+        initialScore,
+        finalScore
+      )
+    ) {
+      continue;
+    }
+
+
+    matches.push({
+      index:
+        i,
+
+      time:
+        item.time
+    });
+
   }
 
+
+  if (
+    !matches.length
+  ) {
+
+    return null;
+
+  }
+
+
   /*
-   * ② 2連続が取れない場合
+   * =======================================================
+   * ② 近い時間帯に複数回出現しているか確認
    *
-   * 3サンプル中2回を確認。
+   * OCRが途中で1～数回失敗しても、
+   * 同じスコアが一定時間続いていれば採用する。
    *
-   * ただし、前後が大きく離れている場合は
-   * 採用しない。
+   * 現在の解析間隔が1秒なら、
+   * 最大6秒程度の範囲を見る。
+   * =======================================================
    */
+
+  const maxWindow =
+    Math.max(
+      5,
+      (
+        samples[1]?.time -
+        samples[0]?.time
+      || 1
+      ) * 5
+    );
+
+
   for (
-    let i = validStart;
-    i < samples.length;
+    let i = 0;
+    i < matches.length;
     i++
   ) {
 
-    const indexes = [];
+    const first =
+      matches[i];
+
+
+    let count = 1;
+
 
     for (
-      let j = i;
-      j < Math.min(
-        samples.length,
-        i + 3
-      );
+      let j = i + 1;
+      j < matches.length;
       j++
     ) {
 
+      const diff =
+        matches[j].time -
+        first.time;
+
+
       if (
-        samples[j].score &&
-        sameScore(
-          samples[j].score,
-          targetScore
-        )
+        diff >
+        maxWindow
       ) {
-
-        indexes.push(j);
+        break;
       }
-    }
 
-    if (
-      indexes.length >= 2
-    ) {
 
-      const first =
-        indexes[0];
+      count++;
 
-      const second =
-        indexes[1];
 
       /*
-       * 3サンプル以内なら採用。
+       * 5秒程度の範囲で
+       * 2回確認できれば採用。
+       *
+       * 途中にOCR失敗や別の誤認識が
+       * 入っていても問題ない。
        */
+
       if (
-        samples[second].time -
-        samples[first].time
-        <=
-        Math.max(
-          2.5,
-          (
-            samples[1]?.time -
-            samples[0]?.time
-          ) * 2.5
-        )
+        count >= 2
       ) {
 
         return {
           index:
-            first,
+            first.index,
 
           time:
-            samples[first].time
+            first.time
         };
+
       }
+
     }
+
   }
+
+
+  /*
+   * =======================================================
+   * ③ 2回確認できなかった場合
+   *
+   * 同じスコアがある程度の時間表示されているケースでは、
+   * 1回だけのOCRでも、前後のスコア状況から採用する。
+   *
+   * ただし最初から動画終了付近まで飛びすぎる場合は
+   * 採用しない。
+   * =======================================================
+   */
+
+  for (
+    let i = 0;
+    i < matches.length;
+    i++
+  ) {
+
+    const current =
+      matches[i];
+
+
+    /*
+     * 次のゴール候補なので、
+     * 直前のスコア変化から極端に離れている
+     * OCR誤認識は避ける。
+     */
+
+    const next =
+      matches[i + 1];
+
+
+    if (
+      next &&
+      next.time -
+      current.time
+      <=
+      maxWindow
+    ) {
+
+      return {
+        index:
+          current.index,
+
+        time:
+          current.time
+      };
+
+    }
+
+  }
+
 
   return null;
 }
-
 
 /* =========================================================
    ゴール検出
