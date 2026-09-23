@@ -763,6 +763,434 @@ function drawScoreCrop(x = scoreCropX) {
   );
 }
 
+/* =========================================================
+   スコア表示画像の差分検出
+   ★OCRが読めなくてもスコア変更そのものを検出する
+========================================================= */
+
+function getScoreImageData() {
+
+  return ctx.getImageData(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+}
+
+
+function calculateScoreImageDifference(
+  a,
+  b
+) {
+
+  if (
+    !a ||
+    !b ||
+    a.data.length !== b.data.length
+  ) {
+
+    return 999;
+  }
+
+
+  let total = 0;
+
+  let count = 0;
+
+
+  /*
+   * 白背景部分の影響を減らすため、
+   * スコア表示の中央部分を重点的に比較。
+   */
+
+  const width =
+    canvas.width;
+
+  const height =
+    canvas.height;
+
+
+  const xStart =
+    Math.floor(
+      width * 0.05
+    );
+
+  const xEnd =
+    Math.floor(
+      width * 0.95
+    );
+
+  const yStart =
+    Math.floor(
+      height * 0.05
+    );
+
+  const yEnd =
+    Math.floor(
+      height * 0.95
+    );
+
+
+  for (
+    let y = yStart;
+    y < yEnd;
+    y += 2
+  ) {
+
+    for (
+      let x = xStart;
+      x < xEnd;
+      x += 2
+    ) {
+
+      const index =
+        (
+          y * width +
+          x
+        ) * 4;
+
+
+      const dr =
+        Math.abs(
+          a.data[index] -
+          b.data[index]
+        );
+
+      const dg =
+        Math.abs(
+          a.data[index + 1] -
+          b.data[index + 1]
+        );
+
+      const db =
+        Math.abs(
+          a.data[index + 2] -
+          b.data[index + 2]
+        );
+
+
+      total +=
+        (
+          dr +
+          dg +
+          db
+        ) / 3;
+
+
+      count++;
+
+    }
+
+  }
+
+
+  if (!count) {
+    return 0;
+  }
+
+
+  return (
+    total /
+    count
+  );
+}
+
+
+/* =========================================================
+   スコア変更時刻を画像差分で探す
+========================================================= */
+
+async function detectScoreTransitionByImage(
+  start,
+  end,
+  previousScore,
+  newScore
+) {
+
+  if (
+    !previousScore ||
+    !newScore
+  ) {
+
+    return null;
+  }
+
+
+  if (
+    end <= start
+  ) {
+
+    return null;
+  }
+
+
+  log(
+    `🖼️ スコア画像変化を探索: ` +
+    `${fmt(start)} ～ ${fmt(end)} / ` +
+    `${scoreKey(previousScore)} → ` +
+    `${scoreKey(newScore)}`
+  );
+
+
+  /*
+   * -------------------------------------------------------
+   * ① 変更前の基準画像を取得
+   *
+   * 前スコアが最後に確認された時刻付近。
+   * -------------------------------------------------------
+   */
+
+  const referenceTime =
+    Math.max(
+      0,
+      start
+    );
+
+
+  try {
+
+    await seekTo(
+      referenceTime
+    );
+
+    drawScoreCrop();
+
+  } catch {
+
+    return null;
+
+  }
+
+
+  const reference =
+    getScoreImageData();
+
+
+  /*
+   * -------------------------------------------------------
+   * ② 0.25秒間隔で画像差分を見る
+   *
+   * スコア表示部分だけなので、
+   * フィールド上の選手の動きには影響されない。
+   * -------------------------------------------------------
+   */
+
+  const step =
+    0.25;
+
+
+  const candidates = [];
+
+
+  for (
+    let t = start;
+    t <= end + 0.001;
+    t += step
+  ) {
+
+    try {
+
+      await seekTo(t);
+
+      drawScoreCrop();
+
+
+      const current =
+        getScoreImageData();
+
+
+      const diff =
+        calculateScoreImageDifference(
+          reference,
+          current
+        );
+
+
+      candidates.push({
+
+        time:
+          t,
+
+        diff
+
+      });
+
+
+    } catch {
+
+      continue;
+
+    }
+
+
+    await sleep(0);
+
+  }
+
+
+  if (
+    !candidates.length
+  ) {
+
+    return null;
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * ③ 差分の大きい地点を候補にする
+   *
+   * スコア変更前後では、
+   * 0-0 → 1-0 の数字部分が変化する。
+   * -------------------------------------------------------
+   */
+
+  const sorted =
+    [...candidates]
+      .sort(
+        (a, b) =>
+          b.diff -
+          a.diff
+      );
+
+
+  const maxDiff =
+    sorted[0]?.diff || 0;
+
+
+  log(
+    `🖼️ 最大画像差分: ` +
+    `${maxDiff.toFixed(2)}`
+  );
+
+
+  if (
+    maxDiff < 2
+  ) {
+
+    log(
+      '⚠️ スコア画像の明確な変化を検出できませんでした'
+    );
+
+    return null;
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * ④ 最初の「明確な変化」を探す
+   *
+   * 最大差分の一定割合以上を
+   * スコア変更候補とする。
+   * -------------------------------------------------------
+   */
+
+  const threshold =
+    Math.max(
+      3,
+      maxDiff * 0.35
+    );
+
+
+  for (
+    let i = 0;
+    i < candidates.length;
+    i++
+  ) {
+
+    const item =
+      candidates[i];
+
+
+    if (
+      item.diff <
+      threshold
+    ) {
+
+      continue;
+
+    }
+
+
+    /*
+     * 1回だけの変化ではなく、
+     * 直後にも変化が維持されているか確認。
+     */
+
+    let strongCount = 0;
+
+
+    for (
+      let j = i;
+      j <
+        Math.min(
+          candidates.length,
+          i + 5
+        );
+      j++
+    ) {
+
+      if (
+        candidates[j].diff >=
+        threshold
+      ) {
+
+        strongCount++;
+
+      }
+
+    }
+
+
+    if (
+      strongCount >= 2
+    ) {
+
+      log(
+        `🖼️ スコア表示変更候補: ` +
+        `${fmt(item.time)} ` +
+        `(差分 ${item.diff.toFixed(2)})`
+      );
+
+
+      return item.time;
+
+    }
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * ⑤ 保険
+   *
+   * 最も大きな差分位置を返す。
+   * -------------------------------------------------------
+   */
+
+  const fallback =
+    sorted[0];
+
+
+  if (fallback) {
+
+    log(
+      `🖼️ 最大差分位置を採用: ` +
+      `${fmt(fallback.time)}`
+    );
+
+
+    return fallback.time;
+
+  }
+
+
+  return null;
+}
+
 async function recognizeInitialScoreAtX(t, x) {
 
   await seekTo(t);
@@ -2530,7 +2958,7 @@ function detectGoalsFromTimeline(
 
 /* =========================================================
    ゴール時刻精密化
-   ★前スコア終了～新スコア開始を0.25秒単位で再OCR
+   ★OCR + スコア画像差分の二段構え
 ========================================================= */
 
 async function refineGoalTime(
@@ -2551,41 +2979,22 @@ async function refineGoalTime(
   }
 
 
-  /*
-   * -------------------------------------------------------
-   * 精密探索範囲
-   *
-   * 今回は
-   *
-   * 前スコア最後の確認
-   *       ↓
-   * 新スコア最初の確認
-   *
-   * を調べる。
-   *
-   * 例：
-   *
-   * 0-0  最後 2:06
-   * 1-0  最初 2:52
-   *
-   * → 2:06～2:52を再OCR
-   * -------------------------------------------------------
-   */
-
   let start =
-    Number.isFinite(
-      searchStart
-    )
+    Number.isFinite(searchStart)
       ? searchStart
-      : roughTime - 10;
+      : Math.max(
+          0,
+          roughTime - 10
+        );
 
 
   let end =
-    Number.isFinite(
-      searchEnd
-    )
+    Number.isFinite(searchEnd)
       ? searchEnd
-      : roughTime + 1;
+      : Math.min(
+          duration - 0.05,
+          roughTime + 1
+        );
 
 
   start =
@@ -2602,43 +3011,227 @@ async function refineGoalTime(
     );
 
 
-  /*
-   * 範囲が逆転した場合は
-   * roughTime周辺に戻す。
-   */
-
   if (
     end <= start
   ) {
 
-    start =
-      Math.max(
-        0,
-        roughTime - 10
-      );
-
-    end =
-      Math.min(
-        duration - 0.05,
-        roughTime + 1
-      );
-
+    return null;
   }
 
 
   log(
-    `🔍 ゴール時刻再探索: ` +
-    `${fmt(start)} ～ ${fmt(end)} ` +
-    `(${scoreKey(previousScore)} → ` +
-    `${scoreKey(newScore)})`
+    `🔍 ゴール時刻精密化開始: ` +
+    `${fmt(start)} ～ ${fmt(end)} / ` +
+    `${scoreKey(previousScore)} → ` +
+    `${scoreKey(newScore)}`
   );
 
 
+  /* =======================================================
+     STEP 1
+     画像差分でスコア表示が変化した瞬間を探す
+  ======================================================= */
+
+  const imageTime =
+    await detectScoreTransitionByImage(
+      start,
+      end,
+      previousScore,
+      newScore
+    );
+
+
+  if (
+    Number.isFinite(imageTime)
+  ) {
+
+    log(
+      `🖼️ 画像差分によるゴール時刻候補: ` +
+      `${fmt(imageTime)}`
+    );
+
+
+    /*
+     * =====================================================
+     * STEP 2
+     * 画像差分で見つかった周辺を
+     * 0.1秒単位でOCR確認
+     * =====================================================
+     */
+
+    const refineStart =
+      Math.max(
+        start,
+        imageTime - 1.5
+      );
+
+
+    const refineEnd =
+      Math.min(
+        end,
+        imageTime + 1.5
+      );
+
+
+    const step =
+      0.1;
+
+
+    const checks = [];
+
+
+    for (
+      let t = refineStart;
+      t <= refineEnd + 0.001;
+      t += step
+    ) {
+
+      try {
+
+        await seekTo(t);
+
+        drawScoreCrop();
+
+        const score =
+          await recognizeScore();
+
+
+        checks.push({
+
+          time:
+            t,
+
+          score
+
+        });
+
+
+      } catch {
+
+        checks.push({
+
+          time:
+            t,
+
+          score:
+            null
+
+        });
+
+      }
+
+
+      await sleep(0);
+
+    }
+
+
+    /*
+     * =====================================================
+     * OCRで新スコアが最初に安定した地点
+     * =====================================================
+     */
+
+    for (
+      let i = 0;
+      i < checks.length;
+      i++
+    ) {
+
+      if (
+        !sameScore(
+          checks[i].score,
+          newScore
+        )
+      ) {
+
+        continue;
+
+      }
+
+
+      let confirmed =
+        0;
+
+
+      for (
+        let j = i;
+        j <
+          Math.min(
+            checks.length,
+            i + 10
+          );
+        j++
+      ) {
+
+        if (
+          sameScore(
+            checks[j].score,
+            newScore
+          )
+        ) {
+
+          confirmed++;
+
+        }
+
+      }
+
+
+      if (
+        confirmed >= 3
+      ) {
+
+        const refined =
+          checks[i].time;
+
+
+        log(
+          `🎯 ゴール時刻確定: ` +
+          `${fmt(roughTime)} → ` +
+          `${fmt(refined)} ` +
+          `(画像差分＋OCR)`
+        );
+
+
+        return refined;
+
+      }
+
+    }
+
+
+    /*
+     * =====================================================
+     * OCRで確認できなかった場合
+     *
+     * 画像差分の時刻を採用
+     * =====================================================
+     */
+
+    log(
+      `🎯 ゴール時刻確定: ` +
+      `${fmt(roughTime)} → ` +
+      `${fmt(imageTime)} ` +
+      `(画像差分)`
+    );
+
+
+    return imageTime;
+
+  }
+
+
   /*
-   * -------------------------------------------------------
-   * まず0.25秒間隔で全区間を確認
-   * -------------------------------------------------------
-   */
+   * =======================================================
+   * 画像差分で見つからなかった場合
+   * 従来のOCR探索を最後の保険として実行
+   * ======================================================= */
+
+  log(
+    '⚠️ 画像差分で変更点を検出できず、OCR探索へ移行'
+  );
+
 
   const step =
     0.25;
@@ -2688,24 +3281,10 @@ async function refineGoalTime(
     }
 
 
-    /*
-     * 長時間の再OCRでも
-     * ブラウザを完全に固めない。
-     */
-
     await sleep(0);
 
   }
 
-
-  /*
-   * -------------------------------------------------------
-   * ① 新スコアが初めて確認された地点を探す
-   *
-   * ただし、1回だけのOCRでは採用しない。
-   * その後にも新スコアが続いていることを確認する。
-   * -------------------------------------------------------
-   */
 
   for (
     let i = 0;
@@ -2719,19 +3298,10 @@ async function refineGoalTime(
         newScore
       )
     ) {
+
       continue;
+
     }
-
-
-    /*
-     * この地点以降、最大2秒を見る。
-     */
-
-    const confirmEnd =
-      Math.min(
-        checks.length,
-        i + 9
-      );
 
 
     let confirmed =
@@ -2740,7 +3310,11 @@ async function refineGoalTime(
 
     for (
       let j = i;
-      j < confirmEnd;
+      j <
+        Math.min(
+          checks.length,
+          i + 9
+        );
       j++
     ) {
 
@@ -2758,14 +3332,6 @@ async function refineGoalTime(
     }
 
 
-    /*
-     * 0.25秒間隔なら
-     *
-     * 9サンプル中3回以上
-     *
-     * を安定表示と判断。
-     */
-
     if (
       confirmed >= 3
     ) {
@@ -2775,59 +3341,10 @@ async function refineGoalTime(
 
 
       log(
-        `🎯 ゴール時刻精密化: ` +
-        `${fmt(roughTime)} → ` +
-        `${fmt(refined)}`
-      );
-
-
-      return refined;
-
-    }
-
-  }
-
-
-  /*
-   * -------------------------------------------------------
-   * ② 上記で取れなかった場合
-   *
-   * 新スコアが連続して確認された最初の地点を探す。
-   * -------------------------------------------------------
-   */
-
-  for (
-    let i = 0;
-    i < checks.length - 1;
-    i++
-  ) {
-
-    if (
-      !sameScore(
-        checks[i].score,
-        newScore
-      )
-    ) {
-      continue;
-    }
-
-
-    if (
-      sameScore(
-        checks[i + 1].score,
-        newScore
-      )
-    ) {
-
-      const refined =
-        checks[i].time;
-
-
-      log(
-        `🎯 ゴール時刻精密化: ` +
+        `🎯 ゴール時刻確定: ` +
         `${fmt(roughTime)} → ` +
         `${fmt(refined)} ` +
-        `(連続確認)`
+        `(OCR)`
       );
 
 
@@ -2836,58 +3353,6 @@ async function refineGoalTime(
     }
 
   }
-
-
-  /*
-   * -------------------------------------------------------
-   * ③ 最後の保険
-   *
-   * 新スコアが一度だけでも現れ、
-   * その直前まで旧スコアが確認できている場合、
-   * その最初の新スコアを候補とする。
-   *
-   * 今回は「ゴール時刻を捨てる」より
-   * 「実際の変更時刻を拾う」ことを優先。
-   * -------------------------------------------------------
-   */
-
-  for (
-    let i = 0;
-    i < checks.length;
-    i++
-  ) {
-
-    if (
-      !sameScore(
-        checks[i].score,
-        newScore
-      )
-    ) {
-      continue;
-    }
-
-
-    const refined =
-      checks[i].time;
-
-
-    log(
-      `🎯 ゴール時刻精密化: ` +
-      `${fmt(roughTime)} → ` +
-      `${fmt(refined)} ` +
-      `(単発OCR)`
-    );
-
-
-    return refined;
-
-  }
-
-
-  log(
-    `❌ ゴール時刻の精密確認失敗: ` +
-    `${fmt(roughTime)}`
-  );
 
 
   return null;
