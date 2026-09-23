@@ -3709,402 +3709,221 @@ function detectGoalsFromTimeline(
    ゴール時刻精密化
    ★OCR + スコア画像差分の二段構え
 ========================================================= */
-
 async function refineGoalTime(
   roughTime,
   previousScore,
   newScore,
-  searchStart = null,
-  searchEnd = null
+  searchStart,
+  searchEnd
 ) {
-
-  if (
-    roughTime === null ||
-    !previousScore ||
-    !newScore
-  ) {
-
-    return null;
-  }
-
-
-  let start =
-    Number.isFinite(searchStart)
-      ? searchStart
-      : Math.max(
-          0,
-          roughTime - 10
-        );
-
-
-  let end =
-    Number.isFinite(searchEnd)
-      ? searchEnd
-      : Math.min(
-          duration - 0.05,
-          roughTime + 1
-        );
-
-
-  start =
-    Math.max(
-      0,
-      start
-    );
-
-
-  end =
-    Math.min(
-      duration - 0.05,
-      end
-    );
-
-
-  if (
-    end <= start
-  ) {
-
-    return null;
-  }
-
-
   log(
-    `🔍 ゴール時刻精密化開始: ` +
-    `${fmt(start)} ～ ${fmt(end)} / ` +
-    `${scoreKey(previousScore)} → ` +
-    `${scoreKey(newScore)}`
+    `🔍 ゴール時刻精密化開始: ${formatTime(searchStart)} ～ ${formatTime(searchEnd)} / ` +
+    `${previousScore.home}-${previousScore.away} → ${newScore.home}-${newScore.away}`
   );
 
-
-  /* =======================================================
-     STEP 1
-     画像差分でスコア表示が変化した瞬間を探す
-  ======================================================= */
-
-  const imageTime =
-    await detectScoreTransitionByImage(
-      start,
-      end,
-      previousScore,
-      newScore
-    );
-
-
-  if (
-    Number.isFinite(imageTime)
-  ) {
-
-    log(
-      `🖼️ 画像差分によるゴール時刻候補: ` +
-      `${fmt(imageTime)}`
-    );
-
-
-    /*
-     * =====================================================
-     * STEP 2
-     * 画像差分で見つかった周辺を
-     * 0.1秒単位でOCR確認
-     * =====================================================
-     */
-
-    const refineStart =
-      Math.max(
-        start,
-        imageTime - 1.5
-      );
-
-
-    const refineEnd =
-      Math.min(
-        end,
-        imageTime + 1.5
-      );
-
-
-    const step =
-      0.1;
-
-
-    const checks = [];
-
-
-    for (
-      let t = refineStart;
-      t <= refineEnd + 0.001;
-      t += step
-    ) {
-
-      try {
-
-        await seekTo(t);
-
-        drawScoreCrop();
-
-        const score =
-          await recognizeScore();
-
-
-        checks.push({
-
-          time:
-            t,
-
-          score
-
-        });
-
-
-      } catch {
-
-        checks.push({
-
-          time:
-            t,
-
-          score:
-            null
-
-        });
-
-      }
-
-
-      await sleep(0);
-
-    }
-
-
-    /*
-     * =====================================================
-     * OCRで新スコアが最初に安定した地点
-     * =====================================================
-     */
-
-    for (
-      let i = 0;
-      i < checks.length;
-      i++
-    ) {
-
-      if (
-        !sameScore(
-          checks[i].score,
-          newScore
-        )
-      ) {
-
-        continue;
-
-      }
-
-
-      let confirmed =
-        0;
-
-
-      for (
-        let j = i;
-        j <
-          Math.min(
-            checks.length,
-            i + 10
-          );
-        j++
-      ) {
-
-        if (
-          sameScore(
-            checks[j].score,
-            newScore
-          )
-        ) {
-
-          confirmed++;
-
-        }
-
-      }
-
-
-      if (
-        confirmed >= 3
-      ) {
-
-        const refined =
-          checks[i].time;
-
-
-        log(
-          `🎯 ゴール時刻確定: ` +
-          `${fmt(roughTime)} → ` +
-          `${fmt(refined)} ` +
-          `(画像差分＋OCR)`
-        );
-
-
-        return refined;
-
-      }
-
-    }
-
-
-    /*
-     * =====================================================
-     * OCRで確認できなかった場合
-     *
-     * 画像差分の時刻を採用
-     * =====================================================
-     */
-
-    log(
-      `🎯 ゴール時刻確定: ` +
-      `${fmt(roughTime)} → ` +
-      `${fmt(imageTime)} ` +
-      `(画像差分)`
-    );
-
-
-    return imageTime;
-
+  const start = Math.max(0, Number(searchStart) || 0);
+  const end = Math.min(
+    video.duration,
+    Number(searchEnd) || roughTime || video.duration
+  );
+
+  if (end <= start) {
+    return roughTime;
   }
-
 
   /*
-   * =======================================================
-   * 画像差分で見つからなかった場合
-   * 従来のOCR探索を最後の保険として実行
-   * ======================================================= */
+   * 重要：
+   * OCRの「最初の1回」ではなく、
+   * 新しいスコアが連続して安定して読める場所を探す。
+   *
+   * その安定地点が見つかったら、
+   * そこから最大20秒前まで逆方向に0.25秒刻みで探索する。
+   *
+   * これにより、
+   * 4:53 だけ一瞬「3-0」と読めるような誤認識を
+   * ゴールとして採用しない。
+   */
+
+  const targetKey = `${newScore.home}-${newScore.away}`;
+  const previousKey = `${previousScore.home}-${previousScore.away}`;
+
+  const samples = [];
+
+  // --------------------------------------------------
+  // ① 精密探索範囲を0.25秒刻みでOCR
+  // --------------------------------------------------
+  for (let t = start; t <= end + 0.001; t += 0.25) {
+    if (scanBusy === false) break;
+
+    await seekTo(t);
+
+    drawScoreCrop();
+
+    const score = await recognizeScore();
+
+    samples.push({
+      time: t,
+      score
+    });
+
+    // ログを出しすぎない
+    if (samples.length % 20 === 0) {
+      log(`   🔎 OCR精密探索: ${formatTime(t)}`);
+    }
+  }
+
+  if (!samples.length) {
+    return roughTime;
+  }
+
+  // --------------------------------------------------
+  // ② 新しいスコアが「安定している場所」を探す
+  // --------------------------------------------------
+
+  let stableIndex = -1;
+
+  /*
+   * 0.25秒 × 3回 = 約0.5秒以上
+   *
+   * 新しいスコアが連続して3回読めることを条件にする。
+   */
+  for (let i = 0; i < samples.length - 2; i++) {
+    const a = samples[i].score;
+    const b = samples[i + 1].score;
+    const c = samples[i + 2].score;
+
+    if (
+      a &&
+      b &&
+      c &&
+      `${a.home}-${a.away}` === targetKey &&
+      `${b.home}-${b.away}` === targetKey &&
+      `${c.home}-${c.away}` === targetKey
+    ) {
+      stableIndex = i;
+      break;
+    }
+  }
+
+  // --------------------------------------------------
+  // ③ 安定スコアが見つからなければ、
+  //    単発の新スコアは採用しない
+  // --------------------------------------------------
+
+  if (stableIndex === -1) {
+    log(
+      `⚠️ 安定した ${targetKey} を確認できませんでした。` +
+      ` 仮時刻 ${formatTime(roughTime)} を使用`
+    );
+
+    return roughTime;
+  }
+
+  const stableTime = samples[stableIndex].time;
 
   log(
-    '⚠️ 画像差分で変更点を検出できず、OCR探索へ移行'
+    `✅ 安定スコア確認: ${targetKey} @ ${formatTime(stableTime)}`
   );
 
+  // --------------------------------------------------
+  // ④ 安定した新スコアの直前を逆方向に探索
+  //
+  //    「前のスコア → 新しいスコア」に変化した
+  //    最初の地点を探す。
+  // --------------------------------------------------
 
-  const step =
-    0.25;
+  /*
+   * 最大20秒前まで探す。
+   *
+   * ただし searchStart より前には出ない。
+   */
+  const reverseStart = Math.max(
+    start,
+    stableTime - 20
+  );
 
-
-  const checks = [];
-
+  const reverseSamples = [];
 
   for (
-    let t = start;
-    t <= end + 0.001;
-    t += step
+    let t = stableTime;
+    t >= reverseStart - 0.001;
+    t -= 0.25
   ) {
+    await seekTo(t);
 
-    try {
+    drawScoreCrop();
 
-      await seekTo(t);
+    const score = await recognizeScore();
 
-      drawScoreCrop();
-
-      const score =
-        await recognizeScore();
-
-
-      checks.push({
-
-        time:
-          t,
-
-        score
-
-      });
-
-
-    } catch {
-
-      checks.push({
-
-        time:
-          t,
-
-        score:
-          null
-
-      });
-
-    }
-
-
-    await sleep(0);
-
+    reverseSamples.push({
+      time: t,
+      score
+    });
   }
 
+  /*
+   * reverseSamples は
+   *
+   * 新しいスコア
+   * ↓
+   * 古いスコア
+   *
+   * の順番になっている。
+   *
+   * ここから
+   *
+   * 新スコア → 旧スコア
+   *
+   * に変わる境界を探す。
+   */
 
-  for (
-    let i = 0;
-    i < checks.length;
-    i++
-  ) {
+  for (let i = 0; i < reverseSamples.length - 1; i++) {
+    const current = reverseSamples[i];
+    const previous = reverseSamples[i + 1];
 
-    if (
-      !sameScore(
-        checks[i].score,
-        newScore
-      )
-    ) {
+    const currentKey = current.score
+      ? `${current.score.home}-${current.score.away}`
+      : null;
 
-      continue;
-
-    }
-
-
-    let confirmed =
-      0;
-
-
-    for (
-      let j = i;
-      j <
-        Math.min(
-          checks.length,
-          i + 9
-        );
-      j++
-    ) {
-
-      if (
-        sameScore(
-          checks[j].score,
-          newScore
-        )
-      ) {
-
-        confirmed++;
-
-      }
-
-    }
-
+    const previousKeyAtTime = previous.score
+      ? `${previous.score.home}-${previous.score.away}`
+      : null;
 
     if (
-      confirmed >= 3
+      currentKey === targetKey &&
+      previousKeyAtTime === previousKey
     ) {
-
-      const refined =
-        checks[i].time;
-
+      /*
+       * current.time
+       *   = 新スコアが読める最初の側
+       *
+       * previous.time
+       *   = その直前の旧スコア
+       *
+       * この2点の中央をゴール時刻とする。
+       */
+      const goalTime =
+        (current.time + previous.time) / 2;
 
       log(
-        `🎯 ゴール時刻確定: ` +
-        `${fmt(roughTime)} → ` +
-        `${fmt(refined)} ` +
-        `(OCR)`
+        `🎯 ゴール時刻確定: ${formatTime(goalTime)} ` +
+        `(OCR境界 ${formatTime(previous.time)} → ${formatTime(current.time)})`
       );
 
-
-      return refined;
-
+      return goalTime;
     }
-
   }
 
+  // --------------------------------------------------
+  // ⑤ 境界が直接見つからない場合
+  // --------------------------------------------------
 
-  return null;
+  log(
+    `⚠️ OCR境界を直接確認できませんでした。` +
+    ` 安定スコア時刻 ${formatTime(stableTime)} を使用`
+  );
+
+  return stableTime;
 }
 
 /* =========================================================
