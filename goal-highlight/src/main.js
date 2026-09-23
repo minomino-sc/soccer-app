@@ -896,9 +896,312 @@ function calculateScoreImageDifference(
   );
 }
 
+/* =========================================================
+   スコア変更時刻検出
+   ★変更前画像・変更後画像の「遷移」を検出する方式
+========================================================= */
+
+/*
+ * Canvasの画像を軽量なグレースケール配列に変換
+ */
+function getScoreGrayImage() {
+
+  const image =
+    ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+  const width =
+    canvas.width;
+
+  const height =
+    canvas.height;
+
+  const gray =
+    new Uint8Array(
+      width * height
+    );
+
+  for (
+    let i = 0;
+    i < gray.length;
+    i++
+  ) {
+
+    const p =
+      i * 4;
+
+    gray[i] =
+      Math.round(
+        (
+          image.data[p] * 0.299 +
+          image.data[p + 1] * 0.587 +
+          image.data[p + 2] * 0.114
+        )
+      );
+  }
+
+  return {
+    width,
+    height,
+    data: gray
+  };
+}
+
+
+/*
+ * 2枚の画像の差分を調べる。
+ *
+ * 単純な全体差分ではなく、
+ * 「変更前」と「変更後」で実際に変化した場所だけを
+ * 比較対象として使用する。
+ */
+function buildTransitionMask(
+  beforeImage,
+  afterImage
+) {
+
+  const width =
+    beforeImage.width;
+
+  const height =
+    beforeImage.height;
+
+  const mask =
+    new Uint8Array(
+      width * height
+    );
+
+  let changed = 0;
+
+  /*
+   * スコア表示の中央部分を使用。
+   *
+   * 上下端・左右端のノイズを避ける。
+   */
+  const xStart =
+    Math.floor(
+      width * 0.08
+    );
+
+  const xEnd =
+    Math.floor(
+      width * 0.92
+    );
+
+  const yStart =
+    Math.floor(
+      height * 0.08
+    );
+
+  const yEnd =
+    Math.floor(
+      height * 0.92
+    );
+
+
+  for (
+    let y = yStart;
+    y < yEnd;
+    y += 1
+  ) {
+
+    for (
+      let x = xStart;
+      x < xEnd;
+      x += 1
+    ) {
+
+      const i =
+        y * width + x;
+
+      const diff =
+        Math.abs(
+          beforeImage.data[i] -
+          afterImage.data[i]
+        );
+
+      /*
+       * 数字の変化は比較的大きく、
+       * 圧縮ノイズは小さい。
+       */
+      if (
+        diff >= 30
+      ) {
+
+        mask[i] = 1;
+
+        changed++;
+
+      }
+
+    }
+
+  }
+
+
+  return {
+    mask,
+    changed
+  };
+}
+
+
+/*
+ * 変更マスクを使って、
+ * 現在画像が「変更前」にどれだけ近いか、
+ * 「変更後」にどれだけ近いかを計算する。
+ */
+function compareTransitionState(
+  currentImage,
+  beforeImage,
+  afterImage,
+  transitionMask
+) {
+
+  const width =
+    currentImage.width;
+
+  const height =
+    currentImage.height;
+
+  let beforeError = 0;
+  let afterError = 0;
+  let count = 0;
+
+
+  for (
+    let y = 0;
+    y < height;
+    y += 2
+  ) {
+
+    for (
+      let x = 0;
+      x < width;
+      x += 2
+    ) {
+
+      const i =
+        y * width + x;
+
+
+      if (
+        !transitionMask[i]
+      ) {
+
+        continue;
+
+      }
+
+
+      const current =
+        currentImage.data[i];
+
+      const before =
+        beforeImage.data[i];
+
+      const after =
+        afterImage.data[i];
+
+
+      beforeError +=
+        Math.abs(
+          current -
+          before
+        );
+
+      afterError +=
+        Math.abs(
+          current -
+          after
+        );
+
+      count++;
+
+    }
+
+  }
+
+
+  if (!count) {
+
+    return {
+      beforeError: 999999,
+      afterError: 999999,
+      state: 0,
+      confidence: 0
+    };
+
+  }
+
+
+  beforeError /=
+    count;
+
+  afterError /=
+    count;
+
+
+  /*
+   * state
+   *
+   * -1 = 変更前に近い
+   *  0 = 中間
+   * +1 = 変更後に近い
+   */
+  const denominator =
+    beforeError +
+    afterError +
+    0.0001;
+
+
+  const state =
+    (
+      beforeError -
+      afterError
+    ) /
+    denominator;
+
+
+  /*
+   * 0～1に近いほど、
+   * 変更後画像に近い。
+   */
+  const confidence =
+    Math.abs(state);
+
+
+  return {
+    beforeError,
+    afterError,
+    state,
+    confidence
+  };
+}
+
+
+/*
+ * 指定時刻のスコア画像を取得
+ */
+async function captureScoreImage(
+  time
+) {
+
+  await seekTo(time);
+
+  drawScoreCrop();
+
+  return getScoreGrayImage();
+}
+
 
 /* =========================================================
-   スコア変更時刻を画像差分で探す
+   スコア変更時刻を検出
+   ★今回の重要部分
 ========================================================= */
 
 async function detectScoreTransitionByImage(
@@ -926,7 +1229,7 @@ async function detectScoreTransitionByImage(
 
 
   log(
-    `🖼️ スコア画像変化を探索: ` +
+    `🖼️ スコア変更境界を精密探索: ` +
     `${fmt(start)} ～ ${fmt(end)} / ` +
     `${scoreKey(previousScore)} → ` +
     `${scoreKey(newScore)}`
@@ -934,53 +1237,139 @@ async function detectScoreTransitionByImage(
 
 
   /*
-   * -------------------------------------------------------
-   * ① 変更前の基準画像を取得
+   * =======================================================
+   * STEP 1
    *
-   * 前スコアが最後に確認された時刻付近。
-   * -------------------------------------------------------
+   * 変更前の代表画像を取得
+   *
+   * startそのものではなく、
+   * start付近の少し後ろを使う。
+   *
+   * これにより境界付近の不安定フレームを避ける。
+   * =======================================================
    */
 
-  const referenceTime =
-    Math.max(
-      0,
-      start
+  const beforeTime =
+    Math.min(
+      end - 0.5,
+      start + 0.5
     );
+
+
+  /*
+   * =======================================================
+   * STEP 2
+   *
+   * 変更後の代表画像を取得
+   *
+   * end付近では確実に新スコアが
+   * 表示されている可能性が高い。
+   * =======================================================
+   */
+
+  const afterTime =
+    Math.max(
+      start + 0.5,
+      end - 0.5
+    );
+
+
+  if (
+    afterTime <= beforeTime
+  ) {
+
+    return null;
+  }
+
+
+  let beforeImage;
+  let afterImage;
 
 
   try {
 
-    await seekTo(
-      referenceTime
+    beforeImage =
+      await captureScoreImage(
+        beforeTime
+      );
+
+
+    afterImage =
+      await captureScoreImage(
+        afterTime
+      );
+
+  } catch (e) {
+
+    log(
+      `⚠️ スコア画像取得失敗: ${e.message}`
     );
 
-    drawScoreCrop();
-
-  } catch {
-
     return null;
-
   }
 
 
-  const reference =
-    getScoreImageData();
+  /*
+   * =======================================================
+   * STEP 3
+   *
+   * 変更前画像と変更後画像から
+   * 「本当に変わった場所」だけを抽出
+   * =======================================================
+   */
+
+  const transition =
+    buildTransitionMask(
+      beforeImage,
+      afterImage
+    );
+
+
+  log(
+    `🖼️ スコア表示変更画素: ` +
+    `${transition.changed}`
+  );
 
 
   /*
-   * -------------------------------------------------------
-   * ② 0.25秒間隔で画像差分を見る
+   * あまりにも変化が少ない場合は、
+   * 画像比較そのものを信用しない。
+   */
+  if (
+    transition.changed < 20
+  ) {
+
+    log(
+      '⚠️ スコア表示の画像差分が小さすぎます'
+    );
+
+    return null;
+  }
+
+
+  /*
+   * =======================================================
+   * STEP 4
    *
-   * スコア表示部分だけなので、
-   * フィールド上の選手の動きには影響されない。
-   * -------------------------------------------------------
+   * 0.1秒刻みで全区間を走査
+   *
+   * ここでは「画像が変わった時刻」ではなく、
+   *
+   *   変更前画像
+   *        ↓
+   *   変更後画像
+   *
+   * のどこにいるかを判定する。
+   *
+   * これが今回の2:06問題への対策。
+   * =======================================================
    */
 
   const step =
-    0.25;
+    0.1;
 
 
-  const candidates = [];
+  const states = [];
 
 
   for (
@@ -991,35 +1380,61 @@ async function detectScoreTransitionByImage(
 
     try {
 
-      await seekTo(t);
-
-      drawScoreCrop();
-
-
-      const current =
-        getScoreImageData();
-
-
-      const diff =
-        calculateScoreImageDifference(
-          reference,
-          current
+      const currentImage =
+        await captureScoreImage(
+          t
         );
 
 
-      candidates.push({
+      const state =
+        compareTransitionState(
+          currentImage,
+          beforeImage,
+          afterImage,
+          transition.mask
+        );
+
+
+      states.push({
 
         time:
           t,
 
-        diff
+        state:
+          state.state,
+
+        confidence:
+          state.confidence,
+
+        beforeError:
+          state.beforeError,
+
+        afterError:
+          state.afterError
 
       });
 
 
     } catch {
 
-      continue;
+      states.push({
+
+        time:
+          t,
+
+        state:
+          0,
+
+        confidence:
+          0,
+
+        beforeError:
+          999999,
+
+        afterError:
+          999999
+
+      });
 
     }
 
@@ -1030,176 +1445,510 @@ async function detectScoreTransitionByImage(
 
 
   if (
-    !candidates.length
+    !states.length
   ) {
 
     return null;
-
   }
 
 
   /*
-   * -------------------------------------------------------
-   * ③ 差分の大きい地点を候補にする
+   * =======================================================
+   * STEP 5
    *
-   * スコア変更前後では、
-   * 0-0 → 1-0 の数字部分が変化する。
-   * -------------------------------------------------------
+   * 「変更前 → 変更後」の境界を探す
+   *
+   * state:
+   *
+   *   マイナス
+   *      ↓
+   *   0付近
+   *      ↓
+   *   プラス
+   *
+   * となる場所が実際の変更点。
+   * =======================================================
    */
 
-  const sorted =
-    [...candidates]
-      .sort(
-        (a, b) =>
-          b.diff -
-          a.diff
-      );
-
-
-  const maxDiff =
-    sorted[0]?.diff || 0;
-
-
-  log(
-    `🖼️ 最大画像差分: ` +
-    `${maxDiff.toFixed(2)}`
-  );
-
-
-  if (
-    maxDiff < 2
-  ) {
-
-    log(
-      '⚠️ スコア画像の明確な変化を検出できませんでした'
-    );
-
-    return null;
-
-  }
-
-
-  /*
-   * -------------------------------------------------------
-   * ④ 最初の「明確な変化」を探す
-   *
-   * 最大差分の一定割合以上を
-   * スコア変更候補とする。
-   * -------------------------------------------------------
-   */
-
-  const threshold =
-    Math.max(
-      3,
-      maxDiff * 0.35
-    );
+  let bestTransition =
+    null;
 
 
   for (
-    let i = 0;
-    i < candidates.length;
+    let i = 1;
+    i < states.length;
     i++
   ) {
 
-    const item =
-      candidates[i];
+    const prev =
+      states[i - 1];
+
+    const current =
+      states[i];
 
 
+    /*
+     * 変更前側
+     */
     if (
-      item.diff <
-      threshold
+      prev.state > -0.35
     ) {
 
       continue;
-
     }
 
 
     /*
-     * 1回だけの変化ではなく、
-     * 直後にも変化が維持されているか確認。
+     * 変更後側
      */
-
-    let strongCount = 0;
-
-
-    for (
-      let j = i;
-      j <
-        Math.min(
-          candidates.length,
-          i + 5
-        );
-      j++
+    if (
+      current.state < 0.35
     ) {
 
+      continue;
+    }
+
+
+    /*
+     * この2点の間で
+     * 状態が切り替わった。
+     */
+    const score =
+      (
+        current.state -
+        prev.state
+      );
+
+
+    if (
+      !bestTransition ||
+      score >
+      bestTransition.score
+    ) {
+
+      bestTransition = {
+
+        index:
+          i,
+
+        score,
+
+        before:
+          prev,
+
+        after:
+          current
+
+      };
+
+    }
+
+  }
+
+
+  /*
+   * =======================================================
+   * STEP 6
+   *
+   * 直接境界が取れなかった場合、
+   * stateが0を跨ぐ地点を探す。
+   * =======================================================
+   */
+
+  if (
+    !bestTransition
+  ) {
+
+    for (
+      let i = 1;
+      i < states.length;
+      i++
+    ) {
+
+      const prev =
+        states[i - 1];
+
+      const current =
+        states[i];
+
+
       if (
-        candidates[j].diff >=
-        threshold
+        prev.state <= 0 &&
+        current.state > 0
       ) {
 
-        strongCount++;
+        const score =
+          current.state -
+          prev.state;
+
+
+        if (
+          !bestTransition ||
+          score >
+          bestTransition.score
+        ) {
+
+          bestTransition = {
+
+            index:
+              i,
+
+            score,
+
+            before:
+              prev,
+
+            after:
+              current
+
+          };
+
+        }
 
       }
 
     }
 
+  }
 
-    if (
-      strongCount >= 2
+
+  /*
+   * =======================================================
+   * STEP 7
+   *
+   * それでも取れない場合、
+   * 「変更後画像への近さ」が初めて
+   * 一定値を超えた地点を使う。
+   *
+   * ただし最大差分をそのまま採用しない。
+   * =======================================================
+   */
+
+  if (
+    !bestTransition
+  ) {
+
+    for (
+      let i = 0;
+      i < states.length;
+      i++
     ) {
 
-      log(
-        `🖼️ スコア表示変更候補: ` +
-        `${fmt(item.time)} ` +
-        `(差分 ${item.diff.toFixed(2)})`
-      );
+      const item =
+        states[i];
 
 
-      return item.time;
+      if (
+        item.state >= 0.25
+      ) {
+
+        /*
+         * 直後にも変更後状態が続くことを確認
+         */
+        let confirmed =
+          0;
+
+
+        for (
+          let j = i;
+          j <
+            Math.min(
+              states.length,
+              i + 8
+            );
+          j++
+        ) {
+
+          if (
+            states[j].state >= 0.25
+          ) {
+
+            confirmed++;
+
+          }
+
+        }
+
+
+        if (
+          confirmed >= 3
+        ) {
+
+          bestTransition = {
+
+            index:
+              i,
+
+            score:
+              item.state,
+
+            before:
+              states[
+                Math.max(
+                  0,
+                  i - 1
+                )
+              ],
+
+            after:
+              item
+
+          };
+
+          break;
+
+        }
+
+      }
 
     }
 
   }
 
 
-  /*
-   * -------------------------------------------------------
-   * ⑤ 保険
-   *
-   * 最も大きな差分位置を返す。
-   * -------------------------------------------------------
-   */
-
-  const fallback =
-    sorted[0];
-
-
-  if (fallback) {
+  if (
+    !bestTransition
+  ) {
 
     log(
-      `🖼️ 最大差分位置を採用: ` +
-      `${fmt(fallback.time)}`
+      '⚠️ スコア変更境界を特定できませんでした'
+    );
+
+    return null;
+  }
+
+
+  /*
+   * =======================================================
+   * STEP 8
+   *
+   * 0.1秒区間の中央を仮の変更時刻にする。
+   *
+   * 例えば
+   *
+   * 2:20.9 → 変更前
+   * 2:21.0 → 変更後
+   *
+   * なら
+   *
+   * 2:20.95
+   *
+   * を候補にする。
+   * =======================================================
+   */
+
+  const t1 =
+    bestTransition.before.time;
+
+  const t2 =
+    bestTransition.after.time;
+
+
+  let transitionTime =
+    (
+      t1 +
+      t2
+    ) / 2;
+
+
+  /*
+   * =======================================================
+   * STEP 9
+   *
+   * 最後に0.02秒単位で境界付近だけ確認。
+   *
+   * ここではOCRではなく画像状態を確認する。
+   * =======================================================
+   */
+
+  const fineStart =
+    Math.max(
+      start,
+      transitionTime - 0.15
+    );
+
+  const fineEnd =
+    Math.min(
+      end,
+      transitionTime + 0.15
     );
 
 
-    return fallback.time;
+  const fineStep =
+    0.02;
+
+
+  let fineBest =
+    null;
+
+
+  for (
+    let t = fineStart;
+    t <= fineEnd + 0.0001;
+    t += fineStep
+  ) {
+
+    try {
+
+      const currentImage =
+        await captureScoreImage(
+          t
+        );
+
+
+      const state =
+        compareTransitionState(
+          currentImage,
+          beforeImage,
+          afterImage,
+          transition.mask
+        );
+
+
+      /*
+       * stateが0に近いところ、
+       * つまり変更前後の境界を採用。
+       */
+      const boundaryScore =
+        Math.abs(
+          state.state
+        );
+
+
+      if (
+        !fineBest ||
+        boundaryScore <
+        fineBest.score
+      ) {
+
+        fineBest = {
+
+          time:
+            t,
+
+          score:
+            boundaryScore,
+
+          state:
+            state.state
+
+        };
+
+      }
+
+    } catch {}
 
   }
 
 
-  return null;
-}
+  if (
+    fineBest
+  ) {
 
-async function recognizeInitialScoreAtX(t, x) {
+    transitionTime =
+      fineBest.time;
 
-  await seekTo(t);
+  }
 
-  drawScoreCrop(x);
 
-  const score = await recognizeScore();
+  log(
+    `🖼️ スコア変更境界: ` +
+    `${fmt(transitionTime)} ` +
+    `(${scoreKey(previousScore)} → ` +
+    `${scoreKey(newScore)})`
+  );
 
-  return score;
+
+  /*
+   * =======================================================
+   * STEP 10
+   *
+   * 最後の安全確認。
+   *
+   * 変更時刻の少し前と少し後をOCRして、
+   * 本当に
+   *
+   * previousScore → newScore
+   *
+   * になっているか確認する。
+   *
+   * OCRが読めない場合でも、
+   * 画像解析結果は保持する。
+   * =======================================================
+   */
+
+  try {
+
+    const verifyBefore =
+      Math.max(
+        start,
+        transitionTime - 0.3
+      );
+
+
+    const verifyAfter =
+      Math.min(
+        end,
+        transitionTime + 0.3
+      );
+
+
+    await seekTo(
+      verifyBefore
+    );
+
+    drawScoreCrop();
+
+    const beforeOCR =
+      await recognizeScore();
+
+
+    await seekTo(
+      verifyAfter
+    );
+
+    drawScoreCrop();
+
+    const afterOCR =
+      await recognizeScore();
+
+
+    log(
+      `🔎 境界確認OCR: ` +
+      `${fmt(verifyBefore)}=` +
+      `${scoreKey(beforeOCR) || '読取失敗'} / ` +
+      `${fmt(verifyAfter)}=` +
+      `${scoreKey(afterOCR) || '読取失敗'}`
+    );
+
+
+    if (
+      beforeOCR &&
+      afterOCR
+    ) {
+
+      if (
+        sameScore(
+          beforeOCR,
+          previousScore
+        ) &&
+        sameScore(
+          afterOCR,
+          newScore
+        )
+      ) {
+
+        log(
+          '✅ OCRでもスコア変化を確認'
+        );
+
+      }
+
+    }
+
+  } catch {}
+
+  return transitionTime;
 }
 
 /* =========================================================
