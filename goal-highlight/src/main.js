@@ -3731,130 +3731,174 @@ async function refineGoalTime(
   searchEnd
 ) {
   log(
-    `🔍 ゴール時刻精密化開始: ${formatTime(searchStart)} ～ ${formatTime(searchEnd)} / ` +
+    `🔍 ゴール時刻精密化開始: ${fmt(searchStart)} ～ ${fmt(searchEnd)} / ` +
     `${previousScore.home}-${previousScore.away} → ${newScore.home}-${newScore.away}`
   );
 
-  const start = Math.max(0, Number(searchStart) || 0);
-  const end = Math.min(
-    video.duration,
-    Number(searchEnd) || roughTime || video.duration
-  );
+  const start =
+    Math.max(
+      0,
+      Number(searchStart) || 0
+    );
 
-  if (end <= start) {
+  const end =
+    Math.min(
+      video.duration,
+      Number(searchEnd) ||
+      roughTime ||
+      video.duration
+    );
+
+  if (
+    end <= start
+  ) {
     return roughTime;
   }
 
   /*
-   * 重要：
    * OCRの「最初の1回」ではなく、
    * 新しいスコアが連続して安定して読める場所を探す。
-   *
-   * その安定地点が見つかったら、
-   * そこから最大20秒前まで逆方向に0.25秒刻みで探索する。
-   *
-   * これにより、
-   * 4:53 だけ一瞬「3-0」と読めるような誤認識を
-   * ゴールとして採用しない。
    */
 
-  const targetKey = `${newScore.home}-${newScore.away}`;
-  const previousKey = `${previousScore.home}-${previousScore.away}`;
+  const targetKey =
+    `${newScore.home}-${newScore.away}`;
+
+  const previousKey =
+    `${previousScore.home}-${previousScore.away}`;
 
   const samples = [];
 
   // --------------------------------------------------
   // ① 精密探索範囲を0.25秒刻みでOCR
   // --------------------------------------------------
-  for (let t = start; t <= end + 0.001; t += 0.25) {
-    if (scanBusy === false) break;
+
+  for (
+    let t = start;
+    t <= end + 0.001;
+    t += 0.25
+  ) {
+
+    if (
+      scanBusy === false
+    ) {
+      break;
+    }
 
     await seekTo(t);
 
     drawScoreCrop();
 
-    const score = await recognizeScore();
+    const score =
+      await recognizeScore();
 
     samples.push({
       time: t,
       score
     });
 
-    // ログを出しすぎない
-    if (samples.length % 20 === 0) {
-      log(`   🔎 OCR精密探索: ${formatTime(t)}`);
+    /*
+     * ログを出しすぎない
+     */
+    if (
+      samples.length % 20 === 0
+    ) {
+
+      log(
+        `   🔎 OCR精密探索: ${fmt(t)}`
+      );
+
     }
   }
 
-  if (!samples.length) {
+  if (
+    !samples.length
+  ) {
+
     return roughTime;
+
   }
 
   // --------------------------------------------------
-  // ② 新しいスコアが「安定している場所」を探す
+  // ② 新しいスコアが安定している場所を探す
   // --------------------------------------------------
 
   let stableIndex = -1;
 
   /*
-   * 0.25秒 × 3回 = 約0.5秒以上
+   * 0.25秒 × 3回
    *
    * 新しいスコアが連続して3回読めることを条件にする。
    */
-  for (let i = 0; i < samples.length - 2; i++) {
-    const a = samples[i].score;
-    const b = samples[i + 1].score;
-    const c = samples[i + 2].score;
+
+  for (
+    let i = 0;
+    i < samples.length - 2;
+    i++
+  ) {
+
+    const a =
+      samples[i].score;
+
+    const b =
+      samples[i + 1].score;
+
+    const c =
+      samples[i + 2].score;
 
     if (
       a &&
       b &&
       c &&
-      `${a.home}-${a.away}` === targetKey &&
-      `${b.home}-${b.away}` === targetKey &&
-      `${c.home}-${c.away}` === targetKey
+      `${a.home}-${a.away}` ===
+        targetKey &&
+      `${b.home}-${b.away}` ===
+        targetKey &&
+      `${c.home}-${c.away}` ===
+        targetKey
     ) {
-      stableIndex = i;
+
+      stableIndex =
+        i;
+
       break;
     }
   }
 
   // --------------------------------------------------
-  // ③ 安定スコアが見つからなければ、
-  //    単発の新スコアは採用しない
+  // ③ 安定スコアが見つからなければ
   // --------------------------------------------------
 
-  if (stableIndex === -1) {
+  if (
+    stableIndex === -1
+  ) {
+
     log(
       `⚠️ 安定した ${targetKey} を確認できませんでした。` +
-      ` 仮時刻 ${formatTime(roughTime)} を使用`
+      ` 仮時刻 ${fmt(roughTime)} を使用`
     );
 
     return roughTime;
   }
 
-  const stableTime = samples[stableIndex].time;
+  const stableTime =
+    samples[
+      stableIndex
+    ].time;
 
   log(
-    `✅ 安定スコア確認: ${targetKey} @ ${formatTime(stableTime)}`
+    `✅ 安定スコア確認: ` +
+    `${targetKey} @ ${fmt(stableTime)}`
   );
 
   // --------------------------------------------------
   // ④ 安定した新スコアの直前を逆方向に探索
-  //
-  //    「前のスコア → 新しいスコア」に変化した
-  //    最初の地点を探す。
   // --------------------------------------------------
 
-  /*
-   * 最大20秒前まで探す。
-   *
-   * ただし searchStart より前には出ない。
-   */
-  const reverseStart = Math.max(
-    start,
-    stableTime - 20
-  );
+  const reverseStart =
+    Math.max(
+      start,
+      stableTime - 20
+    );
 
   const reverseSamples = [];
 
@@ -3863,11 +3907,13 @@ async function refineGoalTime(
     t >= reverseStart - 0.001;
     t -= 0.25
   ) {
+
     await seekTo(t);
 
     drawScoreCrop();
 
-    const score = await recognizeScore();
+    const score =
+      await recognizeScore();
 
     reverseSamples.push({
       time: t,
@@ -3882,46 +3928,53 @@ async function refineGoalTime(
    * ↓
    * 古いスコア
    *
-   * の順番になっている。
-   *
-   * ここから
-   *
-   * 新スコア → 旧スコア
-   *
-   * に変わる境界を探す。
+   * の順番。
    */
 
-  for (let i = 0; i < reverseSamples.length - 1; i++) {
-    const current = reverseSamples[i];
-    const previous = reverseSamples[i + 1];
+  for (
+    let i = 0;
+    i < reverseSamples.length - 1;
+    i++
+  ) {
 
-    const currentKey = current.score
-      ? `${current.score.home}-${current.score.away}`
-      : null;
+    const current =
+      reverseSamples[i];
 
-    const previousKeyAtTime = previous.score
-      ? `${previous.score.home}-${previous.score.away}`
-      : null;
+    const previous =
+      reverseSamples[i + 1];
+
+    const currentKey =
+      current.score
+        ? `${current.score.home}-${current.score.away}`
+        : null;
+
+    const previousKeyAtTime =
+      previous.score
+        ? `${previous.score.home}-${previous.score.away}`
+        : null;
 
     if (
       currentKey === targetKey &&
       previousKeyAtTime === previousKey
     ) {
+
       /*
        * current.time
-       *   = 新スコアが読める最初の側
+       *   = 新スコアが読める側
        *
        * previous.time
        *   = その直前の旧スコア
-       *
-       * この2点の中央をゴール時刻とする。
        */
+
       const goalTime =
-        (current.time + previous.time) / 2;
+        (
+          current.time +
+          previous.time
+        ) / 2;
 
       log(
-        `🎯 ゴール時刻確定: ${formatTime(goalTime)} ` +
-        `(OCR境界 ${formatTime(previous.time)} → ${formatTime(current.time)})`
+        `🎯 ゴール時刻確定: ${fmt(goalTime)} ` +
+        `(OCR境界 ${fmt(previous.time)} → ${fmt(current.time)})`
       );
 
       return goalTime;
@@ -3934,7 +3987,7 @@ async function refineGoalTime(
 
   log(
     `⚠️ OCR境界を直接確認できませんでした。` +
-    ` 安定スコア時刻 ${formatTime(stableTime)} を使用`
+    ` 安定スコア時刻 ${fmt(stableTime)} を使用`
   );
 
   return stableTime;
