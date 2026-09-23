@@ -3721,7 +3721,8 @@ function detectGoalsFromTimeline(
 
 /* =========================================================
    ゴール時刻精密化
-   ★OCR + スコア画像差分の二段構え
+   ★スコアボード画像の変化を直接検出
+   ★OCRは補助として使用
 ========================================================= */
 async function refineGoalTime(
   roughTime,
@@ -3730,9 +3731,11 @@ async function refineGoalTime(
   searchStart,
   searchEnd
 ) {
+
   log(
     `🔍 ゴール時刻精密化開始: ${fmt(searchStart)} ～ ${fmt(searchEnd)} / ` +
-    `${previousScore.home}-${previousScore.away} → ${newScore.home}-${newScore.away}`
+    `${previousScore.home}-${previousScore.away} → ` +
+    `${newScore.home}-${newScore.away}`
   );
 
   const start =
@@ -3744,33 +3747,88 @@ async function refineGoalTime(
   const end =
     Math.min(
       video.duration,
-      Number(searchEnd) ||
-      roughTime ||
-      video.duration
+      Number(searchEnd) || roughTime || video.duration
     );
 
-  if (
-    end <= start
-  ) {
+  if (end <= start) {
     return roughTime;
   }
 
-  /*
-   * OCRの「最初の1回」ではなく、
-   * 新しいスコアが連続して安定して読める場所を探す。
-   */
 
-  const targetKey =
-    `${newScore.home}-${newScore.away}`;
+  /* =======================================================
+     スコアボード画像を取得
+  ======================================================= */
 
-  const previousKey =
-    `${previousScore.home}-${previousScore.away}`;
+  function captureScoreBoard() {
+
+    drawScoreCrop();
+
+    const image =
+      ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+    return image.data;
+  }
+
+
+  /* =======================================================
+     2枚の画像の差分を計算
+  ======================================================= */
+
+  function imageDifference(a, b) {
+
+    if (!a || !b) {
+      return 0;
+    }
+
+    let total = 0;
+    let count = 0;
+
+    /*
+      全画素ではなく一定間隔で比較。
+      iPhoneでも処理が重くなりすぎないようにする。
+    */
+
+    for (
+      let i = 0;
+      i < a.length;
+      i += 16
+    ) {
+
+      const r1 = a[i];
+      const g1 = a[i + 1];
+      const b1 = a[i + 2];
+
+      const r2 = b[i];
+      const g2 = b[i + 1];
+      const b2 = b[i + 2];
+
+      total +=
+        Math.abs(r1 - r2) +
+        Math.abs(g1 - g2) +
+        Math.abs(b1 - b2);
+
+      count++;
+    }
+
+    return count
+      ? total / count
+      : 0;
+  }
+
+
+  /* =======================================================
+     まず粗く画像変化を探す
+     0.25秒間隔
+  ======================================================= */
 
   const samples = [];
 
-  // --------------------------------------------------
-  // ① 精密探索範囲を0.25秒刻みでOCR
-  // --------------------------------------------------
+  let previousImage = null;
 
   for (
     let t = start;
@@ -3778,219 +3836,245 @@ async function refineGoalTime(
     t += 0.25
   ) {
 
-    if (
-      scanBusy === false
-    ) {
+    if (scanBusy === false) {
       break;
     }
 
     await seekTo(t);
 
-    drawScoreCrop();
+    const image =
+      captureScoreBoard();
 
-    const score =
-      await recognizeScore();
+    let diff = 0;
+
+    if (previousImage) {
+      diff =
+        imageDifference(
+          previousImage,
+          image
+        );
+    }
 
     samples.push({
       time: t,
-      score
+      diff,
+      image
     });
 
-    /*
-     * ログを出しすぎない
-     */
+    previousImage = image;
+
     if (
       samples.length % 20 === 0
     ) {
 
       log(
-        `   🔎 OCR精密探索: ${fmt(t)}`
+        `   🔎 スコア画像探索: ${fmt(t)}`
       );
-
     }
   }
 
-  if (
-    !samples.length
-  ) {
-
-    return roughTime;
-
-  }
-
-  // --------------------------------------------------
-  // ② 新しいスコアが安定している場所を探す
-  // --------------------------------------------------
-
-  let stableIndex = -1;
-
-  /*
-   * 0.25秒 × 3回
-   *
-   * 新しいスコアが連続して3回読めることを条件にする。
-   */
-
-  for (
-    let i = 0;
-    i < samples.length - 2;
-    i++
-  ) {
-
-    const a =
-      samples[i].score;
-
-    const b =
-      samples[i + 1].score;
-
-    const c =
-      samples[i + 2].score;
-
-    if (
-      a &&
-      b &&
-      c &&
-      `${a.home}-${a.away}` ===
-        targetKey &&
-      `${b.home}-${b.away}` ===
-        targetKey &&
-      `${c.home}-${c.away}` ===
-        targetKey
-    ) {
-
-      stableIndex =
-        i;
-
-      break;
-    }
-  }
-
-  // --------------------------------------------------
-  // ③ 安定スコアが見つからなければ
-  // --------------------------------------------------
 
   if (
-    stableIndex === -1
+    samples.length < 2
   ) {
 
     log(
-      `⚠️ 安定した ${targetKey} を確認できませんでした。` +
+      `⚠️ スコア画像を十分取得できませんでした。` +
       ` 仮時刻 ${fmt(roughTime)} を使用`
     );
 
     return roughTime;
   }
 
-  const stableTime =
-    samples[
-      stableIndex
-    ].time;
 
-  log(
-    `✅ 安定スコア確認: ` +
-    `${targetKey} @ ${fmt(stableTime)}`
-  );
+  /* =======================================================
+     最大変化を探す
+  ======================================================= */
 
-  // --------------------------------------------------
-  // ④ 安定した新スコアの直前を逆方向に探索
-  // --------------------------------------------------
-
-  const reverseStart =
-    Math.max(
-      start,
-      stableTime - 20
-    );
-
-  const reverseSamples = [];
+  let maxDiff = 0;
+  let maxIndex = -1;
 
   for (
-    let t = stableTime;
-    t >= reverseStart - 0.001;
-    t -= 0.25
+    let i = 1;
+    i < samples.length;
+    i++
+  ) {
+
+    if (
+      samples[i].diff > maxDiff
+    ) {
+
+      maxDiff =
+        samples[i].diff;
+
+      maxIndex =
+        i;
+    }
+  }
+
+
+  log(
+    `📊 最大画像変化: ` +
+    `${fmt(samples[maxIndex]?.time || roughTime)} ` +
+    `(差分 ${maxDiff.toFixed(2)})`
+  );
+
+
+  /*
+    画像変化が小さすぎる場合は、
+    ゴール時刻を特定できなかったと判断。
+  */
+
+  if (
+    maxIndex < 1 ||
+    maxDiff < 3
+  ) {
+
+    log(
+      `⚠️ スコアボードの明確な変化を確認できませんでした。` +
+      ` 仮時刻 ${fmt(roughTime)} を使用`
+    );
+
+    return roughTime;
+  }
+
+
+  /* =======================================================
+     最大変化の前後を0.05秒間隔で再探索
+     ★ここでゴール時刻を詰める
+  ======================================================= */
+
+  const roughBoundary =
+    samples[maxIndex].time;
+
+  const refineStart =
+    Math.max(
+      start,
+      roughBoundary - 0.5
+    );
+
+  const refineEnd =
+    Math.min(
+      end,
+      roughBoundary + 0.5
+    );
+
+
+  log(
+    `   🎯 画像変化詳細探索: ` +
+    `${fmt(refineStart)} ～ ${fmt(refineEnd)}`
+  );
+
+
+  const fineSamples = [];
+
+  let previousFineImage = null;
+
+  for (
+    let t = refineStart;
+    t <= refineEnd + 0.001;
+    t += 0.05
   ) {
 
     await seekTo(t);
 
-    drawScoreCrop();
+    const image =
+      captureScoreBoard();
 
-    const score =
-      await recognizeScore();
+    let diff = 0;
 
-    reverseSamples.push({
+    if (previousFineImage) {
+
+      diff =
+        imageDifference(
+          previousFineImage,
+          image
+        );
+    }
+
+    fineSamples.push({
       time: t,
-      score
+      diff,
+      image
     });
+
+    previousFineImage =
+      image;
   }
 
-  /*
-   * reverseSamples は
-   *
-   * 新しいスコア
-   * ↓
-   * 古いスコア
-   *
-   * の順番。
-   */
+
+  /* =======================================================
+     詳細探索で最大変化を取得
+  ======================================================= */
+
+  let fineMaxDiff = 0;
+  let fineIndex = -1;
 
   for (
-    let i = 0;
-    i < reverseSamples.length - 1;
+    let i = 1;
+    i < fineSamples.length;
     i++
   ) {
 
-    const current =
-      reverseSamples[i];
-
-    const previous =
-      reverseSamples[i + 1];
-
-    const currentKey =
-      current.score
-        ? `${current.score.home}-${current.score.away}`
-        : null;
-
-    const previousKeyAtTime =
-      previous.score
-        ? `${previous.score.home}-${previous.score.away}`
-        : null;
-
     if (
-      currentKey === targetKey &&
-      previousKeyAtTime === previousKey
+      fineSamples[i].diff >
+      fineMaxDiff
     ) {
 
-      /*
-       * current.time
-       *   = 新スコアが読める側
-       *
-       * previous.time
-       *   = その直前の旧スコア
-       */
+      fineMaxDiff =
+        fineSamples[i].diff;
 
-      const goalTime =
-        (
-          current.time +
-          previous.time
-        ) / 2;
-
-      log(
-        `🎯 ゴール時刻確定: ${fmt(goalTime)} ` +
-        `(OCR境界 ${fmt(previous.time)} → ${fmt(current.time)})`
-      );
-
-      return goalTime;
+      fineIndex =
+        i;
     }
   }
 
-  // --------------------------------------------------
-  // ⑤ 境界が直接見つからない場合
-  // --------------------------------------------------
+
+  if (
+    fineIndex < 1
+  ) {
+
+    log(
+      `⚠️ 詳細画像変化を取得できませんでした。` +
+      ` 仮時刻 ${fmt(roughTime)} を使用`
+    );
+
+    return roughTime;
+  }
+
+
+  const goalTime =
+    fineSamples[fineIndex].time;
+
+
+  /* =======================================================
+     最後にOCRで確認
+  ======================================================= */
+
+  await seekTo(goalTime);
+
+  drawScoreCrop();
+
+  const checkScore =
+    await recognizeScore();
+
+
+  if (checkScore) {
+
+    log(
+      `🔎 ゴール直後OCR: ` +
+      `${checkScore.home}-${checkScore.away}`
+    );
+  }
+
 
   log(
-    `⚠️ OCR境界を直接確認できませんでした。` +
-    ` 安定スコア時刻 ${fmt(stableTime)} を使用`
+    `🎯 ゴール時刻確定: ${fmt(goalTime)} ` +
+    `(画像変化 ${fineMaxDiff.toFixed(2)})`
   );
 
-  return stableTime;
+
+  return goalTime;
 }
 
 /* =========================================================
