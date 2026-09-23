@@ -3196,6 +3196,7 @@ function findStableScoreInSamples(
 /* =========================================================
    ゴール検出
    ★スコア変化区間を記録して精密化へ渡す
+   ★一瞬だけ出るOCR誤認識区間を優先しない
 ========================================================= */
 
 function detectGoalsFromTimeline(
@@ -3214,10 +3215,7 @@ function detectGoalsFromTimeline(
       initialScore.away
     );
 
-  if (
-    expectedGoalCount <= 0
-  ) {
-
+  if (expectedGoalCount <= 0) {
     return [];
   }
 
@@ -3231,38 +3229,34 @@ function detectGoalsFromTimeline(
   ======================================================= */
 
   const cleanedSamples =
-    samples.map(
-      item => {
+    samples.map(item => {
 
-        if (
-          !item.score
-        ) {
-          return item;
-        }
-
-        if (
-          !isValidScoreForFinal(
-            item.score,
-            initialScore,
-            finalScore
-          )
-        ) {
-
-          log(
-            `OCR誤認識候補を除外: ` +
-            `${fmt(item.time)} → ` +
-            `${scoreKey(item.score)}`
-          );
-
-          return {
-            ...item,
-            score: null
-          };
-        }
-
+      if (!item.score) {
         return item;
       }
-    );
+
+      if (
+        !isValidScoreForFinal(
+          item.score,
+          initialScore,
+          finalScore
+        )
+      ) {
+
+        log(
+          `OCR誤認識候補を除外: ` +
+          `${fmt(item.time)} → ` +
+          `${scoreKey(item.score)}`
+        );
+
+        return {
+          ...item,
+          score: null
+        };
+      }
+
+      return item;
+    });
 
 
   /* =======================================================
@@ -3276,35 +3270,25 @@ function detectGoalsFromTimeline(
       finalScore
     );
 
-
   log(
     `有効スコア区間: ${runs.length}区間`
   );
 
+  runs.forEach(run => {
 
-  runs.forEach(
-    run => {
+    log(
+      `  ${run.key}: ` +
+      `${fmt(run.startTime)} ～ ` +
+      `${fmt(run.endTime)}`
+    );
 
-      log(
-        `  ${run.key}: ` +
-        `${fmt(run.startTime)} ～ ` +
-        `${fmt(run.endTime)}`
-      );
-
-    }
-  );
+  });
 
 
   let currentScore = {
-
-    home:
-      initialScore.home,
-
-    away:
-      initialScore.away
-
+    home: initialScore.home,
+    away: initialScore.away
   };
-
 
   let cursorIndex = 0;
 
@@ -3327,10 +3311,7 @@ function detectGoalsFromTimeline(
         finalScore
       );
 
-
-    if (
-      !candidates.length
-    ) {
+    if (!candidates.length) {
       break;
     }
 
@@ -3342,41 +3323,89 @@ function detectGoalsFromTimeline(
       const candidate of candidates
     ) {
 
+      const targetKey =
+        scoreKey(candidate.score);
+
+
       /*
        * -----------------------------------------------------
-       * まず対象スコアのrunを探す
+       * 対象スコアのrunを取得
        *
-       * これが今回の重要部分。
-       * 「新スコアを最初にOCRできた時刻」だけではなく、
-       * その前のスコアが最後に確認された時刻も取得する。
+       * ★重要
+       * 1回しか確認されていない極端に短いrunは、
+       * OCR誤認識の可能性が高い。
+       *
+       * そのため、
+       * ① ある程度継続しているrun
+       * ② 一瞬だけのrun
+       *
+       * が両方ある場合は①を優先する。
        * -----------------------------------------------------
        */
 
-      const targetKey =
-        scoreKey(
-          candidate.score
+      const targetRuns =
+        runs.filter(run =>
+          run.key === targetKey &&
+          run.startIndex >= cursorIndex
         );
 
 
-      const targetRun =
-        runs.find(
-          run =>
-
-            run.key === targetKey &&
-
-            run.startIndex >=
-              cursorIndex
-        );
+      let targetRun = null;
 
 
-      if (
-        !targetRun
-      ) {
+      if (targetRuns.length) {
 
         /*
-         * runが見つからない場合は、
-         * 従来の安定スコア探索を使用。
+         * 1.5秒以上続いているrunを優先。
+         *
+         * 今回のGOAL 3では
+         *
+         * 3-0: 4:53 ～ 4:53
+         *
+         * が誤認識。
+         *
+         * 一方、
+         *
+         * 3-0: 6:06 ～ 6:13
+         *
+         * は継続しているためこちらを採用する。
          */
+
+        const stableRuns =
+          targetRuns.filter(run =>
+            (
+              run.endTime -
+              run.startTime
+            ) >= 1.5
+          );
+
+
+        if (stableRuns.length) {
+
+          targetRun =
+            stableRuns[0];
+
+        } else {
+
+          /*
+           * 安定したrunがない場合は
+           * 従来通り最初のrunを使用。
+           */
+
+          targetRun =
+            targetRuns[0];
+        }
+      }
+
+
+      /*
+       * -----------------------------------------------------
+       * runが見つからない場合
+       * 従来の安定スコア探索を使用
+       * -----------------------------------------------------
+       */
+
+      if (!targetRun) {
 
         const found =
           findStableScoreInSamples(
@@ -3387,7 +3416,6 @@ function detectGoalsFromTimeline(
             finalScore
           );
 
-
         if (!found) {
           continue;
         }
@@ -3395,8 +3423,7 @@ function detectGoalsFromTimeline(
 
         if (
           !best ||
-          found.index <
-          best.index
+          found.index < best.index
         ) {
 
           best = {
@@ -3426,21 +3453,17 @@ function detectGoalsFromTimeline(
               )
 
           };
-
         }
 
         continue;
       }
 
 
-      /*
-       * -----------------------------------------------------
-       * 対象スコアの直前にあるスコアrunを探す
-       * -----------------------------------------------------
-       */
+      /* =====================================================
+         対象スコア直前のrunを探す
+      ===================================================== */
 
       let previousRun = null;
-
 
       for (
         let r = runs.length - 1;
@@ -3450,7 +3473,6 @@ function detectGoalsFromTimeline(
 
         const run =
           runs[r];
-
 
         if (
           run.endIndex <
@@ -3464,19 +3486,14 @@ function detectGoalsFromTimeline(
 
           break;
         }
-
       }
 
 
-      /*
-       * -----------------------------------------------------
-       * 前スコアが見つからない場合
-       * 初期スコアを基準にする。
-       * -----------------------------------------------------
-       */
+      /* =====================================================
+         精密探索開始位置
+      ===================================================== */
 
       let refineStart;
-
 
       if (
         previousRun &&
@@ -3494,14 +3511,11 @@ function detectGoalsFromTimeline(
             0,
             targetRun.startTime - 10
           );
-
       }
 
 
       /*
-       * 新スコアが最初に確認されたところまで。
-       *
-       * 実際のゴールはこの間のどこか。
+       * 新スコアが最初に確認された時刻まで。
        */
 
       const refineEnd =
@@ -3529,11 +3543,6 @@ function detectGoalsFromTimeline(
       };
 
 
-      /*
-       * 複数候補がある場合は
-       * 時系列で最も早いものを採用。
-       */
-
       if (
         !best ||
         candidateFound.index <
@@ -3542,15 +3551,11 @@ function detectGoalsFromTimeline(
 
         best =
           candidateFound;
-
       }
-
     }
 
 
-    if (
-      !best
-    ) {
+    if (!best) {
 
       log(
         `⚠️ ゴール${goalNo + 1}件目を ` +
@@ -3609,11 +3614,6 @@ function detectGoalsFromTimeline(
 
     detected.push({
 
-      /*
-       * 現段階では仮時刻。
-       * 後段のrefineGoalTime()で
-       * refineStart～refineEndを再OCRする。
-       */
       roughTime:
         best.time,
 
@@ -3657,10 +3657,8 @@ function detectGoalsFromTimeline(
     currentScore =
       toScore;
 
-
     cursorIndex =
       best.index + 1;
-
   }
 
 
@@ -3678,18 +3676,15 @@ function detectGoalsFromTimeline(
       `${detected.length}/${expectedGoalCount}`
     );
 
-
     log(
       `検出終了スコア: ` +
       `${scoreKey(currentScore)}`
     );
 
-
     log(
       `入力最終スコア: ` +
       `${scoreKey(finalScore)}`
     );
-
 
     return [];
   }
@@ -3715,14 +3710,13 @@ function detectGoalsFromTimeline(
     `${scoreKey(currentScore)}`
   );
 
-
   return detected;
 }
 
 /* =========================================================
    ゴール時刻精密化
    ★スコアボード画像の変化を直接検出
-   ★OCRは補助として使用
+   ★新スコアのOCR確認を優先
 ========================================================= */
 async function refineGoalTime(
   roughTime,
@@ -3738,6 +3732,7 @@ async function refineGoalTime(
     `${newScore.home}-${newScore.away}`
   );
 
+
   const start =
     Math.max(
       0,
@@ -3747,8 +3742,11 @@ async function refineGoalTime(
   const end =
     Math.min(
       video.duration,
-      Number(searchEnd) || roughTime || video.duration
+      Number(searchEnd) ||
+      roughTime ||
+      video.duration
     );
+
 
   if (end <= start) {
     return roughTime;
@@ -3776,7 +3774,7 @@ async function refineGoalTime(
 
 
   /* =======================================================
-     2枚の画像の差分を計算
+     画像差分
   ======================================================= */
 
   function imageDifference(a, b) {
@@ -3787,11 +3785,6 @@ async function refineGoalTime(
 
     let total = 0;
     let count = 0;
-
-    /*
-      全画素ではなく一定間隔で比較。
-      iPhoneでも処理が重くなりすぎないようにする。
-    */
 
     for (
       let i = 0;
@@ -3822,7 +3815,7 @@ async function refineGoalTime(
 
 
   /* =======================================================
-     まず粗く画像変化を探す
+     粗探索
      0.25秒間隔
   ======================================================= */
 
@@ -3848,6 +3841,7 @@ async function refineGoalTime(
     let diff = 0;
 
     if (previousImage) {
+
       diff =
         imageDifference(
           previousImage,
@@ -3861,7 +3855,9 @@ async function refineGoalTime(
       image
     });
 
-    previousImage = image;
+    previousImage =
+      image;
+
 
     if (
       samples.length % 20 === 0
@@ -3888,45 +3884,121 @@ async function refineGoalTime(
 
 
   /* =======================================================
-     最大変化を探す
+     画像変化候補を大きい順に取得
+     ★1個だけに決めない
   ======================================================= */
 
-  let maxDiff = 0;
-  let maxIndex = -1;
+  const candidates =
+    samples
+      .slice(1)
+      .map((item, index) => ({
+        index: index + 1,
+        time: item.time,
+        diff: item.diff
+      }))
+      .sort(
+        (a, b) =>
+          b.diff - a.diff
+      );
+
+
+  /*
+   * OCR確認する候補数。
+   * iPhoneの負荷を考えて最大12個。
+   */
+
+  const checkCount =
+    Math.min(
+      12,
+      candidates.length
+    );
+
+
+  const expectedKey =
+    scoreKey(newScore);
+
+
+  let selectedCandidate = null;
+
+
+  /* =======================================================
+     大きな画像変化候補をOCR確認
+     ★新スコアになった候補を優先
+  ======================================================= */
 
   for (
-    let i = 1;
-    i < samples.length;
+    let i = 0;
+    i < checkCount;
     i++
   ) {
 
+    const candidate =
+      candidates[i];
+
+
+    await seekTo(
+      candidate.time
+    );
+
+    drawScoreCrop();
+
+    const checkScore =
+      await recognizeScore();
+
+
+    if (checkScore) {
+
+      log(
+        `🔎 候補OCR ${fmt(candidate.time)}: ` +
+        `${checkScore.home}-${checkScore.away} ` +
+        `(差分 ${candidate.diff.toFixed(2)})`
+      );
+    }
+
+
     if (
-      samples[i].diff > maxDiff
+      checkScore &&
+      scoreKey(checkScore) ===
+        expectedKey
     ) {
 
-      maxDiff =
-        samples[i].diff;
+      selectedCandidate =
+        candidate;
 
-      maxIndex =
-        i;
+      break;
     }
   }
 
 
+  /*
+   * 新スコアOCRが確認できなかった場合は、
+   * 従来通り最大画像変化を使用。
+   */
+
+  if (!selectedCandidate) {
+
+    selectedCandidate =
+      candidates[0];
+  }
+
+
+  const maxDiff =
+    selectedCandidate.diff;
+
+
+  const roughBoundary =
+    selectedCandidate.time;
+
+
   log(
-    `📊 最大画像変化: ` +
-    `${fmt(samples[maxIndex]?.time || roughTime)} ` +
+    `📊 採用画像変化: ` +
+    `${fmt(roughBoundary)} ` +
     `(差分 ${maxDiff.toFixed(2)})`
   );
 
 
-  /*
-    画像変化が小さすぎる場合は、
-    ゴール時刻を特定できなかったと判断。
-  */
-
   if (
-    maxIndex < 1 ||
+    !selectedCandidate ||
     maxDiff < 3
   ) {
 
@@ -3940,12 +4012,8 @@ async function refineGoalTime(
 
 
   /* =======================================================
-     最大変化の前後を0.05秒間隔で再探索
-     ★ここでゴール時刻を詰める
+     最大候補の前後を0.05秒間隔で精密探索
   ======================================================= */
-
-  const roughBoundary =
-    samples[maxIndex].time;
 
   const refineStart =
     Math.max(
@@ -3969,6 +4037,7 @@ async function refineGoalTime(
   const fineSamples = [];
 
   let previousFineImage = null;
+
 
   for (
     let t = refineStart;
@@ -4004,11 +4073,12 @@ async function refineGoalTime(
 
 
   /* =======================================================
-     詳細探索で最大変化を取得
+     詳細探索
   ======================================================= */
 
   let fineMaxDiff = 0;
   let fineIndex = -1;
+
 
   for (
     let i = 1;
@@ -4048,7 +4118,7 @@ async function refineGoalTime(
 
 
   /* =======================================================
-     最後にOCRで確認
+     最終OCR確認
   ======================================================= */
 
   await seekTo(goalTime);
