@@ -763,6 +763,20 @@ function drawScoreCrop(x = scoreCropX) {
   );
 }
 
+// ============================================================
+// 初期スコアOCR
+// 指定したX位置・時刻でスコアを読み取る
+// ============================================================
+async function recognizeInitialScoreAtX(x, time) {
+  await seekTo(time);
+
+  drawScoreCrop(x);
+
+  const score = await recognizeScore();
+
+  return score;
+}
+
 /* =========================================================
    スコア表示画像の差分検出
    ★OCRが読めなくてもスコア変更そのものを検出する
