@@ -2294,11 +2294,11 @@ async function readInitialScore(finalScore) {
 
       try {
 
-        const score =
-          await recognizeInitialScoreAtX(
-            t,
-            x
-          );
+const score =
+  await recognizeInitialScoreAtX(
+    x,
+    t
+  );
 
 
         if (!score) {
