@@ -3718,135 +3718,69 @@ function detectGoalsFromTimeline(
    ★スコアボード画像の変化を直接検出
    ★新スコアのOCR確認を優先
 ========================================================= */
-async function refineGoalTime(
-  roughTime,
-  previousScore,
-  newScore,
-  searchStart,
-  searchEnd
-) {
-
-  log(
-    `🔍 ゴール時刻精密化開始: ${fmt(searchStart)} ～ ${fmt(searchEnd)} / ` +
-    `${previousScore.home}-${previousScore.away} → ` +
-    `${newScore.home}-${newScore.away}`
-  );
-
-
-  const start =
-    Math.max(
-      0,
-      Number(searchStart) || 0
-    );
-
-  const end =
-    Math.min(
-      video.duration,
-      Number(searchEnd) ||
-      roughTime ||
-      video.duration
-    );
-
-
-  if (end <= start) {
+async function refineGoalTime(roughTime, previousScore, newScore) {
+  if (roughTime == null || !previousScore || !newScore) {
     return roughTime;
   }
 
+  const start = Math.max(0, roughTime - 10);
+  const end = Math.min(duration - 0.05, roughTime);
 
-  /* =======================================================
-     スコアボード画像を取得
-  ======================================================= */
+  log(
+    `🔍 ゴール時刻精密化開始: ${fmt(start)} ～ ${fmt(end)} / ` +
+    `${scoreKey(previousScore)} → ${scoreKey(newScore)}`
+  );
 
   function captureScoreBoard() {
-
     drawScoreCrop();
 
-    const image =
-      ctx.getImageData(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-    return image.data;
+    return ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
   }
 
-
-  /* =======================================================
-     画像差分
-  ======================================================= */
-
   function imageDifference(a, b) {
+    if (!a || !b) return 0;
 
-    if (!a || !b) {
-      return 0;
-    }
+    const d1 = a.data;
+    const d2 = b.data;
 
     let total = 0;
     let count = 0;
 
-    for (
-      let i = 0;
-      i < a.length;
-      i += 16
-    ) {
-
-      const r1 = a[i];
-      const g1 = a[i + 1];
-      const b1 = a[i + 2];
-
-      const r2 = b[i];
-      const g2 = b[i + 1];
-      const b2 = b[i + 2];
-
+    for (let i = 0; i < d1.length; i += 16) {
       total +=
-        Math.abs(r1 - r2) +
-        Math.abs(g1 - g2) +
-        Math.abs(b1 - b2);
+        Math.abs(d1[i]     - d2[i]) +
+        Math.abs(d1[i + 1] - d2[i + 1]) +
+        Math.abs(d1[i + 2] - d2[i + 2]);
 
       count++;
     }
 
-    return count
-      ? total / count
-      : 0;
+    return count ? total / count : 0;
   }
 
-
-  /* =======================================================
+  /* -----------------------------------------
      粗探索
-     0.25秒間隔
-  ======================================================= */
+  ----------------------------------------- */
 
   const samples = [];
-
   let previousImage = null;
 
-  for (
-    let t = start;
-    t <= end + 0.001;
-    t += 0.25
-  ) {
-
-    if (scanBusy === false) {
-      break;
-    }
+  for (let t = start; t <= end + 0.001; t += 0.25) {
+    if (!scanBusy) break;
 
     await seekTo(t);
 
-    const image =
-      captureScoreBoard();
+    const image = captureScoreBoard();
 
     let diff = 0;
 
     if (previousImage) {
-
-      diff =
-        imageDifference(
-          previousImage,
-          image
-        );
+      diff = imageDifference(previousImage, image);
     }
 
     samples.push({
@@ -3855,294 +3789,109 @@ async function refineGoalTime(
       image
     });
 
-    previousImage =
-      image;
-
-
-    if (
-      samples.length % 20 === 0
-    ) {
-
-      log(
-        `   🔎 スコア画像探索: ${fmt(t)}`
-      );
-    }
+    previousImage = image;
   }
 
-
-  if (
-    samples.length < 2
-  ) {
-
-    log(
-      `⚠️ スコア画像を十分取得できませんでした。` +
-      ` 仮時刻 ${fmt(roughTime)} を使用`
-    );
-
+  if (!samples.length) {
     return roughTime;
   }
 
+  let maxDiff = 0;
+  let maxIndex = -1;
 
-  /* =======================================================
-     画像変化候補を大きい順に取得
-     ★1個だけに決めない
-  ======================================================= */
-
-  const candidates =
-    samples
-      .slice(1)
-      .map((item, index) => ({
-        index: index + 1,
-        time: item.time,
-        diff: item.diff
-      }))
-      .sort(
-        (a, b) =>
-          b.diff - a.diff
-      );
-
-
-  /*
-   * OCR確認する候補数。
-   * iPhoneの負荷を考えて最大12個。
-   */
-
-  const checkCount =
-    Math.min(
-      12,
-      candidates.length
-    );
-
-
-  const expectedKey =
-    scoreKey(newScore);
-
-
-  let selectedCandidate = null;
-
-
-  /* =======================================================
-     大きな画像変化候補をOCR確認
-     ★新スコアになった候補を優先
-  ======================================================= */
-
-  for (
-    let i = 0;
-    i < checkCount;
-    i++
-  ) {
-
-    const candidate =
-      candidates[i];
-
-
-    await seekTo(
-      candidate.time
-    );
-
-    drawScoreCrop();
-
-    const checkScore =
-      await recognizeScore();
-
-
-    if (checkScore) {
-
-      log(
-        `🔎 候補OCR ${fmt(candidate.time)}: ` +
-        `${checkScore.home}-${checkScore.away} ` +
-        `(差分 ${candidate.diff.toFixed(2)})`
-      );
-    }
-
-
-    if (
-      checkScore &&
-      scoreKey(checkScore) ===
-        expectedKey
-    ) {
-
-      selectedCandidate =
-        candidate;
-
-      break;
+  for (let i = 1; i < samples.length; i++) {
+    if (samples[i].diff > maxDiff) {
+      maxDiff = samples[i].diff;
+      maxIndex = i;
     }
   }
 
-
-  /*
-   * 新スコアOCRが確認できなかった場合は、
-   * 従来通り最大画像変化を使用。
-   */
-
-  if (!selectedCandidate) {
-
-    selectedCandidate =
-      candidates[0];
+  if (maxIndex < 0) {
+    return roughTime;
   }
 
-
-  const maxDiff =
-    selectedCandidate.diff;
-
-
-  const roughBoundary =
-    selectedCandidate.time;
-
+  const roughBoundary = samples[maxIndex].time;
 
   log(
-    `📊 採用画像変化: ` +
-    `${fmt(roughBoundary)} ` +
+    `📊 最大画像変化: ${fmt(roughBoundary)} ` +
     `(差分 ${maxDiff.toFixed(2)})`
   );
 
+  /* -----------------------------------------
+     精密探索 ±0.5秒
+  ----------------------------------------- */
 
-  if (
-    !selectedCandidate ||
-    maxDiff < 3
-  ) {
-
-    log(
-      `⚠️ スコアボードの明確な変化を確認できませんでした。` +
-      ` 仮時刻 ${fmt(roughTime)} を使用`
-    );
-
-    return roughTime;
-  }
-
-
-  /* =======================================================
-     最大候補の前後を0.05秒間隔で精密探索
-  ======================================================= */
-
-  const refineStart =
-    Math.max(
-      start,
-      roughBoundary - 0.5
-    );
-
-  const refineEnd =
-    Math.min(
-      end,
-      roughBoundary + 0.5
-    );
-
+  const fineStart = Math.max(start, roughBoundary - 0.5);
+  const fineEnd = Math.min(end, roughBoundary + 0.5);
 
   log(
     `   🎯 画像変化詳細探索: ` +
-    `${fmt(refineStart)} ～ ${fmt(refineEnd)}`
+    `${fmt(fineStart)} ～ ${fmt(fineEnd)}`
   );
 
-
   const fineSamples = [];
-
-  let previousFineImage = null;
-
+  let finePrevious = null;
 
   for (
-    let t = refineStart;
-    t <= refineEnd + 0.001;
+    let t = fineStart;
+    t <= fineEnd + 0.001;
     t += 0.05
   ) {
+    if (!scanBusy) break;
 
     await seekTo(t);
 
-    const image =
-      captureScoreBoard();
+    const image = captureScoreBoard();
 
     let diff = 0;
 
-    if (previousFineImage) {
-
-      diff =
-        imageDifference(
-          previousFineImage,
-          image
-        );
+    if (finePrevious) {
+      diff = imageDifference(finePrevious, image);
     }
 
     fineSamples.push({
       time: t,
-      diff,
-      image
+      diff
     });
 
-    previousFineImage =
-      image;
+    finePrevious = image;
   }
 
+  if (!fineSamples.length) {
+    return roughBoundary;
+  }
 
-  /* =======================================================
-     詳細探索
-  ======================================================= */
-
-  let fineMaxDiff = 0;
+  let fineMax = 0;
   let fineIndex = -1;
 
-
-  for (
-    let i = 1;
-    i < fineSamples.length;
-    i++
-  ) {
-
-    if (
-      fineSamples[i].diff >
-      fineMaxDiff
-    ) {
-
-      fineMaxDiff =
-        fineSamples[i].diff;
-
-      fineIndex =
-        i;
+  for (let i = 1; i < fineSamples.length; i++) {
+    if (fineSamples[i].diff > fineMax) {
+      fineMax = fineSamples[i].diff;
+      fineIndex = i;
     }
   }
 
-
-  if (
-    fineIndex < 1
-  ) {
-
-    log(
-      `⚠️ 詳細画像変化を取得できませんでした。` +
-      ` 仮時刻 ${fmt(roughTime)} を使用`
-    );
-
-    return roughTime;
-  }
-
-
   const goalTime =
-    fineSamples[fineIndex].time;
-
-
-  /* =======================================================
-     最終OCR確認
-  ======================================================= */
+    fineIndex >= 0
+      ? fineSamples[fineIndex].time
+      : roughBoundary;
 
   await seekTo(goalTime);
 
   drawScoreCrop();
 
-  const checkScore =
-    await recognizeScore();
-
+  const checkScore = await recognizeScore();
 
   if (checkScore) {
-
     log(
-      `🔎 ゴール直後OCR: ` +
-      `${checkScore.home}-${checkScore.away}`
+      `🔎 ゴール直後OCR: ${scoreKey(checkScore)}`
     );
   }
 
-
   log(
     `🎯 ゴール時刻確定: ${fmt(goalTime)} ` +
-    `(画像変化 ${fineMaxDiff.toFixed(2)})`
+    `(画像変化 ${fineMax.toFixed(2)})`
   );
-
 
   return goalTime;
 }
@@ -4194,68 +3943,193 @@ function filterGoals(
   return [];
 }
 
+function parseGoalTimeInput(value) {
+  const text = String(value || '').trim();
+
+  if (!text) return null;
+
+  /* 2:21 形式 */
+  if (text.includes(':')) {
+    const parts = text.split(':');
+
+    if (parts.length !== 2) {
+      return null;
+    }
+
+    const min = Number(parts[0]);
+    const sec = Number(parts[1]);
+
+    if (
+      !Number.isFinite(min) ||
+      !Number.isFinite(sec) ||
+      min < 0 ||
+      sec < 0 ||
+      sec >= 60
+    ) {
+      return null;
+    }
+
+    return min * 60 + sec;
+  }
+
+  /* 141秒のような秒数入力にも対応 */
+  const sec = Number(text);
+
+  if (
+    !Number.isFinite(sec) ||
+    sec < 0
+  ) {
+    return null;
+  }
+
+  return sec;
+}
 
 /* =========================================================
    結果表示
 ========================================================= */
-
 function renderResults() {
-
   results.innerHTML = '';
 
-
   if (!goals.length) {
-
     results.innerHTML =
-      '<p class="muted">' +
-      'ゴールは検出されませんでした。' +
-      '</p>';
-
-
+      '<p class="muted">ゴールは検出されませんでした。</p>';
     return;
   }
 
+  goals.forEach((g, i) => {
+    const row = document.createElement('div');
+    row.className = 'goal';
 
-  goals.forEach(
-    (g, i) => {
+    const goalLabel =
+      g.type === 'opponent'
+        ? '相手ゴール'
+        : '箕谷ゴール';
 
-      const row =
-        document.createElement(
-          'div'
+    const info = document.createElement('div');
+
+    info.innerHTML = `
+      <b>⚽ GOAL ${i + 1}</b><br>
+      <span>
+        ${goalLabel}<br>
+        ${g.from} → <strong>${g.to}</strong>
+      </span>
+    `;
+
+    row.appendChild(info);
+
+    /* 自動解析結果 */
+    const auto = document.createElement('div');
+
+    auto.innerHTML = `
+      <small>解析候補</small><br>
+      <strong>${fmt(g.time)}</strong>
+    `;
+
+    row.appendChild(auto);
+
+    /* 手動修正 */
+    const edit = document.createElement('div');
+
+    edit.innerHTML = `
+      <small>実際のゴール</small><br>
+    `;
+
+    const input = document.createElement('input');
+
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.placeholder = '例 2:21';
+    input.value = fmt(g.time);
+    input.style.width = '75px';
+    input.style.textAlign = 'center';
+
+    const checkBtn =
+      document.createElement('button');
+
+    checkBtn.type = 'button';
+    checkBtn.textContent = '▶ 確認';
+
+    checkBtn.addEventListener(
+      'click',
+      async () => {
+        const value =
+          parseGoalTimeInput(input.value);
+
+        if (value == null) {
+          alert(
+            'ゴール時間を「2:21」のように入力してください。'
+          );
+          return;
+        }
+
+        if (value < 0 || value >= duration) {
+          alert(
+            '動画の範囲内の時間を入力してください。'
+          );
+          return;
+        }
+
+        g.time = value;
+
+        input.value = fmt(g.time);
+
+        log(
+          `✏️ GOAL ${i + 1} 時刻修正: ` +
+          `${fmt(g.time)}`
         );
 
+        try {
+          await seekTo(g.time);
 
-      row.className =
-        'goal';
+          video.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        } catch (e) {
+          log(
+            `VIDEO SEEK ERROR: ${e.message}`
+          );
+        }
+      }
+    );
 
+    input.addEventListener(
+      'change',
+      () => {
+        const value =
+          parseGoalTimeInput(input.value);
 
-      const goalLabel =
-        g.type === 'opponent'
-          ? '相手ゴール'
-          : '箕谷ゴール';
+        if (value == null) {
+          input.value = fmt(g.time);
+          return;
+        }
 
+        if (
+          value < 0 ||
+          value >= duration
+        ) {
+          input.value = fmt(g.time);
+          return;
+        }
 
-      row.innerHTML =
-        `<div>
-          <b>⚽ GOAL ${i + 1}</b><br>
-          <span>
-            ${goalLabel}<br>
-            ${g.from}
-            →
-            <strong>${g.to}</strong>
-          </span>
-        </div>
-        <div>${fmt(g.time)}</div>`;
+        g.time = value;
 
+        log(
+          `✏️ GOAL ${i + 1} 時刻修正: ` +
+          `${fmt(g.time)}`
+        );
+      }
+    );
 
-      results.appendChild(
-        row
-      );
+    edit.appendChild(input);
+    edit.appendChild(checkBtn);
 
-    }
-  );
+    row.appendChild(edit);
+
+    results.appendChild(row);
+  });
 }
-
 
 /* =========================================================
    スコア解析
