@@ -4039,27 +4039,37 @@ function renderResults() {
       </div>
     `;
 
-    const timeInput = row.querySelector('.goal-time-input');
-    const confirmBtn = row.querySelector('.goal-confirm-btn');
+    const timeInput =
+      row.querySelector('.goal-time-input');
+
+    const confirmBtn =
+      row.querySelector('.goal-confirm-btn');
+
 
     /* -----------------------------------------
        時刻入力 → g.time に反映
-       例：
-       2:21
-       4:06
-       125
-       ----------------------------------------- */
+    ----------------------------------------- */
+
     timeInput.addEventListener('change', () => {
-      const text = timeInput.value.trim();
+
+      const text =
+        timeInput.value.trim();
 
       let seconds = null;
 
+
       if (text.includes(':')) {
-        const parts = text.split(':');
+
+        const parts =
+          text.split(':');
 
         if (parts.length === 2) {
-          const min = Number(parts[0]);
-          const sec = Number(parts[1]);
+
+          const min =
+            Number(parts[0]);
+
+          const sec =
+            Number(parts[1]);
 
           if (
             Number.isFinite(min) &&
@@ -4068,25 +4078,45 @@ function renderResults() {
             sec >= 0 &&
             sec < 60
           ) {
-            seconds = min * 60 + sec;
+            seconds =
+              min * 60 + sec;
           }
         }
-      } else {
-        const value = Number(text);
 
-        if (Number.isFinite(value) && value >= 0) {
+      } else {
+
+        const value =
+          Number(text);
+
+        if (
+          Number.isFinite(value) &&
+          value >= 0
+        ) {
           seconds = value;
         }
       }
 
+
       if (seconds == null) {
-        timeInput.value = fmt(g.time);
+
+        timeInput.value =
+          fmt(g.time);
+
         return;
       }
 
-      if (duration > 0 && seconds >= duration) {
-        seconds = Math.max(0, duration - 0.1);
+
+      if (
+        duration > 0 &&
+        seconds >= duration
+      ) {
+        seconds =
+          Math.max(
+            0,
+            duration - 0.1
+          );
       }
+
 
       g.time = seconds;
 
@@ -4095,111 +4125,223 @@ function renderResults() {
       );
     });
 
+
     /* -----------------------------------------
        ▶ 確認ボタン
-       動画を実際のゴール時刻へ移動
-       ----------------------------------------- */
-    confirmBtn.addEventListener('click', async () => {
-      const text = timeInput.value.trim();
+    ----------------------------------------- */
 
-      let seconds = null;
+    confirmBtn.addEventListener(
+      'click',
+      async () => {
 
-      if (text.includes(':')) {
-        const parts = text.split(':');
+        const text =
+          timeInput.value.trim();
 
-        if (parts.length === 2) {
-          const min = Number(parts[0]);
-          const sec = Number(parts[1]);
+        let seconds = null;
+
+
+        /* 時刻を秒に変換 */
+
+        if (text.includes(':')) {
+
+          const parts =
+            text.split(':');
+
+          if (parts.length === 2) {
+
+            const min =
+              Number(parts[0]);
+
+            const sec =
+              Number(parts[1]);
+
+            if (
+              Number.isFinite(min) &&
+              Number.isFinite(sec) &&
+              min >= 0 &&
+              sec >= 0 &&
+              sec < 60
+            ) {
+              seconds =
+                min * 60 + sec;
+            }
+          }
+
+        } else {
+
+          const value =
+            Number(text);
 
           if (
-            Number.isFinite(min) &&
-            Number.isFinite(sec) &&
-            min >= 0 &&
-            sec >= 0 &&
-            sec < 60
+            Number.isFinite(value) &&
+            value >= 0
           ) {
-            seconds = min * 60 + sec;
+            seconds = value;
           }
         }
-      } else {
-        const value = Number(text);
 
-        if (Number.isFinite(value) && value >= 0) {
-          seconds = value;
+
+        /* 入力チェック */
+
+        if (seconds == null) {
+
+          alert(
+            'ゴール時刻を「2:21」の形式で入力してください。'
+          );
+
+          timeInput.focus();
+
+          return;
+        }
+
+
+        if (
+          duration > 0 &&
+          seconds >= duration
+        ) {
+
+          alert(
+            '動画の長さを超えています。'
+          );
+
+          return;
+        }
+
+
+        /* g.time を更新 */
+
+        g.time = seconds;
+
+
+        /* ボタンを一時停止 */
+
+        const originalText =
+          confirmBtn.textContent;
+
+        confirmBtn.textContent =
+          '⏳ 移動中…';
+
+        confirmBtn.disabled =
+          true;
+
+
+        try {
+
+          log(
+            `▶ GOAL ${i + 1} 確認: ${fmt(seconds)} に移動`
+          );
+
+
+          /* -----------------------------------------
+             元動画を表示
+          ----------------------------------------- */
+
+          video.style.display =
+            'block';
+
+          video.style.width =
+            '100%';
+
+          video.style.height =
+            'auto';
+
+          video.style.maxWidth =
+            '100%';
+
+          video.controls =
+            true;
+
+          video.playsInline =
+            true;
+
+          video.muted =
+            true;
+
+
+          /* 動画の縦横比 */
+
+          if (
+            video.videoWidth > 0 &&
+            video.videoHeight > 0
+          ) {
+
+            video.style.aspectRatio =
+              `${video.videoWidth} / ${video.videoHeight}`;
+          }
+
+
+          /* -----------------------------------------
+             指定時刻へ移動
+          ----------------------------------------- */
+
+          await seekTo(seconds);
+
+
+          /* -----------------------------------------
+             動画までスクロール
+          ----------------------------------------- */
+
+          video.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+
+
+          /* -----------------------------------------
+             指定時刻から再生
+          ----------------------------------------- */
+
+          try {
+
+            await video.play();
+
+            log(
+              `▶ GOAL ${i + 1}: ${fmt(seconds)} から再生開始`
+            );
+
+          } catch (playError) {
+
+            console.error(
+              playError
+            );
+
+            log(
+              `⚠️ 自動再生できませんでした: ` +
+              `${playError.message || playError}`
+            );
+          }
+
+
+          log(
+            `✅ GOAL ${i + 1}: 動画を ${fmt(seconds)} に移動しました`
+          );
+
+
+        } catch (e) {
+
+          console.error(e);
+
+          log(
+            `❌ GOAL ${i + 1} 確認エラー: ` +
+            `${e.message || e}`
+          );
+
+          alert(
+            `動画を ${fmt(seconds)} に移動できませんでした。`
+          );
+
+
+        } finally {
+
+          confirmBtn.textContent =
+            originalText;
+
+          confirmBtn.disabled =
+            false;
         }
       }
+    );
 
-      if (seconds == null) {
-        alert('ゴール時刻を「2:21」の形式で入力してください。');
-        timeInput.focus();
-        return;
-      }
-
-      if (duration > 0 && seconds >= duration) {
-        alert('動画の長さを超えています。');
-        return;
-      }
-
-      /* g.time を更新 */
-      g.time = seconds;
-
-      /* ボタンを一時的に変更 */
-      const originalText = confirmBtn.textContent;
-      confirmBtn.textContent = '⏳ 移動中…';
-      confirmBtn.disabled = true;
-
-      try {
-        log(
-          `▶ GOAL ${i + 1} 確認: ${fmt(seconds)} に移動`
-        );
-
-/* 動画をゴール時刻へ移動 */
-await seekTo(seconds);
-
-/* 動画までスクロール */
-video.scrollIntoView({
-  behavior: 'smooth',
-  block: 'center'
-});
-
-/* ゴール時刻から再生 */
-try {
-  await video.play();
-
-  log(
-    `▶ GOAL ${i + 1}: ${fmt(seconds)} から再生開始`
-  );
-} catch (playError) {
-  console.error(playError);
-
-  log(
-    `⚠️ 自動再生できませんでした: ` +
-    `${playError.message || playError}`
-  );
-}        
-
-        /* 再生位置を確実に表示 */
-        log(
-          `✅ GOAL ${i + 1}: 動画を ${fmt(seconds)} に移動しました`
-        );
-
-      } catch (e) {
-        console.error(e);
-
-        log(
-          `❌ GOAL ${i + 1} 確認エラー: ` +
-          `${e.message || e}`
-        );
-
-        alert(
-          `動画を ${fmt(seconds)} に移動できませんでした。`
-        );
-
-      } finally {
-        confirmBtn.textContent = originalText;
-        confirmBtn.disabled = false;
-      }
-    });
 
     results.appendChild(row);
   });
