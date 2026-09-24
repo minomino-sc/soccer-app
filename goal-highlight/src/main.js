@@ -3988,6 +3988,7 @@ function parseGoalTimeInput(value) {
 /* =========================================================
    結果表示
 ========================================================= */
+
 function renderResults() {
   results.innerHTML = '';
 
@@ -4006,126 +4007,183 @@ function renderResults() {
         ? '相手ゴール'
         : '箕谷ゴール';
 
-    const info = document.createElement('div');
+    row.innerHTML = `
+      <div>
+        <b>⚽ GOAL ${i + 1}</b><br>
+        <span>
+          ${goalLabel}<br>
+          ${g.from} → <strong>${g.to}</strong>
+        </span>
+      </div>
 
-    info.innerHTML = `
-      <b>⚽ GOAL ${i + 1}</b><br>
-      <span>
-        ${goalLabel}<br>
-        ${g.from} → <strong>${g.to}</strong>
-      </span>
+      <div>
+        <span>解析候補</span>
+        <strong>${fmt(g.time)}</strong>
+      </div>
+
+      <div>
+        <span>実際のゴール</span>
+        <input
+          type="text"
+          class="goal-time-input"
+          value="${fmt(g.time)}"
+          inputmode="numeric"
+          autocomplete="off"
+        >
+        <button
+          type="button"
+          class="goal-confirm-btn"
+        >
+          ▶ 確認
+        </button>
+      </div>
     `;
 
-    row.appendChild(info);
+    const timeInput = row.querySelector('.goal-time-input');
+    const confirmBtn = row.querySelector('.goal-confirm-btn');
 
-    /* 自動解析結果 */
-    const auto = document.createElement('div');
+    /* -----------------------------------------
+       時刻入力 → g.time に反映
+       例：
+       2:21
+       4:06
+       125
+       ----------------------------------------- */
+    timeInput.addEventListener('change', () => {
+      const text = timeInput.value.trim();
 
-    auto.innerHTML = `
-      <small>解析候補</small><br>
-      <strong>${fmt(g.time)}</strong>
-    `;
+      let seconds = null;
 
-    row.appendChild(auto);
+      if (text.includes(':')) {
+        const parts = text.split(':');
 
-    /* 手動修正 */
-    const edit = document.createElement('div');
+        if (parts.length === 2) {
+          const min = Number(parts[0]);
+          const sec = Number(parts[1]);
 
-    edit.innerHTML = `
-      <small>実際のゴール</small><br>
-    `;
-
-    const input = document.createElement('input');
-
-    input.type = 'text';
-    input.inputMode = 'numeric';
-    input.placeholder = '例 2:21';
-    input.value = fmt(g.time);
-    input.style.width = '75px';
-    input.style.textAlign = 'center';
-
-    const checkBtn =
-      document.createElement('button');
-
-    checkBtn.type = 'button';
-    checkBtn.textContent = '▶ 確認';
-
-    checkBtn.addEventListener(
-      'click',
-      async () => {
-        const value =
-          parseGoalTimeInput(input.value);
-
-        if (value == null) {
-          alert(
-            'ゴール時間を「2:21」のように入力してください。'
-          );
-          return;
+          if (
+            Number.isFinite(min) &&
+            Number.isFinite(sec) &&
+            min >= 0 &&
+            sec >= 0 &&
+            sec < 60
+          ) {
+            seconds = min * 60 + sec;
+          }
         }
+      } else {
+        const value = Number(text);
 
-        if (value < 0 || value >= duration) {
-          alert(
-            '動画の範囲内の時間を入力してください。'
-          );
-          return;
-        }
-
-        g.time = value;
-
-        input.value = fmt(g.time);
-
-        log(
-          `✏️ GOAL ${i + 1} 時刻修正: ` +
-          `${fmt(g.time)}`
-        );
-
-        try {
-          await seekTo(g.time);
-
-          video.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-          });
-        } catch (e) {
-          log(
-            `VIDEO SEEK ERROR: ${e.message}`
-          );
+        if (Number.isFinite(value) && value >= 0) {
+          seconds = value;
         }
       }
-    );
 
-    input.addEventListener(
-      'change',
-      () => {
-        const value =
-          parseGoalTimeInput(input.value);
+      if (seconds == null) {
+        timeInput.value = fmt(g.time);
+        return;
+      }
 
-        if (value == null) {
-          input.value = fmt(g.time);
-          return;
+      if (duration > 0 && seconds >= duration) {
+        seconds = Math.max(0, duration - 0.1);
+      }
+
+      g.time = seconds;
+
+      log(
+        `✏️ GOAL ${i + 1} ゴール時刻変更: ${fmt(g.time)}`
+      );
+    });
+
+    /* -----------------------------------------
+       ▶ 確認ボタン
+       動画を実際のゴール時刻へ移動
+       ----------------------------------------- */
+    confirmBtn.addEventListener('click', async () => {
+      const text = timeInput.value.trim();
+
+      let seconds = null;
+
+      if (text.includes(':')) {
+        const parts = text.split(':');
+
+        if (parts.length === 2) {
+          const min = Number(parts[0]);
+          const sec = Number(parts[1]);
+
+          if (
+            Number.isFinite(min) &&
+            Number.isFinite(sec) &&
+            min >= 0 &&
+            sec >= 0 &&
+            sec < 60
+          ) {
+            seconds = min * 60 + sec;
+          }
         }
+      } else {
+        const value = Number(text);
 
-        if (
-          value < 0 ||
-          value >= duration
-        ) {
-          input.value = fmt(g.time);
-          return;
+        if (Number.isFinite(value) && value >= 0) {
+          seconds = value;
         }
+      }
 
-        g.time = value;
+      if (seconds == null) {
+        alert('ゴール時刻を「2:21」の形式で入力してください。');
+        timeInput.focus();
+        return;
+      }
+
+      if (duration > 0 && seconds >= duration) {
+        alert('動画の長さを超えています。');
+        return;
+      }
+
+      /* g.time を更新 */
+      g.time = seconds;
+
+      /* ボタンを一時的に変更 */
+      const originalText = confirmBtn.textContent;
+      confirmBtn.textContent = '⏳ 移動中…';
+      confirmBtn.disabled = true;
+
+      try {
+        log(
+          `▶ GOAL ${i + 1} 確認: ${fmt(seconds)} に移動`
+        );
+
+        /* 動画をゴール時刻へ移動 */
+        await seekTo(seconds);
+
+        /* 動画までスクロール */
+        video.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+
+        /* 再生位置を確実に表示 */
+        log(
+          `✅ GOAL ${i + 1}: 動画を ${fmt(seconds)} に移動しました`
+        );
+
+      } catch (e) {
+        console.error(e);
 
         log(
-          `✏️ GOAL ${i + 1} 時刻修正: ` +
-          `${fmt(g.time)}`
+          `❌ GOAL ${i + 1} 確認エラー: ` +
+          `${e.message || e}`
         );
+
+        alert(
+          `動画を ${fmt(seconds)} に移動できませんでした。`
+        );
+
+      } finally {
+        confirmBtn.textContent = originalText;
+        confirmBtn.disabled = false;
       }
-    );
-
-    edit.appendChild(input);
-    edit.appendChild(checkBtn);
-
-    row.appendChild(edit);
+    });
 
     results.appendChild(row);
   });
