@@ -4153,14 +4153,30 @@ function renderResults() {
           `▶ GOAL ${i + 1} 確認: ${fmt(seconds)} に移動`
         );
 
-        /* 動画をゴール時刻へ移動 */
-        await seekTo(seconds);
+/* 動画をゴール時刻へ移動 */
+await seekTo(seconds);
 
-        /* 動画までスクロール */
-        video.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
+/* 動画までスクロール */
+video.scrollIntoView({
+  behavior: 'smooth',
+  block: 'center'
+});
+
+/* ゴール時刻から再生 */
+try {
+  await video.play();
+
+  log(
+    `▶ GOAL ${i + 1}: ${fmt(seconds)} から再生開始`
+  );
+} catch (playError) {
+  console.error(playError);
+
+  log(
+    `⚠️ 自動再生できませんでした: ` +
+    `${playError.message || playError}`
+  );
+}        
 
         /* 再生位置を確実に表示 */
         log(
