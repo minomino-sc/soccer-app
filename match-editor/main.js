@@ -2115,17 +2115,13 @@ await ffmpeg.exec([
 ]);
 
     exportProgress.textContent =
-      "完成動画を準備しています…";
+      "✅ FFmpegによる結合が完了しました。";
 
+    showMessage(
+      "FFmpegの結合処理は完了しました。"
+    );
 
-    /*
-     * 出力ファイル取得
-     */
-
-    const data =
-      await ffmpeg.readFile(
-        outputFileName
-      );
+    return;
 
 
     /*
