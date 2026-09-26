@@ -17,8 +17,13 @@
 
     <header class="header">
       <h1>⚽ 試合動画エディター</h1>
-      <p>GOALをタップして試合経過を記録</p>
+      <p>試合経過をタップして記録</p>
     </header>
+
+
+    <!-- =========================
+         試合情報
+    ========================== -->
 
     <section class="card">
 
@@ -53,12 +58,17 @@
     </section>
 
 
+    <!-- =========================
+         動画
+    ========================== -->
+
     <section class="card">
 
       <h2>動画</h2>
 
       <label class="video-select">
         <span>🎥 試合動画を選択</span>
+
         <input
           id="videoFile"
           type="file"
@@ -66,40 +76,181 @@
         >
       </label>
 
+
       <div class="video-wrapper">
+
         <video
           id="video"
-          controls
           playsinline
           preload="metadata"
         ></video>
+
       </div>
 
+
+      <!-- 再生コントロール -->
+
+      <div class="video-controls">
+
+        <button
+          id="back5Btn"
+          class="seek-control"
+          type="button"
+        >
+          ⏪ 5秒
+        </button>
+
+
+        <button
+          id="playPauseBtn"
+          class="play-control"
+          type="button"
+        >
+          ▶ 再生
+        </button>
+
+
+        <button
+          id="forward5Btn"
+          class="seek-control"
+          type="button"
+        >
+          5秒 ⏩
+        </button>
+
+      </div>
+
+
+      <!-- 再生速度 -->
+
+      <div class="speed-section">
+
+        <span class="speed-title">再生速度</span>
+
+        <div class="speed-buttons">
+
+          <button type="button" data-speed="0.5">
+            0.5×
+          </button>
+
+          <button type="button" data-speed="1">
+            1×
+          </button>
+
+          <button type="button" data-speed="1.5">
+            1.5×
+          </button>
+
+          <button type="button" data-speed="2">
+            2×
+          </button>
+
+          <button type="button" data-speed="4">
+            4×
+          </button>
+
+          <button type="button" data-speed="8">
+            8×
+          </button>
+
+        </div>
+
+      </div>
+
+
       <div class="time-display">
+
         <span id="currentTime">00:00</span>
+
         <span>/</span>
+
         <span id="duration">00:00</span>
+
       </div>
 
     </section>
 
+
+    <!-- =========================
+         スコア
+    ========================== -->
 
     <section class="score-card">
 
       <div class="score-team">
-        <div id="homeScoreTeam">箕谷A</div>
-        <strong id="homeScore">0</strong>
+
+        <div id="homeScoreTeam">
+          箕谷A
+        </div>
+
+        <strong id="homeScore">
+          0
+        </strong>
+
       </div>
 
-      <div class="score-vs">-</div>
+
+      <div class="score-vs">
+        -
+      </div>
+
 
       <div class="score-team">
-        <div id="awayScoreTeam">相手</div>
-        <strong id="awayScore">0</strong>
+
+        <div id="awayScoreTeam">
+          相手
+        </div>
+
+        <strong id="awayScore">
+          0
+        </strong>
+
       </div>
 
     </section>
 
+
+    <!-- =========================
+         試合開始・終了
+    ========================== -->
+
+    <section class="match-event-buttons">
+
+      <button
+        id="firstHalfBtn"
+        class="match-event-button start-button"
+        type="button"
+      >
+        <span>▶</span>
+        <strong>前半開始</strong>
+      </button>
+
+
+      <button
+        id="secondHalfBtn"
+        class="match-event-button start-button"
+        type="button"
+      >
+        <span>▶</span>
+        <strong>後半開始</strong>
+      </button>
+
+
+      <button
+        id="fullTimeBtn"
+        class="match-event-button end-button"
+        type="button"
+      >
+        <span>■</span>
+        <strong>試合終了</strong>
+      </button>
+
+    </section>
+
+
+    <!-- =========================
+         GOAL
+    ========================== -->
 
     <section class="goal-buttons">
 
@@ -108,28 +259,46 @@
         class="goal-button home-goal"
         type="button"
       >
+
         <span>⚽</span>
+
         <strong>GOAL</strong>
-        <small id="homeGoalLabel">箕谷A</small>
+
+        <small id="homeGoalLabel">
+          箕谷A
+        </small>
+
       </button>
+
 
       <button
         id="awayGoalBtn"
         class="goal-button away-goal"
         type="button"
       >
+
         <span>⚽</span>
+
         <strong>GOAL</strong>
-        <small id="awayGoalLabel">相手</small>
+
+        <small id="awayGoalLabel">
+          相手
+        </small>
+
       </button>
 
     </section>
 
 
+    <!-- =========================
+         イベント一覧
+    ========================== -->
+
     <section class="card">
 
       <div class="section-title-row">
-        <h2>ゴール記録</h2>
+
+        <h2>試合記録</h2>
 
         <button
           id="resetBtn"
@@ -138,20 +307,29 @@
         >
           リセット
         </button>
+
       </div>
 
-      <div id="goalList" class="goal-list">
+
+      <div id="eventList" class="event-list">
+
         <p class="empty-message">
-          まだゴールは記録されていません。
+          まだ試合記録はありません。
         </p>
+
       </div>
 
     </section>
 
 
-    <section id="message" class="message" aria-live="polite"></section>
+    <section
+      id="message"
+      class="message"
+      aria-live="polite"
+    ></section>
 
   </main>
+
 
   <script src="main.js"></script>
 
