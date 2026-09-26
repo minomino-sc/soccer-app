@@ -1,9 +1,11 @@
 /* =========================================================
    ⚽ 試合動画エディター
-   第2段階
+   第3段階
 
-   ・動画読み込み
+   ・前半動画
+   ・後半動画
    ・動画時間表示
+   ・前半 / 後半切り替え
    ・再生 / 一時停止
    ・5秒戻る / 5秒進む
    ・再生速度変更
@@ -14,15 +16,40 @@
    ・イベント一覧
    ・イベント削除
    ・スコア自動更新
-   ========================================================= */
+========================================================= */
 
 
 /* =========================================================
    DOM
 ========================================================= */
 
-const videoFile =
-  document.getElementById("videoFile");
+const firstHalfFile =
+  document.getElementById("firstHalfFile");
+
+const secondHalfFile =
+  document.getElementById("secondHalfFile");
+
+const firstHalfFileName =
+  document.getElementById("firstHalfFileName");
+
+const secondHalfFileName =
+  document.getElementById("secondHalfFileName");
+
+const firstHalfDurationEl =
+  document.getElementById("firstHalfDuration");
+
+const secondHalfDurationEl =
+  document.getElementById("secondHalfDuration");
+
+const showFirstHalfBtn =
+  document.getElementById("showFirstHalfBtn");
+
+const showSecondHalfBtn =
+  document.getElementById("showSecondHalfBtn");
+
+const currentHalfLabel =
+  document.getElementById("currentHalfLabel");
+
 
 const video =
   document.getElementById("video");
@@ -107,32 +134,51 @@ const speedButtons =
 
 
 /* =========================================================
-   状態
+   動画状態
 ========================================================= */
 
-let sourceUrl = null;
+const videoData = {
+
+  1: {
+    file: null,
+    url: null,
+    duration: 0
+  },
+
+  2: {
+    file: null,
+    url: null,
+    duration: 0
+  }
+
+};
 
 
 /*
- * events
+ * 現在表示している動画
  *
- * type:
- *   firstHalf
- *   goal
- *   secondHalf
- *   fullTime
- *
- * team:
- *   home
- *   away
- *   null
+ * 1 = 前半
+ * 2 = 後半
  */
+
+let currentHalf = 1;
+
+
+/* =========================================================
+   試合記録
+========================================================= */
 
 let events = [];
 
-
 let homeScore = 0;
 let awayScore = 0;
+
+
+/* =========================================================
+   再生速度
+========================================================= */
+
+let playbackRate = 1;
 
 
 /* =========================================================
@@ -145,14 +191,11 @@ renderScore();
 
 renderEvents();
 
-
-/*
- * 初期速度
- */
-
 video.playbackRate = 1;
 
 setActiveSpeedButton(1);
+
+updateHalfButtons();
 
 
 /* =========================================================
@@ -194,65 +237,293 @@ function updateTeamNames() {
     away;
 
 
-  /*
-   * チーム名変更後も一覧を更新
-   */
-
   renderEvents();
 }
 
 
 /* =========================================================
-   動画読み込み
+   前半動画選択
 ========================================================= */
 
-videoFile.addEventListener(
+firstHalfFile.addEventListener(
   "change",
   () => {
 
     const file =
-      videoFile.files[0];
+      firstHalfFile.files[0];
 
     if (!file) {
       return;
     }
 
 
-    if (sourceUrl) {
-
-      URL.revokeObjectURL(
-        sourceUrl
-      );
-    }
+    setHalfVideo(
+      1,
+      file
+    );
 
 
-    sourceUrl =
-      URL.createObjectURL(file);
-
-
-    video.src =
-      sourceUrl;
-
-    video.load();
-
-
-    /*
-     * 動画を新しく選択した場合は
-     * 再生位置をリセット
-     */
-
-    currentTimeEl.textContent =
-      "00:00";
-
-    durationEl.textContent =
-      "00:00";
+    firstHalfFileName.textContent =
+      file.name;
 
 
     showMessage(
-      "動画を読み込みました。"
+      "前半動画を読み込みました。"
+    );
+
+
+    /*
+     * 前半を自動表示
+     */
+
+    showHalf(
+      1,
+      0,
+      false
     );
   }
 );
+
+
+/* =========================================================
+   後半動画選択
+========================================================= */
+
+secondHalfFile.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      secondHalfFile.files[0];
+
+    if (!file) {
+      return;
+    }
+
+
+    setHalfVideo(
+      2,
+      file
+    );
+
+
+    secondHalfFileName.textContent =
+      file.name;
+
+
+    showMessage(
+      "後半動画を読み込みました。"
+    );
+
+
+    /*
+     * 前半がまだ選択されていない場合だけ
+     * 後半を表示
+     */
+
+    if (!videoData[1].url) {
+
+      showHalf(
+        2,
+        0,
+        false
+      );
+    }
+  }
+);
+
+
+/* =========================================================
+   動画セット
+========================================================= */
+
+function setHalfVideo(
+  half,
+  file
+) {
+
+  /*
+   * 古いURLを破棄
+   */
+
+  if (
+    videoData[half].url
+  ) {
+
+    URL.revokeObjectURL(
+      videoData[half].url
+    );
+  }
+
+
+  videoData[half].file =
+    file;
+
+  videoData[half].url =
+    URL.createObjectURL(file);
+
+  videoData[half].duration =
+    0;
+
+
+  if (half === 1) {
+
+    firstHalfDurationEl.textContent =
+      "";
+
+  } else {
+
+    secondHalfDurationEl.textContent =
+      "";
+  }
+}
+
+
+/* =========================================================
+   前半 / 後半表示切り替え
+========================================================= */
+
+showFirstHalfBtn.addEventListener(
+  "click",
+  () => {
+
+    showHalf(
+      1,
+      0,
+      false
+    );
+  }
+);
+
+
+showSecondHalfBtn.addEventListener(
+  "click",
+  () => {
+
+    showHalf(
+      2,
+      0,
+      false
+    );
+  }
+);
+
+
+/* =========================================================
+   動画を表示
+========================================================= */
+
+function showHalf(
+  half,
+  time = 0,
+  autoplay = false
+) {
+
+  if (
+    !videoData[half].url
+  ) {
+
+    showMessage(
+      half === 1
+        ? "先に前半動画を選択してください。"
+        : "先に後半動画を選択してください。"
+    );
+
+    return;
+  }
+
+
+  currentHalf =
+    half;
+
+
+  updateHalfButtons();
+
+
+  video.pause();
+
+
+  video.src =
+    videoData[half].url;
+
+  video.load();
+
+
+  /*
+   * loadedmetadata後に
+   * 指定位置へ移動
+   */
+
+  const handleMetadata =
+    () => {
+
+      videoData[half].duration =
+        video.duration;
+
+
+      updateHalfDuration(
+        half
+      );
+
+
+      video.currentTime =
+        Math.min(
+          Math.max(
+            0,
+            time
+          ),
+          video.duration || 0
+        );
+
+
+      video.playbackRate =
+        playbackRate;
+
+
+      updateTimeDisplay();
+
+
+      if (autoplay) {
+
+        video.play().catch(
+          () => {}
+        );
+      }
+    };
+
+
+  video.addEventListener(
+    "loadedmetadata",
+    handleMetadata,
+    {
+      once: true
+    }
+  );
+}
+
+
+/* =========================================================
+   前半 / 後半ボタン表示
+========================================================= */
+
+function updateHalfButtons() {
+
+  showFirstHalfBtn.classList.toggle(
+    "active",
+    currentHalf === 1
+  );
+
+  showSecondHalfBtn.classList.toggle(
+    "active",
+    currentHalf === 2
+  );
+
+
+  currentHalfLabel.textContent =
+    currentHalf === 1
+      ? "前半"
+      : "後半";
+}
 
 
 /* =========================================================
@@ -263,17 +534,58 @@ video.addEventListener(
   "loadedmetadata",
   () => {
 
-    durationEl.textContent =
-      formatTime(video.duration);
+    if (
+      Number.isFinite(
+        video.duration
+      )
+    ) {
 
-    currentTimeEl.textContent =
-      "00:00";
+      videoData[currentHalf].duration =
+        video.duration;
 
-    showMessage(
-      "動画の準備ができました。"
-    );
+      updateHalfDuration(
+        currentHalf
+      );
+    }
+
+
+    updateTimeDisplay();
   }
 );
+
+
+/* =========================================================
+   前半 / 後半の動画時間表示
+========================================================= */
+
+function updateHalfDuration(
+  half
+) {
+
+  const duration =
+    videoData[half].duration;
+
+
+  if (!Number.isFinite(duration)) {
+    return;
+  }
+
+
+  const text =
+    `(${formatTime(duration)})`;
+
+
+  if (half === 1) {
+
+    firstHalfDurationEl.textContent =
+      text;
+
+  } else {
+
+    secondHalfDurationEl.textContent =
+      text;
+  }
+}
 
 
 /* =========================================================
@@ -284,12 +596,24 @@ video.addEventListener(
   "timeupdate",
   () => {
 
-    currentTimeEl.textContent =
-      formatTime(
-        video.currentTime
-      );
+    updateTimeDisplay();
   }
 );
+
+
+function updateTimeDisplay() {
+
+  currentTimeEl.textContent =
+    formatTime(
+      video.currentTime
+    );
+
+
+  durationEl.textContent =
+    formatTime(
+      video.duration
+    );
+}
 
 
 /* =========================================================
@@ -322,10 +646,14 @@ video.addEventListener(
 
 function togglePlay() {
 
-  if (!video.src) {
+  if (
+    !videoData[currentHalf].url
+  ) {
 
     showMessage(
-      "先に試合動画を選択してください。"
+      currentHalf === 1
+        ? "先に前半動画を選択してください。"
+        : "先に後半動画を選択してください。"
     );
 
     return;
@@ -334,7 +662,9 @@ function togglePlay() {
 
   if (video.paused) {
 
-    video.play().catch(() => {});
+    video.play().catch(
+      () => {}
+    );
 
   } else {
 
@@ -366,10 +696,12 @@ back5Btn.addEventListener(
   "click",
   () => {
 
-    if (!video.src) {
+    if (
+      !videoData[currentHalf].url
+    ) {
 
       showMessage(
-        "先に試合動画を選択してください。"
+        "先に動画を選択してください。"
       );
 
       return;
@@ -393,10 +725,12 @@ forward5Btn.addEventListener(
   "click",
   () => {
 
-    if (!video.src) {
+    if (
+      !videoData[currentHalf].url
+    ) {
 
       showMessage(
-        "先に試合動画を選択してください。"
+        "先に動画を選択してください。"
       );
 
       return;
@@ -404,7 +738,9 @@ forward5Btn.addEventListener(
 
 
     const duration =
-      Number.isFinite(video.duration)
+      Number.isFinite(
+        video.duration
+      )
         ? video.duration
         : video.currentTime + 5;
 
@@ -435,9 +771,16 @@ speedButtons.forEach(
           );
 
 
-        if (!Number.isFinite(speed)) {
+        if (
+          !Number.isFinite(speed)
+        ) {
+
           return;
         }
+
+
+        playbackRate =
+          speed;
 
 
         video.playbackRate =
@@ -553,10 +896,14 @@ awayGoalBtn.addEventListener(
 
 function getCurrentVideoTime() {
 
-  if (!video.src) {
+  if (
+    !videoData[currentHalf].url
+  ) {
 
     showMessage(
-      "先に試合動画を選択してください。"
+      currentHalf === 1
+        ? "先に前半動画を選択してください。"
+        : "先に後半動画を選択してください。"
     );
 
     return null;
@@ -567,7 +914,9 @@ function getCurrentVideoTime() {
     video.currentTime;
 
 
-  if (!Number.isFinite(time)) {
+  if (
+    !Number.isFinite(time)
+  ) {
 
     showMessage(
       "動画の時間を取得できませんでした。"
@@ -599,23 +948,16 @@ function recordMatchEvent(
 
 
   /*
-   * 同じイベントの二重登録を防止
-   *
-   * 前半開始 → 1回
-   * 後半開始 → 1回
-   * 試合終了 → 1回
+   * イベントと動画の対応をチェック
    */
 
   if (
     type === "firstHalf" &&
-    events.some(
-      event =>
-        event.type === "firstHalf"
-    )
+    currentHalf !== 1
   ) {
 
     showMessage(
-      "前半開始はすでに記録されています。"
+      "前半開始は前半動画で記録してください。"
     );
 
     return;
@@ -623,31 +965,17 @@ function recordMatchEvent(
 
 
   if (
-    type === "secondHalf" &&
-    events.some(
-      event =>
-        event.type === "secondHalf"
-    )
+    (
+      type === "secondHalf" ||
+      type === "fullTime"
+    ) &&
+    currentHalf !== 2
   ) {
 
     showMessage(
-      "後半開始はすでに記録されています。"
-    );
-
-    return;
-  }
-
-
-  if (
-    type === "fullTime" &&
-    events.some(
-      event =>
-        event.type === "fullTime"
-    )
-  ) {
-
-    showMessage(
-      "試合終了はすでに記録されています。"
+      type === "secondHalf"
+        ? "後半開始は後半動画で記録してください。"
+        : "試合終了は後半動画で記録してください。"
     );
 
     return;
@@ -655,8 +983,23 @@ function recordMatchEvent(
 
 
   /*
-   * イベント追加
+   * 二重登録防止
    */
+
+  if (
+    events.some(
+      event =>
+        event.type === type
+    )
+  ) {
+
+    showMessage(
+      `${getEventLabel(type)}はすでに記録されています。`
+    );
+
+    return;
+  }
+
 
   events.push({
 
@@ -666,6 +1009,8 @@ function recordMatchEvent(
 
     team: null,
 
+    half: currentHalf,
+
     time,
 
     homeScore,
@@ -674,12 +1019,7 @@ function recordMatchEvent(
   });
 
 
-  /*
-   * 時刻順に並べる
-   */
-
   sortEvents();
-
 
   renderEvents();
 
@@ -733,6 +1073,8 @@ function recordGoal(
 
     team,
 
+    half: currentHalf,
+
     time,
 
     homeScore,
@@ -761,6 +1103,33 @@ function recordGoal(
 
 
 /* =========================================================
+   1本の試合としての時間
+========================================================= */
+
+function getGlobalTime(
+  event
+) {
+
+  if (
+    event.half === 1
+  ) {
+
+    return event.time;
+  }
+
+
+  /*
+   * 後半は前半動画の長さを加算
+   */
+
+  return (
+    videoData[1].duration +
+    event.time
+  );
+}
+
+
+/* =========================================================
    イベント並び替え
 ========================================================= */
 
@@ -768,7 +1137,8 @@ function sortEvents() {
 
   events.sort(
     (a, b) =>
-      a.time - b.time
+      getGlobalTime(a) -
+      getGlobalTime(b)
   );
 }
 
@@ -809,15 +1179,11 @@ function renderEvents() {
   }
 
 
-  /*
-   * 時刻順
-   */
-
   sortEvents();
 
 
   events.forEach(
-    (event, index) => {
+    event => {
 
       const item =
         document.createElement(
@@ -841,7 +1207,7 @@ function renderEvents() {
         "event-time";
 
       time.textContent =
-        formatTime(event.time);
+        `${event.half === 1 ? "前半" : "後半"} ${formatTime(event.time)}`;
 
 
       /*
@@ -875,12 +1241,12 @@ function renderEvents() {
 
 
       /*
-       * スコア
-       *
-       * GOALだけスコア表示
+       * GOALスコア
        */
 
-      if (event.type === "goal") {
+      if (
+        event.type === "goal"
+      ) {
 
         const score =
           document.createElement(
@@ -932,11 +1298,10 @@ function renderEvents() {
         "click",
         () => {
 
-          video.currentTime =
-            event.time;
-
-          video.play().catch(
-            () => {}
+          showHalf(
+            event.half,
+            event.time,
+            true
           );
         }
       );
@@ -1037,13 +1402,7 @@ function deleteEvent(
   );
 
 
-  /*
-   * GOALを削除した場合は
-   * 時系列でスコアを再計算する
-   */
-
   recalculateScores();
-
 
   renderScore();
 
@@ -1062,17 +1421,9 @@ function deleteEvent(
 
 function recalculateScores() {
 
-  /*
-   * 一度0に戻す
-   */
-
   homeScore = 0;
   awayScore = 0;
 
-
-  /*
-   * 時系列順にGOALを確認
-   */
 
   sortEvents();
 
@@ -1098,50 +1449,19 @@ function recalculateScores() {
         }
 
 
-        /*
-         * そのGOAL時点の
-         * スコアを保存
-         */
+        event.homeScore =
+          homeScore;
+
+        event.awayScore =
+          awayScore;
+
+      } else {
 
         event.homeScore =
           homeScore;
 
         event.awayScore =
           awayScore;
-      }
-    }
-  );
-
-
-  /*
-   * 前半開始・後半開始・試合終了にも
-   * その時点のスコアを保存
-   */
-
-  let currentHome = 0;
-  let currentAway = 0;
-
-
-  events.forEach(
-    event => {
-
-      if (
-        event.type === "goal"
-      ) {
-
-        currentHome =
-          event.homeScore;
-
-        currentAway =
-          event.awayScore;
-
-      } else {
-
-        event.homeScore =
-          currentHome;
-
-        event.awayScore =
-          currentAway;
       }
     }
   );
