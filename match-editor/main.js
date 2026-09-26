@@ -2162,24 +2162,62 @@ async function exportMatchVideo() {
 
 /*
  * =====================================================
- * 完成
+ * 完成動画保存準備
  * =====================================================
  */
 
-exportProgress.textContent =
-  "✅ 試合動画の結合が完了しました。";
+/*
+ * 動画プレイヤーから入力動画の参照を外す
+ *
+ * FFmpegの結合自体はすでに完了しているため、
+ * ここでは前半・後半動画を再生する必要がない。
+ */
+
+video.pause();
+
+video.removeAttribute("src");
+video.load();
 
 
 /*
- * =====================================================
- * 保存ボタンを表示
- * =====================================================
+ * Object URLを解放
  */
 
-showMessage(
-  "完成しました。「完成動画を保存」ボタンを押してください。"
-);
+if (videoData[1].url) {
 
+  URL.revokeObjectURL(
+    videoData[1].url
+  );
+
+  videoData[1].url = null;
+}
+
+
+if (videoData[2].url) {
+
+  URL.revokeObjectURL(
+    videoData[2].url
+  );
+
+  videoData[2].url = null;
+}
+
+
+/*
+ * 入力Fileへの参照も解放
+ */
+
+videoData[1].file = null;
+videoData[2].file = null;
+
+
+/*
+ * 完成動画を保存用データとして取得
+ */
+
+await prepareCompletedVideo(
+  outputFileName
+);
 
 showSaveVideoButton(
   outputFileName
@@ -2323,7 +2361,6 @@ function showSaveVideoButton(
  *
  * =========================================================
  */
-
 async function prepareCompletedVideo(
   fileName
 ) {
@@ -2335,7 +2372,7 @@ async function prepareCompletedVideo(
 
 
     /*
-     * FFmpegから完成動画を取得
+     * 完成動画をFFmpegから取得
      */
 
     const data =
@@ -2372,8 +2409,6 @@ async function prepareCompletedVideo(
 
     /*
      * FFmpeg側の完成動画を削除
-     *
-     * ブラウザ側のFileは残る
      */
 
     try {
@@ -2392,12 +2427,21 @@ async function prepareCompletedVideo(
     }
 
 
+    /*
+     * 完了
+     */
+
     exportProgress.textContent =
       "✅ 完成動画の保存準備が完了しました。";
 
 
     showMessage(
       "完成しました。「完成動画を保存」ボタンを押してください。"
+    );
+
+
+    showSaveVideoButton(
+      fileName
     );
 
 
@@ -2431,6 +2475,7 @@ async function prepareCompletedVideo(
   }
 
 }
+
 
 
 /*
