@@ -4,6 +4,7 @@
 
 body {
   margin: 0;
+
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -20,11 +21,20 @@ input {
   font: inherit;
 }
 
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .app {
   width: min(100%, 720px);
   margin: 0 auto;
   padding: 16px;
 }
+
+
+/* =========================
+   ヘッダー
+========================= */
 
 .header {
   text-align: center;
@@ -43,12 +53,19 @@ input {
   font-size: 14px;
 }
 
+
+/* =========================
+   カード
+========================= */
+
 .card {
-  background: #ffffff;
+  background: #fff;
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 14px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
 .card h2 {
@@ -71,6 +88,7 @@ input {
 .team-box label {
   display: block;
   margin-bottom: 6px;
+
   font-size: 12px;
   color: #6b7280;
 }
@@ -79,10 +97,14 @@ input {
   width: 100%;
   min-width: 0;
   height: 46px;
+
   border: 1px solid #d1d5db;
   border-radius: 10px;
+
   padding: 0 10px;
+
   background: #fff;
+
   text-align: center;
   font-weight: 700;
 }
@@ -90,26 +112,32 @@ input {
 .vs {
   text-align: center;
   padding-bottom: 13px;
+
   font-weight: 800;
   color: #6b7280;
 }
 
 
 /* =========================
-   動画
+   動画選択
 ========================= */
 
 .video-select {
   display: flex;
   align-items: center;
   justify-content: center;
+
   min-height: 52px;
+
   border: 2px dashed #cbd5e1;
   border-radius: 12px;
+
   cursor: pointer;
   text-align: center;
+
   color: #374151;
   font-weight: 700;
+
   margin-bottom: 14px;
 }
 
@@ -117,27 +145,139 @@ input {
   display: none;
 }
 
+
+/* =========================
+   動画
+========================= */
+
 .video-wrapper {
   width: 100%;
+
   background: #000;
+
   border-radius: 12px;
   overflow: hidden;
 }
 
 .video-wrapper video {
   display: block;
+
   width: 100%;
   max-height: 55vh;
+
   background: #000;
 }
+
+
+/* =========================
+   動画操作
+========================= */
+
+.video-controls {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr;
+
+  gap: 8px;
+
+  margin-top: 10px;
+}
+
+.video-controls button {
+  min-height: 44px;
+
+  border: 0;
+  border-radius: 10px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.seek-control {
+  background: #eef2f7;
+  color: #374151;
+}
+
+.play-control {
+  background: #111827;
+  color: #fff;
+}
+
+.video-controls button:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================
+   再生速度
+========================= */
+
+.speed-section {
+  margin-top: 12px;
+}
+
+.speed-title {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #6b7280;
+}
+
+.speed-buttons {
+  display: grid;
+
+  grid-template-columns:
+    repeat(6, 1fr);
+
+  gap: 6px;
+}
+
+.speed-buttons button {
+  min-height: 38px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+
+  background: #fff;
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.speed-buttons button.active {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+.speed-buttons button:active {
+  transform: scale(0.96);
+}
+
+
+/* =========================
+   時間
+========================= */
 
 .time-display {
   display: flex;
   justify-content: center;
+
   gap: 6px;
+
   padding-top: 9px;
+
   color: #6b7280;
+
   font-size: 14px;
+
   font-variant-numeric: tabular-nums;
 }
 
@@ -148,14 +288,19 @@ input {
 
 .score-card {
   display: grid;
-  grid-template-columns: 1fr 45px 1fr;
+
+  grid-template-columns:
+    1fr 45px 1fr;
+
   align-items: center;
 
   background: #111827;
   color: #fff;
 
   border-radius: 18px;
+
   padding: 18px 12px;
+
   margin-bottom: 14px;
 
   text-align: center;
@@ -164,6 +309,7 @@ input {
 .score-team div {
   font-size: 14px;
   font-weight: 700;
+
   opacity: 0.9;
 
   white-space: nowrap;
@@ -173,39 +319,109 @@ input {
 
 .score-team strong {
   display: block;
+
   margin-top: 2px;
+
   font-size: 48px;
   line-height: 1;
+
   font-variant-numeric: tabular-nums;
 }
 
 .score-vs {
   font-size: 20px;
   font-weight: 800;
+
   opacity: 0.6;
 }
 
 
 /* =========================
-   GOALボタン
+   前半・後半・試合終了
+========================= */
+
+.match-event-buttons {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 8px;
+
+  margin-bottom: 12px;
+}
+
+.match-event-button {
+  min-height: 74px;
+
+  border: 0;
+  border-radius: 14px;
+
+  color: #fff;
+
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.10);
+}
+
+.match-event-button span {
+  font-size: 20px;
+}
+
+.match-event-button strong {
+  font-size: 15px;
+}
+
+.start-button {
+  background: #059669;
+}
+
+.end-button {
+  background: #374151;
+}
+
+.match-event-button:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================
+   GOAL
 ========================= */
 
 .goal-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+
+  grid-template-columns:
+    1fr 1fr;
+
   gap: 12px;
+
   margin-bottom: 14px;
 }
 
 .goal-button {
   min-height: 110px;
+
   border: 0;
   border-radius: 18px;
+
   color: #fff;
+
   cursor: pointer;
 
   display: flex;
   flex-direction: column;
+
   justify-content: center;
   align-items: center;
 
@@ -213,8 +429,6 @@ input {
 
   box-shadow:
     0 5px 12px rgba(0, 0, 0, 0.12);
-
-  -webkit-tap-highlight-color: transparent;
 }
 
 .goal-button span {
@@ -228,8 +442,11 @@ input {
 
 .goal-button small {
   font-size: 14px;
+
   opacity: 0.9;
+
   max-width: 90%;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -249,13 +466,15 @@ input {
 
 
 /* =========================
-   ゴール一覧
+   記録一覧
 ========================= */
 
 .section-title-row {
   display: flex;
+
   justify-content: space-between;
   align-items: center;
+
   gap: 10px;
 }
 
@@ -265,81 +484,110 @@ input {
 
 .reset-button {
   border: 1px solid #d1d5db;
+
   background: #fff;
   color: #374151;
 
   border-radius: 8px;
+
   padding: 7px 11px;
 
   font-size: 13px;
   font-weight: 700;
+
+  cursor: pointer;
 }
 
-.goal-list {
+.event-list {
   margin-top: 12px;
 }
 
 .empty-message {
   margin: 0;
+
   padding: 18px 8px;
+
   text-align: center;
+
   color: #9ca3af;
+
   font-size: 14px;
 }
 
-.goal-item {
+
+/* =========================
+   イベント
+========================= */
+
+.event-item {
   display: grid;
-  grid-template-columns: 62px 1fr auto;
+
+  grid-template-columns:
+    58px 1fr auto;
+
   align-items: center;
-  gap: 10px;
+
+  gap: 9px;
 
   padding: 12px 4px;
 
   border-top: 1px solid #e5e7eb;
 }
 
-.goal-time {
-  font-size: 15px;
+.event-time {
+  font-size: 14px;
   font-weight: 800;
+
   font-variant-numeric: tabular-nums;
 }
 
-.goal-info {
+.event-info {
   min-width: 0;
 }
 
-.goal-info strong {
+.event-info strong {
   display: block;
-  font-size: 15px;
+
+  font-size: 14px;
 }
 
-.goal-score {
+.event-score {
   display: block;
+
   margin-top: 2px;
+
   color: #6b7280;
+
   font-size: 13px;
 }
 
-.seek-button {
+.event-seek-button {
   border: 0;
+
   background: #eef2ff;
   color: #3730a3;
 
   border-radius: 8px;
-  padding: 8px 10px;
+
+  padding: 8px 9px;
 
   font-size: 12px;
   font-weight: 700;
+
+  cursor: pointer;
 }
 
-.delete-button {
+.event-delete-button {
   border: 0;
+
   background: transparent;
   color: #9ca3af;
 
   padding: 8px 4px;
 
   font-size: 18px;
+
+  cursor: pointer;
 }
 
 
@@ -349,10 +597,14 @@ input {
 
 .message {
   min-height: 22px;
+
   text-align: center;
+
   color: #2563eb;
+
   font-size: 14px;
   font-weight: 700;
+
   padding: 4px 0 20px;
 }
 
@@ -379,6 +631,19 @@ input {
     font-size: 42px;
   }
 
+  .speed-buttons {
+    grid-template-columns:
+      repeat(3, 1fr);
+  }
+
+  .match-event-button {
+    min-height: 70px;
+  }
+
+  .match-event-button strong {
+    font-size: 14px;
+  }
+
   .goal-button {
     min-height: 105px;
   }
@@ -387,7 +652,8 @@ input {
     font-size: 22px;
   }
 
-  .goal-item {
-    grid-template-columns: 58px 1fr auto;
+  .event-item {
+    grid-template-columns:
+      55px 1fr auto;
   }
 }
