@@ -1748,7 +1748,6 @@ async function loadFFmpeg() {
         "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm"
       );
 
-
     const utilModule =
       await import(
         "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/+esm"
@@ -1763,6 +1762,7 @@ async function loadFFmpeg() {
 
 
     if (!FFmpeg || !toBlobURL) {
+
       throw new Error(
         "FFmpegライブラリを読み込めませんでした。"
       );
@@ -1770,7 +1770,7 @@ async function loadFFmpeg() {
 
 
     /* -----------------------------------------
-       ② FFmpegインスタンス作成
+       ② FFmpegインスタンス
     ----------------------------------------- */
 
     exportProgress.textContent =
@@ -1781,7 +1781,24 @@ async function loadFFmpeg() {
 
 
     /* -----------------------------------------
-       ③ core読み込み
+       FFmpegログ
+    ----------------------------------------- */
+
+    ffmpeg.on(
+      "log",
+      ({ message }) => {
+
+        console.log(
+          "FFmpeg:",
+          message
+        );
+
+      }
+    );
+
+
+    /* -----------------------------------------
+       ③ FFmpeg core
     ----------------------------------------- */
 
     const baseURL =
@@ -1799,6 +1816,10 @@ async function loadFFmpeg() {
       );
 
 
+    /* -----------------------------------------
+       ④ WASM
+    ----------------------------------------- */
+
     exportProgress.textContent =
       "④ FFmpeg WASMを読み込んでいます…";
 
@@ -1811,16 +1832,34 @@ async function loadFFmpeg() {
 
 
     /* -----------------------------------------
-       ⑤ FFmpeg起動
+       ⑤ Worker
     ----------------------------------------- */
 
     exportProgress.textContent =
-      "⑤ FFmpegエンジンを起動しています…";
+      "⑤ FFmpeg Workerを準備しています…";
+
+
+    const classWorkerURL =
+      await toBlobURL(
+        `${baseURL}/814.ffmpeg.js`,
+        "text/javascript"
+      );
+
+
+    /* -----------------------------------------
+       ⑥ FFmpeg起動
+    ----------------------------------------- */
+
+    exportProgress.textContent =
+      "⑥ FFmpegエンジンを起動しています…";
 
 
     await ffmpeg.load({
+
       coreURL,
-      wasmURL
+      wasmURL,
+      classWorkerURL
+
     });
 
 
