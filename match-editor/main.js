@@ -1727,7 +1727,6 @@ let exportBusy = false;
 /* =========================================================
    FFmpeg読み込み
 ========================================================= */
-
 async function loadFFmpeg() {
 
   if (ffmpegLoaded) {
@@ -1739,49 +1738,114 @@ async function loadFFmpeg() {
     exportProgress.textContent =
       "① FFmpeg本体を読み込んでいます…";
 
+
+    /*
+     * =====================================================
+     * FFmpeg本体
+     * goal-highlightで実際に動作しているものと同じ
+     * =====================================================
+     */
+
     const ffmpegModule =
       await import(
-        "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm"
+        "https://esm.sh/@ffmpeg/ffmpeg@0.12.10"
       );
+
 
     const utilModule =
       await import(
-        "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/+esm"
+        "https://esm.sh/@ffmpeg/util@0.12.2"
       );
+
 
     const FFmpeg =
       ffmpegModule.FFmpeg;
 
+
     const toBlobURL =
       utilModule.toBlobURL;
 
-    if (!FFmpeg || !toBlobURL) {
+
+    if (
+      !FFmpeg ||
+      !toBlobURL
+    ) {
+
       throw new Error(
         "FFmpegライブラリを読み込めませんでした。"
       );
+
     }
+
+
+    /*
+     * =====================================================
+     * FFmpegインスタンス作成
+     * =====================================================
+     */
 
     exportProgress.textContent =
       "② FFmpegを起動しています…";
 
+
     ffmpeg =
       new FFmpeg();
+
+
+    /*
+     * ログ
+     */
 
     ffmpeg.on(
       "log",
       ({ message }) => {
+
         console.log(
           "FFmpeg:",
           message
         );
+
       }
     );
 
+
+    /*
+     * =====================================================
+     * FFmpeg core
+     * goal-highlightと同じESM版
+     * =====================================================
+     */
+
     const baseURL =
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
+      "https://cdn.jsdelivr.net/npm/" +
+      "@ffmpeg/core@0.12.10/dist/esm";
+
+
+    /*
+     * =====================================================
+     * Worker
+     *
+     * match-editor/ffmpeg-worker.js
+     * を使用する
+     * =====================================================
+     */
+
+    const classWorkerURL =
+      new URL(
+        "./ffmpeg-worker.js",
+        import.meta.url
+      ).href;
+
+
+    /*
+     * =====================================================
+     * core.js
+     * =====================================================
+     */
 
     exportProgress.textContent =
       "③ FFmpeg coreを読み込んでいます…";
+
 
     const coreURL =
       await toBlobURL(
@@ -1789,8 +1853,16 @@ async function loadFFmpeg() {
         "text/javascript"
       );
 
+
+    /*
+     * =====================================================
+     * WASM
+     * =====================================================
+     */
+
     exportProgress.textContent =
       "④ FFmpeg WASMを読み込んでいます…";
+
 
     const wasmURL =
       await toBlobURL(
@@ -1798,19 +1870,40 @@ async function loadFFmpeg() {
         "application/wasm"
       );
 
+
+    /*
+     * =====================================================
+     * FFmpeg起動
+     * =====================================================
+     */
+
     exportProgress.textContent =
       "⑤ FFmpegエンジンを起動しています…";
 
+
     await ffmpeg.load({
+
       coreURL,
-      wasmURL
+
+      wasmURL,
+
+      classWorkerURL
+
     });
 
-    ffmpegLoaded =
-      true;
+
+    /*
+     * =====================================================
+     * 完了
+     * =====================================================
+     */
+
+    ffmpegLoaded = true;
+
 
     exportProgress.textContent =
       "✅ 動画処理エンジンの準備が完了しました。";
+
 
   } catch (error) {
 
@@ -1819,11 +1912,11 @@ async function loadFFmpeg() {
       error
     );
 
-    ffmpeg =
-      null;
 
-    ffmpegLoaded =
-      false;
+    ffmpeg = null;
+
+    ffmpegLoaded = false;
+
 
     const errorMessage =
       error &&
@@ -1831,16 +1924,22 @@ async function loadFFmpeg() {
         ? error.message
         : String(error);
 
+
     exportProgress.textContent =
       "❌ FFmpegの読み込みに失敗しました。";
+
 
     showMessage(
       `FFmpeg読み込みエラー：${errorMessage}`
     );
 
+
     throw error;
+
   }
+
 }
+
 
 
 /* =========================================================
