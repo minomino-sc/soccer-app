@@ -122,6 +122,12 @@ button {
    動画選択
 ========================= */
 
+.half-video-selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .video-select {
   display: flex;
   align-items: center;
@@ -138,11 +144,91 @@ button {
   color: #374151;
   font-weight: 700;
 
-  margin-bottom: 14px;
+  margin-bottom: 0;
 }
 
 .video-select input {
   display: none;
+}
+
+.video-file-status {
+  margin-top: 9px;
+  margin-bottom: 12px;
+
+  padding: 9px 10px;
+
+  background: #f8fafc;
+  border-radius: 9px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.video-file-status div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.video-file-status strong {
+  color: #374151;
+}
+
+.half-duration {
+  margin-left: 5px;
+  color: #111827;
+  font-weight: 700;
+}
+
+
+/* =========================
+   前半・後半切り替え
+========================= */
+
+.half-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 6px;
+
+  margin-bottom: 7px;
+}
+
+.half-switch-button {
+  min-height: 40px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+
+  background: #fff;
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.half-switch-button.active {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+.current-half-label {
+  text-align: center;
+
+  margin-bottom: 8px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+.current-half-label strong {
+  color: #111827;
 }
 
 
@@ -625,6 +711,16 @@ button {
 
   .card {
     padding: 14px;
+  }
+
+  .half-video-selects {
+    gap: 6px;
+  }
+
+  .video-select {
+    min-height: 50px;
+    font-size: 13px;
+    padding: 0 4px;
   }
 
   .score-team strong {
