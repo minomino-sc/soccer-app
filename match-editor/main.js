@@ -2007,24 +2007,26 @@ async function exportMatchVideo() {
   }
 
 
-  exportBusy =
-    true;
+  exportBusy = true;
 
-  exportBtn.disabled =
-    true;
+  exportBtn.disabled = true;
 
 
   try {
 
     /*
+     * =====================================================
      * FFmpeg準備
+     * =====================================================
      */
 
     await loadFFmpeg();
 
 
     /*
+     * =====================================================
      * ファイル名
+     * =====================================================
      */
 
     const firstFileName =
@@ -2033,15 +2035,15 @@ async function exportMatchVideo() {
     const secondFileName =
       videoData[2].file.name;
 
+
     const outputFileName =
-      "match_result.mp4";
+      createOutputFileName();
 
 
     /*
-     * WORKERFSで動画を直接マウント
-     *
-     * iPhoneのメモリに
-     * 動画全体をコピーしない
+     * =====================================================
+     * 前半・後半動画をFFmpegへマウント
+     * =====================================================
      */
 
     exportProgress.textContent =
@@ -2057,7 +2059,7 @@ async function exportMatchVideo() {
     } catch (error) {
 
       /*
-       * 既に存在する場合は無視
+       * すでに存在する場合は無視
        */
 
     }
@@ -2076,9 +2078,9 @@ async function exportMatchVideo() {
 
 
     /*
+     * =====================================================
      * concat用リスト
-     *
-     * WORKERFS上の実ファイルを指定
+     * =====================================================
      */
 
     const concatText =
@@ -2094,71 +2096,446 @@ async function exportMatchVideo() {
     );
 
 
+    /*
+     * =====================================================
+     * 結合
+     * =====================================================
+     */
+
     exportProgress.textContent =
       "前半と後半を結合しています…";
 
 
+    await ffmpeg.exec([
+      "-f",
+      "concat",
+      "-safe",
+      "0",
+      "-i",
+      "input.txt",
+      "-c",
+      "copy",
+      outputFileName
+    ]);
+
+
     /*
-     * FFmpeg実行
+     * =====================================================
+     * 一時ファイル整理
+     * =====================================================
      */
 
-await ffmpeg.exec([
-  "-f",
-  "concat",
-  "-safe",
-  "0",
-  "-i",
-  "input.txt",
-  "-c",
-  "copy",
-  outputFileName
-]);
+    exportProgress.textContent =
+      "完成動画を準備しています…";
 
-/* =========================================================
-   FFmpeg内のメモリを解放
-========================================================= */
 
-exportProgress.textContent =
-  "動画処理のメモリを解放しています…";
+    try {
 
-/* 完成動画以外の一時ファイルを削除 */
-try {
-  await ffmpeg.deleteFile(
-    "input.txt"
-  );
-} catch (error) {
-  console.warn(
-    "input.txt削除失敗:",
-    error
-  );
-}
+      await ffmpeg.deleteFile(
+        "input.txt"
+      );
 
-/* 前半・後半のWORKERFSを解除 */
-try {
-  await ffmpeg.unmount(
-    "/input"
-  );
-} catch (error) {
-  console.warn(
-    "WORKERFS解除失敗:",
-    error
-  );
-}
+    } catch (error) {
 
-exportProgress.textContent =
-  "✅ FFmpegによる結合が完了しました。";     
+      console.warn(
+        "input.txt削除失敗:",
+        error
+      );
+
+    }
+
+
+    try {
+
+      await ffmpeg.unmount(
+        "/input"
+      );
+
+    } catch (error) {
+
+      console.warn(
+        "WORKERFS解除失敗:",
+        error
+      );
+
+    }
+
+
+    /*
+     * =====================================================
+     * 完成
+     * =====================================================
+     */
+
+    exportProgress.textContent =
+      "✅ 試合動画の結合が完了しました。";
+
+
+    /*
+     * =====================================================
+     * 保存ボタンを表示
+     * =====================================================
+     */
+
+    showMessage(
+      "完成しました。「完成動画を保存」ボタンを押してください。"
+    );
+
+
+    showSaveVideoButton(
+      outputFileName
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "動画書き出しエラー:",
+      error
+    );
+
+
+    const errorMessage =
+      error &&
+      error.message
+        ? error.message
+        : String(error);
+
+
+    exportProgress.textContent =
+      "❌ 動画の書き出しに失敗しました。";
+
+
+    showMessage(
+      `動画書き出しエラー：${errorMessage}`
+    );
+
 
   } finally {
 
-    exportBusy =
-      false;
+    exportBusy = false;
 
-    exportBtn.disabled =
-      false;
+    exportBtn.disabled = false;
+
   }
 
 }
-     
+
+
+
+
+
+
+
+
+/* =========================================================
+   完成動画保存
+========================================================= */
+
+let saveVideoBtn = null;
+
+let completedVideoFileName = null;
+
+
+/*
+ * 保存ボタン表示
+ */
+
+function showSaveVideoButton(
+  fileName
+) {
+
+  completedVideoFileName =
+    fileName;
+
+
+  /*
+   * すでに存在していれば削除
+   */
+
+  if (saveVideoBtn) {
+
+    saveVideoBtn.remove();
+
+    saveVideoBtn = null;
+  }
+
+
+  /*
+   * ボタン作成
+   */
+
+  saveVideoBtn =
+    document.createElement(
+      "button"
+    );
+
+
+  saveVideoBtn.type =
+    "button";
+
+
+  saveVideoBtn.textContent =
+    "📥 完成動画を保存";
+
+
+  saveVideoBtn.className =
+    "save-video-button";
+
+
+  /*
+   * 保存処理
+   */
+
+  saveVideoBtn.addEventListener(
+    "click",
+    saveCompletedVideo
+  );
+
+
+  /*
+   * 書き出しボタンの下へ表示
+   */
+
+  if (
+    exportBtn.parentElement
+  ) {
+
+    exportBtn.parentElement.appendChild(
+      saveVideoBtn
+    );
+
+  } else {
+
+    document.body.appendChild(
+      saveVideoBtn
+    );
+
+  }
+
+}
+
+
+/*
+ * 完成動画保存
+ */
+
+async function saveCompletedVideo() {
+
+  if (
+    !ffmpeg ||
+    !completedVideoFileName
+  ) {
+
+    showMessage(
+      "保存できる完成動画がありません。"
+    );
+
+    return;
+  }
+
+
+  try {
+
+    /*
+     * =====================================================
+     * FFmpegから完成動画を取得
+     * =====================================================
+     */
+
+    exportProgress.textContent =
+      "完成動画を保存用に準備しています…";
+
+
+    const data =
+      await ffmpeg.readFile(
+        completedVideoFileName
+      );
+
+
+    /*
+     * =====================================================
+     * Uint8Array確認
+     * =====================================================
+     */
+
+    if (
+      !data ||
+      !data.length
+    ) {
+
+      throw new Error(
+        "完成動画データを取得できませんでした。"
+      );
+
+    }
+
+
+    /*
+     * =====================================================
+     * File作成
+     * =====================================================
+     */
+
+    const videoFile =
+      new File(
+        [data],
+        completedVideoFileName,
+        {
+          type: "video/mp4"
+        }
+      );
+
+
+    /*
+     * =====================================================
+     * iPhone共有シート
+     * =====================================================
+     */
+
+    if (
+      navigator.share &&
+      navigator.canShare
+    ) {
+
+      const shareData = {
+
+        files: [
+          videoFile
+        ]
+
+      };
+
+
+      if (
+        navigator.canShare(
+          shareData
+        )
+      ) {
+
+        await navigator.share(
+          shareData
+        );
+
+
+        exportProgress.textContent =
+          "✅ 完成動画を共有しました。";
+
+
+        showMessage(
+          "iPhoneの共有メニューから保存先を選択してください。"
+        );
+
+
+        return;
+      }
+    }
+
+
+    /*
+     * =====================================================
+     * 共有APIが使えない場合
+     * ダウンロードへフォールバック
+     * =====================================================
+     */
+
+    const url =
+      URL.createObjectURL(
+        videoFile
+      );
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      url;
+
+
+    link.download =
+      completedVideoFileName;
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    setTimeout(
+      () => {
+
+        URL.revokeObjectURL(
+          url
+        );
+
+      },
+      10000
+    );
+
+
+    exportProgress.textContent =
+      "✅ 完成動画の保存を開始しました。";
+
+
+  } catch (error) {
+
+    console.error(
+      "完成動画保存エラー:",
+      error
+    );
+
+
+    /*
+     * ユーザーが共有画面を閉じた場合
+     */
+
+    if (
+      error &&
+      error.name ===
+        "AbortError"
+    ) {
+
+      exportProgress.textContent =
+        "完成動画は作成済みです。";
+
+
+      showMessage(
+        "保存をキャンセルしました。"
+      );
+
+
+      return;
+    }
+
+
+    const errorMessage =
+      error &&
+      error.message
+        ? error.message
+        : String(error);
+
+
+    exportProgress.textContent =
+      "❌ 完成動画の保存に失敗しました。";
+
+
+    showMessage(
+      `保存エラー：${errorMessage}`
+    );
+
+  }
+
+}
+
 /* =========================================================
    出力ファイル名
 ========================================================= */
