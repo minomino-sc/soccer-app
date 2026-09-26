@@ -2360,25 +2360,12 @@ function showSaveVideoButton(
 async function prepareCompletedVideo(fileName) {
   try {
     exportProgress.textContent =
-      "① 完成動画の読み込みを開始しています…";
-
-    console.log(
-      "① ffmpeg.readFile 開始:",
-      fileName
-    );
+      "完成動画を保存用に準備しています…";
 
     const data =
       await ffmpeg.readFile(
         fileName
       );
-
-    console.log(
-      "② ffmpeg.readFile 完了:",
-      data.length
-    );
-
-    exportProgress.textContent =
-      "② 完成動画の読み込みが完了しました。";
 
     if (
       !data ||
@@ -2389,9 +2376,6 @@ async function prepareCompletedVideo(fileName) {
       );
     }
 
-    exportProgress.textContent =
-      "③ 保存用ファイルを作成しています…";
-
     completedVideoFile =
       new File(
         [data],
@@ -2401,20 +2385,10 @@ async function prepareCompletedVideo(fileName) {
         }
       );
 
-    console.log(
-      "③ File作成完了:",
-      completedVideoFile.size
-    );
-
     try {
       await ffmpeg.deleteFile(
         fileName
       );
-
-      console.log(
-        "④ FFmpeg内の完成動画を削除しました。"
-      );
-
     } catch (error) {
       console.warn(
         "完成動画ファイル削除失敗:",
@@ -2432,9 +2406,7 @@ async function prepareCompletedVideo(fileName) {
     showSaveVideoButton(
       fileName
     );
-
   } catch (error) {
-
     console.error(
       "完成動画準備エラー:",
       error
