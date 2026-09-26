@@ -1,0 +1,393 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  background: #f2f4f7;
+  color: #111827;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.header {
+  text-align: center;
+  padding: 8px 0 18px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.header p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.card h2 {
+  margin: 0 0 14px;
+  font-size: 17px;
+}
+
+
+/* =========================
+   試合情報
+========================= */
+
+.team-inputs {
+  display: grid;
+  grid-template-columns: 1fr 44px 1fr;
+  align-items: end;
+  gap: 8px;
+}
+
+.team-box label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.team-box input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 10px;
+  background: #fff;
+  text-align: center;
+  font-weight: 700;
+}
+
+.vs {
+  text-align: center;
+  padding-bottom: 13px;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+
+/* =========================
+   動画
+========================= */
+
+.video-select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  color: #374151;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.video-select input {
+  display: none;
+}
+
+.video-wrapper {
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.video-wrapper video {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  background: #000;
+}
+
+.time-display {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 9px;
+  color: #6b7280;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================
+   スコア
+========================= */
+
+.score-card {
+  display: grid;
+  grid-template-columns: 1fr 45px 1fr;
+  align-items: center;
+
+  background: #111827;
+  color: #fff;
+
+  border-radius: 18px;
+  padding: 18px 12px;
+  margin-bottom: 14px;
+
+  text-align: center;
+}
+
+.score-team div {
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.9;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-team strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 48px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-vs {
+  font-size: 20px;
+  font-weight: 800;
+  opacity: 0.6;
+}
+
+
+/* =========================
+   GOALボタン
+========================= */
+
+.goal-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.goal-button {
+  min-height: 110px;
+  border: 0;
+  border-radius: 18px;
+  color: #fff;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  gap: 3px;
+
+  box-shadow:
+    0 5px 12px rgba(0, 0, 0, 0.12);
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.goal-button span {
+  font-size: 30px;
+}
+
+.goal-button strong {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.goal-button small {
+  font-size: 14px;
+  opacity: 0.9;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goal-button:active {
+  transform: scale(0.97);
+}
+
+.home-goal {
+  background: #2563eb;
+}
+
+.away-goal {
+  background: #dc2626;
+}
+
+
+/* =========================
+   ゴール一覧
+========================= */
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title-row h2 {
+  margin: 0;
+}
+
+.reset-button {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+
+  border-radius: 8px;
+  padding: 7px 11px;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.goal-list {
+  margin-top: 12px;
+}
+
+.empty-message {
+  margin: 0;
+  padding: 18px 8px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.goal-item {
+  display: grid;
+  grid-template-columns: 62px 1fr auto;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 4px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+.goal-time {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-info {
+  min-width: 0;
+}
+
+.goal-info strong {
+  display: block;
+  font-size: 15px;
+}
+
+.goal-score {
+  display: block;
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.seek-button {
+  border: 0;
+  background: #eef2ff;
+  color: #3730a3;
+
+  border-radius: 8px;
+  padding: 8px 10px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.delete-button {
+  border: 0;
+  background: transparent;
+  color: #9ca3af;
+
+  padding: 8px 4px;
+
+  font-size: 18px;
+}
+
+
+/* =========================
+   メッセージ
+========================= */
+
+.message {
+  min-height: 22px;
+  text-align: center;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 0 20px;
+}
+
+
+/* =========================
+   iPhone
+========================= */
+
+@media (max-width: 480px) {
+
+  .app {
+    padding: 12px;
+  }
+
+  .header h1 {
+    font-size: 21px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .score-team strong {
+    font-size: 42px;
+  }
+
+  .goal-button {
+    min-height: 105px;
+  }
+
+  .goal-button strong {
+    font-size: 22px;
+  }
+
+  .goal-item {
+    grid-template-columns: 58px 1fr auto;
+  }
+}
