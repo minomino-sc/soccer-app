@@ -2097,39 +2097,17 @@ async function exportMatchVideo() {
      * FFmpeg実行
      */
 
-    await ffmpeg.exec([
-
-      "-f",
-      "concat",
-
-      "-safe",
-      "0",
-
-      "-i",
-      "input.txt",
-
-      "-c:v",
-      "libx264",
-
-      "-preset",
-      "veryfast",
-
-      "-crf",
-      "23",
-
-      "-c:a",
-      "aac",
-
-      "-b:a",
-      "128k",
-
-      "-movflags",
-      "+faststart",
-
-      outputFileName
-
-    ]);
-
+await ffmpeg.exec([
+  "-f",
+  "concat",
+  "-safe",
+  "0",
+  "-i",
+  "input.txt",
+  "-c",
+  "copy",
+  outputFileName
+]);
 
     exportProgress.textContent =
       "完成動画を準備しています…";
