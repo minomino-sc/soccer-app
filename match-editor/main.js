@@ -2080,74 +2080,62 @@ async function exportMatchVideo() {
 
     /*
      * =====================================================
-     * 結合
+     * 前半 + 後半
+     *
+     * concat demuxerは使用しない
      * =====================================================
      */
 
     if (secondFileName) {
-
-      /*
-       * ===================================================
-       * 前半 + 後半
-       * ===================================================
-       */
-
-      const concatText =
-        `file '/input/${firstFileName}'\n` +
-        `file '/input/${secondFileName}'`;
-
-
-      await ffmpeg.writeFile(
-        "input.txt",
-        new TextEncoder().encode(
-          concatText
-        )
-      );
-
 
       exportProgress.textContent =
         "前半と後半を結合しています…";
 
 
       await ffmpeg.exec([
-        "-f",
-        "concat",
-        "-safe",
-        "0",
+
         "-i",
-        "input.txt",
-        "-c",
-        "copy",
+        `/input/${firstFileName}`,
+
+        "-i",
+        `/input/${secondFileName}`,
+
+        "-filter_complex",
+        "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[v][a]",
+
+        "-map",
+        "[v]",
+
+        "-map",
+        "[a]",
+
+        "-c:v",
+        "libx264",
+
+        "-preset",
+        "ultrafast",
+
+        "-crf",
+        "23",
+
+        "-c:a",
+        "aac",
+
+        "-b:a",
+        "128k",
+
+        "-movflags",
+        "+faststart",
+
         outputFileName
+
       ]);
-
-
-      /*
-       * input.txt削除
-       */
-
-      try {
-
-        await ffmpeg.deleteFile(
-          "input.txt"
-        );
-
-      } catch (error) {
-
-        console.warn(
-          "input.txt削除失敗:",
-          error
-        );
-
-      }
 
     } else {
 
       /*
        * ===================================================
        * 前半だけ
-       *
-       * 今回のテスト用
        * ===================================================
        */
 
@@ -2198,14 +2186,10 @@ async function exportMatchVideo() {
      * =====================================================
      */
 
-    /*
-     * 動画プレイヤーから
-     * 入力動画の参照を外す
-     */
-
     video.pause();
 
     video.removeAttribute("src");
+
     video.load();
 
 
@@ -2220,6 +2204,7 @@ async function exportMatchVideo() {
       );
 
       videoData[1].url = null;
+
     }
 
 
@@ -2230,6 +2215,7 @@ async function exportMatchVideo() {
       );
 
       videoData[2].url = null;
+
     }
 
 
@@ -2238,6 +2224,7 @@ async function exportMatchVideo() {
      */
 
     videoData[1].file = null;
+
     videoData[2].file = null;
 
 
@@ -2283,6 +2270,10 @@ async function exportMatchVideo() {
   }
 
 }
+
+
+
+
 
 /* =========================================================
    完成動画保存
