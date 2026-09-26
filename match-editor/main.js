@@ -2219,10 +2219,6 @@ await prepareCompletedVideo(
   outputFileName
 );
 
-showSaveVideoButton(
-  outputFileName
-);
-
   } catch (error) {
 
     console.error(
