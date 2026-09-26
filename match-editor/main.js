@@ -2176,18 +2176,12 @@ exportProgress.textContent =
  * =====================================================
  */
 
-showSaveVideoButton(
-  outputFileName
+showMessage(
+  "完成しました。「完成動画を保存」ボタンを押してください。"
 );
 
 
-/*
- * =====================================================
- * 完成動画を事前準備
- * =====================================================
- */
-
-await prepareCompletedVideo(
+showSaveVideoButton(
   outputFileName
 );
 
