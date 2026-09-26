@@ -1734,26 +1734,30 @@ async function loadFFmpeg() {
     return;
   }
 
-
   exportProgress.textContent =
     "動画処理エンジンを準備しています…";
-
 
   try {
 
     /*
-     * FFmpeg
+     * FFmpeg本体
+     *
+     * esm.shではなくjsDelivrを使用
+     * iPhone / Safariでの読み込み安定性を優先
      */
+
+    exportProgress.textContent =
+      "FFmpeg本体を読み込んでいます…";
 
     const ffmpegModule =
       await import(
-        "https://esm.sh/@ffmpeg/ffmpeg@0.12.10"
+        "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm"
       );
 
 
     const utilModule =
       await import(
-        "https://esm.sh/@ffmpeg/util@0.12.2"
+        "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/+esm"
       );
 
 
@@ -1764,32 +1768,51 @@ async function loadFFmpeg() {
       utilModule.toBlobURL;
 
 
+    if (!FFmpeg || !toBlobURL) {
+
+      throw new Error(
+        "FFmpegライブラリを読み込めませんでした。"
+      );
+    }
+
+
     ffmpeg =
       new FFmpeg();
 
 
     /*
-     * CDNからcoreを読み込む
+     * FFmpeg core
      */
+
+    exportProgress.textContent =
+      "動画処理エンジンを読み込んでいます…";
+
 
     const baseURL =
       "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
 
 
+    const coreURL =
+      await toBlobURL(
+        `${baseURL}/ffmpeg-core.js`,
+        "text/javascript"
+      );
+
+
+    const wasmURL =
+      await toBlobURL(
+        `${baseURL}/ffmpeg-core.wasm`,
+        "application/wasm"
+      );
+
+
+    /*
+     * FFmpeg起動
+     */
+
     await ffmpeg.load({
-
-      coreURL:
-        await toBlobURL(
-          `${baseURL}/ffmpeg-core.js`,
-          "text/javascript"
-        ),
-
-      wasmURL:
-        await toBlobURL(
-          `${baseURL}/ffmpeg-core.wasm`,
-          "application/wasm"
-        )
-
+      coreURL,
+      wasmURL
     });
 
 
@@ -1798,7 +1821,7 @@ async function loadFFmpeg() {
 
 
     exportProgress.textContent =
-      "動画処理エンジンの準備が完了しました。";
+      "✅ 動画処理エンジンの準備が完了しました。";
 
 
   } catch (error) {
@@ -1809,10 +1832,32 @@ async function loadFFmpeg() {
     );
 
 
-    ffmpeg = null;
+    ffmpeg =
+      null;
 
     ffmpegLoaded =
       false;
+
+
+    /*
+     * 画面にもエラー内容を表示
+     * 今後原因を特定しやすくする
+     */
+
+    const errorMessage =
+      error &&
+      error.message
+        ? error.message
+        : String(error);
+
+
+    exportProgress.textContent =
+      "❌ 動画処理エンジンの読み込みに失敗しました。";
+
+
+    showMessage(
+      `FFmpeg読み込みエラー：${errorMessage}`
+    );
 
 
     throw error;
