@@ -1777,24 +1777,9 @@ async function loadFFmpeg() {
       }
     );
 
-    /*
-      ゴールハイライトと同じ
-      ESM版のFFmpeg coreを使用
-    */
     const baseURL =
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 
-    /*
-      match-editor内に追加した
-      ffmpeg-worker.js
-    */
-
-const classWorkerURL =
-  new URL(
-    "./ffmpeg-worker.js",
-    window.location.href
-  ).href;
-     
     exportProgress.textContent =
       "③ FFmpeg coreを読み込んでいます…";
 
@@ -1817,13 +1802,8 @@ const classWorkerURL =
       "⑤ FFmpegエンジンを起動しています…";
 
     await ffmpeg.load({
-
       coreURL,
-
-      wasmURL,
-
-      classWorkerURL
-
+      wasmURL
     });
 
     ffmpegLoaded =
@@ -1831,10 +1811,6 @@ const classWorkerURL =
 
     exportProgress.textContent =
       "✅ 動画処理エンジンの準備が完了しました。";
-
-    console.log(
-      "FFmpeg WASM loaded"
-    );
 
   } catch (error) {
 
