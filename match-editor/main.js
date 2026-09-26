@@ -1948,7 +1948,12 @@ async function loadFFmpeg() {
 
 exportBtn.addEventListener(
   "click",
-  exportMatchVideo
+  (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    exportMatchVideo();
+  }
 );
 
 
