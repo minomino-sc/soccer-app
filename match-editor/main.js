@@ -1698,3 +1698,449 @@ function showMessage(
       3000
     );
 }
+
+
+/* =========================================================
+   🎬 試合動画書き出し
+========================================================= */
+
+const exportBtn =
+  document.getElementById("exportBtn");
+
+const exportProgress =
+  document.getElementById("exportProgress");
+
+
+/*
+ * FFmpeg
+ *
+ * ブラウザ内だけで動画処理を行う
+ */
+
+let ffmpeg = null;
+
+let ffmpegLoaded = false;
+
+let exportBusy = false;
+
+
+/* =========================================================
+   FFmpeg読み込み
+========================================================= */
+
+async function loadFFmpeg() {
+
+  if (ffmpegLoaded) {
+    return;
+  }
+
+
+  exportProgress.textContent =
+    "動画処理エンジンを準備しています…";
+
+
+  try {
+
+    /*
+     * FFmpeg
+     */
+
+    const ffmpegModule =
+      await import(
+        "https://esm.sh/@ffmpeg/ffmpeg@0.12.10"
+      );
+
+
+    const utilModule =
+      await import(
+        "https://esm.sh/@ffmpeg/util@0.12.2"
+      );
+
+
+    const FFmpeg =
+      ffmpegModule.FFmpeg;
+
+    const toBlobURL =
+      utilModule.toBlobURL;
+
+
+    ffmpeg =
+      new FFmpeg();
+
+
+    /*
+     * CDNからcoreを読み込む
+     */
+
+    const baseURL =
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+
+
+    await ffmpeg.load({
+
+      coreURL:
+        await toBlobURL(
+          `${baseURL}/ffmpeg-core.js`,
+          "text/javascript"
+        ),
+
+      wasmURL:
+        await toBlobURL(
+          `${baseURL}/ffmpeg-core.wasm`,
+          "application/wasm"
+        )
+
+    });
+
+
+    ffmpegLoaded =
+      true;
+
+
+    exportProgress.textContent =
+      "動画処理エンジンの準備が完了しました。";
+
+
+  } catch (error) {
+
+    console.error(
+      "FFmpeg load error:",
+      error
+    );
+
+
+    ffmpeg = null;
+
+    ffmpegLoaded =
+      false;
+
+
+    throw error;
+  }
+}
+
+
+/* =========================================================
+   ファイルをUint8Arrayにする
+========================================================= */
+
+async function fileToUint8Array(
+  file
+) {
+
+  const buffer =
+    await file.arrayBuffer();
+
+
+  return new Uint8Array(
+    buffer
+  );
+}
+
+/* =========================================================
+   動画を書き出す
+========================================================= */
+
+exportBtn.addEventListener(
+  "click",
+  exportMatchVideo
+);
+
+
+async function exportMatchVideo() {
+
+  if (exportBusy) {
+    return;
+  }
+
+
+  /*
+   * 前半・後半チェック
+   */
+
+  if (
+    !videoData[1].file
+  ) {
+
+    showMessage(
+      "前半動画を選択してください。"
+    );
+
+    return;
+  }
+
+
+  if (
+    !videoData[2].file
+  ) {
+
+    showMessage(
+      "後半動画を選択してください。"
+    );
+
+    return;
+  }
+
+
+  /*
+   * 前半の長さを取得
+   */
+
+  if (
+    !Number.isFinite(
+      videoData[1].duration
+    ) ||
+    videoData[1].duration <= 0
+  ) {
+
+    showMessage(
+      "前半動画の長さを取得してください。"
+    );
+
+    return;
+  }
+
+
+  exportBusy =
+    true;
+
+  exportBtn.disabled =
+    true;
+
+
+  try {
+
+    /*
+     * FFmpeg準備
+     */
+
+    await loadFFmpeg();
+
+
+    exportProgress.textContent =
+      "動画を書き出しています…";
+
+
+    /*
+     * ファイル名
+     */
+
+    const firstFileName =
+      "first_half.mp4";
+
+    const secondFileName =
+      "second_half.mp4";
+
+    const outputFileName =
+      "match_result.mp4";
+
+
+    /*
+     * ファイル読み込み
+     */
+
+    await ffmpeg.writeFile(
+      firstFileName,
+      await fileToUint8Array(
+        videoData[1].file
+      )
+    );
+
+
+    exportProgress.textContent =
+      "前半動画を準備しています…";
+
+
+    await ffmpeg.writeFile(
+      secondFileName,
+      await fileToUint8Array(
+        videoData[2].file
+      )
+    );
+
+
+    /*
+     * concat用リスト
+     */
+
+    const concatText =
+      `file '${firstFileName}'\nfile '${secondFileName}'`;
+
+
+    await ffmpeg.writeFile(
+      "input.txt",
+      new TextEncoder().encode(
+        concatText
+      )
+    );
+
+
+    exportProgress.textContent =
+      "前半と後半を結合しています…";
+
+
+    /*
+     * FFmpeg実行
+     *
+     * 映像・音声を再エンコードして
+     * 1本のMP4にする
+     */
+
+    await ffmpeg.exec([
+
+      "-f",
+      "concat",
+
+      "-safe",
+      "0",
+
+      "-i",
+      "input.txt",
+
+      "-c:v",
+      "libx264",
+
+      "-preset",
+      "veryfast",
+
+      "-crf",
+      "23",
+
+      "-c:a",
+      "aac",
+
+      "-b:a",
+      "128k",
+
+      "-movflags",
+      "+faststart",
+
+      outputFileName
+
+    ]);
+
+
+    exportProgress.textContent =
+      "完成動画を準備しています…";
+
+
+    /*
+     * 出力ファイル取得
+     */
+
+    const data =
+      await ffmpeg.readFile(
+        outputFileName
+      );
+
+
+    /*
+     * Blob
+     */
+
+    const blob =
+      new Blob(
+        [data.buffer],
+        {
+          type: "video/mp4"
+        }
+      );
+
+
+    /*
+     * ダウンロード
+     */
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const a =
+      document.createElement(
+        "a"
+      );
+
+    a.href =
+      url;
+
+    a.download =
+      createOutputFileName();
+
+
+    document.body.appendChild(
+      a
+    );
+
+    a.click();
+
+    a.remove();
+
+
+    setTimeout(
+      () => {
+
+        URL.revokeObjectURL(
+          url
+        );
+
+      },
+      10000
+    );
+
+
+    exportProgress.textContent =
+      "✅ 試合動画の書き出しが完了しました。";
+
+
+    showMessage(
+      "🎬 試合動画を書き出しました。"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Export error:",
+      error
+    );
+
+
+    exportProgress.textContent =
+      "動画の書き出しに失敗しました。";
+
+
+    showMessage(
+      "動画の書き出しに失敗しました。"
+    );
+
+
+  } finally {
+
+    exportBusy =
+      false;
+
+    exportBtn.disabled =
+      false;
+  }
+}
+
+
+/* =========================================================
+   出力ファイル名
+========================================================= */
+
+function createOutputFileName() {
+
+  const home =
+    getHomeTeamName();
+
+  const away =
+    getAwayTeamName();
+
+
+  return (
+    `${home}_vs_${away}_試合動画.mp4`
+  );
+}
