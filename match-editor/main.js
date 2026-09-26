@@ -1788,12 +1788,13 @@ async function loadFFmpeg() {
       match-editor内に追加した
       ffmpeg-worker.js
     */
-    const classWorkerURL =
-      new URL(
-        "./ffmpeg-worker.js",
-        import.meta.url
-      ).href;
 
+const classWorkerURL =
+  new URL(
+    "./ffmpeg-worker.js",
+    window.location.href
+  ).href;
+     
     exportProgress.textContent =
       "③ FFmpeg coreを読み込んでいます…";
 
