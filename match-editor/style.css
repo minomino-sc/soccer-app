@@ -753,3 +753,53 @@ button {
       55px 1fr auto;
   }
 }
+
+/* =========================
+   動画書き出し
+========================= */
+
+.export-section {
+  margin-top: 14px;
+}
+
+.export-button {
+  width: 100%;
+
+  min-height: 50px;
+
+  border: 0;
+  border-radius: 12px;
+
+  background: #111827;
+  color: #fff;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.10);
+}
+
+.export-button:active {
+  transform: scale(0.98);
+}
+
+.export-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.export-progress {
+  min-height: 20px;
+
+  margin-top: 8px;
+
+  text-align: center;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  font-weight: 700;
+}
