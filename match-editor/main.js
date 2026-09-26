@@ -2114,14 +2114,45 @@ await ffmpeg.exec([
   outputFileName
 ]);
 
-    exportProgress.textContent =
-      "✅ FFmpegによる結合が完了しました。";
+/* =========================================================
+   FFmpeg内のメモリを解放
+========================================================= */
 
-    showMessage(
-      "FFmpegの結合処理は完了しました。"
-    );
+exportProgress.textContent =
+  "動画処理のメモリを解放しています…";
 
-    return;
+/* 完成動画以外の一時ファイルを削除 */
+try {
+  await ffmpeg.deleteFile(
+    "input.txt"
+  );
+} catch (error) {
+  console.warn(
+    "input.txt削除失敗:",
+    error
+  );
+}
+
+/* 前半・後半のWORKERFSを解除 */
+try {
+  await ffmpeg.unmount(
+    "/input"
+  );
+} catch (error) {
+  console.warn(
+    "WORKERFS解除失敗:",
+    error
+  );
+}
+
+exportProgress.textContent =
+  "✅ FFmpegによる結合が完了しました。";
+
+showMessage(
+  "FFmpegの結合処理が完了しました。"
+);
+
+return;
 
 
     /*
