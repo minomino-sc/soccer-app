@@ -66,15 +66,84 @@
 
       <h2>動画</h2>
 
-      <label class="video-select">
-        <span>🎥 試合動画を選択</span>
 
-        <input
-          id="videoFile"
-          type="file"
-          accept="video/*"
+      <!-- 前半・後半動画選択 -->
+
+      <div class="half-video-selects">
+
+        <label class="video-select half-video-select">
+
+          <span>🎥 前半動画を選択</span>
+
+          <input
+            id="firstHalfFile"
+            type="file"
+            accept="video/*"
+          >
+
+        </label>
+
+
+        <label class="video-select half-video-select">
+
+          <span>🎥 後半動画を選択</span>
+
+          <input
+            id="secondHalfFile"
+            type="file"
+            accept="video/*"
+          >
+
+        </label>
+
+      </div>
+
+
+      <!-- 動画ファイル状態 -->
+
+      <div class="video-file-status">
+
+        <div>
+          <strong>前半：</strong>
+          <span id="firstHalfFileName">未選択</span>
+          <span id="firstHalfDuration" class="half-duration"></span>
+        </div>
+
+        <div>
+          <strong>後半：</strong>
+          <span id="secondHalfFileName">未選択</span>
+          <span id="secondHalfDuration" class="half-duration"></span>
+        </div>
+
+      </div>
+
+
+      <!-- 現在表示する動画 -->
+
+      <div class="half-switch">
+
+        <button
+          id="showFirstHalfBtn"
+          type="button"
+          class="half-switch-button active"
         >
-      </label>
+          前半を再生
+        </button>
+
+        <button
+          id="showSecondHalfBtn"
+          type="button"
+          class="half-switch-button"
+        >
+          後半を再生
+        </button>
+
+      </div>
+
+
+      <div class="current-half-label">
+        現在：<strong id="currentHalfLabel">前半</strong>
+      </div>
 
 
       <div class="video-wrapper">
