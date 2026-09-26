@@ -1844,23 +1844,6 @@ async function loadFFmpeg() {
 
 
 /* =========================================================
-   ファイルをUint8Arrayにする
-========================================================= */
-
-async function fileToUint8Array(
-  file
-) {
-
-  const buffer =
-    await file.arrayBuffer();
-
-
-  return new Uint8Array(
-    buffer
-  );
-}
-
-/* =========================================================
    動画を書き出す
 ========================================================= */
 
@@ -1881,9 +1864,7 @@ async function exportMatchVideo() {
    * 前半・後半チェック
    */
 
-  if (
-    !videoData[1].file
-  ) {
+  if (!videoData[1].file) {
 
     showMessage(
       "前半動画を選択してください。"
@@ -1893,9 +1874,7 @@ async function exportMatchVideo() {
   }
 
 
-  if (
-    !videoData[2].file
-  ) {
+  if (!videoData[2].file) {
 
     showMessage(
       "後半動画を選択してください。"
@@ -1940,54 +1919,67 @@ async function exportMatchVideo() {
     await loadFFmpeg();
 
 
-    exportProgress.textContent =
-      "動画を書き出しています…";
-
-
     /*
      * ファイル名
      */
 
     const firstFileName =
-      "first_half.mp4";
+      videoData[1].file.name;
 
     const secondFileName =
-      "second_half.mp4";
+      videoData[2].file.name;
 
     const outputFileName =
       "match_result.mp4";
 
 
     /*
-     * ファイル読み込み
+     * WORKERFSで動画を直接マウント
+     *
+     * iPhoneのメモリに
+     * 動画全体をコピーしない
      */
 
-    await ffmpeg.writeFile(
-      firstFileName,
-      await fileToUint8Array(
-        videoData[1].file
-      )
-    );
-
-
     exportProgress.textContent =
-      "前半動画を準備しています…";
+      "前半・後半動画を準備しています…";
 
 
-    await ffmpeg.writeFile(
-      secondFileName,
-      await fileToUint8Array(
-        videoData[2].file
-      )
+    try {
+
+      await ffmpeg.createDir(
+        "/input"
+      );
+
+    } catch (error) {
+
+      /*
+       * 既に存在する場合は無視
+       */
+
+    }
+
+
+    await ffmpeg.mount(
+      "WORKERFS",
+      {
+        files: [
+          videoData[1].file,
+          videoData[2].file
+        ]
+      },
+      "/input"
     );
 
 
     /*
      * concat用リスト
+     *
+     * WORKERFS上の実ファイルを指定
      */
 
     const concatText =
-      `file '${firstFileName}'\nfile '${secondFileName}'`;
+      `file '/input/${firstFileName}'\n` +
+      `file '/input/${secondFileName}'`;
 
 
     await ffmpeg.writeFile(
@@ -2004,9 +1996,6 @@ async function exportMatchVideo() {
 
     /*
      * FFmpeg実行
-     *
-     * 映像・音声を再エンコードして
-     * 1本のMP4にする
      */
 
     await ffmpeg.exec([
@@ -2135,7 +2124,11 @@ async function exportMatchVideo() {
 
 
     showMessage(
-      "動画の書き出しに失敗しました。"
+      `動画の書き出しに失敗しました：${
+        error && error.message
+          ? error.message
+          : error
+      }`
     );
 
 
