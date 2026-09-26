@@ -1762,7 +1762,6 @@ async function loadFFmpeg() {
 
 
     if (!FFmpeg || !toBlobURL) {
-
       throw new Error(
         "FFmpegライブラリを読み込めませんでした。"
       );
@@ -1832,35 +1831,28 @@ async function loadFFmpeg() {
 
 
     /* -----------------------------------------
-       ⑤ Worker
+       ⑤ FFmpeg起動
     ----------------------------------------- */
 
     exportProgress.textContent =
-      "⑤ FFmpeg Workerを準備しています…";
+      "⑤ FFmpegエンジンを起動しています…";
 
 
-    const classWorkerURL =
-      await toBlobURL(
-        `${baseURL}/814.ffmpeg.js`,
-        "text/javascript"
+    const loaded =
+      await ffmpeg.load({
+
+        coreURL,
+        wasmURL
+
+      });
+
+
+    if (!loaded) {
+
+      throw new Error(
+        "FFmpegエンジンの起動に失敗しました。"
       );
-
-
-    /* -----------------------------------------
-       ⑥ FFmpeg起動
-    ----------------------------------------- */
-
-    exportProgress.textContent =
-      "⑥ FFmpegエンジンを起動しています…";
-
-
-    await ffmpeg.load({
-
-      coreURL,
-      wasmURL,
-      classWorkerURL
-
-    });
+    }
 
 
     /* -----------------------------------------
