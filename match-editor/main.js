@@ -2146,27 +2146,6 @@ try {
 }
 
 exportProgress.textContent =
-  "完成動画ファイルを確認しています…";
-
-try {
-
-  const files =
-    await ffmpeg.listDir("/");
-
-  console.log(
-    "FFmpeg内のファイル:",
-    files
-  );
-
-} catch (error) {
-
-  console.error(
-    "完成動画確認エラー:",
-    error
-  );
-}
-
-exportProgress.textContent =
   "✅ FFmpegによる結合が完了しました。";     
 
   } finally {
