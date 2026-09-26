@@ -2129,7 +2129,7 @@ await ffmpeg.exec([
 
     const blob =
       new Blob(
-        [data.buffer],
+        [data],
         {
           type: "video/mp4"
         }
@@ -2137,7 +2137,9 @@ await ffmpeg.exec([
 
 
     /*
-     * ダウンロード
+     * 完成動画を表示
+     *
+     * iPhone / Safari対応
      */
 
     const url =
@@ -2154,6 +2156,12 @@ await ffmpeg.exec([
     a.href =
       url;
 
+    a.target =
+      "_blank";
+
+    a.rel =
+      "noopener";
+
     a.download =
       createOutputFileName();
 
@@ -2167,6 +2175,10 @@ await ffmpeg.exec([
     a.remove();
 
 
+    /*
+     * 少し待ってからURLを解放
+     */
+
     setTimeout(
       () => {
 
@@ -2175,7 +2187,7 @@ await ffmpeg.exec([
         );
 
       },
-      10000
+      60000
     );
 
 
