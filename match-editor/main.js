@@ -1956,7 +1956,6 @@ exportBtn.addEventListener(
   }
 );
 
-
 async function exportMatchVideo() {
 
   if (exportBusy) {
@@ -1965,23 +1964,13 @@ async function exportMatchVideo() {
 
 
   /*
-   * 前半・後半チェック
+   * 前半動画チェック
    */
 
   if (!videoData[1].file) {
 
     showMessage(
       "前半動画を選択してください。"
-    );
-
-    return;
-  }
-
-
-  if (!videoData[2].file) {
-
-    showMessage(
-      "後半動画を選択してください。"
     );
 
     return;
@@ -2033,7 +2022,9 @@ async function exportMatchVideo() {
       videoData[1].file.name;
 
     const secondFileName =
-      videoData[2].file.name;
+      videoData[2].file
+        ? videoData[2].file.name
+        : null;
 
 
     const outputFileName =
@@ -2047,7 +2038,9 @@ async function exportMatchVideo() {
      */
 
     exportProgress.textContent =
-      "前半・後半動画を準備しています…";
+      secondFileName
+        ? "前半・後半動画を準備しています…"
+        : "前半動画を準備しています…";
 
 
     try {
@@ -2065,34 +2058,23 @@ async function exportMatchVideo() {
     }
 
 
+    const filesToMount =
+      secondFileName
+        ? [
+            videoData[1].file,
+            videoData[2].file
+          ]
+        : [
+            videoData[1].file
+          ];
+
+
     await ffmpeg.mount(
       "WORKERFS",
       {
-        files: [
-          videoData[1].file,
-          videoData[2].file
-        ]
+        files: filesToMount
       },
       "/input"
-    );
-
-
-    /*
-     * =====================================================
-     * concat用リスト
-     * =====================================================
-     */
-
-    const concatText =
-      `file '/input/${firstFileName}'\n` +
-      `file '/input/${secondFileName}'`;
-
-
-    await ffmpeg.writeFile(
-      "input.txt",
-      new TextEncoder().encode(
-        concatText
-      )
     );
 
 
@@ -2102,47 +2084,96 @@ async function exportMatchVideo() {
      * =====================================================
      */
 
-    exportProgress.textContent =
-      "前半と後半を結合しています…";
+    if (secondFileName) {
+
+      /*
+       * ===================================================
+       * 前半 + 後半
+       * ===================================================
+       */
+
+      const concatText =
+        `file '/input/${firstFileName}'\n` +
+        `file '/input/${secondFileName}'`;
 
 
-    await ffmpeg.exec([
-      "-f",
-      "concat",
-      "-safe",
-      "0",
-      "-i",
-      "input.txt",
-      "-c",
-      "copy",
-      outputFileName
-    ]);
+      await ffmpeg.writeFile(
+        "input.txt",
+        new TextEncoder().encode(
+          concatText
+        )
+      );
+
+
+      exportProgress.textContent =
+        "前半と後半を結合しています…";
+
+
+      await ffmpeg.exec([
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        "input.txt",
+        "-c",
+        "copy",
+        outputFileName
+      ]);
+
+
+      /*
+       * input.txt削除
+       */
+
+      try {
+
+        await ffmpeg.deleteFile(
+          "input.txt"
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "input.txt削除失敗:",
+          error
+        );
+
+      }
+
+    } else {
+
+      /*
+       * ===================================================
+       * 前半だけ
+       *
+       * 今回のテスト用
+       * ===================================================
+       */
+
+      exportProgress.textContent =
+        "前半動画を書き出しています…";
+
+
+      await ffmpeg.exec([
+        "-i",
+        `/input/${firstFileName}`,
+        "-c",
+        "copy",
+        outputFileName
+      ]);
+
+    }
 
 
     /*
      * =====================================================
-     * 一時ファイル整理
+     * WORKERFS解除
      * =====================================================
      */
 
     exportProgress.textContent =
       "完成動画を準備しています…";
-
-
-    try {
-
-      await ffmpeg.deleteFile(
-        "input.txt"
-      );
-
-    } catch (error) {
-
-      console.warn(
-        "input.txt削除失敗:",
-        error
-      );
-
-    }
 
 
     try {
@@ -2160,64 +2191,64 @@ async function exportMatchVideo() {
 
     }
 
-/*
- * =====================================================
- * 完成動画保存準備
- * =====================================================
- */
 
-/*
- * 動画プレイヤーから入力動画の参照を外す
- *
- * FFmpegの結合自体はすでに完了しているため、
- * ここでは前半・後半動画を再生する必要がない。
- */
+    /*
+     * =====================================================
+     * 完成動画保存準備
+     * =====================================================
+     */
 
-video.pause();
+    /*
+     * 動画プレイヤーから
+     * 入力動画の参照を外す
+     */
 
-video.removeAttribute("src");
-video.load();
+    video.pause();
 
-
-/*
- * Object URLを解放
- */
-
-if (videoData[1].url) {
-
-  URL.revokeObjectURL(
-    videoData[1].url
-  );
-
-  videoData[1].url = null;
-}
+    video.removeAttribute("src");
+    video.load();
 
 
-if (videoData[2].url) {
+    /*
+     * Object URLを解放
+     */
 
-  URL.revokeObjectURL(
-    videoData[2].url
-  );
+    if (videoData[1].url) {
 
-  videoData[2].url = null;
-}
+      URL.revokeObjectURL(
+        videoData[1].url
+      );
 
-
-/*
- * 入力Fileへの参照も解放
- */
-
-videoData[1].file = null;
-videoData[2].file = null;
+      videoData[1].url = null;
+    }
 
 
-/*
- * 完成動画を保存用データとして取得
- */
+    if (videoData[2].url) {
 
-await prepareCompletedVideo(
-  outputFileName
-);
+      URL.revokeObjectURL(
+        videoData[2].url
+      );
+
+      videoData[2].url = null;
+    }
+
+
+    /*
+     * 入力Fileへの参照を解放
+     */
+
+    videoData[1].file = null;
+    videoData[2].file = null;
+
+
+    /*
+     * 完成動画を保存用データとして取得
+     */
+
+    await prepareCompletedVideo(
+      outputFileName
+    );
+
 
   } catch (error) {
 
@@ -2252,8 +2283,6 @@ await prepareCompletedVideo(
   }
 
 }
-
-
 
 /* =========================================================
    完成動画保存
