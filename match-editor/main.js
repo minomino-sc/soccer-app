@@ -1736,10 +1736,6 @@ async function loadFFmpeg() {
 
   try {
 
-    /* -----------------------------------------
-       ① FFmpeg本体
-    ----------------------------------------- */
-
     exportProgress.textContent =
       "① FFmpeg本体を読み込んでいます…";
 
@@ -1753,13 +1749,11 @@ async function loadFFmpeg() {
         "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/+esm"
       );
 
-
     const FFmpeg =
       ffmpegModule.FFmpeg;
 
     const toBlobURL =
       utilModule.toBlobURL;
-
 
     if (!FFmpeg || !toBlobURL) {
       throw new Error(
@@ -1767,46 +1761,41 @@ async function loadFFmpeg() {
       );
     }
 
-
-    /* -----------------------------------------
-       ② FFmpegインスタンス
-    ----------------------------------------- */
-
     exportProgress.textContent =
       "② FFmpegを起動しています…";
 
     ffmpeg =
       new FFmpeg();
 
-
-    /* -----------------------------------------
-       FFmpegログ
-    ----------------------------------------- */
-
     ffmpeg.on(
       "log",
       ({ message }) => {
-
         console.log(
           "FFmpeg:",
           message
         );
-
       }
     );
 
-
-    /* -----------------------------------------
-       ③ FFmpeg core
-    ----------------------------------------- */
-
+    /*
+      ゴールハイライトと同じ
+      ESM版のFFmpeg coreを使用
+    */
     const baseURL =
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
 
+    /*
+      match-editor内に追加した
+      ffmpeg-worker.js
+    */
+    const classWorkerURL =
+      new URL(
+        "./ffmpeg-worker.js",
+        import.meta.url
+      ).href;
 
     exportProgress.textContent =
       "③ FFmpeg coreを読み込んでいます…";
-
 
     const coreURL =
       await toBlobURL(
@@ -1814,14 +1803,8 @@ async function loadFFmpeg() {
         "text/javascript"
       );
 
-
-    /* -----------------------------------------
-       ④ WASM
-    ----------------------------------------- */
-
     exportProgress.textContent =
       "④ FFmpeg WASMを読み込んでいます…";
-
 
     const wasmURL =
       await toBlobURL(
@@ -1829,43 +1812,28 @@ async function loadFFmpeg() {
         "application/wasm"
       );
 
-
-    /* -----------------------------------------
-       ⑤ FFmpeg起動
-    ----------------------------------------- */
-
     exportProgress.textContent =
       "⑤ FFmpegエンジンを起動しています…";
 
+    await ffmpeg.load({
 
-    const loaded =
-      await ffmpeg.load({
+      coreURL,
 
-        coreURL,
-        wasmURL
+      wasmURL,
 
-      });
+      classWorkerURL
 
-
-    if (!loaded) {
-
-      throw new Error(
-        "FFmpegエンジンの起動に失敗しました。"
-      );
-    }
-
-
-    /* -----------------------------------------
-       完了
-    ----------------------------------------- */
+    });
 
     ffmpegLoaded =
       true;
 
-
     exportProgress.textContent =
       "✅ 動画処理エンジンの準備が完了しました。";
 
+    console.log(
+      "FFmpeg WASM loaded"
+    );
 
   } catch (error) {
 
@@ -1874,13 +1842,11 @@ async function loadFFmpeg() {
       error
     );
 
-
     ffmpeg =
       null;
 
     ffmpegLoaded =
       false;
-
 
     const errorMessage =
       error &&
@@ -1888,15 +1854,12 @@ async function loadFFmpeg() {
         ? error.message
         : String(error);
 
-
     exportProgress.textContent =
       "❌ FFmpegの読み込みに失敗しました。";
-
 
     showMessage(
       `FFmpeg読み込みエラー：${errorMessage}`
     );
-
 
     throw error;
   }
