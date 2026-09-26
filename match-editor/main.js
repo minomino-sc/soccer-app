@@ -2145,117 +2145,106 @@ try {
   );
 }
 
+/* =========================================================
+   完成動画を画面内で再生
+========================================================= */
+
 exportProgress.textContent =
-  "✅ FFmpegによる結合が完了しました。";
+  "完成動画を準備しています…";
 
-showMessage(
-  "FFmpegの結合処理が完了しました。"
-);
+try {
 
-return;
+  /* FFmpegから完成動画を読み出す */
+  const data =
+    await ffmpeg.readFile(
+      outputFileName
+    );
 
+  /* Blobを作成 */
+  const blob =
+    new Blob(
+      [data],
+      {
+        type: "video/mp4"
+      }
+    );
 
-    /*
-     * Blob
-     */
+  /* 既存の動画URLがあれば解放 */
+  if (
+    video.src &&
+    video.src.startsWith("blob:")
+  ) {
+    URL.revokeObjectURL(
+      video.src
+    );
+  }
 
-    const blob =
-      new Blob(
-        [data],
-        {
-          type: "video/mp4"
-        }
-      );
+  /* 完成動画用URL */
+  const resultUrl =
+    URL.createObjectURL(
+      blob
+    );
 
+  /* この画面の動画プレイヤーに設定 */
+  video.src =
+    resultUrl;
 
-    /*
-     * 完成動画
-     */
+  video.load();
 
-    const url =
-      URL.createObjectURL(
-        blob
-      );
+  currentHalfLabel.textContent =
+    "試合動画";
 
+  video.onloadedmetadata =
+    () => {
 
-    /*
-     * 新しいタブで完成動画を開く
-     *
-     * a.click() は使用しない
-     */
-
-    const videoWindow =
-      window.open(
-        url,
-        "_blank"
-      );
-
-
-    if (!videoWindow) {
-
-      showMessage(
-        "完成動画を開けませんでした。ブラウザのポップアップを確認してください。"
-      );
-
-    }
-
-
-    /*
-     * すぐにURLを破棄しない
-     */
-
-    setTimeout(
-      () => {
-
-        URL.revokeObjectURL(
-          url
+      durationEl.textContent =
+        formatTime(
+          video.duration
         );
 
-      },
-      60000
+      currentTimeEl.textContent =
+        "00:00";
+
+      showMessage(
+        "🎬 前半＋後半の完成動画を再生できます。"
+      );
+
+    };
+
+  exportProgress.textContent =
+    "✅ 試合動画の結合が完了しました。";
+
+  /* FFmpeg側の完成ファイルを削除 */
+  try {
+    await ffmpeg.deleteFile(
+      outputFileName
     );
-
-
-    exportProgress.textContent =
-      "✅ 試合動画の書き出しが完了しました。";
-
-
-    showMessage(
-      "🎬 試合動画を書き出しました。"
-    );
-
-
   } catch (error) {
-
-    console.error(
-      "Export error:",
+    console.warn(
+      "完成動画の削除に失敗:",
       error
     );
-
-
-    exportProgress.textContent =
-      "動画の書き出しに失敗しました。";
-
-
-    showMessage(
-      `動画の書き出しに失敗しました：${
-        error && error.message
-          ? error.message
-          : error
-      }`
-    );
-
-
-  } finally {
-
-    exportBusy =
-      false;
-
-    exportBtn.disabled =
-      false;
   }
-}
 
+} catch (error) {
+
+  console.error(
+    "完成動画の読み込みエラー:",
+    error
+  );
+
+  exportProgress.textContent =
+    "完成動画の準備に失敗しました。";
+
+  showMessage(
+    `完成動画の準備に失敗しました：${
+      error && error.message
+        ? error.message
+        : error
+    }`
+  );
+
+}
 
 /* =========================================================
    出力ファイル名
