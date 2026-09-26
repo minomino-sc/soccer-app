@@ -2142,9 +2142,7 @@ await ffmpeg.exec([
 
 
     /*
-     * 完成動画を表示
-     *
-     * iPhone / Safari対応
+     * 完成動画
      */
 
     const url =
@@ -2153,35 +2151,30 @@ await ffmpeg.exec([
       );
 
 
-    const a =
-      document.createElement(
-        "a"
+    /*
+     * 新しいタブで完成動画を開く
+     *
+     * a.click() は使用しない
+     */
+
+    const videoWindow =
+      window.open(
+        url,
+        "_blank"
       );
 
-    a.href =
-      url;
 
-    a.target =
-      "_blank";
+    if (!videoWindow) {
 
-    a.rel =
-      "noopener";
+      showMessage(
+        "完成動画を開けませんでした。ブラウザのポップアップを確認してください。"
+      );
 
-    a.download =
-      createOutputFileName();
-
-
-    document.body.appendChild(
-      a
-    );
-
-    a.click();
-
-    a.remove();
+    }
 
 
     /*
-     * 少し待ってからURLを解放
+     * すぐにURLを破棄しない
      */
 
     setTimeout(
