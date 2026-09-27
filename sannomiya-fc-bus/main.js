@@ -1245,7 +1245,8 @@ const dayType =
   ======================================================= */
 
   function formatCountdown(
-    targetMinutes
+    targetMinutes,
+    targetDate = searchedDate
   ) {
 
     if (
@@ -1260,32 +1261,97 @@ const dayType =
       new Date();
 
 
-    let target =
-      targetMinutes * 60;
+    /*
+     * 検索日が指定されていない場合
+     * 現在時刻との比較
+     */
+    if (!targetDate) {
+
+      let target =
+        targetMinutes * 60;
 
 
-    const nowSeconds =
-      now.getHours() * 3600 +
-      now.getMinutes() * 60 +
-      now.getSeconds();
+      const nowSeconds =
+        now.getHours() * 3600 +
+        now.getMinutes() * 60 +
+        now.getSeconds();
 
 
-    while (
-      target < nowSeconds
-    ) {
+      while (
+        target < nowSeconds
+      ) {
 
-      target +=
-        24 * 60 * 60;
+        target +=
+          24 * 60 * 60;
+
+      }
+
+
+      const diff =
+        Math.max(
+          0,
+          Math.floor(
+            target -
+            nowSeconds
+          )
+        );
+
+
+      const minutes =
+        Math.floor(
+          diff / 60
+        );
+
+      const seconds =
+        diff % 60;
+
+
+      return (
+        `${minutes}分` +
+        `${String(seconds).padStart(2, "0")}秒`
+      );
 
     }
 
 
+    /*
+     * 検索日をDateに変換
+     */
+    const targetDateObject =
+      dateStringToDate(
+        targetDate
+      );
+
+
+    if (!targetDateObject) {
+      return "";
+    }
+
+
+    /*
+     * 検索日の出発時刻を設定
+     */
+    targetDateObject.setHours(
+      Math.floor(
+        targetMinutes / 60
+      ),
+      targetMinutes % 60,
+      0,
+      0
+    );
+
+
+    /*
+     * 現在日時との差を計算
+     */
     const diff =
       Math.max(
         0,
         Math.floor(
-          target -
-          nowSeconds
+          (
+            targetDateObject.getTime() -
+            now.getTime()
+          ) / 1000
         )
       );
 
@@ -1844,7 +1910,10 @@ searchSummary.innerHTML = `
         ) {
 
           element.textContent =
-            `あと${formatCountdown(value)}`;
+            `あと${formatCountdown(
+              value,
+              searchedDate
+            )}`;
 
         }
 
