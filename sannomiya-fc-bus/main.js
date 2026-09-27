@@ -687,7 +687,7 @@ dayType.textContent =
           timetable: venue.return[0].timetable,
           operator: venue.return[0].operator,
           station: venue.return[0].station,
-          travel: 2,
+          travel: 3,
           transferBefore: 0
         },
 
