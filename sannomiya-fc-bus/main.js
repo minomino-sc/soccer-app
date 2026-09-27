@@ -574,7 +574,7 @@ dayType.textContent =
           {
             type: "walk",
             operator: "徒歩",
-            station: "貿易センター駅 → 小野浜球技場",
+            station: "貿易センター駅 → 小野浜公園球技場",
             travel: 5
           }
 
@@ -588,7 +588,7 @@ dayType.textContent =
         {
           type: "walk",
           operator: "徒歩",
-          station: "小野浜球技場 → 貿易センター駅",
+          station: "小野浜公園球技場 → 貿易センター駅",
           travel: 5
         },
 
@@ -625,7 +625,7 @@ dayType.textContent =
 
 
     /* =====================================================
-       神戸朝鮮中
+       神戸朝鮮初中級学校
     ===================================================== */
 
     if (venueKey === "koreanch") {
@@ -664,7 +664,7 @@ dayType.textContent =
           {
             type: "walk",
             operator: "徒歩",
-            station: "JR灘駅 → 神戸朝鮮中",
+            station: "JR灘駅 → 神戸朝鮮初中級学校",
             travel: 5
           }
 
@@ -678,7 +678,7 @@ dayType.textContent =
         {
           type: "walk",
           operator: "徒歩",
-          station: "神戸朝鮮中 → JR灘駅",
+          station: "神戸朝鮮初中級学校 → JR灘駅",
           travel: 5
         },
 
@@ -715,7 +715,7 @@ dayType.textContent =
 
 
     /* =====================================================
-       コミスタ
+       コミスタこうべ
     ===================================================== */
 
     if (venueKey === "comista") {
@@ -745,7 +745,7 @@ dayType.textContent =
           {
             type: "walk",
             operator: "徒歩",
-            station: "三宮駅 → コミスタ神戸",
+            station: "三宮駅 → コミスタこうべ",
             travel: 15
           }
 
@@ -759,7 +759,7 @@ dayType.textContent =
         {
           type: "walk",
           operator: "徒歩",
-          station: "コミスタ神戸 → 三宮駅",
+          station: "コミスタこうべ → 三宮駅",
           travel: 15
         },
 
