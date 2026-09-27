@@ -1662,12 +1662,10 @@ const dayType =
     );
 
 
-    const countdown =
-      index === 0
-        ? formatCountdown(
-            route.firstVehicleDeparture
-          )
-        : "";
+const countdown =
+  formatCountdown(
+    route.firstVehicleDeparture
+  );
 
 
     card.innerHTML = `
@@ -1706,18 +1704,12 @@ const dayType =
           </div>
 
 
-          ${
-            index === 0
-              ? `
-                <div
-                  class="route-countdown"
-                  data-countdown="${route.firstVehicleDeparture}"
-                >
-                  あと${countdown}
-                </div>
-              `
-              : ""
-          }
+  <div
+  class="route-countdown"
+  data-countdown="${route.firstVehicleDeparture}"
+>
+  あと${countdown}
+</div>
 
         </div>
 
