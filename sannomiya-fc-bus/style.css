@@ -38,27 +38,35 @@ body {
 
 
 /* =========================================================
-   WATERMARK
+   TIGER BACKGROUND
 ========================================================= */
 
 body::before {
-  content: "KOBE SANNOMIYA FC";
+  content: "";
 
   position: fixed;
+
   left: 50%;
-  top: 50%;
+  top: 430px;
 
-  transform:
-    translate(-50%, -50%)
-    rotate(-18deg);
+  width: 100%;
+  height: 700px;
 
-  font-size: 58px;
-  font-weight: 900;
-  letter-spacing: 4px;
+  transform: translateX(-50%);
 
-  color: rgba(255, 255, 255, 0.025);
+  background-image:
+    url("./IMG_6321.jpeg");
 
-  white-space: nowrap;
+  background-repeat: no-repeat;
+
+  background-position:
+    center center;
+
+  background-size:
+    650px auto;
+
+  opacity: 0.085;
+
   pointer-events: none;
 
   z-index: 0;
@@ -1340,3 +1348,12 @@ footer {
   }
 
 }
+
+/* =========================================================
+   HIDE CLUB EMBLEM
+========================================================= */
+
+.club-mark {
+  display: none;
+}
+
