@@ -1957,7 +1957,6 @@ exportBtn.addEventListener(
 );
 
 
-
 async function inspectVideoFile(
   fileName,
   label
@@ -1982,12 +1981,6 @@ async function inspectVideoFile(
     );
 
 
-    /*
-     * 動画情報だけを取得する
-     *
-     * 出力ファイルは作らない
-     */
-
     try {
 
       await ffmpeg.exec([
@@ -2005,7 +1998,6 @@ async function inspectVideoFile(
 
     }
 
-
   } finally {
 
     try {
@@ -2020,30 +2012,32 @@ async function inspectVideoFile(
   }
 
 
-  console.log(
-    `========== ${label} ==========\n` +
-    logs.join("\n")
-  );
-
-
-  /*
-   * 画面にも表示
-   */
-
   const infoText =
     logs.join("\n");
 
 
-  showMessage(
-    `${label}の内部情報を確認しました。`
-  );
-
-
   console.log(
+    `========== ${label} ==========\n` +
     infoText
   );
 
+
+  /*
+   * FFmpegの内部情報を画面に表示
+   */
+
+  const displayText =
+    infoText.length > 0
+      ? infoText
+      : "FFmpegから情報を取得できませんでした。";
+
+
+  showMessage(
+    `${label}\n\n${displayText}`
+  );
+
 }
+
 
 
 
