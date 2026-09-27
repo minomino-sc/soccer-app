@@ -2298,4 +2298,255 @@ searchButton.addEventListener(
     1000
   );
 
+
+  /* =======================================================
+     TIMETABLE CHECK STATUS
+  ======================================================= */
+
+  async function loadTimetableCheckStatus() {
+
+    const panel =
+      document.getElementById(
+        "timetableCheckPanel"
+      );
+
+
+    if (!panel) {
+      return;
+    }
+
+
+    try {
+
+      const response =
+        await fetch(
+          "./timetable-check/status.json?ts=" +
+          Date.now(),
+          {
+            cache: "no-store"
+          }
+        );
+
+
+      if (!response.ok) {
+        throw new Error(
+          "status.json の取得に失敗しました"
+        );
+      }
+
+
+      const data =
+        await response.json();
+
+
+      renderTimetableCheckStatus(
+        panel,
+        data
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "時刻表チェック:",
+        error
+      );
+
+
+      panel.innerHTML = `
+
+        <div class="timetable-check-error">
+
+          ⚠️ 時刻表チェック状況を
+          取得できませんでした。
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+
+  function renderTimetableCheckStatus(
+    panel,
+    data
+  ) {
+
+    const services =
+      Array.isArray(data.services)
+        ? data.services
+        : [];
+
+
+    const checkedAt =
+      data.checkedAt
+        ? new Date(
+            data.checkedAt
+          )
+        : null;
+
+
+    const checkedText =
+      checkedAt &&
+      !Number.isNaN(
+        checkedAt.getTime()
+      )
+        ? checkedAt.toLocaleString(
+            "ja-JP",
+            {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit"
+            }
+          )
+        : "未確認";
+
+
+    let html = `
+
+      <div class="timetable-check-header">
+
+        <strong>
+          🔍 公式時刻表 自動チェック
+        </strong>
+
+        <span>
+          最終チェック：${escapeHtml(
+            checkedText
+          )}
+        </span>
+
+      </div>
+
+    `;
+
+
+    services.forEach(
+      service => {
+
+        const status =
+          service.status;
+
+
+        let icon =
+          "⚪";
+
+
+        if (
+          status === "ok"
+        ) {
+          icon = "🟢";
+        }
+
+
+        if (
+          status === "changed"
+        ) {
+          icon = "🔴";
+        }
+
+
+        if (
+          status === "error"
+        ) {
+          icon = "⚠️";
+        }
+
+
+        html += `
+
+          <div
+            class="
+              timetable-check-row
+              status-${escapeHtml(
+                status || "unknown"
+              )}
+            "
+          >
+
+            <div>
+
+              <strong>
+                ${icon}
+                ${escapeHtml(
+                  service.name
+                )}
+              </strong>
+
+              <small>
+                ${escapeHtml(
+                  service.route || ""
+                )}
+              </small>
+
+            </div>
+
+
+            <div class="timetable-check-status">
+
+              ${
+                status === "ok"
+                  ? "変更なし"
+                  : status === "changed"
+                    ? "変更を検出"
+                    : status === "error"
+                      ? "確認エラー"
+                      : "未確認"
+              }
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    );
+
+
+    if (
+      data.hasChanges
+    ) {
+
+      html += `
+
+        <div class="timetable-check-warning">
+
+          ⚠️ 公式時刻表に変更が検出されています。<br>
+          <strong>
+            timetable.js の時刻を確認してください。
+          </strong>
+
+        </div>
+
+      `;
+
+    }
+
+
+    html += `
+
+      <div class="timetable-check-note">
+
+        ※ 自動チェックは公式ページの変更を検出します。
+        変更検出後、公式時刻表を確認して
+        timetable.js を必要に応じて更新してください。
+
+      </div>
+
+    `;
+
+
+    panel.innerHTML =
+      html;
+
+  }
+
+
+  loadTimetableCheckStatus();
+
 });
