@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,22 +7,23 @@
 <title>⚽ KOBE SANNOMIYA FC｜JUNIOR YOUTH TRANSPORT</title>
 
 <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- =====================================================
+  <!-- =========================================
        HEADER
-  ====================================================== -->
-
+  ========================================== -->
   <header class="header">
 
- <div class="club-mark">
-  <img src="IMG_6321.jpeg" alt="KOBE SANNOMIYA FC">
-</div>
+    <div class="club-mark">
+      <img
+        src="IMG_6321.jpeg"
+        alt="KOBE SANNOMIYA FC"
+      >
+    </div>
 
     <div>
       <div class="club-name">
@@ -38,10 +38,9 @@
   </header>
 
 
-  <!-- =====================================================
-       CURRENT TIME
-  ====================================================== -->
-
+  <!-- =========================================
+       CLOCK
+  ========================================== -->
   <section class="clock-panel">
 
     <div id="currentDate">
@@ -59,10 +58,9 @@
   </section>
 
 
-  <!-- =====================================================
-       TRAINING VENUE
-  ====================================================== -->
-
+  <!-- =========================================
+       VENUE
+  ========================================== -->
   <section class="section">
 
     <h2>
@@ -76,15 +74,8 @@
         class="venue-button"
         data-venue="onohama"
       >
-
-        <span class="venue-icon">
-          🏟️
-        </span>
-
-        <span>
-          小野浜球技場
-        </span>
-
+        <span class="venue-icon">🏟️</span>
+        <span>小野浜球技場</span>
       </button>
 
 
@@ -93,15 +84,8 @@
         class="venue-button"
         data-venue="koreanch"
       >
-
-        <span class="venue-icon">
-          🏫
-        </span>
-
-        <span>
-          神戸朝鮮中
-        </span>
-
+        <span class="venue-icon">🏫</span>
+        <span>神戸朝鮮中</span>
       </button>
 
 
@@ -110,15 +94,8 @@
         class="venue-button"
         data-venue="comista"
       >
-
-        <span class="venue-icon">
-          🏢
-        </span>
-
-        <span>
-          コミスタ神戸
-        </span>
-
+        <span class="venue-icon">🏢</span>
+        <span>コミスタ神戸</span>
       </button>
 
     </div>
@@ -126,10 +103,9 @@
   </section>
 
 
-  <!-- =====================================================
-       ROUTE
-  ====================================================== -->
-
+  <!-- =========================================
+       DIRECTION
+  ========================================== -->
   <section
     id="directionSection"
     class="section hidden"
@@ -146,15 +122,8 @@
         class="direction-button"
         data-direction="go"
       >
-
-        <strong>
-          行き
-        </strong>
-
-        <small>
-          TO TRAINING
-        </small>
-
+        <strong>行き</strong>
+        <small>TO TRAINING</small>
       </button>
 
 
@@ -163,15 +132,8 @@
         class="direction-button"
         data-direction="return"
       >
-
-        <strong>
-          帰り
-        </strong>
-
-        <small>
-          FROM TRAINING
-        </small>
-
+        <strong>帰り</strong>
+        <small>FROM TRAINING</small>
       </button>
 
     </div>
@@ -179,10 +141,68 @@
   </section>
 
 
-  <!-- =====================================================
-       RESULT
-  ====================================================== -->
+  <!-- =========================================
+       SEARCH
+  ========================================== -->
+  <section
+    id="searchSection"
+    class="section hidden"
+  >
 
+    <h2>
+      DEPARTURE TIME
+    </h2>
+
+
+    <div class="search-panel">
+
+      <div class="search-label">
+        乗車予定時刻
+      </div>
+
+
+      <div class="time-search-row">
+
+        <input
+          id="searchTime"
+          type="time"
+          value="12:00"
+          aria-label="乗車予定時刻"
+        >
+
+
+        <button
+          type="button"
+          id="nowButton"
+          class="now-button"
+        >
+          現在時刻
+        </button>
+
+
+        <button
+          type="button"
+          id="searchButton"
+          class="search-button"
+        >
+          検索
+        </button>
+
+      </div>
+
+
+      <div class="search-help">
+        入力した時刻以降に出発できる乗り継ぎルートを検索します。
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================
+       RESULT
+  ========================================== -->
   <section
     id="resultSection"
     class="section hidden"
@@ -216,15 +236,36 @@
     </div>
 
 
-    <div id="routeCards"></div>
+    <div
+      id="searchSummary"
+      class="search-summary"
+    ></div>
+
+
+    <!-- 横スクロールする候補 -->
+    <div
+      id="routeScroller"
+      class="route-scroller"
+    >
+
+      <div
+        id="routeCards"
+        class="route-cards"
+      ></div>
+
+    </div>
+
+
+    <div class="scroll-hint">
+      ← 左右にスワイプして次の候補 →
+    </div>
 
   </section>
 
 
-  <!-- =====================================================
+  <!-- =========================================
        FOOTER
-  ====================================================== -->
-
+  ========================================== -->
   <footer>
 
     <div>
@@ -240,13 +281,8 @@
 </div>
 
 
-<!-- =======================================================
-     JAVASCRIPT
-======================================================== -->
-
 <script src="timetable.js"></script>
 <script src="main.js"></script>
 
 </body>
-
 </html>
