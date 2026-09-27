@@ -2,8 +2,8 @@ name: Timetable Check
 
 on:
   schedule:
-    # テスト：日本時間 20:10ごろ
-    - cron: "10 11 * * *"
+    # テスト：日本時間 20:30ごろ
+    - cron: "30 11 * * *"
 
   workflow_dispatch:
 
