@@ -1964,7 +1964,9 @@ async function exportMatchVideo() {
 
 
   /*
+   * =====================================================
    * 前半動画チェック
+   * =====================================================
    */
 
   if (!videoData[1].file) {
@@ -1978,7 +1980,9 @@ async function exportMatchVideo() {
 
 
   /*
+   * =====================================================
    * 前半の長さを取得
+   * =====================================================
    */
 
   if (
@@ -1990,6 +1994,34 @@ async function exportMatchVideo() {
 
     showMessage(
       "前半動画の長さを取得してください。"
+    );
+
+    return;
+  }
+
+
+  /*
+   * =====================================================
+   * 後半がある場合は後半の長さも確認
+   * =====================================================
+   */
+
+  const hasSecondHalf =
+    !!videoData[2].file;
+
+
+  if (
+    hasSecondHalf &&
+    (
+      !Number.isFinite(
+        videoData[2].duration
+      ) ||
+      videoData[2].duration <= 0
+    )
+  ) {
+
+    showMessage(
+      "後半動画の長さを取得してください。"
     );
 
     return;
@@ -2021,8 +2053,9 @@ async function exportMatchVideo() {
     const firstFileName =
       videoData[1].file.name;
 
+
     const secondFileName =
-      videoData[2].file
+      hasSecondHalf
         ? videoData[2].file.name
         : null;
 
@@ -2033,12 +2066,28 @@ async function exportMatchVideo() {
 
     /*
      * =====================================================
+     * 動画の実際の長さ
+     * =====================================================
+     */
+
+    const firstDuration =
+      videoData[1].duration;
+
+
+    const secondDuration =
+      hasSecondHalf
+        ? videoData[2].duration
+        : 0;
+
+
+    /*
+     * =====================================================
      * 前半・後半動画をFFmpegへマウント
      * =====================================================
      */
 
     exportProgress.textContent =
-      secondFileName
+      hasSecondHalf
         ? "前半・後半動画を準備しています…"
         : "前半動画を準備しています…";
 
@@ -2059,7 +2108,7 @@ async function exportMatchVideo() {
 
 
     const filesToMount =
-      secondFileName
+      hasSecondHalf
         ? [
             videoData[1].file,
             videoData[2].file
@@ -2080,64 +2129,11 @@ async function exportMatchVideo() {
 
     /*
      * =====================================================
-     * 前半 + 後半
-     *
-     * concat demuxerは使用しない
+     * 前半だけ
      * =====================================================
      */
 
-    if (secondFileName) {
-
-      exportProgress.textContent =
-        "前半と後半を結合しています…";
-
-
-      await ffmpeg.exec([
-
-        "-i",
-        `/input/${firstFileName}`,
-
-        "-i",
-        `/input/${secondFileName}`,
-
-        "-filter_complex",
-        "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[v][a]",
-
-        "-map",
-        "[v]",
-
-        "-map",
-        "[a]",
-
-        "-c:v",
-        "libx264",
-
-        "-preset",
-        "ultrafast",
-
-        "-crf",
-        "23",
-
-        "-c:a",
-        "aac",
-
-        "-b:a",
-        "128k",
-
-        "-movflags",
-        "+faststart",
-
-        outputFileName
-
-      ]);
-
-    } else {
-
-      /*
-       * ===================================================
-       * 前半だけ
-       * ===================================================
-       */
+    if (!hasSecondHalf) {
 
       exportProgress.textContent =
         "前半動画を書き出しています…";
@@ -2146,10 +2142,105 @@ async function exportMatchVideo() {
       await ffmpeg.exec([
         "-i",
         `/input/${firstFileName}`,
+
         "-c",
         "copy",
+
         outputFileName
       ]);
+
+    }
+
+
+    /*
+     * =====================================================
+     * 前半 + 後半
+     * =====================================================
+     */
+
+    else {
+
+      exportProgress.textContent =
+        "前半と後半を結合しています…";
+
+
+      /*
+       * ===================================================
+       * concat用リスト
+       *
+       * 各動画の実際の再生時間を明示する
+       * ===================================================
+       */
+
+      const concatText =
+        `file '/input/${firstFileName}'\n` +
+        `duration ${firstDuration}\n` +
+        `file '/input/${secondFileName}'\n` +
+        `duration ${secondDuration}\n`;
+
+
+      await ffmpeg.writeFile(
+        "input.txt",
+        new TextEncoder().encode(
+          concatText
+        )
+      );
+
+
+      /*
+       * ===================================================
+       * concat demuxer
+       *
+       * 再エンコードなし
+       * ===================================================
+       */
+
+      await ffmpeg.exec([
+
+        "-f",
+        "concat",
+
+        "-safe",
+        "0",
+
+        "-i",
+        "input.txt",
+
+        "-map",
+        "0:v:0",
+
+        "-map",
+        "0:a:0?",
+
+        "-c",
+        "copy",
+
+        "-avoid_negative_ts",
+        "make_zero",
+
+        outputFileName
+
+      ]);
+
+
+      /*
+       * input.txt削除
+       */
+
+      try {
+
+        await ffmpeg.deleteFile(
+          "input.txt"
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "input.txt削除失敗:",
+          error
+        );
+
+      }
 
     }
 
@@ -2182,7 +2273,7 @@ async function exportMatchVideo() {
 
     /*
      * =====================================================
-     * 完成動画保存準備
+     * 動画プレイヤーの参照を解放
      * =====================================================
      */
 
@@ -2194,7 +2285,9 @@ async function exportMatchVideo() {
 
 
     /*
+     * =====================================================
      * Object URLを解放
+     * =====================================================
      */
 
     if (videoData[1].url) {
@@ -2220,7 +2313,9 @@ async function exportMatchVideo() {
 
 
     /*
+     * =====================================================
      * 入力Fileへの参照を解放
+     * =====================================================
      */
 
     videoData[1].file = null;
@@ -2229,7 +2324,9 @@ async function exportMatchVideo() {
 
 
     /*
+     * =====================================================
      * 完成動画を保存用データとして取得
+     * =====================================================
      */
 
     await prepareCompletedVideo(
