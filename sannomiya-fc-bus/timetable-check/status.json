@@ -1,41 +1,48 @@
 {
-  "checkedAt": "2026-09-27T22:36:14.404Z",
-  "hasChanges": false,
+  "checkedAt": "2026-09-27T23:21:18.299Z",
+  "hasChanges": true,
   "services": [
     {
       "id": "hankyu",
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅",
-      "status": "ok",
-      "message": "初回登録"
+      "status": "changed",
+      "message": "公式ページに変更を検出"
     },
     {
       "id": "subway",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 ↔ 三宮駅",
       "status": "ok",
-      "message": "初回登録"
+      "message": "変更なし"
     },
     {
       "id": "portliner",
       "name": "ポートライナー",
       "route": "三宮駅 ↔ 貿易センター駅",
-      "status": "ok",
-      "message": "初回登録"
+      "status": "changed",
+      "message": "公式ページに変更を検出"
     },
     {
       "id": "citybus",
       "name": "神戸市バス",
       "route": "谷上駅 → 日の峰1丁目方面",
       "status": "ok",
+      "message": "変更なし"
+    },
+    {
+      "id": "jr_sannomiya_to_nada",
+      "name": "JR西日本",
+      "route": "三ノ宮駅 → 灘駅",
+      "status": "ok",
       "message": "初回登録"
     },
     {
-      "id": "jr",
+      "id": "jr_nada_to_sannomiya",
       "name": "JR西日本",
-      "route": "三ノ宮駅 ↔ 灘駅",
-      "status": "error",
-      "message": "HTTP 404"
+      "route": "灘駅 → 三ノ宮駅",
+      "status": "ok",
+      "message": "初回登録"
     }
   ]
 }
