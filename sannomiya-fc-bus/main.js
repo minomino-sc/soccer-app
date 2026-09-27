@@ -1,16 +1,14 @@
 /* =========================================================
    KOBE SANNOMIYA FC
    JUNIOR YOUTH TRANSPORT SYSTEM
-   main.js
 
    ・会場選択
-   ・行き / 帰り選択
-   ・乗り継ぎを考慮したルート検索
-   ・次の3候補を表示
-   ・現在時刻からカウントダウン
-   ・各区間の出発 / 到着時刻を表示
-
-   ※ 時刻表そのものは timetable.js を使用
+   ・行き / 帰り
+   ・乗車予定時刻検索
+   ・現在時刻検索
+   ・乗り継ぎ考慮
+   ・次の3候補
+   ・横スクロール表示
 ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -19,12 +17,20 @@ document.addEventListener("DOMContentLoaded", () => {
      DOM
   ======================================================= */
 
-  const currentDate = document.getElementById("currentDate");
-  const currentTime = document.getElementById("currentTime");
-  const dayType = document.getElementById("dayType");
+  const currentDate =
+    document.getElementById("currentDate");
+
+  const currentTime =
+    document.getElementById("currentTime");
+
+  const dayType =
+    document.getElementById("dayType");
 
   const directionSection =
     document.getElementById("directionSection");
+
+  const searchSection =
+    document.getElementById("searchSection");
 
   const resultSection =
     document.getElementById("resultSection");
@@ -34,6 +40,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const selectedDirection =
     document.getElementById("selectedDirection");
+
+  const searchTime =
+    document.getElementById("searchTime");
+
+  const nowButton =
+    document.getElementById("nowButton");
+
+  const searchButton =
+    document.getElementById("searchButton");
+
+  const searchSummary =
+    document.getElementById("searchSummary");
 
   const routeCards =
     document.getElementById("routeCards");
@@ -49,35 +67,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     状態
+     STATE
   ======================================================= */
 
   let selectedVenueKey = null;
+
   let selectedDirectionKey = null;
+
+  let searchedMinutes = null;
 
 
   /* =======================================================
-     会場名
+     VENUE NAME
   ======================================================= */
 
-  function getVenueName(venueKey) {
+  function getVenueName(key) {
 
-    const venue =
-      TIMETABLE_DATA?.venues?.[venueKey];
-
-    return venue?.name || venueKey;
+    return (
+      TIMETABLE_DATA?.venues?.[key]?.name ||
+      key
+    );
 
   }
 
 
   /* =======================================================
-     曜日区分
-     平日 / 土日祝
+     DAY TYPE
   ======================================================= */
 
-  function getDayType(date = new Date()) {
+  function getDayType() {
 
-    const day = date.getDay();
+    const day =
+      new Date().getDay();
 
     if (day === 0 || day === 6) {
       return "holiday";
@@ -88,32 +109,47 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  function getDayTypeLabel(type) {
+  function getDayTypeLabel() {
 
-    if (type === "holiday") {
-      return "土日祝ダイヤ";
-    }
-
-    return "平日ダイヤ";
+    return getDayType() === "holiday"
+      ? "土日祝ダイヤ"
+      : "平日ダイヤ";
 
   }
 
 
   /* =======================================================
-     時計
+     CLOCK
   ======================================================= */
 
   function updateClock() {
 
-    const now = new Date();
+    const now =
+      new Date();
 
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
+    const y =
+      now.getFullYear();
 
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const ss = String(now.getSeconds()).padStart(2, "0");
+    const m =
+      String(now.getMonth() + 1)
+        .padStart(2, "0");
+
+    const d =
+      String(now.getDate())
+        .padStart(2, "0");
+
+    const hh =
+      String(now.getHours())
+        .padStart(2, "0");
+
+    const mm =
+      String(now.getMinutes())
+        .padStart(2, "0");
+
+    const ss =
+      String(now.getSeconds())
+        .padStart(2, "0");
+
 
     currentDate.textContent =
       `${y}/${m}/${d}`;
@@ -122,50 +158,59 @@ document.addEventListener("DOMContentLoaded", () => {
       `${hh}:${mm}:${ss}`;
 
     dayType.textContent =
-      getDayTypeLabel(getDayType());
+      getDayTypeLabel();
 
-    if (
-      selectedVenueKey &&
-      selectedDirectionKey &&
-      !resultSection.classList.contains("hidden")
-    ) {
-      renderRoutes();
-    }
+
+    /*
+     * NEXTカードのカウントダウンだけ更新
+     */
+    updateCountdowns();
 
   }
 
 
   /* =======================================================
-     時刻 → 分
+     TIME
   ======================================================= */
 
   function timeToMinutes(time) {
 
-    const [h, m] =
-      time.split(":").map(Number);
+    const parts =
+      time.split(":");
+
+    const h =
+      Number(parts[0]);
+
+    const m =
+      Number(parts[1]);
+
+    if (
+      !Number.isFinite(h) ||
+      !Number.isFinite(m)
+    ) {
+      return null;
+    }
 
     return h * 60 + m;
 
   }
 
 
-  /* =======================================================
-     分 → HH:MM
-  ======================================================= */
+  function minutesToTime(totalMinutes) {
 
-  function minutesToTime(minutes) {
+    let value =
+      Math.round(totalMinutes);
 
-    /*
-     * 24:xx にも対応
-     */
-    const normalized =
-      ((minutes % 1440) + 1440) % 1440;
+    value =
+      ((value % 1440) + 1440) % 1440;
+
 
     const h =
-      Math.floor(normalized / 60);
+      Math.floor(value / 60);
 
     const m =
-      normalized % 60;
+      value % 60;
+
 
     return (
       String(h).padStart(2, "0") +
@@ -176,13 +221,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  /* =======================================================
-     日付をまたぐ場合を考慮した現在時刻
-  ======================================================= */
-
   function getCurrentMinutes() {
 
-    const now = new Date();
+    const now =
+      new Date();
 
     return (
       now.getHours() * 60 +
@@ -194,74 +236,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     時刻表から次の便を探す
-  ======================================================= */
-
-  function getNextDeparture(
-    timetable,
-    dayTypeValue,
-    afterMinutes
-  ) {
-
-    if (!timetable) {
-      return null;
-    }
-
-    const candidates = [];
-
-    const dayTable =
-      timetable[dayTypeValue];
-
-    if (!dayTable) {
-      return null;
-    }
-
-    Object.keys(dayTable).forEach(hour => {
-
-      const minutes =
-        dayTable[hour] || [];
-
-      minutes.forEach(minute => {
-
-        const h = Number(hour);
-        const m = Number(minute);
-
-        const departure =
-          h * 60 + m;
-
-        /*
-         * 当日24:xxなどにも対応
-         */
-        if (departure >= afterMinutes) {
-
-          candidates.push({
-            minutes: departure,
-            time:
-              `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
-          });
-
-        }
-
-      });
-
-    });
-
-    candidates.sort(
-      (a, b) => a.minutes - b.minutes
-    );
-
-    return candidates[0] || null;
-
-  }
-
-
-  /* =======================================================
-     時刻表から全便を取得
+     ALL DEPARTURES
   ======================================================= */
 
   function getAllDepartures(
     timetable,
-    dayTypeValue
+    dayType
   ) {
 
     const result = [];
@@ -270,36 +250,54 @@ document.addEventListener("DOMContentLoaded", () => {
       return result;
     }
 
-    const dayTable =
-      timetable[dayTypeValue];
+    const table =
+      timetable[dayType];
 
-    if (!dayTable) {
+    if (!table) {
       return result;
     }
 
-    Object.keys(dayTable).forEach(hour => {
 
-      const minutes =
-        dayTable[hour] || [];
+    Object.keys(table)
+      .forEach(hour => {
 
-      minutes.forEach(minute => {
+        const minutes =
+          table[hour] || [];
 
-        const h = Number(hour);
-        const m = Number(minute);
+        minutes.forEach(minute => {
 
-        result.push({
-          minutes: h * 60 + m,
-          time:
-            `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+          const h =
+            Number(hour);
+
+          const m =
+            Number(minute);
+
+          if (
+            !Number.isFinite(h) ||
+            !Number.isFinite(m)
+          ) {
+            return;
+          }
+
+
+          result.push({
+            minutes:
+              h * 60 + m,
+
+            time:
+              `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+          });
+
         });
 
       });
 
-    });
 
     result.sort(
-      (a, b) => a.minutes - b.minutes
+      (a, b) =>
+        a.minutes - b.minutes
     );
+
 
     return result;
 
@@ -307,36 +305,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     出発候補を取得
+     NEXT DEPARTURE
   ======================================================= */
 
-  function getDepartureCandidates(
+  function getNextDeparture(
     timetable,
-    dayTypeValue,
-    afterMinutes,
-    count = 10
+    dayType,
+    earliestMinutes
   ) {
 
-    return getAllDepartures(
-      timetable,
-      dayTypeValue
-    )
-      .filter(item =>
-        item.minutes >= afterMinutes
-      )
-      .slice(0, count);
+    const departures =
+      getAllDepartures(
+        timetable,
+        dayType
+      );
+
+
+    return (
+      departures.find(
+        item =>
+          item.minutes >=
+          earliestMinutes
+      ) || null
+    );
 
   }
 
 
   /* =======================================================
-     ルート設定
-     
-     travel:
-       乗車 / 徒歩時間
+     ROUTE DEFINITION
 
-     transfer:
-       次の交通機関へ乗り継ぐための時間
+     transferBefore:
+     この交通機関に乗る前に必要な乗り継ぎ時間
+
+     travel:
+     乗車 / 徒歩時間
   ======================================================= */
 
   function getRouteDefinition(
@@ -345,7 +348,10 @@ document.addEventListener("DOMContentLoaded", () => {
   ) {
 
     const venue =
-      TIMETABLE_DATA.venues[venueKey];
+      TIMETABLE_DATA
+        ?.venues
+        ?. [venueKey];
+
 
     if (!venue) {
       return [];
@@ -353,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =====================================================
-       小野浜球技場
+       小野浜
     ===================================================== */
 
     if (venueKey === "onohama") {
@@ -368,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[0].operator,
             station: venue.go[0].station,
             travel: 10,
-            transfer: 5
+            transferBefore: 0
           },
 
           {
@@ -377,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[1].operator,
             station: venue.go[1].station,
             travel: 10,
-            transfer: 7
+            transferBefore: 5
           },
 
           {
@@ -386,15 +392,14 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[2].operator,
             station: venue.go[2].station,
             travel: 2,
-            transfer: 0
+            transferBefore: 7
           },
 
           {
             type: "walk",
             operator: "徒歩",
             station: "貿易センター駅 → 小野浜球技場",
-            travel: 5,
-            transfer: 0
+            travel: 5
           }
 
         ];
@@ -402,16 +407,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      /* 小野浜・帰り */
-
       return [
 
         {
           type: "walk",
           operator: "徒歩",
           station: "小野浜球技場 → 貿易センター駅",
-          travel: 5,
-          transfer: 0
+          travel: 5
         },
 
         {
@@ -420,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[0].operator,
           station: venue.return[0].station,
           travel: 2,
-          transfer: 7
+          transferBefore: 0
         },
 
         {
@@ -429,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[1].operator,
           station: venue.return[1].station,
           travel: 10,
-          transfer: 5
+          transferBefore: 7
         },
 
         {
@@ -438,7 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[2].operator,
           station: venue.return[2].station,
           travel: 10,
-          transfer: 0
+          transferBefore: 5
         }
 
       ];
@@ -462,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[0].operator,
             station: venue.go[0].station,
             travel: 10,
-            transfer: 5
+            transferBefore: 0
           },
 
           {
@@ -471,7 +473,7 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[1].operator,
             station: venue.go[1].station,
             travel: 10,
-            transfer: 6
+            transferBefore: 5
           },
 
           {
@@ -480,7 +482,14 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[2].operator,
             station: venue.go[2].station,
             travel: 2,
-            transfer: 0
+            transferBefore: 6
+          },
+
+          {
+            type: "walk",
+            operator: "徒歩",
+            station: "JR灘駅 → 神戸朝鮮中",
+            travel: 5
           }
 
         ];
@@ -488,16 +497,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      /* 神戸朝鮮中・帰り */
-
       return [
 
         {
           type: "walk",
           operator: "徒歩",
           station: "神戸朝鮮中 → JR灘駅",
-          travel: 5,
-          transfer: 0
+          travel: 5
         },
 
         {
@@ -506,7 +512,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[0].operator,
           station: venue.return[0].station,
           travel: 2,
-          transfer: 6
+          transferBefore: 0
         },
 
         {
@@ -515,7 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[1].operator,
           station: venue.return[1].station,
           travel: 10,
-          transfer: 5
+          transferBefore: 6
         },
 
         {
@@ -524,7 +530,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[2].operator,
           station: venue.return[2].station,
           travel: 10,
-          transfer: 0
+          transferBefore: 5
         }
 
       ];
@@ -533,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =====================================================
-       コミスタ神戸
+       コミスタ
     ===================================================== */
 
     if (venueKey === "comista") {
@@ -548,7 +554,7 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[0].operator,
             station: venue.go[0].station,
             travel: 10,
-            transfer: 5
+            transferBefore: 0
           },
 
           {
@@ -557,15 +563,14 @@ document.addEventListener("DOMContentLoaded", () => {
             operator: venue.go[1].operator,
             station: venue.go[1].station,
             travel: 10,
-            transfer: 0
+            transferBefore: 5
           },
 
           {
             type: "walk",
             operator: "徒歩",
             station: "三宮駅 → コミスタ神戸",
-            travel: 15,
-            transfer: 0
+            travel: 15
           }
 
         ];
@@ -573,16 +578,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      /* コミスタ神戸・帰り */
-
       return [
 
         {
           type: "walk",
           operator: "徒歩",
           station: "コミスタ神戸 → 三宮駅",
-          travel: 15,
-          transfer: 0
+          travel: 15
         },
 
         {
@@ -591,7 +593,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[0].operator,
           station: venue.return[0].station,
           travel: 10,
-          transfer: 5
+          transferBefore: 0
         },
 
         {
@@ -600,7 +602,7 @@ document.addEventListener("DOMContentLoaded", () => {
           operator: venue.return[1].operator,
           station: venue.return[1].station,
           travel: 10,
-          transfer: 0
+          transferBefore: 5
         }
 
       ];
@@ -614,94 +616,120 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     1つの出発便から最後まで接続できるか検索
+     BUILD ROUTE
+
+     ルート全体を実際の時刻表から構築
   ======================================================= */
 
   function buildRoute(
     definition,
-    firstDeparture,
-    dayTypeValue
+    startMinutes,
+    dayType
   ) {
 
     let currentTime =
-      firstDeparture.minutes;
+      startMinutes;
 
     const legs = [];
 
-    for (let i = 0; i < definition.length; i++) {
+    let firstVehicleDeparture = null;
+
+
+    for (
+      let i = 0;
+      i < definition.length;
+      i++
+    ) {
 
       const leg =
         definition[i];
 
 
-      /* ---------------------------------------------------
-         徒歩区間
-      --------------------------------------------------- */
+      /* -----------------------------------------------
+         徒歩
+      ------------------------------------------------ */
 
       if (leg.type === "walk") {
 
-        const start =
+        const departure =
           currentTime;
 
         const arrival =
-          start + leg.travel;
+          departure + leg.travel;
+
 
         legs.push({
+
           type: "walk",
-          operator: leg.operator,
-          station: leg.station,
-          departure: start,
-          arrival: arrival,
-          departureTime: minutesToTime(start),
-          arrivalTime: minutesToTime(arrival),
-          travel: leg.travel,
-          transfer: 0
+
+          operator:
+            leg.operator,
+
+          station:
+            leg.station,
+
+          departure:
+            departure,
+
+          arrival:
+            arrival,
+
+          departureTime:
+            minutesToTime(
+              departure
+            ),
+
+          arrivalTime:
+            minutesToTime(
+              arrival
+            ),
+
+          travel:
+            leg.travel,
+
+          transferBefore: 0
+
         });
 
-        currentTime = arrival;
+
+        currentTime =
+          arrival;
+
 
         continue;
 
       }
 
 
-      /* ---------------------------------------------------
+      /* -----------------------------------------------
          交通機関
-      --------------------------------------------------- */
+      ------------------------------------------------ */
 
-      let departure;
+      const earliest =
+        currentTime +
+        (leg.transferBefore || 0);
 
-      if (i === 0) {
 
-        /*
-         * 最初の便は指定された候補便
-         */
-        departure = firstDeparture;
+      const departure =
+        getNextDeparture(
+          leg.timetable,
+          dayType,
+          earliest
+        );
 
-      } else {
 
-        /*
-         * 前区間到着後、乗り継ぎ時間を加える
-         */
-        const earliest =
-          currentTime +
-          definition[i - 1].transfer;
-
-        departure =
-          getNextDeparture(
-            leg.timetable,
-            dayTypeValue,
-            earliest
-          );
-
+      if (!departure) {
+        return null;
       }
 
 
-      /*
-       * 次の便が存在しない
-       */
-      if (!departure) {
-        return null;
+      if (
+        firstVehicleDeparture === null
+      ) {
+
+        firstVehicleDeparture =
+          departure.minutes;
+
       }
 
 
@@ -711,16 +739,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       legs.push({
+
         type: "timetable",
-        operator: leg.operator,
-        station: leg.station,
-        departure: departure.minutes,
-        arrival: arrival,
-        departureTime: departure.time,
-        arrivalTime: minutesToTime(arrival),
-        travel: leg.travel,
-        transfer:
-          leg.transfer || 0
+
+        operator:
+          leg.operator,
+
+        station:
+          leg.station,
+
+        departure:
+          departure.minutes,
+
+        arrival:
+          arrival,
+
+        departureTime:
+          departure.time,
+
+        arrivalTime:
+          minutesToTime(
+            arrival
+          ),
+
+        travel:
+          leg.travel,
+
+        transferBefore:
+          leg.transferBefore || 0
+
       });
 
 
@@ -731,23 +778,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     return {
-      firstDeparture:
-        firstDeparture.minutes,
 
-      firstDepartureTime:
-        firstDeparture.time,
+      startTime:
+        startMinutes,
+
+      startTimeText:
+        minutesToTime(
+          startMinutes
+        ),
+
+      firstVehicleDeparture:
+        firstVehicleDeparture,
+
+      firstVehicleDepartureText:
+        firstVehicleDeparture !== null
+          ? minutesToTime(
+              firstVehicleDeparture
+            )
+          : minutesToTime(
+              startMinutes
+            ),
 
       arrival:
         currentTime,
 
       arrivalTime:
-        minutesToTime(currentTime),
-
-      legs: legs,
+        minutesToTime(
+          currentTime
+        ),
 
       totalMinutes:
         currentTime -
-        firstDeparture.minutes
+        startMinutes,
+
+      legs:
+        legs
 
     };
 
@@ -755,13 +820,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     次の候補ルートを取得
+     ROUTE SEARCH
+
+     入力された時刻以降のスタート時刻を起点に
+     乗り継ぎ可能な3ルートを検索
   ======================================================= */
 
   function findRoutes(
     venueKey,
     direction,
-    count = 3
+    requestedMinutes
   ) {
 
     const definition =
@@ -770,12 +838,13 @@ document.addEventListener("DOMContentLoaded", () => {
         direction
       );
 
+
     if (!definition.length) {
       return [];
     }
 
 
-    const dayTypeValue =
+    const dayType =
       getDayType();
 
 
@@ -784,7 +853,8 @@ document.addEventListener("DOMContentLoaded", () => {
      */
     const firstTimetable =
       definition.find(
-        leg => leg.type === "timetable"
+        leg =>
+          leg.type === "timetable"
       )?.timetable;
 
 
@@ -793,49 +863,156 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /*
-     * 現在時刻以降の最初の便から
-     * 少し多めに候補を調べる
-     */
-    const nowMinutes =
-      getCurrentMinutes();
-
-    const firstCandidates =
-      getDepartureCandidates(
+    const departures =
+      getAllDepartures(
         firstTimetable,
-        dayTypeValue,
-        nowMinutes,
-        20
+        dayType
+      );
+
+
+    const candidates =
+      departures.filter(
+        item =>
+          item.minutes >=
+          requestedMinutes
       );
 
 
     const routes = [];
 
 
+    /*
+     * 最初の便を順番に試す
+     */
     for (
-      const candidate of firstCandidates
+      const candidate of candidates
     ) {
 
+      /*
+       * 最初の交通機関の出発時刻を
+       * 起点にしてルートを構築する
+       */
       const route =
         buildRoute(
           definition,
-          candidate,
-          dayTypeValue
+          candidate.minutes,
+          dayType
         );
 
 
-      /*
-       * 最後まで接続できたルートだけ採用
-       */
       if (route) {
 
-        routes.push(route);
+        /*
+         * 同じルートの重複防止
+         */
+        const exists =
+          routes.some(
+            item =>
+              item.firstVehicleDeparture ===
+              route.firstVehicleDeparture
+          );
+
+
+        if (!exists) {
+
+          routes.push(
+            route
+          );
+
+        }
 
       }
 
 
-      if (routes.length >= count) {
+      if (routes.length >= 3) {
         break;
+      }
+
+    }
+
+
+    /*
+     * 最初の交通機関が徒歩から始まる
+     * 「帰り」の場合
+     *
+     * requestedMinutes を出発時刻として、
+     * 徒歩後の最初の交通機関を検索する必要がある。
+     */
+    if (
+      definition[0].type === "walk"
+    ) {
+
+      routes.length = 0;
+
+
+      /*
+       * 最初の徒歩開始時刻を少しずつ進めて
+       * 3つの異なる交通便を探す
+       */
+      const maxSearch =
+        requestedMinutes + 240;
+
+
+      let cursor =
+        requestedMinutes;
+
+
+      while (
+        cursor <= maxSearch &&
+        routes.length < 3
+      ) {
+
+        const route =
+          buildRoute(
+            definition,
+            cursor,
+            dayType
+          );
+
+
+        if (route) {
+
+          const key =
+            route.firstVehicleDeparture;
+
+
+          const exists =
+            routes.some(
+              item =>
+                item.firstVehicleDeparture ===
+                key
+            );
+
+
+          if (!exists) {
+
+            routes.push(
+              route
+            );
+
+          }
+
+        }
+
+
+        /*
+         * 次の検索は1分ずつではなく、
+         * 今回使った交通便の次の便付近へ進める
+         */
+        if (
+          route &&
+          route.firstVehicleDeparture !== null
+        ) {
+
+          cursor =
+            route.firstVehicleDeparture + 1;
+
+        } else {
+
+          cursor += 1;
+
+        }
+
       }
 
     }
@@ -847,29 +1024,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     時間差表示
+     DURATION
   ======================================================= */
 
   function formatDuration(minutes) {
 
-    const total =
+    const value =
       Math.max(
         0,
         Math.round(minutes)
       );
 
+
     const h =
-      Math.floor(total / 60);
+      Math.floor(
+        value / 60
+      );
 
     const m =
-      total % 60;
+      value % 60;
 
 
     if (h > 0) {
 
+      if (m === 0) {
+        return `${h}時間`;
+      }
+
       return `${h}時間${m}分`;
 
     }
+
 
     return `${m}分`;
 
@@ -877,13 +1062,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     カウントダウン
+     COUNTDOWN
   ======================================================= */
 
-  function formatCountdown(targetMinutes) {
+  function formatCountdown(
+    targetMinutes
+  ) {
+
+    if (
+      targetMinutes === null ||
+      targetMinutes === undefined
+    ) {
+      return "";
+    }
+
 
     const now =
       new Date();
+
+
+    let target =
+      targetMinutes * 60;
+
 
     const nowSeconds =
       now.getHours() * 3600 +
@@ -891,32 +1091,23 @@ document.addEventListener("DOMContentLoaded", () => {
       now.getSeconds();
 
 
-    let targetSeconds =
-      targetMinutes * 60;
-
-
-    /*
-     * 深夜 / 日付またぎ対応
-     */
     while (
-      targetSeconds < nowSeconds
+      target < nowSeconds
     ) {
 
-      targetSeconds +=
+      target +=
         24 * 60 * 60;
 
     }
 
 
-    let diff =
-      targetSeconds -
-      nowSeconds;
-
-
-    diff =
+    const diff =
       Math.max(
         0,
-        Math.floor(diff)
+        Math.floor(
+          target -
+          nowSeconds
+        )
       );
 
 
@@ -938,118 +1129,433 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     区間表示
+     OPERATOR ICON
   ======================================================= */
 
-  function renderLeg(
+  function getIcon(
+    operator
+  ) {
+
+    const value =
+      String(operator);
+
+
+    if (
+      value.includes("阪急バス")
+    ) {
+      return "🚌";
+    }
+
+
+    if (
+      value.includes("地下鉄")
+    ) {
+      return "🚇";
+    }
+
+
+    if (
+      value.includes("ポートライナー")
+    ) {
+      return "🚈";
+    }
+
+
+    if (
+      value.includes("JR")
+    ) {
+      return "🚃";
+    }
+
+
+    if (
+      value.includes("徒歩")
+    ) {
+      return "🚶";
+    }
+
+
+    return "🚉";
+
+  }
+
+
+  /* =======================================================
+     ESCAPE
+  ======================================================= */
+
+  function escapeHtml(
+    value
+  ) {
+
+    return String(value)
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+  }
+
+
+  /* =======================================================
+     TIMELINE LEG
+  ======================================================= */
+
+  function renderTimelineLeg(
     leg,
     index
   ) {
 
-    const isWalk =
+    const walk =
       leg.type === "walk";
 
 
-    let html = `
-      <div class="route-leg">
+    return `
 
-        <div class="route-leg-number">
+      <div
+        class="timeline-leg ${walk ? "walk" : ""}"
+      >
+
+        <div class="timeline-number">
           ${index + 1}
         </div>
 
-        <div class="route-leg-body">
 
-          <div class="route-leg-top">
+        <div class="timeline-operator">
 
-            <span class="route-operator">
-              ${escapeHtml(leg.operator)}
-            </span>
+          ${getIcon(
+            leg.operator
+          )}
 
-            ${
-              isWalk
-                ? `<span class="route-mode">徒歩</span>`
-                : `<span class="route-mode">乗車</span>`
-            }
+          ${escapeHtml(
+            leg.operator
+          )}
 
-          </div>
+        </div>
 
-          <div class="route-station">
-            ${escapeHtml(leg.station)}
-          </div>
 
-          <div class="route-times">
+        <div class="timeline-mode">
 
-            <span>
-              ${leg.departureTime}
-            </span>
+          ${
+            walk
+              ? "徒歩"
+              : "乗車"
+          }
 
-            <span class="route-arrow">
-              →
-            </span>
+        </div>
 
-            <span>
-              ${leg.arrivalTime}
-            </span>
 
-            <span class="route-duration">
-              ${formatDuration(leg.travel)}
-            </span>
+        <div class="timeline-station">
 
-          </div>
+          ${escapeHtml(
+            leg.station
+          )}
+
+        </div>
+
+
+        <div class="timeline-time">
+
+          ${leg.departureTime}
+          →
+          ${leg.arrivalTime}
+
+        </div>
+
+
+        <div class="timeline-duration">
+
+          ${walk ? "徒歩" : "乗車"}
+          ${formatDuration(
+            leg.travel
+          )}
 
         </div>
 
       </div>
+
     `;
 
+  }
 
-    /*
-     * 次の区間への乗り継ぎ
-     */
+
+  /* =======================================================
+     CONNECTOR
+  ======================================================= */
+
+  function renderConnector(
+    minutes
+  ) {
+
     if (
-      leg.transfer > 0
+      !minutes ||
+      minutes <= 0
     ) {
 
-      html += `
-        <div class="transfer-time">
-          <span>↳</span>
-          乗り継ぎ ${leg.transfer}分
+      return `
+        <div class="timeline-connector">
+
+          <div class="timeline-arrow">
+            →
+          </div>
+
         </div>
       `;
 
     }
 
 
-    return html;
+    return `
+
+      <div class="timeline-connector">
+
+        <div class="timeline-transfer">
+
+          <strong>
+            ＋${minutes}分
+          </strong>
+
+          乗り継ぎ
+
+        </div>
+
+
+        <div class="timeline-arrow">
+          →
+        </div>
+
+      </div>
+
+    `;
 
   }
 
 
   /* =======================================================
-     HTMLエスケープ
+     RENDER ROUTE
   ======================================================= */
 
-  function escapeHtml(value) {
+  function renderRouteCard(
+    route,
+    index
+  ) {
 
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    const card =
+      document.createElement(
+        "article"
+      );
+
+
+    card.className =
+      "route-card";
+
+
+    if (index === 0) {
+
+      card.classList.add(
+        "is-next"
+      );
+
+    }
+
+
+    /*
+     * 区間を横並びにする
+     */
+    let timelineHtml = "";
+
+
+    route.legs.forEach(
+      (leg, legIndex) => {
+
+        timelineHtml +=
+          renderTimelineLeg(
+            leg,
+            legIndex
+          );
+
+
+        if (
+          legIndex <
+          route.legs.length - 1
+        ) {
+
+          /*
+           * 次の交通機関に乗るまでの
+           * transferBefore を取得
+           */
+          const nextLeg =
+            route.legs[
+              legIndex + 1
+            ];
+
+
+          timelineHtml +=
+            renderConnector(
+              nextLeg.transferBefore
+            );
+
+        }
+
+      }
+    );
+
+
+    const countdown =
+      index === 0
+        ? formatCountdown(
+            route.firstVehicleDeparture
+          )
+        : "";
+
+
+    card.innerHTML = `
+
+      <div class="route-card-top">
+
+        <div class="route-card-title-row">
+
+          <div>
+
+            <div
+              class="route-label ${
+                index === 0
+                  ? ""
+                  : "candidate"
+              }"
+            >
+
+              ${
+                index === 0
+                  ? "NEXT"
+                  : "NEXT CANDIDATE"
+              }
+
+            </div>
+
+
+            <div class="route-start-time">
+
+              ${
+                route.firstVehicleDepartureText
+              }
+
+            </div>
+
+          </div>
+
+
+          ${
+            index === 0
+              ? `
+                <div
+                  class="route-countdown"
+                  data-countdown="${route.firstVehicleDeparture}"
+                >
+                  あと${countdown}
+                </div>
+              `
+              : ""
+          }
+
+        </div>
+
+
+        <div class="route-result-row">
+
+          <div class="route-result-item">
+
+            <span>
+              最終到着
+            </span>
+
+            <strong>
+              ${route.arrivalTime}
+            </strong>
+
+          </div>
+
+
+          <div class="route-result-item">
+
+            <span>
+              所要時間
+            </span>
+
+            <strong>
+              ${formatDuration(
+                route.totalMinutes
+              )}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="route-timeline-wrap">
+
+        <div class="timeline-scroll">
+
+          <div class="timeline">
+
+            ${timelineHtml}
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="route-arrival">
+
+        <span class="route-arrival-label">
+          最終到着
+        </span>
+
+        <span class="route-arrival-time">
+          ${route.arrivalTime}
+        </span>
+
+      </div>
+
+    `;
+
+
+    return card;
 
   }
 
 
   /* =======================================================
-     ルート表示
+     RENDER ROUTES
   ======================================================= */
 
   function renderRoutes() {
 
     if (
       !selectedVenueKey ||
-      !selectedDirectionKey
+      !selectedDirectionKey ||
+      searchedMinutes === null
     ) {
       return;
     }
@@ -1059,7 +1565,7 @@ document.addEventListener("DOMContentLoaded", () => {
       findRoutes(
         selectedVenueKey,
         selectedDirectionKey,
-        3
+        searchedMinutes
       );
 
 
@@ -1075,23 +1581,37 @@ document.addEventListener("DOMContentLoaded", () => {
         : "← 帰り";
 
 
+    searchSummary.innerHTML = `
+      <strong>
+        ${minutesToTime(searchedMinutes)}
+      </strong>
+      以降で乗り継ぎ可能なルート
+      <span>
+        ・${getDayTypeLabel()}
+      </span>
+    `;
+
+
     routeCards.innerHTML = "";
 
 
     if (!routes.length) {
 
       routeCards.innerHTML = `
+
         <div class="route-card no-route">
 
           <div class="no-route-title">
-            次に利用できる接続が見つかりません
+            接続可能なルートが見つかりません
           </div>
 
           <div class="no-route-text">
-            次の時間帯の便をお待ちください。
+            検索時刻を少し早めるか、
+            別の時刻を指定してください。
           </div>
 
         </div>
+
       `;
 
       return;
@@ -1102,101 +1622,12 @@ document.addEventListener("DOMContentLoaded", () => {
     routes.forEach(
       (route, index) => {
 
-        const card =
-          document.createElement("div");
-
-        card.className =
-          "route-card";
-
-
-        const countdown =
-          index === 0
-            ? formatCountdown(
-                route.firstDeparture
-              )
-            : "";
-
-
-        const firstClass =
-          index === 0
-            ? "is-next"
-            : "";
-
-
-        card.innerHTML = `
-
-          <div class="route-card-header ${firstClass}">
-
-            <div>
-
-              ${
-                index === 0
-                  ? `<div class="next-label">
-                       NEXT
-                     </div>`
-                  : `<div class="candidate-label">
-                       次の候補
-                     </div>`
-              }
-
-              <div class="route-main-time">
-                ${route.firstDepartureTime}
-              </div>
-
-            </div>
-
-            ${
-              index === 0
-                ? `
-                  <div class="countdown">
-                    あと${countdown}
-                  </div>
-                `
-                : ""
-            }
-
-          </div>
-
-
-          <div class="route-summary">
-
-            <div>
-              <span>到着</span>
-              <strong>
-                ${route.arrivalTime}
-              </strong>
-            </div>
-
-            <div>
-              <span>所要時間</span>
-              <strong>
-                ${formatDuration(
-                  route.totalMinutes
-                )}
-              </strong>
-            </div>
-
-          </div>
-
-
-          <div class="route-legs">
-
-            ${route.legs
-              .map(
-                (leg, legIndex) =>
-                  renderLeg(
-                    leg,
-                    legIndex
-                  )
-              )
-              .join("")}
-
-          </div>
-
-        `;
-
-
-        routeCards.appendChild(card);
+        routeCards.appendChild(
+          renderRouteCard(
+            route,
+            index
+          )
+        );
 
       }
     );
@@ -1205,7 +1636,162 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     会場選択
+     COUNTDOWN UPDATE
+  ======================================================= */
+
+  function updateCountdowns() {
+
+    const elements =
+      document.querySelectorAll(
+        "[data-countdown]"
+      );
+
+
+    elements.forEach(
+      element => {
+
+        const value =
+          Number(
+            element.dataset.countdown
+          );
+
+
+        if (
+          Number.isFinite(value)
+        ) {
+
+          element.textContent =
+            `あと${formatCountdown(value)}`;
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     SET CURRENT TIME
+  ======================================================= */
+
+  function setCurrentTime() {
+
+    const now =
+      new Date();
+
+
+    const hh =
+      String(
+        now.getHours()
+      ).padStart(
+        2,
+        "0"
+      );
+
+
+    const mm =
+      String(
+        now.getMinutes()
+      ).padStart(
+        2,
+        "0"
+      );
+
+
+    searchTime.value =
+      `${hh}:${mm}`;
+
+  }
+
+
+  /* =======================================================
+     SEARCH BUTTON
+  ======================================================= */
+
+  searchButton.addEventListener(
+    "click",
+    () => {
+
+      const value =
+        searchTime.value;
+
+
+      if (!value) {
+
+        alert(
+          "乗車予定時刻を入力してください。"
+        );
+
+        return;
+
+      }
+
+
+      const minutes =
+        timeToMinutes(
+          value
+        );
+
+
+      if (
+        minutes === null
+      ) {
+
+        alert(
+          "時刻を正しく入力してください。"
+        );
+
+        return;
+
+      }
+
+
+      searchedMinutes =
+        minutes;
+
+
+      resultSection
+        .classList
+        .remove("hidden");
+
+
+      renderRoutes();
+
+
+      setTimeout(
+        () => {
+
+          resultSection
+            .scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+
+        },
+        50
+      );
+
+    }
+  );
+
+
+  /* =======================================================
+     CURRENT TIME BUTTON
+  ======================================================= */
+
+  nowButton.addEventListener(
+    "click",
+    () => {
+
+      setCurrentTime();
+
+    }
+  );
+
+
+  /* =======================================================
+     VENUE
   ======================================================= */
 
   venueButtons.forEach(
@@ -1218,13 +1804,18 @@ document.addEventListener("DOMContentLoaded", () => {
           selectedVenueKey =
             button.dataset.venue;
 
+
           selectedDirectionKey =
             null;
 
 
+          searchedMinutes =
+            null;
+
+
           venueButtons.forEach(
-            b =>
-              b.classList.remove(
+            item =>
+              item.classList.remove(
                 "active"
               )
           );
@@ -1235,9 +1826,22 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
+          directionButtons.forEach(
+            item =>
+              item.classList.remove(
+                "active"
+              )
+          );
+
+
           directionSection
             .classList
             .remove("hidden");
+
+
+          searchSection
+            .classList
+            .add("hidden");
 
 
           resultSection
@@ -1245,21 +1849,11 @@ document.addEventListener("DOMContentLoaded", () => {
             .add("hidden");
 
 
-          /*
-           * ROUTE選択位置まで移動
-           */
-          setTimeout(
-            () => {
-
-              directionSection
-                .scrollIntoView({
-                  behavior: "smooth",
-                  block: "start"
-                });
-
-            },
-            50
-          );
+          directionSection
+            .scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
 
         }
       );
@@ -1269,7 +1863,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     行き / 帰り選択
+     DIRECTION
   ======================================================= */
 
   directionButtons.forEach(
@@ -1279,7 +1873,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "click",
         () => {
 
-          if (!selectedVenueKey) {
+          if (
+            !selectedVenueKey
+          ) {
             return;
           }
 
@@ -1289,8 +1885,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           directionButtons.forEach(
-            b =>
-              b.classList.remove(
+            item =>
+              item.classList.remove(
                 "active"
               )
           );
@@ -1301,26 +1897,27 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-          resultSection
+          /*
+           * 最初は現在時刻をセット
+           */
+          setCurrentTime();
+
+
+          searchSection
             .classList
             .remove("hidden");
 
 
-          renderRoutes();
+          resultSection
+            .classList
+            .add("hidden");
 
 
-          setTimeout(
-            () => {
-
-              resultSection
-                .scrollIntoView({
-                  behavior: "smooth",
-                  block: "start"
-                });
-
-            },
-            50
-          );
+          searchSection
+            .scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
 
         }
       );
@@ -1330,7 +1927,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     変更ボタン
+     BACK
   ======================================================= */
 
   backButton.addEventListener(
@@ -1343,24 +1940,32 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedDirectionKey =
         null;
 
+      searchedMinutes =
+        null;
+
 
       venueButtons.forEach(
-        b =>
-          b.classList.remove(
+        button =>
+          button.classList.remove(
             "active"
           )
       );
 
 
       directionButtons.forEach(
-        b =>
-          b.classList.remove(
+        button =>
+          button.classList.remove(
             "active"
           )
       );
 
 
       directionSection
+        .classList
+        .add("hidden");
+
+
+      searchSection
         .classList
         .add("hidden");
 
@@ -1380,10 +1985,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =======================================================
-     初期表示
+     INITIAL
   ======================================================= */
 
+  setCurrentTime();
+
   updateClock();
+
 
   setInterval(
     updateClock,
