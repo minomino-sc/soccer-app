@@ -1956,6 +1956,97 @@ exportBtn.addEventListener(
   }
 );
 
+
+
+async function inspectVideoFile(
+  fileName,
+  label
+) {
+
+  const logs = [];
+
+  const logHandler = ({
+    message
+  }) => {
+
+    logs.push(message);
+
+  };
+
+
+  try {
+
+    ffmpeg.on(
+      "log",
+      logHandler
+    );
+
+
+    /*
+     * 動画情報だけを取得する
+     *
+     * 出力ファイルは作らない
+     */
+
+    try {
+
+      await ffmpeg.exec([
+        "-hide_banner",
+        "-i",
+        `/input/${fileName}`
+      ]);
+
+    } catch (error) {
+
+      /*
+       * 出力先を指定していないため
+       * FFmpegがエラー終了するのは正常
+       */
+
+    }
+
+
+  } finally {
+
+    try {
+
+      ffmpeg.off(
+        "log",
+        logHandler
+      );
+
+    } catch (error) {}
+
+  }
+
+
+  console.log(
+    `========== ${label} ==========\n` +
+    logs.join("\n")
+  );
+
+
+  /*
+   * 画面にも表示
+   */
+
+  const infoText =
+    logs.join("\n");
+
+
+  showMessage(
+    `${label}の内部情報を確認しました。`
+  );
+
+
+  console.log(
+    infoText
+  );
+
+}
+
+
+
 async function exportMatchVideo() {
 
   if (exportBusy) {
@@ -2125,6 +2216,31 @@ async function exportMatchVideo() {
       },
       "/input"
     );
+
+
+
+    /*
+     * =====================================================
+     * 前半・後半の内部情報確認
+     * =====================================================
+     */
+
+    await inspectVideoFile(
+      firstFileName,
+      "前半動画"
+    );
+
+
+    if (secondFileName) {
+
+      await inspectVideoFile(
+        secondFileName,
+        "後半動画"
+      );
+
+    }
+
+     return;
 
 
     /*
