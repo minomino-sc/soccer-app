@@ -1,20 +1,28 @@
 /* =========================================================
    KOBE SANNOMIYA FC
    JUNIOR YOUTH TRANSPORT
-   乗り継ぎ対応版 main.js
 
-   ・各交通機関の乗り継ぎを自動判定
-   ・乗り継ぎ可能な便だけを候補として表示
-   ・最初の出発時刻だけでなく各区間の時刻を表示
+   乗り継ぎ対応版
+
+   ・timetable.js の現在の構造に完全対応
+   ・各交通機関を順番に検索
+   ・乗り継ぎ時間を考慮
    ・最終到着時刻を表示
    ・所要時間を表示
-   ・現在時刻から次に利用できるルートを検索
+   ・次の候補を3ルート表示
+   ・1秒ごとにカウントダウン更新
+
+   timetable.js は変更不要
+========================================================= */
+
+
+/* =========================================================
+   状態
 ========================================================= */
 
 let selectedVenue = null;
 let selectedDirection = null;
 
-let currentNow = new Date();
 
 /* =========================================================
    DOM
@@ -88,29 +96,137 @@ const DIRECTION_NAMES = {
 
 
 /* =========================================================
-   曜日判定
-   土日 → holiday
-   平日 → weekday
+   乗り換え時間
 ========================================================= */
 
-function isWeekend(date) {
+const TRANSFER_MINUTES = {
 
-  const day = date.getDay();
+  /*
+   * 日の峰1丁目
+   * ↓
+   * 谷上駅
+   */
+  "阪急バス→神戸市営地下鉄":
+    3,
 
-  return day === 0 || day === 6;
+  /*
+   * 谷上駅
+   * ↓
+   * 三宮駅
+   */
+  "神戸市営地下鉄→神戸新交通 ポートライナー":
+    5,
+
+  /*
+   * 谷上駅
+   * ↓
+   * 三ノ宮駅
+   *
+   * JRへの乗換
+   */
+  "神戸市営地下鉄→JR西日本":
+    5,
+
+  /*
+   * 灘駅
+   * ↓
+   * 三ノ宮駅
+   */
+  "JR西日本→神戸市営地下鉄":
+    5,
+
+  /*
+   * ポートライナー
+   * ↓
+   * 地下鉄
+   */
+  "神戸新交通 ポートライナー→神戸市営地下鉄":
+    5,
+
+  /*
+   * 地下鉄
+   * ↓
+   * 市バス
+   */
+  "神戸市営地下鉄→神戸市バス":
+    3
+
+};
+
+
+/* =========================================================
+   交通機関アイコン
+========================================================= */
+
+function getTransportIcon(operator) {
+
+  if (!operator) {
+    return "🚉";
+  }
+
+  if (
+    operator.includes("阪急バス") ||
+    operator.includes("神戸市バス")
+  ) {
+    return "🚌";
+  }
+
+  if (
+    operator.includes("地下鉄")
+  ) {
+    return "🚇";
+  }
+
+  if (
+    operator.includes("ポートライナー") ||
+    operator.includes("神戸新交通")
+  ) {
+    return "🚈";
+  }
+
+  if (
+    operator.includes("JR")
+  ) {
+    return "🚃";
+  }
+
+  return "🚉";
 
 }
 
 
 /* =========================================================
-   曜日データ取得
+   曜日判定
 ========================================================= */
 
 function getDayType(date) {
 
-  return isWeekend(date)
-    ? "holiday"
-    : "weekday";
+  const day =
+    date.getDay();
+
+  if (
+    day === 0 ||
+    day === 6
+  ) {
+    return "holiday";
+  }
+
+  return "weekday";
+
+}
+
+
+/* =========================================================
+   現在秒
+========================================================= */
+
+function getCurrentSeconds(date) {
+
+  return (
+    date.getHours() * 3600 +
+    date.getMinutes() * 60 +
+    date.getSeconds()
+  );
 
 }
 
@@ -119,7 +235,10 @@ function getDayType(date) {
    時刻 → 秒
 ========================================================= */
 
-function timeToSeconds(hour, minute) {
+function timeToSeconds(
+  hour,
+  minute
+) {
 
   return (
     Number(hour) * 3600 +
@@ -133,18 +252,40 @@ function timeToSeconds(hour, minute) {
    秒 → HH:MM
 ========================================================= */
 
-function secondsToTime(totalSeconds) {
+function secondsToTime(
+  seconds
+) {
 
-  totalSeconds =
-    ((totalSeconds % 86400) + 86400) % 86400;
+  /*
+   * 深夜24時台を表示する場合にも対応
+   */
 
-  const hour =
-    Math.floor(totalSeconds / 3600);
+  let normalized =
+    Number(seconds);
+
+  let hour =
+    Math.floor(
+      normalized / 3600
+    );
 
   const minute =
     Math.floor(
-      (totalSeconds % 3600) / 60
+      (normalized % 3600) / 60
     );
+
+  /*
+   * 24時台をそのまま表示
+   */
+
+  if (hour >= 24) {
+
+    return (
+      String(hour).padStart(2, "0") +
+      ":" +
+      String(minute).padStart(2, "0")
+    );
+
+  }
 
   return (
     String(hour).padStart(2, "0") +
@@ -159,21 +300,28 @@ function secondsToTime(totalSeconds) {
    秒 → HH:MM:SS
 ========================================================= */
 
-function secondsToClock(totalSeconds) {
+function secondsToClock(
+  seconds
+) {
 
-  totalSeconds =
-    Math.max(0, Math.floor(totalSeconds));
+  seconds =
+    Math.max(
+      0,
+      Math.floor(seconds)
+    );
 
   const hour =
-    Math.floor(totalSeconds / 3600);
+    Math.floor(
+      seconds / 3600
+    );
 
   const minute =
     Math.floor(
-      (totalSeconds % 3600) / 60
+      (seconds % 3600) / 60
     );
 
   const second =
-    totalSeconds % 60;
+    seconds % 60;
 
   return (
     String(hour).padStart(2, "0") +
@@ -190,7 +338,9 @@ function secondsToClock(totalSeconds) {
    時刻表をフラット化
 ========================================================= */
 
-function flattenTimetable(timetable) {
+function flattenTimetable(
+  timetable
+) {
 
   const result = [];
 
@@ -204,30 +354,42 @@ function flattenTimetable(timetable) {
       const minutes =
         timetable[hour];
 
-      if (!Array.isArray(minutes)) {
+      if (
+        !Array.isArray(minutes)
+      ) {
         return;
       }
 
-      minutes.forEach(minute => {
+      minutes.forEach(
+        minute => {
 
-        result.push({
-          hour: Number(hour),
-          minute: Number(minute),
-          seconds:
-            timeToSeconds(
+          result.push({
+
+            hour:
               Number(hour),
-              Number(minute)
-            )
-        });
 
-      });
+            minute:
+              Number(minute),
+
+            seconds:
+              timeToSeconds(
+                Number(hour),
+                Number(minute)
+              )
+
+          });
+
+        }
+      );
 
     });
+
 
   result.sort(
     (a, b) =>
       a.seconds - b.seconds
   );
+
 
   return result;
 
@@ -243,119 +405,249 @@ function getDeparturesAfter(
   afterSeconds
 ) {
 
-  const all =
-    flattenTimetable(timetable);
-
-  return all.filter(
+  return flattenTimetable(
+    timetable
+  ).filter(
     item =>
-      item.seconds >= afterSeconds
+      item.seconds >=
+      afterSeconds
   );
 
 }
 
 
 /* =========================================================
-   指定時刻以降の最初の便
+   交通機関名から表示名
 ========================================================= */
 
-function getNextDeparture(
-  timetable,
-  afterSeconds
+function getShortOperatorName(
+  operator
 ) {
 
-  const departures =
-    getDeparturesAfter(
-      timetable,
-      afterSeconds
-    );
+  if (!operator) {
+    return "";
+  }
 
-  return departures.length
-    ? departures[0]
-    : null;
+  if (
+    operator.includes("神戸新交通")
+  ) {
+    return "神戸新交通";
+  }
+
+  return operator;
 
 }
 
 
 /* =========================================================
-   交通機関アイコン
+   2つの交通機関間の
+   乗り換え時間を取得
 ========================================================= */
 
-function getTransportIcon(type) {
+function getTransferMinutes(
+  currentOperator,
+  nextOperator
+) {
 
-  switch (type) {
+  const key =
+    currentOperator +
+    "→" +
+    nextOperator;
 
-    case "bus":
-      return "🚌";
 
-    case "subway":
-      return "🚇";
+  /*
+   * 明示設定
+   */
 
-    case "portliner":
-      return "🚈";
+  if (
+    Object.prototype.hasOwnProperty.call(
+      TRANSFER_MINUTES,
+      key
+    )
+  ) {
 
-    case "jr":
-      return "🚃";
-
-    default:
-      return "🚉";
+    return TRANSFER_MINUTES[
+      key
+    ];
 
   }
 
+
+  /*
+   * デフォルト
+   */
+
+  return 3;
+
 }
 
 
 /* =========================================================
-   交通機関名
+   交通機関の所要時間
+=========================================================
+
+   現在の時刻表では
+   到着時刻が記載されていないため、
+   ルートごとに実際の所要時間を設定。
+
 ========================================================= */
 
-function getTransportName(type) {
+function getTravelMinutes(
+  operator,
+  station
+) {
 
-  switch (type) {
+  /*
+   * 阪急バス
+   * 日の峰1丁目 → 谷上駅
+   */
 
-    case "bus":
-      return "阪急バス";
+  if (
+    operator === "阪急バス" &&
+    station.includes("日の峰1丁目") &&
+    station.includes("谷上駅")
+  ) {
 
-    case "subway":
-      return "神戸市営地下鉄";
-
-    case "portliner":
-      return "神戸新交通";
-
-    case "jr":
-      return "JR西日本";
-
-    default:
-      return "";
+    return 21;
 
   }
 
+
+  /*
+   * 神戸市バス
+   * 谷上駅 → 日の峰1丁目方面
+   */
+
+  if (
+    operator === "神戸市バス" &&
+    station.includes("谷上駅") &&
+    station.includes("日の峰1丁目")
+  ) {
+
+    return 21;
+
+  }
+
+
+  /*
+   * 地下鉄
+   */
+
+  if (
+    operator === "神戸市営地下鉄"
+  ) {
+
+    return 10;
+
+  }
+
+
+  /*
+   * ポートライナー
+   */
+
+  if (
+    operator.includes("ポートライナー")
+  ) {
+
+    return 4;
+
+  }
+
+
+  /*
+   * JR
+   */
+
+  if (
+    operator === "JR西日本"
+  ) {
+
+    return 3;
+
+  }
+
+
+  /*
+   * デフォルト
+   */
+
+  return 5;
+
 }
 
 
 /* =========================================================
-   乗り継ぎ可能か判定
+   会場のルートを取得
 ========================================================= */
 
-function canTransfer(
-  arrivalSeconds,
-  nextDepartureSeconds,
-  transferMinutes
+function getRouteDefinition(
+  venue,
+  direction
 ) {
+
+  if (
+    !TIMETABLE_DATA ||
+    !TIMETABLE_DATA.venues
+  ) {
+    return null;
+  }
+
+
+  const venueData =
+    TIMETABLE_DATA
+      .venues[
+        venue
+      ];
+
+
+  if (!venueData) {
+    return null;
+  }
+
 
   return (
-    nextDepartureSeconds >=
-    arrivalSeconds +
-    transferMinutes * 60
+    venueData[
+      direction
+    ] || null
   );
 
 }
 
 
 /* =========================================================
-   次に乗れる便を検索
+   1つの交通機関の
+   時刻表を取得
 ========================================================= */
 
-function findNextTransfer(
+function getLegTimetable(
+  leg,
+  dayType
+) {
+
+  if (
+    !leg ||
+    !leg.timetable
+  ) {
+    return null;
+  }
+
+
+  return (
+    leg.timetable[
+      dayType
+    ] || null
+  );
+
+}
+
+
+/* =========================================================
+   指定時刻以降の
+   最初の便
+========================================================= */
+
+function findNextDeparture(
   timetable,
   earliestSeconds
 ) {
@@ -366,791 +658,45 @@ function findNextTransfer(
       earliestSeconds
     );
 
-  return departures.length
-    ? departures[0]
-    : null;
-
-}
-
-
-/* =========================================================
-   ルート1本を検索
-========================================================= */
-
-function searchRoute(
-  legs,
-  startSeconds,
-  dayTimetables
-) {
-
-  const result = [];
-
-  let earliestSeconds =
-    startSeconds;
-
-  for (
-    let i = 0;
-    i < legs.length;
-    i++
-  ) {
-
-    const leg =
-      legs[i];
-
-    const timetable =
-      dayTimetables[
-        leg.transport
-      ];
-
-    if (!timetable) {
-      return null;
-    }
-
-    const departure =
-      findNextTransfer(
-        timetable,
-        earliestSeconds
-      );
-
-    if (!departure) {
-      return null;
-    }
-
-    /*
-     * 乗車時間
-     */
-    const arrivalSeconds =
-      departure.seconds +
-      leg.travelMinutes * 60;
-
-    result.push({
-
-      ...leg,
-
-      departureHour:
-        departure.hour,
-
-      departureMinute:
-        departure.minute,
-
-      departureSeconds:
-        departure.seconds,
-
-      arrivalSeconds,
-
-      arrivalTime:
-        secondsToTime(
-          arrivalSeconds
-        )
-
-    });
-
-    /*
-     * 次の交通機関へ
-     *
-     * transferMinutes は
-     * 現在の交通機関を降りてから
-     * 次の交通機関へ乗るまでの時間
-     */
-
-    earliestSeconds =
-      arrivalSeconds +
-      (leg.transferMinutes || 0) * 60;
-
-  }
-
-  return {
-
-    legs: result,
-
-    departureSeconds:
-      result[0].departureSeconds,
-
-    arrivalSeconds:
-      result[result.length - 1]
-        .arrivalSeconds
-
-  };
-
-}
-
-
-/* =========================================================
-   ルート定義
-=========================================================
-
-   travelMinutes
-   = その区間の所要時間
-
-   transferMinutes
-   = 到着してから次の交通機関へ乗るまでの
-     最低乗り換え時間
-
-========================================================= */
-
-const ROUTES = {
-
-
-  /* =======================================================
-     小野浜球技場
-  ======================================================= */
-
-  onohama: {
-
-    go: [
-
-      {
-        transport: "bus",
-        from: "日の峰1丁目",
-        to: "谷上駅",
-        travelMinutes: 21,
-        transferMinutes: 3
-      },
-
-      {
-        transport: "subway",
-        from: "谷上駅",
-        to: "三宮駅",
-        travelMinutes: 10,
-        transferMinutes: 5
-      },
-
-      {
-        transport: "portliner",
-        from: "三宮駅",
-        to: "貿易センター駅",
-        travelMinutes: 4,
-        transferMinutes: 0
-      }
-
-    ],
-
-    return: [
-
-      {
-        transport: "portliner",
-        from: "貿易センター駅",
-        to: "三宮駅",
-        travelMinutes: 4,
-        transferMinutes: 5
-      },
-
-      {
-        transport: "subway",
-        from: "三宮駅",
-        to: "谷上駅",
-        travelMinutes: 10,
-        transferMinutes: 3
-      },
-
-      {
-        transport: "bus",
-        from: "谷上駅",
-        to: "日の峰1丁目",
-        travelMinutes: 21,
-        transferMinutes: 0
-      }
-
-    ]
-
-  },
-
-
-  /* =======================================================
-     神戸朝鮮中
-  ======================================================= */
-
-  koreanch: {
-
-    go: [
-
-      {
-        transport: "bus",
-        from: "日の峰1丁目",
-        to: "谷上駅",
-        travelMinutes: 21,
-        transferMinutes: 3
-      },
-
-      {
-        transport: "subway",
-        from: "谷上駅",
-        to: "三宮駅",
-        travelMinutes: 10,
-        transferMinutes: 5
-      },
-
-      {
-        transport: "jr",
-        from: "三ノ宮駅",
-        to: "灘駅",
-        travelMinutes: 3,
-        transferMinutes: 0
-      }
-
-    ],
-
-    return: [
-
-      {
-        transport: "jr",
-        from: "灘駅",
-        to: "三ノ宮駅",
-        travelMinutes: 3,
-        transferMinutes: 5
-      },
-
-      {
-        transport: "subway",
-        from: "三宮駅",
-        to: "谷上駅",
-        travelMinutes: 10,
-        transferMinutes: 3
-      },
-
-      {
-        transport: "bus",
-        from: "谷上駅",
-        to: "日の峰1丁目",
-        travelMinutes: 21,
-        transferMinutes: 0
-      }
-
-    ]
-
-  },
-
-
-  /* =======================================================
-     コミスタ神戸
-  ======================================================= */
-
-  comista: {
-
-    go: [
-
-      {
-        transport: "bus",
-        from: "日の峰1丁目",
-        to: "谷上駅",
-        travelMinutes: 21,
-        transferMinutes: 3
-      },
-
-      {
-        transport: "subway",
-        from: "谷上駅",
-        to: "三宮駅",
-        travelMinutes: 10,
-        transferMinutes: 0
-      }
-
-    ],
-
-    return: [
-
-      {
-        transport: "subway",
-        from: "三宮駅",
-        to: "谷上駅",
-        travelMinutes: 10,
-        transferMinutes: 3
-      },
-
-      {
-        transport: "bus",
-        from: "谷上駅",
-        to: "日の峰1丁目",
-        travelMinutes: 21,
-        transferMinutes: 0
-      }
-
-    ]
-
-  }
-
-};
-
-
-/* =========================================================
-   ルート用の時刻表を取得
-========================================================= */
-
-function getRouteTimetables(
-  venue,
-  direction,
-  dayType
-) {
-
-  const route =
-    ROUTES[
-      venue
-    ]?.[
-      direction
-    ];
-
-  if (!route) {
-    return null;
-  }
-
-  const venueData =
-    TIMETABLE_DATA
-      ?.venues?.[
-        venue
-      ];
-
-  if (!venueData) {
-    return null;
-  }
-
-  /*
-   * timetable.js の構造に合わせて
-   * 交通機関ごとの時刻表を取り出す
-   */
-
-  const result = {};
-
-  route.forEach(leg => {
-
-    const transport =
-      leg.transport;
-
-    /*
-     * transport の実際の時刻表名は
-     * timetable.js 側の構造によって異なるため、
-     * まず交通機関名から探す
-     */
-
-    if (
-      venueData[direction] &&
-      venueData[direction][transport]
-    ) {
-
-      result[transport] =
-        venueData[direction][transport]
-          [dayType];
-
-    }
-
-  });
-
-  return result;
-
-}
-
-
-/* =========================================================
-   timetable.js のデータから
-   交通機関ごとの時刻表を取得
-
-   現在の timetable.js は
-   各会場・行き帰りの中に
-   routes 配列を持つ構造なので、
-   複数パターンに対応
-========================================================= */
-
-function resolveTimetable(
-  venue,
-  direction,
-  transport,
-  dayType
-) {
-
-  const venueData =
-    TIMETABLE_DATA
-      ?.venues?.[
-        venue
-      ];
-
-  if (!venueData) {
-    return null;
-  }
-
-  const directionData =
-    venueData[
-      direction
-    ];
-
-  if (!directionData) {
-    return null;
-  }
-
-
-  /*
-   * ① transport が直接存在する場合
-   */
 
   if (
-    directionData[
-      transport
-    ]
+    departures.length === 0
   ) {
 
-    const data =
-      directionData[
-        transport
-      ];
-
-    if (
-      data &&
-      data[dayType]
-    ) {
-
-      return data[dayType];
-
-    }
-
-  }
-
-
-  /*
-   * ② route 配列形式
-   */
-
-  if (
-    Array.isArray(
-      directionData
-    )
-  ) {
-
-    const item =
-      directionData.find(
-        route =>
-          route.transport ===
-          transport
-      );
-
-    if (
-      item &&
-      item.timetable
-    ) {
-
-      if (
-        item.timetable[
-          dayType
-        ]
-      ) {
-
-        return item.timetable[
-          dayType
-        ];
-
-      }
-
-    }
-
-  }
-
-
-  return null;
-
-}
-
-
-/* =========================================================
-   ルートを検索
-========================================================= */
-
-function calculateRoute(
-  venue,
-  direction,
-  nowSeconds,
-  dayType
-) {
-
-  const route =
-    ROUTES[
-      venue
-    ]?.[
-      direction
-    ];
-
-  if (!route) {
     return null;
-  }
-
-
-  /*
-   * 最初のバスを少しずつ進めながら
-   * 全区間を通して成立するルートを探す
-   */
-
-  const firstLeg =
-    route[0];
-
-  const firstTimetable =
-    resolveTimetable(
-      venue,
-      direction,
-      firstLeg.transport,
-      dayType
-    );
-
-  if (!firstTimetable) {
-    return null;
-  }
-
-  const firstDepartures =
-    getDeparturesAfter(
-      firstTimetable,
-      nowSeconds
-    );
-
-
-  for (
-    let i = 0;
-    i < firstDepartures.length;
-    i++
-  ) {
-
-    const firstDeparture =
-      firstDepartures[i];
-
-    const legs = [];
-
-    let currentDeparture =
-      firstDeparture;
-
-    let possible = true;
-
-
-    /*
-     * 各区間を順番に処理
-     */
-
-    for (
-      let j = 0;
-      j < route.length;
-      j++
-    ) {
-
-      const leg =
-        route[j];
-
-      let departure;
-
-
-      if (j === 0) {
-
-        departure =
-          currentDeparture;
-
-      } else {
-
-        const previousLeg =
-          legs[j - 1];
-
-        const earliest =
-          previousLeg.arrivalSeconds +
-          (previousLeg.transferMinutes || 0) * 60;
-
-        const timetable =
-          resolveTimetable(
-            venue,
-            direction,
-            leg.transport,
-            dayType
-          );
-
-        if (!timetable) {
-          possible = false;
-          break;
-        }
-
-        departure =
-          findNextTransfer(
-            timetable,
-            earliest
-          );
-
-        if (!departure) {
-          possible = false;
-          break;
-        }
-
-      }
-
-
-      const arrivalSeconds =
-        departure.seconds +
-        leg.travelMinutes * 60;
-
-
-      legs.push({
-
-        ...leg,
-
-        departureSeconds:
-          departure.seconds,
-
-        departureTime:
-          secondsToTime(
-            departure.seconds
-          ),
-
-        arrivalSeconds,
-
-        arrivalTime:
-          secondsToTime(
-            arrivalSeconds
-          )
-
-      });
-
-    }
-
-
-    if (!possible) {
-      continue;
-    }
-
-
-    /*
-     * すべての乗り継ぎが成立
-     */
-
-    const first =
-      legs[0];
-
-    const last =
-      legs[legs.length - 1];
-
-
-    return {
-
-      legs,
-
-      departureSeconds:
-        first.departureSeconds,
-
-      arrivalSeconds:
-        last.arrivalSeconds,
-
-      durationMinutes:
-        Math.round(
-          (
-            last.arrivalSeconds -
-            first.departureSeconds
-          ) / 60
-        )
-
-    };
 
   }
 
 
-  return null;
+  return departures[0];
 
 }
 
 
 /* =========================================================
-   次の候補を複数取得
+   1本の乗り継ぎルートを計算
 ========================================================= */
 
-function getRouteCandidates(
-  venue,
-  direction,
-  nowSeconds,
-  dayType,
-  count = 3
-) {
-
-  const route =
-    ROUTES[
-      venue
-    ]?.[
-      direction
-    ];
-
-  if (!route) {
-    return [];
-  }
-
-
-  const firstLeg =
-    route[0];
-
-  const firstTimetable =
-    resolveTimetable(
-      venue,
-      direction,
-      firstLeg.transport,
-      dayType
-    );
-
-  if (!firstTimetable) {
-    return [];
-  }
-
-
-  const firstDepartures =
-    getDeparturesAfter(
-      firstTimetable,
-      nowSeconds
-    );
-
-
-  const candidates = [];
-
-
-  for (
-    let i = 0;
-    i < firstDepartures.length &&
-    candidates.length < count;
-    i++
-  ) {
-
-    const departure =
-      firstDepartures[i];
-
-
-    const result =
-      calculateRouteFromFirstDeparture(
-        venue,
-        direction,
-        departure,
-        dayType
-      );
-
-
-    if (result) {
-      candidates.push(result);
-    }
-
-  }
-
-
-  return candidates;
-
-}
-
-
-/* =========================================================
-   最初の便を固定して
-   その後の乗り継ぎを検索
-========================================================= */
-
-function calculateRouteFromFirstDeparture(
-  venue,
-  direction,
+function calculateCandidate(
+  route,
   firstDeparture,
   dayType
 ) {
 
-  const route =
-    ROUTES[
-      venue
-    ]?.[
-      direction
-    ];
+  if (
+    !route ||
+    !route.length
+  ) {
 
-  if (!route) {
     return null;
+
   }
 
 
   const legs = [];
+
+  let currentDeparture =
+    firstDeparture;
 
 
   for (
@@ -1162,77 +708,134 @@ function calculateRouteFromFirstDeparture(
     const leg =
       route[i];
 
-    let departure;
 
+    /*
+     * 最初の交通機関
+     */
 
     if (i === 0) {
 
-      departure =
+      currentDeparture =
         firstDeparture;
 
-    } else {
+    }
 
-      const previous =
+
+    /*
+     * 2区間目以降
+     *
+     * 前の交通機関の到着時刻から
+     * 乗り換え時間を確保して
+     * 次に乗れる便を探す
+     */
+
+    else {
+
+      const previousLeg =
         legs[i - 1];
 
-      const earliest =
-        previous.arrivalSeconds +
-        (
-          previous.transferMinutes ||
-          0
-        ) * 60;
+
+      const transferMinutes =
+        getTransferMinutes(
+          previousLeg.operator,
+          leg.operator
+        );
+
+
+      const earliestSeconds =
+        previousLeg.arrivalSeconds +
+        transferMinutes * 60;
 
 
       const timetable =
-        resolveTimetable(
-          venue,
-          direction,
-          leg.transport,
+        getLegTimetable(
+          leg,
           dayType
         );
+
 
       if (!timetable) {
         return null;
       }
 
 
-      departure =
-        findNextTransfer(
+      currentDeparture =
+        findNextDeparture(
           timetable,
-          earliest
+          earliestSeconds
         );
 
 
-      if (!departure) {
+      if (!currentDeparture) {
         return null;
       }
 
     }
 
 
+    /*
+     * 所要時間
+     */
+
+    const travelMinutes =
+      getTravelMinutes(
+        leg.operator,
+        leg.station
+      );
+
+
     const arrivalSeconds =
-      departure.seconds +
-      leg.travelMinutes * 60;
+      currentDeparture.seconds +
+      travelMinutes * 60;
+
+
+    /*
+     * 次の乗り換え時間
+     */
+
+    let transferMinutes = 0;
+
+
+    if (
+      i <
+      route.length - 1
+    ) {
+
+      transferMinutes =
+        getTransferMinutes(
+          leg.operator,
+          route[i + 1].operator
+        );
+
+    }
 
 
     legs.push({
 
-      ...leg,
+      operator:
+        leg.operator,
+
+      station:
+        leg.station,
 
       departureSeconds:
-        departure.seconds,
+        currentDeparture.seconds,
 
       departureTime:
         secondsToTime(
-          departure.seconds
+          currentDeparture.seconds
         ),
+
+      travelMinutes,
 
       arrivalSeconds,
 
       arrivalTime:
         secondsToTime(
           arrivalSeconds
-        )
+        ),
+
+      transferMinutes
 
     });
 
@@ -1243,7 +846,9 @@ function calculateRouteFromFirstDeparture(
     legs[0];
 
   const last =
-    legs[legs.length - 1];
+    legs[
+      legs.length - 1
+    ];
 
 
   return {
@@ -1270,77 +875,99 @@ function calculateRouteFromFirstDeparture(
 
 
 /* =========================================================
-   現在時刻から次の候補を表示
+   次の乗り継ぎ候補を検索
 ========================================================= */
 
-function renderRouteCandidates() {
+function getRouteCandidates(
+  venue,
+  direction,
+  nowSeconds,
+  dayType
+) {
 
-  if (
-    !selectedVenue ||
-    !selectedDirection
-  ) {
-    return;
-  }
-
-
-  const now =
-    new Date();
-
-  currentNow =
-    now;
-
-
-  const nowSeconds =
-    now.getHours() * 3600 +
-    now.getMinutes() * 60 +
-    now.getSeconds();
-
-
-  const type =
-    getDayType(now);
-
-
-  const candidates =
-    getRouteCandidates(
-      selectedVenue,
-      selectedDirection,
-      nowSeconds,
-      type,
-      3
+  const route =
+    getRouteDefinition(
+      venue,
+      direction
     );
 
 
-  routeCards.innerHTML = "";
+  if (
+    !route ||
+    !route.length
+  ) {
 
-
-  if (!candidates.length) {
-
-    routeCards.innerHTML =
-      `
-      <div class="route-card">
-        <div class="no-service">
-          本日の運行は終了しました
-        </div>
-      </div>
-      `;
-
-    return;
+    return [];
 
   }
 
 
-  candidates.forEach(
-    (route, index) => {
+  /*
+   * 最初の交通機関
+   */
 
-      routeCards.appendChild(
-        createRouteCard(
-          route,
-          index
-        )
+  const firstLeg =
+    route[0];
+
+
+  const firstTimetable =
+    getLegTimetable(
+      firstLeg,
+      dayType
+    );
+
+
+  if (!firstTimetable) {
+
+    return [];
+
+  }
+
+
+  const firstDepartures =
+    getDeparturesAfter(
+      firstTimetable,
+      nowSeconds
+    );
+
+
+  const candidates = [];
+
+
+  /*
+   * 最初の便を順番に試す
+   *
+   * 乗り継ぎが成立しない便は
+   * 候補から除外
+   */
+
+  for (
+    let i = 0;
+    i < firstDepartures.length &&
+    candidates.length < 3;
+    i++
+  ) {
+
+    const candidate =
+      calculateCandidate(
+        route,
+        firstDepartures[i],
+        dayType
+      );
+
+
+    if (candidate) {
+
+      candidates.push(
+        candidate
       );
 
     }
-  );
+
+  }
+
+
+  return candidates;
 
 }
 
@@ -1350,8 +977,9 @@ function renderRouteCandidates() {
 ========================================================= */
 
 function createRouteCard(
-  route,
-  index
+  candidate,
+  index,
+  nowSeconds
 ) {
 
   const card =
@@ -1361,35 +989,24 @@ function createRouteCard(
     "route-card";
 
 
-  const isFirst =
-    index === 0;
+  /*
+   * NEXT / 次の候補
+   */
+
+  const label =
+    index === 0
+      ? "NEXT"
+      : `次の候補 ${index + 1}`;
 
 
   /*
-   * 所要時間
+   * 最初の便まで
    */
 
-  const duration =
-    route.durationMinutes;
-
-
-  /*
-   * 到着までの時間
-   */
-
-  const now =
-    new Date();
-
-  const nowSeconds =
-    now.getHours() * 3600 +
-    now.getMinutes() * 60 +
-    now.getSeconds();
-
-
-  const remaining =
+  const countdown =
     Math.max(
       0,
-      route.departureSeconds -
+      candidate.departureSeconds -
       nowSeconds
     );
 
@@ -1405,39 +1022,52 @@ function createRouteCard(
     "route-card-header";
 
 
-  header.innerHTML =
-    `
+  header.innerHTML = `
+
     <div>
+
       <div class="route-number">
-        ${isFirst ? "NEXT" : "次の候補 " + (index + 1)}
+        ${label}
       </div>
 
       <div class="route-main-time">
-        ${secondsToTime(route.departureSeconds)}
+        ${secondsToTime(
+          candidate.departureSeconds
+        )}
+
         <span>発</span>
       </div>
+
     </div>
 
     ${
-      isFirst
+      index === 0
         ? `
-        <div class="countdown">
-          あと
-          <strong>
-            ${secondsToClock(remaining)}
-          </strong>
-        </div>
+          <div class="countdown">
+
+            あと
+
+            <strong>
+              ${secondsToClock(
+                countdown
+              )}
+            </strong>
+
+          </div>
         `
         : ""
     }
-    `;
+
+  `;
 
 
-  card.appendChild(header);
+  card.appendChild(
+    header
+  );
 
 
   /*
-   * 各区間
+   * ルート本体
    */
 
   const legs =
@@ -1447,7 +1077,7 @@ function createRouteCard(
     "route-legs";
 
 
-  route.legs.forEach(
+  candidate.legs.forEach(
     (leg, legIndex) => {
 
       const item =
@@ -1459,73 +1089,104 @@ function createRouteCard(
 
       const icon =
         getTransportIcon(
-          leg.transport
+          leg.operator
         );
 
 
-      const transport =
-        getTransportName(
-          leg.transport
+      const operator =
+        getShortOperatorName(
+          leg.operator
         );
 
 
-      item.innerHTML =
-        `
+      /*
+       * 次の乗り換え
+       */
+
+      let transferHTML = "";
+
+
+      if (
+        legIndex <
+        candidate.legs.length - 1
+      ) {
+
+        transferHTML = `
+
+          <div class="transfer-info">
+
+            ↳
+            ${leg.transferMinutes}分乗換
+
+          </div>
+
+        `;
+
+      }
+
+
+      item.innerHTML = `
+
         <div class="route-leg-line">
 
           <div class="route-time">
+
             ${leg.departureTime}
+
           </div>
 
           <div class="route-icon">
+
             ${icon}
+
           </div>
 
           <div class="route-info">
 
             <div class="transport-name">
-              ${transport}
+
+              ${operator}
+
             </div>
 
             <div class="route-place">
-              ${leg.from}
-              →
-              ${leg.to}
+
+              ${leg.station}
+
             </div>
 
           </div>
 
         </div>
 
+
         <div class="route-arrival">
 
           <span>
-            ${leg.arrivalTime} 到着
+
+            ${leg.arrivalTime} 着
+
           </span>
 
-          ${
-            legIndex <
-            route.legs.length - 1
-              ? `
-                <span class="transfer">
-                  乗換
-                  ${leg.transferMinutes || 0}分
-                </span>
-                `
-              : ""
-          }
-
         </div>
-        `;
 
 
-      legs.appendChild(item);
+        ${transferHTML}
+
+      `;
+
+
+      legs.appendChild(
+        item
+      );
 
     }
   );
 
 
-  card.appendChild(legs);
+  card.appendChild(
+    legs
+  );
 
 
   /*
@@ -1539,35 +1200,139 @@ function createRouteCard(
     "route-summary";
 
 
-  summary.innerHTML =
-    `
+  summary.innerHTML = `
+
     <div class="arrival-summary">
 
-      <span>到着</span>
+      <span>
+        最終到着
+      </span>
 
       <strong>
         ${secondsToTime(
-          route.arrivalSeconds
+          candidate.arrivalSeconds
         )}
       </strong>
 
     </div>
 
+
     <div class="duration-summary">
 
       所要時間
+
       <strong>
-        約${duration}分
+        約${candidate.durationMinutes}分
       </strong>
 
     </div>
-    `;
+
+  `;
 
 
-  card.appendChild(summary);
+  card.appendChild(
+    summary
+  );
 
 
   return card;
+
+}
+
+
+/* =========================================================
+   ルート表示
+========================================================= */
+
+function renderRoutes() {
+
+  if (
+    !selectedVenue ||
+    !selectedDirection
+  ) {
+
+    return;
+
+  }
+
+
+  const now =
+    new Date();
+
+
+  const nowSeconds =
+    getCurrentSeconds(
+      now
+    );
+
+
+  const dayType =
+    getDayType(
+      now
+    );
+
+
+  const candidates =
+    getRouteCandidates(
+      selectedVenue,
+      selectedDirection,
+      nowSeconds,
+      dayType
+    );
+
+
+  routeCards.innerHTML =
+    "";
+
+
+  /*
+   * 便がない
+   */
+
+  if (
+    candidates.length === 0
+  ) {
+
+    routeCards.innerHTML = `
+
+      <div class="route-card">
+
+        <div class="no-service">
+
+          本日の運行は終了しました
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  /*
+   * 3候補を表示
+   */
+
+  candidates.forEach(
+    (candidate, index) => {
+
+      const card =
+        createRouteCard(
+          candidate,
+          index,
+          nowSeconds
+        );
+
+
+      routeCards.appendChild(
+        card
+      );
+
+    }
+  );
 
 }
 
@@ -1581,9 +1346,10 @@ function updateClock() {
   const now =
     new Date();
 
-  currentNow =
-    now;
 
+  /*
+   * 日付
+   */
 
   const year =
     now.getFullYear();
@@ -1593,6 +1359,7 @@ function updateClock() {
 
   const date =
     now.getDate();
+
 
   const weekdays = [
     "日",
@@ -1609,20 +1376,36 @@ function updateClock() {
     `${year}年${month}月${date}日（${weekdays[now.getDay()]}）`;
 
 
-  currentTime.textContent =
-    `${String(now.getHours()).padStart(2, "0")}:` +
-    `${String(now.getMinutes()).padStart(2, "0")}:` +
-    `${String(now.getSeconds()).padStart(2, "0")}`;
+  /*
+   * 時刻
+   */
 
+  currentTime.textContent =
+    `${String(
+      now.getHours()
+    ).padStart(2, "0")}:` +
+
+    `${String(
+      now.getMinutes()
+    ).padStart(2, "0")}:` +
+
+    `${String(
+      now.getSeconds()
+    ).padStart(2, "0")}`;
+
+
+  /*
+   * ダイヤ
+   */
 
   dayType.textContent =
-    isWeekend(now)
+    getDayType(now) === "holiday"
       ? "土日祝ダイヤ"
       : "平日ダイヤ";
 
 
   /*
-   * ルート選択中なら
+   * ルート表示中なら
    * カウントダウンも更新
    */
 
@@ -1631,7 +1414,7 @@ function updateClock() {
     selectedDirection
   ) {
 
-    renderRouteCandidates();
+    renderRoutes();
 
   }
 
@@ -1657,29 +1440,37 @@ venueButtons.forEach(
 
 
         /*
-         * 会場名を保持
+         * 選択状態
          */
 
-        directionSection
-          .classList
-          .remove("hidden");
-
-        resultSection
-          .classList
-          .add("hidden");
-
-
         venueButtons.forEach(
-          item =>
+          item => {
+
             item.classList.remove(
               "selected"
-            )
+            );
+
+          }
         );
 
 
         button.classList.add(
           "selected"
         );
+
+
+        /*
+         * 行き・帰りを表示
+         */
+
+        directionSection
+          .classList
+          .remove("hidden");
+
+
+        resultSection
+          .classList
+          .add("hidden");
 
       }
     );
@@ -1720,7 +1511,7 @@ directionButtons.forEach(
           .remove("hidden");
 
 
-        renderRouteCandidates();
+        renderRoutes();
 
       }
     );
@@ -1740,9 +1531,11 @@ backButton.addEventListener(
     selectedDirection =
       null;
 
+
     resultSection
       .classList
       .add("hidden");
+
 
     directionSection
       .classList
@@ -1753,7 +1546,7 @@ backButton.addEventListener(
 
 
 /* =========================================================
-   初期化
+   初期表示
 ========================================================= */
 
 updateClock();
