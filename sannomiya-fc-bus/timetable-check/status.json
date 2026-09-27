@@ -1,0 +1,36 @@
+{
+  "checkedAt": null,
+  "hasChanges": false,
+  "services": [
+    {
+      "id": "hankyu",
+      "name": "阪急バス",
+      "route": "日の峰1丁目 → 谷上駅",
+      "status": "unknown"
+    },
+    {
+      "id": "subway",
+      "name": "神戸市営地下鉄",
+      "route": "谷上駅 ↔ 三宮駅",
+      "status": "unknown"
+    },
+    {
+      "id": "portliner",
+      "name": "ポートライナー",
+      "route": "三宮駅 ↔ 貿易センター駅",
+      "status": "unknown"
+    },
+    {
+      "id": "citybus",
+      "name": "神戸市バス",
+      "route": "谷上駅 → 日の峰1丁目方面",
+      "status": "unknown"
+    },
+    {
+      "id": "jr",
+      "name": "JR西日本",
+      "route": "三ノ宮駅 ↔ 灘駅",
+      "status": "unknown"
+    }
+  ]
+}
