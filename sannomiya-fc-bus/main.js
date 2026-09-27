@@ -331,8 +331,10 @@ let searchedDate = null;
     currentTime.textContent =
       `${hh}:${mm}:${ss}`;
 
-    dayType.textContent =
-      getDayTypeLabel();
+dayType.textContent =
+  getDayTypeLabel(
+    `${y}-${m}-${d}`
+  );
 
 
     /*
@@ -2156,6 +2158,10 @@ searchButton.addEventListener(
      BACK
   ======================================================= */
 
+  /* =======================================================
+     BACK
+  ======================================================= */
+
   backButton.addEventListener(
     "click",
     () => {
@@ -2167,6 +2173,9 @@ searchButton.addEventListener(
         null;
 
       searchedMinutes =
+        null;
+
+      searchedDate =
         null;
 
 
