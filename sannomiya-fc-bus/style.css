@@ -1,1 +1,497 @@
+* {
+    box-sizing: border-box;
+    }
 
+html,
+body {
+margin: 0;
+padding: 0;
+min-height: 100%;
+}
+
+body {
+font-family:
+-apple-system,
+BlinkMacSystemFont,
+“Helvetica Neue”,
+“Hiragino Kaku Gothic ProN”,
+“Yu Gothic”,
+sans-serif;
+
+background:
+radial-gradient(
+circle at 50% 0%,
+rgba(0, 110, 180, 0.28),
+transparent 42%
+),
+linear-gradient(
+160deg,
+#020b16 0%,
+#061827 48%,
+#020812 100%
+);
+
+color: #ffffff;
+}
+
+body::before {
+content: “KOBE SANNOMIYA FC”;
+
+position: fixed;
+left: 50%;
+top: 50%;
+
+transform:
+translate(-50%, -50%)
+rotate(-18deg);
+
+font-size: 58px;
+font-weight: 900;
+letter-spacing: 4px;
+
+color: rgba(255,255,255,0.025);
+
+white-space: nowrap;
+pointer-events: none;
+}
+
+.app {
+width: 100%;
+max-width: 760px;
+margin: 0 auto;
+padding: 20px 15px 40px;
+}
+
+/* =========================
+HEADER
+========================= */
+
+.header {
+display: flex;
+align-items: center;
+gap: 13px;
+
+padding: 15px 5px 20px;
+
+border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.club-mark {
+width: 52px;
+height: 52px;
+
+display: flex;
+align-items: center;
+justify-content: center;
+
+border-radius: 50%;
+
+background:
+linear-gradient(
+145deg,
+#0878bd,
+#003c70
+);
+
+border: 2px solid rgba(255,255,255,0.55);
+
+font-size: 26px;
+
+box-shadow:
+0 0 20px rgba(0,140,220,0.25);
+}
+
+.club-name {
+font-size: 20px;
+font-weight: 900;
+letter-spacing: 1px;
+}
+
+.sub-title {
+margin-top: 3px;
+
+font-size: 11px;
+letter-spacing: 2px;
+
+color: #79caff;
+}
+
+/* =========================
+CLOCK
+========================= */
+
+.clock-panel {
+margin: 18px 0;
+
+padding: 18px;
+
+text-align: center;
+
+border-radius: 18px;
+
+background:
+linear-gradient(
+145deg,
+rgba(11,45,70,0.9),
+rgba(3,18,31,0.9)
+);
+
+border: 1px solid rgba(90,190,255,0.18);
+
+box-shadow:
+0 12px 30px rgba(0,0,0,0.28);
+}
+
+#currentDate {
+font-size: 13px;
+color: #a9c8da;
+}
+
+#currentTime {
+margin: 4px 0;
+
+font-family: monospace;
+
+font-size: 34px;
+font-weight: 900;
+
+letter-spacing: 2px;
+
+color: #ffffff;
+}
+
+#dayType {
+font-size: 12px;
+font-weight: 700;
+
+color: #69c9ff;
+}
+
+/* =========================
+SECTION
+========================= */
+
+.section {
+margin-top: 22px;
+}
+
+.section h2 {
+margin: 0 0 12px;
+
+font-size: 13px;
+letter-spacing: 2px;
+
+color: #83d2ff;
+}
+
+/* =========================
+VENUE
+========================= */
+
+.venue-grid {
+display: grid;
+gap: 10px;
+}
+
+.venue-button {
+width: 100%;
+
+display: flex;
+align-items: center;
+
+gap: 13px;
+
+padding: 17px;
+
+border: 1px solid rgba(105,202,255,0.2);
+border-radius: 15px;
+
+background:
+linear-gradient(
+145deg,
+rgba(10,46,72,0.95),
+rgba(4,22,37,0.95)
+);
+
+color: #fff;
+
+font-size: 16px;
+font-weight: 800;
+
+text-align: left;
+
+cursor: pointer;
+
+transition: 0.18s;
+}
+
+.venue-button:hover,
+.venue-button:active {
+transform: translateY(-1px);
+
+border-color: #4bbcff;
+
+background:
+linear-gradient(
+145deg,
+rgba(13,66,100,0.95),
+rgba(5,28,47,0.95)
+);
+}
+
+.venue-icon {
+font-size: 25px;
+}
+
+/* =========================
+DIRECTION
+========================= */
+
+.direction-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+
+.direction-button {
+min-height: 100px;
+
+border: 1px solid rgba(105,202,255,0.2);
+border-radius: 16px;
+
+background:
+linear-gradient(
+145deg,
+rgba(9,51,79,0.95),
+rgba(3,22,37,0.95)
+);
+
+color: #fff;
+
+cursor: pointer;
+}
+
+.direction-button strong {
+display: block;
+
+font-size: 22px;
+}
+
+.direction-button small {
+display: block;
+
+margin-top: 8px;
+
+color: #77c8ef;
+
+font-size: 9px;
+letter-spacing: 1.5px;
+}
+
+/* =========================
+RESULT
+========================= */
+
+.result-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+
+margin-bottom: 14px;
+}
+
+.selected-venue {
+font-size: 19px;
+font-weight: 900;
+}
+
+.selected-direction {
+margin-top: 4px;
+
+font-size: 11px;
+color: #72caff;
+}
+
+.back-button {
+padding: 9px 13px;
+
+border: 1px solid rgba(255,255,255,0.2);
+border-radius: 10px;
+
+background: rgba(255,255,255,0.07);
+
+color: #fff;
+
+cursor: pointer;
+}
+
+/* =========================
+ROUTE CARD
+========================= */
+
+.route-card {
+margin-bottom: 13px;
+
+padding: 17px;
+
+border-radius: 18px;
+
+background:
+linear-gradient(
+145deg,
+rgba(11,46,70,0.95),
+rgba(3,20,33,0.98)
+);
+
+border: 1px solid rgba(96,197,255,0.17);
+
+box-shadow:
+0 8px 24px rgba(0,0,0,0.25);
+}
+
+.route-top {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+
+gap: 10px;
+}
+
+.operator {
+font-size: 11px;
+font-weight: 800;
+
+color: #73caff;
+
+letter-spacing: 1px;
+}
+
+.station {
+margin-top: 5px;
+
+font-size: 16px;
+font-weight: 900;
+}
+
+.next-label {
+margin-top: 17px;
+
+font-size: 10px;
+
+color: #90a9b9;
+
+letter-spacing: 1px;
+}
+
+.next-time {
+margin-top: 2px;
+
+font-family: monospace;
+
+font-size: 39px;
+font-weight: 900;
+
+line-height: 1.1;
+}
+
+.countdown {
+margin-top: 8px;
+
+font-size: 18px;
+font-weight: 900;
+
+color: #64d1ff;
+}
+
+.countdown.soon {
+color: #ffd15c;
+}
+
+.countdown.now {
+color: #ff7777;
+}
+
+.next-list {
+display: flex;
+flex-wrap: wrap;
+
+gap: 7px;
+
+margin-top: 15px;
+}
+
+.next-item {
+padding: 7px 10px;
+
+border-radius: 8px;
+
+background: rgba(255,255,255,0.07);
+
+color: #c7d8e2;
+
+font-family: monospace;
+font-size: 13px;
+}
+
+.no-service {
+padding: 15px;
+
+text-align: center;
+
+color: #8fa6b5;
+
+font-size: 13px;
+}
+
+/* =========================
+FOOTER
+========================= */
+
+footer {
+margin-top: 35px;
+
+text-align: center;
+
+font-size: 10px;
+
+color: rgba(255,255,255,0.3);
+
+letter-spacing: 1px;
+}
+
+.footer-small {
+margin-top: 5px;
+
+font-size: 8px;
+
+letter-spacing: 2px;
+}
+
+/* =========================
+UTIL
+========================= */
+
+.hidden {
+display: none !important;
+}
+
+@media (max-width: 430px) {
+
+.app {
+padding-left: 12px;
+padding-right: 12px;
+}
+
+.club-name {
+font-size: 17px;
+}
+
+#currentTime {
+font-size: 30px;
+}
+
+.next-time {
+font-size: 35px;
+}
+
+}
