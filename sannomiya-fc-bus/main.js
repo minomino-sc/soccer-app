@@ -44,6 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchTime =
     document.getElementById("searchTime");
 
+const searchDate =
+  document.getElementById("searchDate");
+  
   const nowButton =
     document.getElementById("nowButton");
 
@@ -70,12 +73,13 @@ document.addEventListener("DOMContentLoaded", () => {
      STATE
   ======================================================= */
 
-  let selectedVenueKey = null;
+let selectedVenueKey = null;
 
-  let selectedDirectionKey = null;
+let selectedDirectionKey = null;
 
-  let searchedMinutes = null;
+let searchedMinutes = null;
 
+let searchedDate = null;
 
   /* =======================================================
      VENUE NAME
@@ -91,28 +95,198 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  /* =======================================================
+   /* =======================================================
      DAY TYPE
   ======================================================= */
 
-  function getDayType() {
+  /*
+   * 指定した日付が祝日かどうか
+   *
+   * 2026年の日本の祝日
+   */
+  function isJapaneseHoliday(date) {
+
+    const y =
+      date.getFullYear();
+
+    const m =
+      date.getMonth() + 1;
+
+    const d =
+      date.getDate();
+
+
+    /*
+     * 2026年
+     */
+    if (y === 2026) {
+
+      const holidays = [
+
+        "2026-01-01",
+        "2026-01-12",
+        "2026-02-11",
+        "2026-02-23",
+        "2026-03-20",
+        "2026-04-29",
+
+        "2026-05-03",
+        "2026-05-04",
+        "2026-05-05",
+        "2026-05-06",
+
+        "2026-07-20",
+        "2026-08-11",
+
+        "2026-09-21",
+        "2026-09-22",
+        "2026-09-23",
+
+        "2026-10-12",
+        "2026-11-03",
+        "2026-11-23"
+
+      ];
+
+
+      const key =
+        `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+
+      return holidays.includes(key);
+
+    }
+
+
+    return false;
+
+  }
+
+
+  /*
+   * YYYY-MM-DD → Date
+   */
+  function dateStringToDate(
+    dateString
+  ) {
+
+    if (!dateString) {
+      return null;
+    }
+
+
+    const parts =
+      dateString.split("-");
+
+
+    if (parts.length !== 3) {
+      return null;
+    }
+
+
+    const y =
+      Number(parts[0]);
+
+    const m =
+      Number(parts[1]);
+
+    const d =
+      Number(parts[2]);
+
+
+    if (
+      !Number.isFinite(y) ||
+      !Number.isFinite(m) ||
+      !Number.isFinite(d)
+    ) {
+      return null;
+    }
+
+
+    return new Date(
+      y,
+      m - 1,
+      d
+    );
+
+  }
+
+
+  /*
+   * 指定日付のダイヤ種別
+   */
+  function getDayType(
+    dateString = searchedDate
+  ) {
+
+    const date =
+      dateStringToDate(
+        dateString
+      );
+
+
+    if (!date) {
+
+      const today =
+        new Date();
+
+      const day =
+        today.getDay();
+
+
+      if (
+        day === 0 ||
+        day === 6
+      ) {
+        return "holiday";
+      }
+
+
+      return "weekday";
+
+    }
+
 
     const day =
-      new Date().getDay();
+      date.getDay();
 
-    if (day === 0 || day === 6) {
+
+    /*
+     * 土曜日・日曜日
+     */
+    if (
+      day === 0 ||
+      day === 6
+    ) {
       return "holiday";
     }
+
+
+    /*
+     * 祝日
+     */
+    if (
+      isJapaneseHoliday(date)
+    ) {
+      return "holiday";
+    }
+
 
     return "weekday";
 
   }
 
 
-  function getDayTypeLabel() {
+  function getDayTypeLabel(
+    dateString = searchedDate
+  ) {
 
-    return getDayType() === "holiday"
+    return getDayType(
+      dateString
+    ) === "holiday"
+
       ? "土日祝ダイヤ"
+
       : "平日ダイヤ";
 
   }
@@ -826,10 +1000,11 @@ document.addEventListener("DOMContentLoaded", () => {
      乗り継ぎ可能な3ルートを検索
   ======================================================= */
 
-  function findRoutes(
+function findRoutes(
     venueKey,
     direction,
-    requestedMinutes
+    requestedMinutes,
+    dateString
   ) {
 
     const definition =
@@ -844,8 +1019,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    const dayType =
-      getDayType();
+const dayType =
+  getDayType(
+    dateString
+  );
 
 
     /*
