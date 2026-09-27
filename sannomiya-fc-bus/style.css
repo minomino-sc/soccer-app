@@ -1,497 +1,597 @@
 * {
-    box-sizing: border-box;
-    }
+  box-sizing: border-box;
+}
 
 html,
 body {
-margin: 0;
-padding: 0;
-min-height: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
 
 body {
-font-family:
--apple-system,
-BlinkMacSystemFont,
-“Helvetica Neue”,
-“Hiragino Kaku Gothic ProN”,
-“Yu Gothic”,
-sans-serif;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    sans-serif;
 
-background:
-radial-gradient(
-circle at 50% 0%,
-rgba(0, 110, 180, 0.28),
-transparent 42%
-),
-linear-gradient(
-160deg,
-#020b16 0%,
-#061827 48%,
-#020812 100%
-);
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(0, 170, 90, 0.24),
+      transparent 42%
+    ),
+    linear-gradient(
+      160deg,
+      #020a06 0%,
+      #061a10 48%,
+      #020805 100%
+    );
 
-color: #ffffff;
+  color: #ffffff;
 }
+
+
+/* =========================================================
+   WATERMARK
+========================================================= */
 
 body::before {
-content: “KOBE SANNOMIYA FC”;
+  content: "KOBE SANNOMIYA FC";
 
-position: fixed;
-left: 50%;
-top: 50%;
+  position: fixed;
+  left: 50%;
+  top: 50%;
 
-transform:
-translate(-50%, -50%)
-rotate(-18deg);
+  transform:
+    translate(-50%, -50%)
+    rotate(-18deg);
 
-font-size: 58px;
-font-weight: 900;
-letter-spacing: 4px;
+  font-size: 58px;
+  font-weight: 900;
+  letter-spacing: 4px;
 
-color: rgba(255,255,255,0.025);
+  color: rgba(255, 255, 255, 0.025);
 
-white-space: nowrap;
-pointer-events: none;
+  white-space: nowrap;
+  pointer-events: none;
 }
+
+
+/* =========================================================
+   APP
+========================================================= */
 
 .app {
-width: 100%;
-max-width: 760px;
-margin: 0 auto;
-padding: 20px 15px 40px;
+  width: 100%;
+  max-width: 760px;
+
+  margin: 0 auto;
+
+  padding: 20px 15px 40px;
 }
 
-/* =========================
-HEADER
-========================= */
+
+/* =========================================================
+   HEADER
+========================================================= */
 
 .header {
-display: flex;
-align-items: center;
-gap: 13px;
+  display: flex;
+  align-items: center;
 
-padding: 15px 5px 20px;
+  gap: 13px;
 
-border-bottom: 1px solid rgba(255,255,255,0.12);
+  padding: 15px 5px 20px;
+
+  border-bottom:
+    1px solid rgba(80, 220, 130, 0.20);
 }
 
 .club-mark {
-width: 52px;
-height: 52px;
+  width: 52px;
+  height: 52px;
 
-display: flex;
-align-items: center;
-justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-border-radius: 50%;
+  border-radius: 50%;
 
-background:
-linear-gradient(
-145deg,
-#0878bd,
-#003c70
-);
+  background:
+    linear-gradient(
+      145deg,
+      #16a85b,
+      #075d32
+    );
 
-border: 2px solid rgba(255,255,255,0.55);
+  border:
+    2px solid rgba(160, 255, 190, 0.60);
 
-font-size: 26px;
+  font-size: 26px;
 
-box-shadow:
-0 0 20px rgba(0,140,220,0.25);
+  box-shadow:
+    0 0 20px rgba(0, 190, 90, 0.28);
 }
 
 .club-name {
-font-size: 20px;
-font-weight: 900;
-letter-spacing: 1px;
+  font-size: 20px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
 }
 
 .sub-title {
-margin-top: 3px;
+  margin-top: 3px;
 
-font-size: 11px;
-letter-spacing: 2px;
+  font-size: 11px;
 
-color: #79caff;
+  letter-spacing: 2px;
+
+  color: #67e69a;
 }
 
-/* =========================
-CLOCK
-========================= */
+
+/* =========================================================
+   CLOCK
+========================================================= */
 
 .clock-panel {
-margin: 18px 0;
+  margin: 18px 0;
 
-padding: 18px;
+  padding: 18px;
 
-text-align: center;
+  text-align: center;
 
-border-radius: 18px;
+  border-radius: 18px;
 
-background:
-linear-gradient(
-145deg,
-rgba(11,45,70,0.9),
-rgba(3,18,31,0.9)
-);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(10, 55, 32, 0.94),
+      rgba(3, 20, 12, 0.96)
+    );
 
-border: 1px solid rgba(90,190,255,0.18);
+  border:
+    1px solid rgba(70, 220, 125, 0.22);
 
-box-shadow:
-0 12px 30px rgba(0,0,0,0.28);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.30);
 }
 
 #currentDate {
-font-size: 13px;
-color: #a9c8da;
+  font-size: 13px;
+
+  color: #a9cbb7;
 }
 
 #currentTime {
-margin: 4px 0;
+  margin: 4px 0;
 
-font-family: monospace;
+  font-family: monospace;
 
-font-size: 34px;
-font-weight: 900;
+  font-size: 34px;
 
-letter-spacing: 2px;
+  font-weight: 900;
 
-color: #ffffff;
+  letter-spacing: 2px;
+
+  color: #ffffff;
 }
 
 #dayType {
-font-size: 12px;
-font-weight: 700;
+  font-size: 12px;
 
-color: #69c9ff;
+  font-weight: 700;
+
+  color: #59df91;
 }
 
-/* =========================
-SECTION
-========================= */
+
+/* =========================================================
+   SECTION
+========================================================= */
 
 .section {
-margin-top: 22px;
+  margin-top: 22px;
 }
 
 .section h2 {
-margin: 0 0 12px;
+  margin: 0 0 12px;
 
-font-size: 13px;
-letter-spacing: 2px;
+  font-size: 13px;
 
-color: #83d2ff;
+  letter-spacing: 2px;
+
+  color: #63e59a;
 }
 
-/* =========================
-VENUE
-========================= */
+
+/* =========================================================
+   VENUE
+========================================================= */
 
 .venue-grid {
-display: grid;
-gap: 10px;
+  display: grid;
+
+  gap: 10px;
 }
 
 .venue-button {
-width: 100%;
+  width: 100%;
 
-display: flex;
-align-items: center;
+  display: flex;
+  align-items: center;
 
-gap: 13px;
+  gap: 13px;
 
-padding: 17px;
+  padding: 17px;
 
-border: 1px solid rgba(105,202,255,0.2);
-border-radius: 15px;
+  border:
+    1px solid rgba(80, 220, 130, 0.22);
 
-background:
-linear-gradient(
-145deg,
-rgba(10,46,72,0.95),
-rgba(4,22,37,0.95)
-);
+  border-radius: 15px;
 
-color: #fff;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(10, 55, 34, 0.96),
+      rgba(4, 24, 14, 0.97)
+    );
 
-font-size: 16px;
-font-weight: 800;
+  color: #ffffff;
 
-text-align: left;
+  font-size: 16px;
 
-cursor: pointer;
+  font-weight: 800;
 
-transition: 0.18s;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s,
+    border-color 0.18s,
+    background 0.18s,
+    box-shadow 0.18s;
 }
 
 .venue-button:hover,
 .venue-button:active {
-transform: translateY(-1px);
+  transform: translateY(-1px);
 
-border-color: #4bbcff;
+  border-color: #38dc7a;
 
-background:
-linear-gradient(
-145deg,
-rgba(13,66,100,0.95),
-rgba(5,28,47,0.95)
-);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(14, 78, 46, 0.98),
+      rgba(5, 32, 19, 0.98)
+    );
+
+  box-shadow:
+    0 0 18px rgba(0, 200, 90, 0.15);
 }
 
 .venue-icon {
-font-size: 25px;
+  font-size: 25px;
 }
 
-/* =========================
-DIRECTION
-========================= */
+
+/* =========================================================
+   DIRECTION
+========================================================= */
 
 .direction-grid {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 10px;
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 10px;
 }
 
 .direction-button {
-min-height: 100px;
+  min-height: 100px;
 
-border: 1px solid rgba(105,202,255,0.2);
-border-radius: 16px;
+  border:
+    1px solid rgba(80, 220, 130, 0.22);
 
-background:
-linear-gradient(
-145deg,
-rgba(9,51,79,0.95),
-rgba(3,22,37,0.95)
-);
+  border-radius: 16px;
 
-color: #fff;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(10, 60, 37, 0.96),
+      rgba(3, 23, 14, 0.98)
+    );
 
-cursor: pointer;
+  color: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+
+.direction-button:hover,
+.direction-button:active {
+  transform: translateY(-1px);
+
+  border-color: #39df7d;
+
+  box-shadow:
+    0 0 18px rgba(0, 200, 90, 0.15);
 }
 
 .direction-button strong {
-display: block;
+  display: block;
 
-font-size: 22px;
+  font-size: 22px;
 }
 
 .direction-button small {
-display: block;
+  display: block;
 
-margin-top: 8px;
+  margin-top: 8px;
 
-color: #77c8ef;
+  color: #67df98;
 
-font-size: 9px;
-letter-spacing: 1.5px;
+  font-size: 9px;
+
+  letter-spacing: 1.5px;
 }
 
-/* =========================
-RESULT
-========================= */
+
+/* =========================================================
+   RESULT
+========================================================= */
 
 .result-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
+  display: flex;
 
-margin-bottom: 14px;
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 14px;
 }
 
 .selected-venue {
-font-size: 19px;
-font-weight: 900;
+  font-size: 19px;
+
+  font-weight: 900;
 }
 
 .selected-direction {
-margin-top: 4px;
+  margin-top: 4px;
 
-font-size: 11px;
-color: #72caff;
+  font-size: 11px;
+
+  color: #63df96;
 }
 
 .back-button {
-padding: 9px 13px;
+  padding: 9px 13px;
 
-border: 1px solid rgba(255,255,255,0.2);
-border-radius: 10px;
+  border:
+    1px solid rgba(100, 220, 140, 0.25);
 
-background: rgba(255,255,255,0.07);
+  border-radius: 10px;
 
-color: #fff;
+  background:
+    rgba(255, 255, 255, 0.07);
 
-cursor: pointer;
+  color: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s,
+    border-color 0.18s;
 }
 
-/* =========================
-ROUTE CARD
-========================= */
+.back-button:hover,
+.back-button:active {
+  background:
+    rgba(30, 180, 90, 0.18);
+
+  border-color:
+    rgba(80, 230, 130, 0.45);
+}
+
+
+/* =========================================================
+   ROUTE CARD
+========================================================= */
 
 .route-card {
-margin-bottom: 13px;
+  margin-bottom: 13px;
 
-padding: 17px;
+  padding: 17px;
 
-border-radius: 18px;
+  border-radius: 18px;
 
-background:
-linear-gradient(
-145deg,
-rgba(11,46,70,0.95),
-rgba(3,20,33,0.98)
-);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(10, 52, 32, 0.96),
+      rgba(3, 20, 12, 0.98)
+    );
 
-border: 1px solid rgba(96,197,255,0.17);
+  border:
+    1px solid rgba(80, 220, 130, 0.18);
 
-box-shadow:
-0 8px 24px rgba(0,0,0,0.25);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 .route-top {
-display: flex;
-justify-content: space-between;
-align-items: flex-start;
+  display: flex;
 
-gap: 10px;
+  justify-content: space-between;
+
+  align-items: flex-start;
+
+  gap: 10px;
 }
 
 .operator {
-font-size: 11px;
-font-weight: 800;
+  font-size: 11px;
 
-color: #73caff;
+  font-weight: 800;
 
-letter-spacing: 1px;
+  color: #63df96;
+
+  letter-spacing: 1px;
 }
 
 .station {
-margin-top: 5px;
+  margin-top: 5px;
 
-font-size: 16px;
-font-weight: 900;
+  font-size: 16px;
+
+  font-weight: 900;
 }
 
 .next-label {
-margin-top: 17px;
+  margin-top: 17px;
 
-font-size: 10px;
+  font-size: 10px;
 
-color: #90a9b9;
+  color: #8ea99a;
 
-letter-spacing: 1px;
+  letter-spacing: 1px;
 }
 
 .next-time {
-margin-top: 2px;
+  margin-top: 2px;
 
-font-family: monospace;
+  font-family: monospace;
 
-font-size: 39px;
-font-weight: 900;
+  font-size: 39px;
 
-line-height: 1.1;
+  font-weight: 900;
+
+  line-height: 1.1;
 }
 
 .countdown {
-margin-top: 8px;
+  margin-top: 8px;
 
-font-size: 18px;
-font-weight: 900;
+  font-size: 18px;
 
-color: #64d1ff;
+  font-weight: 900;
+
+  color: #55e692;
 }
 
 .countdown.soon {
-color: #ffd15c;
+  color: #ffd15c;
 }
 
 .countdown.now {
-color: #ff7777;
+  color: #ff7777;
 }
 
 .next-list {
-display: flex;
-flex-wrap: wrap;
+  display: flex;
 
-gap: 7px;
+  flex-wrap: wrap;
 
-margin-top: 15px;
+  gap: 7px;
+
+  margin-top: 15px;
 }
 
 .next-item {
-padding: 7px 10px;
+  padding: 7px 10px;
 
-border-radius: 8px;
+  border-radius: 8px;
 
-background: rgba(255,255,255,0.07);
+  background:
+    rgba(255, 255, 255, 0.07);
 
-color: #c7d8e2;
+  color: #c8dbcf;
 
-font-family: monospace;
-font-size: 13px;
+  font-family: monospace;
+
+  font-size: 13px;
 }
 
 .no-service {
-padding: 15px;
+  padding: 15px;
 
-text-align: center;
+  text-align: center;
 
-color: #8fa6b5;
+  color: #8da79a;
 
-font-size: 13px;
+  font-size: 13px;
 }
 
-/* =========================
-FOOTER
-========================= */
+
+/* =========================================================
+   FOOTER
+========================================================= */
 
 footer {
-margin-top: 35px;
+  margin-top: 35px;
 
-text-align: center;
+  text-align: center;
 
-font-size: 10px;
+  font-size: 10px;
 
-color: rgba(255,255,255,0.3);
+  color:
+    rgba(255, 255, 255, 0.30);
 
-letter-spacing: 1px;
+  letter-spacing: 1px;
 }
 
 .footer-small {
-margin-top: 5px;
+  margin-top: 5px;
 
-font-size: 8px;
+  font-size: 8px;
 
-letter-spacing: 2px;
+  letter-spacing: 2px;
 }
 
-/* =========================
-UTIL
-========================= */
+
+/* =========================================================
+   UTIL
+========================================================= */
 
 .hidden {
-display: none !important;
+  display: none !important;
 }
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 430px) {
 
-.app {
-padding-left: 12px;
-padding-right: 12px;
-}
+  .app {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 
-.club-name {
-font-size: 17px;
-}
+  .club-name {
+    font-size: 17px;
+  }
 
-#currentTime {
-font-size: 30px;
-}
+  #currentTime {
+    font-size: 30px;
+  }
 
-.next-time {
-font-size: 35px;
-}
+  .next-time {
+    font-size: 35px;
+  }
 
 }
