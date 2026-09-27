@@ -1,1 +1,73 @@
-
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ KOBE SANNOMIYA FC｜JUNIOR YOUTH TRANSPORT</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="club-mark">⚽</div>
+<div>
+  <div class="club-name">KOBE SANNOMIYA FC</div>
+  <div class="sub-title">JUNIOR YOUTH TRANSPORT</div>
+</div>
+  </header>
+  <section class="clock-panel">
+    <div id="currentDate">----</div>
+    <div id="currentTime">--:--:--</div>
+    <div id="dayType">----</div>
+  </section>
+  <section class="section">
+<h2>TRAINING VENUE</h2>
+<div class="venue-grid">
+  <button class="venue-button" data-venue="onohama">
+    <span class="venue-icon">🏟️</span>
+    <span>小野浜球技場</span>
+  </button>
+  <button class="venue-button" data-venue="koreanch">
+    <span class="venue-icon">🏫</span>
+    <span>神戸朝鮮中</span>
+  </button>
+  <button class="venue-button" data-venue="comista">
+    <span class="venue-icon">🏢</span>
+    <span>コミスタ神戸</span>
+  </button>
+</div>
+  </section>
+  <section id="directionSection" class="section hidden">
+<h2>ROUTE</h2>
+<div class="direction-grid">
+  <button class="direction-button" data-direction="go">
+    <strong>行き</strong>
+    <small>TO TRAINING</small>
+  </button>
+  <button class="direction-button" data-direction="return">
+    <strong>帰り</strong>
+    <small>FROM TRAINING</small>
+  </button>
+</div>
+  </section>
+  <section id="resultSection" class="section hidden">
+<div class="result-header">
+  <div>
+    <div id="selectedVenue" class="selected-venue"></div>
+    <div id="selectedDirection" class="selected-direction"></div>
+  </div>
+  <button id="backButton" class="back-button">
+    変更
+  </button>
+</div>
+<div id="routeCards"></div>
+  </section>
+  <footer>
+    <div>KOBE SANNOMIYA FC</div>
+    <div class="footer-small">JUNIOR YOUTH TRANSPORT SYSTEM</div>
+  </footer>
+</div>
+<script src="timetable.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
