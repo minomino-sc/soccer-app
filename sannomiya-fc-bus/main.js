@@ -1738,12 +1738,13 @@ const dayType =
     }
 
 
-    const routes =
-      findRoutes(
-        selectedVenueKey,
-        selectedDirectionKey,
-        searchedMinutes
-      );
+const routes =
+  findRoutes(
+    selectedVenueKey,
+    selectedDirectionKey,
+    searchedMinutes,
+    searchedDate
+  );
 
 
     selectedVenue.textContent =
@@ -1758,15 +1759,18 @@ const dayType =
         : "← 帰り";
 
 
-    searchSummary.innerHTML = `
-      <strong>
-        ${minutesToTime(searchedMinutes)}
-      </strong>
-      以降で乗り継ぎ可能なルート
-      <span>
-        ・${getDayTypeLabel()}
-      </span>
-    `;
+searchSummary.innerHTML = `
+  <strong>
+    ${searchedDate}
+  </strong>
+  <strong>
+    ${minutesToTime(searchedMinutes)}
+  </strong>
+  以降で乗り継ぎ可能なルート
+  <span>
+    ・${getDayTypeLabel(searchedDate)}
+  </span>
+`;
 
 
     routeCards.innerHTML = "";
@@ -1886,71 +1890,88 @@ const dayType =
      SEARCH BUTTON
   ======================================================= */
 
-  searchButton.addEventListener(
-    "click",
-    () => {
+searchButton.addEventListener(
+  "click",
+  () => {
 
-      const value =
-        searchTime.value;
+    const dateValue =
+      searchDate.value;
 
-
-      if (!value) {
-
-        alert(
-          "乗車予定時刻を入力してください。"
-        );
-
-        return;
-
-      }
+    const timeValue =
+      searchTime.value;
 
 
-      const minutes =
-        timeToMinutes(
-          value
-        );
+    if (!dateValue) {
 
-
-      if (
-        minutes === null
-      ) {
-
-        alert(
-          "時刻を正しく入力してください。"
-        );
-
-        return;
-
-      }
-
-
-      searchedMinutes =
-        minutes;
-
-
-      resultSection
-        .classList
-        .remove("hidden");
-
-
-      renderRoutes();
-
-
-      setTimeout(
-        () => {
-
-          resultSection
-            .scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
-
-        },
-        50
+      alert(
+        "乗車予定日を選択してください。"
       );
 
+      return;
+
     }
-  );
+
+
+    if (!timeValue) {
+
+      alert(
+        "乗車予定時刻を入力してください。"
+      );
+
+      return;
+
+    }
+
+
+    const minutes =
+      timeToMinutes(
+        timeValue
+      );
+
+
+    if (
+      minutes === null
+    ) {
+
+      alert(
+        "時刻を正しく入力してください。"
+      );
+
+      return;
+
+    }
+
+
+    searchedDate =
+      dateValue;
+
+    searchedMinutes =
+      minutes;
+
+
+    resultSection
+      .classList
+      .remove("hidden");
+
+
+    renderRoutes();
+
+
+    setTimeout(
+      () => {
+
+        resultSection
+          .scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+
+      },
+      50
+    );
+
+  }
+);
 
 
   /* =======================================================
@@ -1988,6 +2009,10 @@ const dayType =
 
           searchedMinutes =
             null;
+
+           
+           searchedDate =
+  null;
 
 
           venueButtons.forEach(
