@@ -1,1 +1,18 @@
-{}
+{
+  "hankyu": {
+    "hash": "678731d8289c0c889540b884c5ed3ad984037f0a417a05d174120e6015bf1f0f",
+    "checkedAt": "2026-09-27T22:36:12.990Z"
+  },
+  "subway": {
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "checkedAt": "2026-09-27T22:36:13.195Z"
+  },
+  "portliner": {
+    "hash": "8111f8e6d9142fd56adc050f7bf24157e7bb0f7995b59902c228066187b42476",
+    "checkedAt": "2026-09-27T22:36:14.193Z"
+  },
+  "citybus": {
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "checkedAt": "2026-09-27T22:36:14.199Z"
+  }
+}
