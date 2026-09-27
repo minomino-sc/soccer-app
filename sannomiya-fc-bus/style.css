@@ -1350,3 +1350,34 @@ footer {
   display: none;
 }
 
+/* =========================================================
+   TIMETABLE STATUS
+   スマホ表示をコンパクトにする
+========================================================= */
+
+.timetable-check-panel {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.timetable-check-panel * {
+  font-size: inherit;
+}
+
+.timetable-check-panel strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.timetable-check-panel small {
+  font-size: 12px;
+}
+
+.timetable-check-panel > div {
+  margin-bottom: 6px;
+}
+
+.timetable-check-loading {
+  font-size: 13px;
+  color: #a9cbb7;
+}
