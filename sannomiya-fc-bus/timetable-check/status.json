@@ -1,48 +1,66 @@
 {
-  "checkedAt": "2026-09-27T23:21:18.299Z",
-  "hasChanges": true,
+  "checkedAt": "2026-09-27T23:40:46.318Z",
+  "hasChanges": false,
   "services": [
     {
-      "id": "hankyu",
+      "id": "hankyu_158_hinomin1_to_tanigami",
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅",
-      "status": "changed",
-      "message": "公式ページに変更を検出"
+      "status": "error",
+      "message": "HTTP 403"
     },
     {
-      "id": "subway",
+      "id": "subway_tanigami_to_sannomiya",
       "name": "神戸市営地下鉄",
-      "route": "谷上駅 ↔ 三宮駅",
-      "status": "ok",
-      "message": "変更なし"
+      "route": "谷上駅 → 三宮駅",
+      "status": "error",
+      "message": "時刻表を取得できませんでした (0/2)"
     },
     {
-      "id": "portliner",
+      "id": "subway_sannomiya_to_tanigami",
+      "name": "神戸市営地下鉄",
+      "route": "三宮駅 → 谷上駅",
+      "status": "error",
+      "message": "時刻表を取得できませんでした (0/2)"
+    },
+    {
+      "id": "port_sannomiya_to_boeki",
       "name": "ポートライナー",
-      "route": "三宮駅 ↔ 貿易センター駅",
-      "status": "changed",
-      "message": "公式ページに変更を検出"
+      "route": "三宮駅 → 貿易センター駅",
+      "status": "ok",
+      "message": "初回登録",
+      "changes": []
     },
     {
-      "id": "citybus",
-      "name": "神戸市バス",
-      "route": "谷上駅 → 日の峰1丁目方面",
+      "id": "port_boeki_to_sannomiya",
+      "name": "ポートライナー",
+      "route": "貿易センター駅 → 三宮駅",
       "status": "ok",
-      "message": "変更なし"
+      "message": "初回登録",
+      "changes": []
+    },
+    {
+      "id": "citybus_62_tanigami_to_kobekitamachi",
+      "name": "神戸市バス",
+      "route": "谷上駅 → 神戸北町 62系統",
+      "status": "error",
+      "message": "時刻表を取得できませんでした (0/3)"
     },
     {
       "id": "jr_sannomiya_to_nada",
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
       "status": "ok",
-      "message": "初回登録"
+      "message": "初回登録",
+      "changes": []
     },
     {
       "id": "jr_nada_to_sannomiya",
       "name": "JR西日本",
       "route": "灘駅 → 三ノ宮駅",
       "status": "ok",
-      "message": "初回登録"
+      "message": "初回登録",
+      "changes": []
     }
   ]
 }
