@@ -1,26 +1,10 @@
-const urls = {
-  cityBus:
-    "https://kotsu.city.kobe.lg.jp/bus/bus-stop-list/bus-836/",
+const url =
+  "https://kotsu.city.kobe.lg.jp/bus/bus-stop-list/bus-836/";
 
-  portlinerSannomiya:
-    "https://www.knt-liner.co.jp/stationp01/",
+async function main() {
 
-  portlinerBoeki:
-    "https://www.knt-liner.co.jp/stationp02/",
-
-  jrSannomiya:
-    "https://timetable.jr-odekake.net/station-timetable/2807012002",
-
-  jrNada:
-    "https://timetable.jr-odekake.net/station-timetable/2806012001"
-};
-
-
-async function test(name, url) {
-
-  console.log("");
   console.log("========================================");
-  console.log(name);
+  console.log("神戸市バス 62系統 HTML確認");
   console.log("========================================");
 
   try {
@@ -30,10 +14,8 @@ async function test(name, url) {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
-
         "Accept":
           "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-
         "Accept-Language":
           "ja-JP,ja;q=0.9"
       }
@@ -51,172 +33,110 @@ async function test(name, url) {
     const cheerio = require("cheerio");
     const $ = cheerio.load(html);
 
-    /*
-     * まずページ内のtable数を確認
-     */
-
-    console.log("");
+    console.log("HTML文字数:", html.length);
     console.log("TABLE数:", $("table").length);
 
     /*
-     * 各tableの情報
+     * 62系統の文字が存在する場所を探す
      */
+    const text = $("body").text();
 
-    $("table").each((i, table) => {
+    const index = text.indexOf("62系統");
 
-      const text = $(table)
+    console.log("");
+    console.log("========================================");
+    console.log("62系統周辺");
+    console.log("========================================");
+
+    if (index >= 0) {
+      console.log(
+        text.substring(
+          Math.max(0, index - 1000),
+          index + 5000
+        )
+      );
+    } else {
+      console.log("62系統が見つかりません");
+    }
+
+    /*
+     * 62系統を含む要素を探す
+     */
+    console.log("");
+    console.log("========================================");
+    console.log("62系統を含むHTML要素");
+    console.log("========================================");
+
+    $("*").each((i, el) => {
+
+      const elementText = $(el)
+        .clone()
+        .children()
+        .remove()
+        .end()
         .text()
         .replace(/\s+/g, " ")
         .trim();
 
-      console.log("");
-      console.log(`--- TABLE ${i + 1} ---`);
-      console.log("文字数:", text.length);
-      console.log(
-        text.substring(0, 500)
-      );
+      if (
+        elementText.includes("62系統") &&
+        elementText.length < 300
+      ) {
+
+        console.log("");
+        console.log("TAG:", el.tagName);
+        console.log("CLASS:", $(el).attr("class") || "");
+        console.log("ID:", $(el).attr("id") || "");
+        console.log("TEXT:", elementText);
+
+      }
 
     });
 
-
     /*
-     * 62系統
+     * 「神戸北町方面行き」を含む要素
      */
+    console.log("");
+    console.log("========================================");
+    console.log("神戸北町方面行き");
+    console.log("========================================");
 
-    if (name === "cityBus") {
+    $("*").each((i, el) => {
 
-      console.log("");
-      console.log("【62系統周辺】");
+      const elementText = $(el)
+        .clone()
+        .children()
+        .remove()
+        .end()
+        .text()
+        .replace(/\s+/g, " ")
+        .trim();
 
-      const index = html.indexOf("62");
+      if (
+        elementText.includes("神戸北町方面行き") &&
+        elementText.length < 300
+      ) {
 
-      if (index >= 0) {
+        console.log("");
+        console.log("TAG:", el.tagName);
+        console.log("CLASS:", $(el).attr("class") || "");
+        console.log("ID:", $(el).attr("id") || "");
+        console.log("TEXT:", elementText);
 
         console.log(
-          html.substring(
-            Math.max(0, index - 1000),
-            index + 3000
-          )
+          $.html(el).substring(0, 3000)
         );
 
-      } else {
-
-        console.log("62 がHTMLに見つかりません");
-
       }
 
-    }
-
-
-    /*
-     * ポートライナー
-     */
-
-    if (
-      name === "portlinerSannomiya" ||
-      name === "portlinerBoeki"
-    ) {
-
-      const keywords = [
-        "貿易センター",
-        "三宮",
-        "時刻表"
-      ];
-
-      for (const keyword of keywords) {
-
-        console.log("");
-        console.log(`【${keyword}周辺】`);
-
-        const index = html.indexOf(keyword);
-
-        if (index >= 0) {
-
-          console.log(
-            html.substring(
-              Math.max(0, index - 1000),
-              index + 3000
-            )
-          );
-
-        } else {
-
-          console.log("見つかりません");
-
-        }
-
-      }
-
-    }
-
-
-    /*
-     * JR
-     */
-
-    if (
-      name === "jrSannomiya" ||
-      name === "jrNada"
-    ) {
-
-      console.log("");
-      console.log("【JR 時刻表関連HTML】");
-
-      const keywords = [
-        "5時",
-        "6時",
-        "7時",
-        "灘",
-        "三ノ宮"
-      ];
-
-      for (const keyword of keywords) {
-
-        const index = html.indexOf(keyword);
-
-        console.log("");
-        console.log(`--- ${keyword} ---`);
-
-        if (index >= 0) {
-
-          console.log(
-            html.substring(
-              Math.max(0, index - 1000),
-              index + 3000
-            )
-          );
-
-        } else {
-
-          console.log("見つかりません");
-
-        }
-
-      }
-
-    }
+    });
 
   } catch (error) {
 
-    console.log(
-      "ERROR:",
-      error.message
-    );
+    console.log("ERROR:", error.message);
 
   }
 
 }
-
-
-async function main() {
-
-  for (const [name, url] of Object.entries(urls)) {
-
-    await test(name, url);
-
-  }
-
-}
-
 
 main();
