@@ -25,9 +25,12 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install cheerio
-
+- name: Install dependencies
+  run: |
+    npm install cheerio
+    sudo apt-get update
+    sudo apt-get install -y poppler-utils
+    
       - name: Run timetable check
         run: node sannomiya-fc-bus/timetable-check/check.js
 
