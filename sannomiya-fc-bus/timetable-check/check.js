@@ -439,49 +439,29 @@ function extractSubway(
   direction
 ) {
 
-  const $ =
-    cheerio.load(html);
-
+  const $ = cheerio.load(html);
 
   /*
-   * 方向名を持つ要素を探す。
+   * 公式ページ本文から対象方向以降を取得。
+   *
+   * 谷上駅：
+   * 新神戸・三宮・名谷・西神中央方面行
+   *
+   * 三宮駅：
+   * 新神戸・谷上方面行
+   *
+   * 三宮駅には別方向
+   * 「名谷・西神中央方面行」
+   * もあるため、次の方向が始まるところで止める。
    */
-  let directionElement = null;
 
-  $("body *").each((index, element) => {
+  let body = normalize(
+    $("body").text()
+  );
 
-    if (directionElement) {
-      return;
-    }
+  const start = body.indexOf(direction);
 
-    const text =
-      normalize(
-        $(element).text()
-      );
-
-    if (
-      text === direction ||
-      text.includes(direction)
-    ) {
-
-      /*
-       * 大きすぎるbody等を除外
-       */
-      if (
-        text.length < 300
-      ) {
-
-        directionElement =
-          element;
-
-      }
-
-    }
-
-  });
-
-
-  if (!directionElement) {
+  if (start === -1) {
 
     throw new Error(
       `対象方向「${direction}」が見つかりません`
@@ -489,58 +469,43 @@ function extractSubway(
 
   }
 
+  let section = body.substring(start);
 
   /*
-   * 方向要素以降のtableを探す。
+   * 三宮駅の場合、
+   * 次の方向の時刻表が続くため、
+   * そこまでを対象にする。
    */
-  const allTables =
-    $("table").toArray();
-
-
-  const directionIndex =
-    $("body *")
-      .toArray()
-      .indexOf(
-        directionElement
-      );
-
-
-  const targetTables = [];
-
+  const nextDirectionCandidates = [
+    "名谷・西神中央方面行",
+    "新神戸・三宮・名谷・西神中央方面行"
+  ];
 
   for (
-    const table of allTables
+    const nextDirection of nextDirectionCandidates
   ) {
 
-    const tableIndex =
-      $("body *")
-        .toArray()
-        .indexOf(
-          table
-        );
+    if (
+      nextDirection === direction
+    ) {
+      continue;
+    }
+
+    const next =
+      section.indexOf(
+        nextDirection,
+        direction.length
+      );
 
     if (
-      tableIndex > directionIndex
+      next !== -1
     ) {
 
-      const tableText =
-        normalize(
-          $(table).text()
+      section =
+        section.substring(
+          0,
+          next
         );
-
-      /*
-       * 時刻表らしいtableだけ。
-       */
-      if (
-        tableText.includes("5") &&
-        tableText.match(/\d{1,2}/)
-      ) {
-
-        targetTables.push(
-          table
-        );
-
-      }
 
     }
 
@@ -548,69 +513,205 @@ function extractSubway(
 
 
   /*
-   * このページの先頭方向なら、
-   * 最初の2つが対象。
+   * 時刻表は
    *
-   * 三宮ページは
-   * ①新神戸・谷上方面
-   * ②名谷・西神中央方面
-   * の順なので、
-   * directionElementより後ろから
-   * 次の方向が始まる前のtableを
-   * 使う。
+   * 平日
+   * 5時...
+   * ↓
+   * 土日・祝日
+   * 5時...
+   *
+   * の2ブロック。
    */
 
+  const weekdayIndex =
+    section.indexOf("平日");
 
-  const times = [];
-
-  for (
-    const table of targetTables
+  if (
+    weekdayIndex === -1
   ) {
-
-    const parsed =
-      parseTimeTable(
-        $,
-        table
-      );
-
-    if (
-      parsed.length >= 3
-    ) {
-
-      times.push(
-        parsed
-      );
-
-    }
-
-    if (
-      times.length >= 2
-    ) {
-      break;
-    }
-
-  }
-
-
-  if (!times.length) {
 
     throw new Error(
-      `「${direction}」の時刻表を抽出できません`
+      `「${direction}」の平日時刻表が見つかりません`
+    );
+
+  }
+
+  const weekendIndex =
+    section.indexOf(
+      "土日・祝日",
+      weekdayIndex + 2
+    );
+
+  if (
+    weekendIndex === -1
+  ) {
+
+    throw new Error(
+      `「${direction}」の土日・祝日時刻表が見つかりません`
     );
 
   }
 
 
   /*
-   * 平日と土日祝
+   * 平日部分
    */
+  const weekdayText =
+    section.substring(
+      weekdayIndex + 2,
+      weekendIndex
+    );
+
+
+  /*
+   * 土日・祝日部分
+   */
+  const weekendText =
+    section.substring(
+      weekendIndex + 5
+    );
+
+
+  function parseText(
+    text
+  ) {
+
+    const result = [];
+
+    /*
+     * 公式ページの本文は
+     *
+     * 5 18 41 51
+     * 6 2 10 18 ...
+     *
+     * のような形になる。
+     */
+
+    const lines =
+      text
+        .split(/\s+/)
+        .filter(Boolean);
+
+
+    let currentHour = null;
+
+
+    for (
+      const token of lines
+    ) {
+
+      /*
+       * 「5」「6」などの時。
+       */
+      if (
+        /^\d{1,2}$/.test(token)
+      ) {
+
+        const number =
+          Number(token);
+
+        /*
+         * 地下鉄の時刻表は
+         * 0～23時。
+         */
+        if (
+          number >= 0 &&
+          number <= 23
+        ) {
+
+          currentHour =
+            number;
+
+          continue;
+
+        }
+
+      }
+
+
+      /*
+       * ●45 / ▼16 などの記号付き時刻。
+       */
+      const minuteMatch =
+        token.match(
+          /(\d{1,2})$/
+        );
+
+      if (
+        currentHour !== null &&
+        minuteMatch
+      ) {
+
+        const minute =
+          Number(
+            minuteMatch[1]
+          );
+
+        const time =
+          makeTime(
+            currentHour,
+            minute
+          );
+
+        if (time) {
+
+          result.push(
+            time
+          );
+
+        }
+
+      }
+
+    }
+
+
+    return uniqueSort(
+      result
+    );
+
+  }
+
+
+  const weekday =
+    parseText(
+      weekdayText
+    );
+
+  const weekend =
+    parseText(
+      weekendText
+    );
+
+
+  if (
+    weekday.length < 3
+  ) {
+
+    throw new Error(
+      `「${direction}」の平日時刻を抽出できません`
+    );
+
+  }
+
+
+  if (
+    weekend.length < 3
+  ) {
+
+    throw new Error(
+      `「${direction}」の土日・祝日時刻を抽出できません`
+    );
+
+  }
+
+
   return {
 
-    weekday:
-      times[0] || [],
+    weekday,
 
-    weekend:
-      times[1] || times[0] || []
+    weekend
 
   };
 
@@ -626,27 +727,27 @@ function extractCityBus62(html) {
   const $ =
     cheerio.load(html);
 
-
   /*
-   * ★ 62系統だけを見る。
-   *
-   * 111系統の文字列は、
-   * この関数では一切使用しない。
+   * 公式ページの本文。
    */
-
   const body =
     normalize(
       $("body").text()
     );
 
 
-  const start =
-    body.indexOf(
-      "62系統 神戸北町方面行き"
+  /*
+   * 「62系統」と
+   * 「神戸北町方面行き」の間に
+   * 空白等が入っていても対応する。
+   */
+  const startMatch =
+    body.match(
+      /62系統\s*神戸北町方面行き/
     );
 
 
-  if (start === -1) {
+  if (!startMatch) {
 
     throw new Error(
       "62系統 神戸北町方面行きが見つかりません"
@@ -655,159 +756,169 @@ function extractCityBus62(html) {
   }
 
 
-  /*
-   * 62系統セクションの終了位置。
-   *
-   * 「## 備考」に相当する
-   * ・急印...
-   * の直前までを対象にする。
-   *
-   * 111系統には進まない。
-   */
-
-  let sectionEnd =
-    body.indexOf(
-      "急印は急行６２系統",
-      start
-    );
-
-  if (
-    sectionEnd === -1
-  ) {
-
-    sectionEnd =
-      body.indexOf(
-        "急印は急行62系統",
-        start
-      );
-
-  }
-
-
-  if (
-    sectionEnd === -1
-  ) {
-
-    /*
-     * 念のため、
-     * 111系統より前で止める。
-     */
-    const next111 =
-      body.indexOf(
-        "111系統",
-        start + 1
-      );
-
-    if (next111 !== -1) {
-      sectionEnd = next111;
-    } else {
-      sectionEnd = body.length;
-    }
-
-  }
-
-
-  const section =
-    body.substring(
-      start,
-      sectionEnd
-    );
+  const start =
+    startMatch.index;
 
 
   /*
-   * 5時〜23時の
-   * 「時 → 分」の並びを抽出。
+   * 62系統の時刻表には
    *
-   * 3ブロック
    * 平日
    * 土曜日
    * 日曜・祝日
+   *
+   * の3ブロックがある。
+   *
+   * 111系統は一切解析しない。
+   *
+   * 3つ目の「5時」の次に
+   * 出てくる「5時」の直前で
+   * 62系統部分を終了する。
    */
-  const hourMatches = [];
 
-  const hourRegex =
-    /(\d{1,2})時/g;
+  const section =
+    body.substring(
+      start
+    );
+
+
+  const fiveIndexes = [];
+
+  const fiveRegex =
+    /5時/g;
 
   let match;
 
   while (
     (match =
-      hourRegex.exec(section)) !== null
+      fiveRegex.exec(section)) !== null
   ) {
 
-    hourMatches.push({
-      hour:
-        Number(match[1]),
-      index:
-        match.index
-    });
-
-  }
-
-
-  if (
-    hourMatches.length < 3
-  ) {
-
-    throw new Error(
-      "62系統の時刻データを抽出できません"
+    fiveIndexes.push(
+      match.index
     );
 
   }
 
 
   /*
-   * 5時の位置で
-   * 3つの時刻表ブロックに分ける。
+   * 62系統は
+   * 平日・土曜・日祝の3ブロック。
+   *
+   * 次の「5時」が存在する場合、
+   * それは次の系統側なので、
+   * 4つ目の5時で切る。
    */
-  const fiveIndexes =
-    hourMatches
-      .filter(x => x.hour === 5)
-      .map(x => x.index);
-
 
   if (
     fiveIndexes.length < 3
   ) {
 
     throw new Error(
-      "62系統の平日・土曜・日祝の3ブロックを確認できません"
+      "62系統の3つの時刻表ブロックを確認できません"
+    );
+
+  }
+
+
+  let sectionEnd =
+    section.length;
+
+
+  if (
+    fiveIndexes.length >= 4
+  ) {
+
+    sectionEnd =
+      fiveIndexes[3];
+
+  }
+
+
+  const target =
+    section.substring(
+      0,
+      sectionEnd
+    );
+
+
+  /*
+   * 3つの5時位置を取得。
+   */
+  const localFiveIndexes = [];
+
+  const regex =
+    /5時/g;
+
+  while (
+    (match =
+      regex.exec(target)) !== null
+  ) {
+
+    localFiveIndexes.push(
+      match.index
+    );
+
+  }
+
+
+  if (
+    localFiveIndexes.length !== 3
+  ) {
+
+    throw new Error(
+      "62系統の平日・土曜・日祝を正しく分離できません"
     );
 
   }
 
 
   function parseBlock(
-    blockStart,
-    blockEnd
+    from,
+    to
   ) {
 
-    const block =
-      section.substring(
-        blockStart,
-        blockEnd
+    const text =
+      target.substring(
+        from,
+        to
       );
 
 
-    const matches = [];
+    const result = [];
 
-    const regex =
+
+    /*
+     * 「7時 45」
+     * 「15時 00 30」
+     * のような本文を解析。
+     */
+
+    const hourRegex =
       /(\d{1,2})時/g;
-
-    let current;
 
     const hours = [];
 
+    let hourMatch;
+
     while (
-      (current =
-        regex.exec(block)) !== null
+      (hourMatch =
+        hourRegex.exec(text)) !== null
     ) {
 
       hours.push({
+
         hour:
-          Number(current[1]),
+          Number(
+            hourMatch[1]
+          ),
+
         index:
-          current.index
+          hourMatch.index,
+
+        end:
+          hourRegex.lastIndex
+
       });
 
     }
@@ -819,77 +930,102 @@ function extractCityBus62(html) {
       i++
     ) {
 
-      const hour =
-        hours[i].hour;
-
-      const from =
-        hours[i].index +
-        hours[i][0]?.length ||
-        hours[i].index;
-
-      const to =
-        i + 1 < hours.length
-          ? hours[i + 1].index
-          : block.length;
+      const current =
+        hours[i];
 
 
-      const part =
-        block.substring(
-          from,
-          to
+      const next =
+        hours[i + 1];
+
+
+      const fromIndex =
+        current.end;
+
+
+      const toIndex =
+        next
+          ? next.index
+          : text.length;
+
+
+      const minutesText =
+        text.substring(
+          fromIndex,
+          toIndex
         );
 
 
+      /*
+       * 急・○・☆などの記号を除去。
+       */
+      const cleaned =
+        minutesText
+          .replace(
+            /[急○☆〇]/g,
+            " "
+          );
+
+
       const minutes =
-        part.match(
+        cleaned.match(
           /\b\d{1,2}\b/g
         ) || [];
 
 
-      minutes.forEach(minute => {
+      for (
+        const minute of minutes
+      ) {
 
         const time =
           makeTime(
-            hour,
+            current.hour,
             Number(minute)
           );
 
         if (time) {
-          matches.push(time);
+
+          result.push(
+            time
+          );
+
         }
 
-      });
+      }
 
     }
 
 
-    return uniqueSort(matches);
+    return uniqueSort(
+      result
+    );
 
   }
 
 
   const weekday =
     parseBlock(
-      fiveIndexes[0],
-      fiveIndexes[1]
+      localFiveIndexes[0],
+      localFiveIndexes[1]
     );
 
 
   const saturday =
     parseBlock(
-      fiveIndexes[1],
-      fiveIndexes[2]
+      localFiveIndexes[1],
+      localFiveIndexes[2]
     );
 
 
   const holiday =
     parseBlock(
-      fiveIndexes[2],
-      section.length
+      localFiveIndexes[2],
+      target.length
     );
 
 
-  if (!weekday.length) {
+  if (
+    weekday.length < 1
+  ) {
 
     throw new Error(
       "62系統 平日時刻表を抽出できません"
@@ -898,7 +1034,9 @@ function extractCityBus62(html) {
   }
 
 
-  if (!saturday.length) {
+  if (
+    saturday.length < 1
+  ) {
 
     throw new Error(
       "62系統 土曜日時刻表を抽出できません"
@@ -907,7 +1045,9 @@ function extractCityBus62(html) {
   }
 
 
-  if (!holiday.length) {
+  if (
+    holiday.length < 1
+  ) {
 
     throw new Error(
       "62系統 日曜・祝日時刻表を抽出できません"
@@ -919,7 +1059,9 @@ function extractCityBus62(html) {
   return {
 
     weekday,
+
     saturday,
+
     holiday
 
   };
