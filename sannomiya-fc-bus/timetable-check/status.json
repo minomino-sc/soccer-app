@@ -1,44 +1,41 @@
 {
-  "schemaVersion": 6,
-  "checkedAt": "2026-09-28T05:29:22.620Z",
+  "checkedAt": "2026-09-28T05:38:02.592Z",
   "hasChanges": false,
-  "hasErrors": true,
-  "services": {
-    "subwayTanigami": {
-      "status": "error",
-      "name": "神戸市営地下鉄 谷上駅 → 三宮駅",
-      "error": "cheerio is not a function"
-    },
-    "subwaySannomiya": {
-      "status": "error",
-      "name": "神戸市営地下鉄 三宮駅 → 谷上駅",
-      "error": "cheerio is not a function"
-    },
-    "cityBus62": {
-      "status": "error",
-      "name": "神戸市バス 谷上駅 → 神戸北町 62系統",
-      "error": "62系統の時刻データを取得できません"
-    },
-    "portlinerSannomiya": {
+  "services": [
+    {
+      "id": "hankyu",
+      "name": "阪急バス",
+      "route": "日の峰1丁目 → 谷上駅",
       "status": "ok",
-      "name": "ポートライナー 三宮駅 → 貿易センター駅"
+      "message": "初回登録"
     },
-    "portlinerBoeki": {
+    {
+      "id": "subway",
+      "name": "神戸市営地下鉄",
+      "route": "谷上駅 ↔ 三宮駅",
       "status": "ok",
-      "name": "ポートライナー 貿易センター駅 → 三宮駅"
+      "message": "初回登録"
     },
-    "jrSannomiya": {
+    {
+      "id": "portliner",
+      "name": "ポートライナー",
+      "route": "三宮駅 ↔ 貿易センター駅",
       "status": "ok",
-      "name": "JR西日本 三ノ宮駅 → 灘駅"
+      "message": "初回登録"
     },
-    "jrNada": {
+    {
+      "id": "citybus",
+      "name": "神戸市バス",
+      "route": "谷上駅 → 日の峰1丁目方面",
       "status": "ok",
-      "name": "JR西日本 灘駅 → 三ノ宮駅"
+      "message": "初回登録"
     },
-    "hankyu": {
+    {
+      "id": "jr",
+      "name": "JR西日本",
+      "route": "三ノ宮駅 ↔ 灘駅",
       "status": "error",
-      "name": "阪急バス 日の峰1丁目 → 谷上駅 158系統",
-      "error": "HTTP 403"
+      "message": "HTTP 404"
     }
-  }
+  ]
 }
