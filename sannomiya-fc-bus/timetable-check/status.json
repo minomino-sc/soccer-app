@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-28T00:36:52.899Z",
+  "checkedAt": "2026-09-28T01:01:02.388Z",
   "hasChanges": false,
   "services": [
     {
@@ -49,14 +49,14 @@
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
       "status": "ok",
-      "message": "初回登録"
+      "message": "変更なし"
     },
     {
       "id": "jr_nada_sannomiya",
       "name": "JR西日本",
       "route": "灘駅 → 三ノ宮駅",
       "status": "ok",
-      "message": "初回登録"
+      "message": "変更なし"
     }
   ]
 }
