@@ -1,7 +1,10 @@
 {
-  "v2_subway_tanigami_sannomiya": "5b4b22bd47aaaf693bef4afc5ecffc5d4f5b0a9f74db7b41f4e5bc6c51bf8881",
-  "v2_subway_sannomiya_tanigami": "933763520576e8bef26fb56e5d371a129e9592b4383ca65a2b52dca230f6834b",
-  "v2_citybus_62_tanigami_kobekitamachi": "a2dcd00aa1b6964f9cfc6cfd32930e9258d09c8414c05308a177a683f7883a80",
-  "v2_jr_sannomiya_nada": "6870f2fd3052010e1a81263a08c63730f99348182f88c931d7756fe449321b91",
-  "v2_jr_nada_sannomiya": "234f5894172b69921e4cf0a038bdecd6be55003143fc5652db714860ed0cab2a"
+  "jr_sannomiya_nada": {
+    "hash": "cb2ac5090f2849a975019a1f61c948af98ac59b699bc43179f307c2c2555ee2f",
+    "checkedAt": "2026-09-28T00:36:52.460Z"
+  },
+  "jr_nada_sannomiya": {
+    "hash": "e138be4702a9e059e50d3aa6896d6840af37c51fee3a60b69f2247fa8a9d93fe",
+    "checkedAt": "2026-09-28T00:36:52.899Z"
+  }
 }
