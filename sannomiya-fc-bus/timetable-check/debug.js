@@ -1,13 +1,4 @@
 const urls = {
-  hankyu:
-    "https://transfer-cloud.navitime.biz/hankyubus/courses?external-busstop=8564",
-
-  subwayTanigami:
-    "https://kotsu.city.kobe.lg.jp/subway/timetable1/tanigami/",
-
-  subwaySannomiya:
-    "https://kotsu.city.kobe.lg.jp/subway/timetable1/sannomiya/",
-
   cityBus:
     "https://kotsu.city.kobe.lg.jp/bus/bus-stop-list/bus-836/",
 
@@ -30,7 +21,6 @@ async function test(name, url) {
   console.log("");
   console.log("========================================");
   console.log(name);
-  console.log(url);
   console.log("========================================");
 
   try {
@@ -42,145 +32,167 @@ async function test(name, url) {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
 
         "Accept":
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 
         "Accept-Language":
-          "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7",
-
-        "Cache-Control":
-          "no-cache"
+          "ja-JP,ja;q=0.9"
       }
     });
 
     console.log("HTTP:", response.status);
-    console.log("URL :", response.url);
 
     const html = await response.text();
 
-    console.log("文字数:", html.length);
-
     if (response.status !== 200) {
-      console.log("");
-      console.log("⚠️ HTTPエラーのため解析を終了");
+      console.log("取得失敗");
       return;
     }
 
-    /*
-     * HTMLをある程度読みやすい文字列に変換
-     */
-
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, "")
-      .replace(/<style[\s\S]*?<\/style>/gi, "")
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<\/tr>/gi, "\n")
-      .replace(/<\/li>/gi, "\n")
-      .replace(/<\/p>/gi, "\n")
-      .replace(/<\/div>/gi, "\n")
-      .replace(/<\/td>/gi, " | ")
-      .replace(/<\/th>/gi, " | ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&amp;/gi, "&")
-      .replace(/&lt;/gi, "<")
-      .replace(/&gt;/gi, ">")
-      .replace(/\r/g, "")
-      .replace(/[ \t]+/g, " ")
-      .replace(/\n\s+/g, "\n")
-      .trim();
+    const cheerio = require("cheerio");
+    const $ = cheerio.load(html);
 
     /*
-     * 時刻らしい行を抽出
+     * まずページ内のtable数を確認
      */
-
-    const lines = text
-      .split("\n")
-      .map(line => line.trim())
-      .filter(Boolean);
-
-    const timeLines = [];
-
-    for (const line of lines) {
-
-      /*
-       * 例
-       * 5 | 12 | 28 | 44
-       * 6 | 03 | 15 | 27
-       * 7時 03 15 27
-       */
-
-      if (
-        /^\d{1,2}\s*\|/.test(line) ||
-        /^\d{1,2}時/.test(line) ||
-        /^\d{1,2}\s+\d{1,2}\s+\d{1,2}/.test(line)
-      ) {
-
-        timeLines.push(line);
-      }
-
-    }
 
     console.log("");
-    console.log("【時刻らしい行】");
-    console.log("----------------------------------------");
+    console.log("TABLE数:", $("table").length);
 
-    if (timeLines.length === 0) {
+    /*
+     * 各tableの情報
+     */
 
-      console.log("該当なし");
+    $("table").each((i, table) => {
 
-    } else {
+      const text = $(table)
+        .text()
+        .replace(/\s+/g, " ")
+        .trim();
 
-      /*
-       * 全部出すとログが巨大になるので最大100行
-       */
+      console.log("");
+      console.log(`--- TABLE ${i + 1} ---`);
+      console.log("文字数:", text.length);
+      console.log(
+        text.substring(0, 500)
+      );
 
-      for (const line of timeLines.slice(0, 100)) {
+    });
 
-        console.log(line);
 
-      }
+    /*
+     * 62系統
+     */
 
-      if (timeLines.length > 100) {
+    if (name === "cityBus") {
+
+      console.log("");
+      console.log("【62系統周辺】");
+
+      const index = html.indexOf("62");
+
+      if (index >= 0) {
 
         console.log(
-          `... ${timeLines.length - 100}行省略`
+          html.substring(
+            Math.max(0, index - 1000),
+            index + 3000
+          )
         );
+
+      } else {
+
+        console.log("62 がHTMLに見つかりません");
 
       }
 
     }
 
-    console.log("----------------------------------------");
 
     /*
-     * 主要キーワード周辺も確認
+     * ポートライナー
      */
 
-    const keywords = [
-      "時刻表",
-      "平日",
-      "土日",
-      "土曜日",
-      "日曜",
-      "谷上",
-      "三宮",
-      "62系統",
-      "158",
-      "貿易センター",
-      "灘"
-    ];
+    if (
+      name === "portlinerSannomiya" ||
+      name === "portlinerBoeki"
+    ) {
 
-    console.log("");
-    console.log("【キーワード確認】");
+      const keywords = [
+        "貿易センター",
+        "三宮",
+        "時刻表"
+      ];
 
-    for (const keyword of keywords) {
+      for (const keyword of keywords) {
 
-      console.log(
-        keyword,
-        text.includes(keyword)
-          ? "○"
-          : "×"
-      );
+        console.log("");
+        console.log(`【${keyword}周辺】`);
+
+        const index = html.indexOf(keyword);
+
+        if (index >= 0) {
+
+          console.log(
+            html.substring(
+              Math.max(0, index - 1000),
+              index + 3000
+            )
+          );
+
+        } else {
+
+          console.log("見つかりません");
+
+        }
+
+      }
+
+    }
+
+
+    /*
+     * JR
+     */
+
+    if (
+      name === "jrSannomiya" ||
+      name === "jrNada"
+    ) {
+
+      console.log("");
+      console.log("【JR 時刻表関連HTML】");
+
+      const keywords = [
+        "5時",
+        "6時",
+        "7時",
+        "灘",
+        "三ノ宮"
+      ];
+
+      for (const keyword of keywords) {
+
+        const index = html.indexOf(keyword);
+
+        console.log("");
+        console.log(`--- ${keyword} ---`);
+
+        if (index >= 0) {
+
+          console.log(
+            html.substring(
+              Math.max(0, index - 1000),
+              index + 3000
+            )
+          );
+
+        } else {
+
+          console.log("見つかりません");
+
+        }
+
+      }
 
     }
 
