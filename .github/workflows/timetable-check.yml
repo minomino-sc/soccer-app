@@ -28,8 +28,8 @@ jobs:
       - name: Install dependencies
         run: npm install cheerio
 
-      - name: Run timetable debug
-        run: node sannomiya-fc-bus/timetable-check/debug.js
+      - name: Run timetable check
+        run: node sannomiya-fc-bus/timetable-check/check.js
 
       - name: Commit timetable status
         run: |
