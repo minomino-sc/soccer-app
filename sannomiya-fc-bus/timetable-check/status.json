@@ -1,62 +1,62 @@
 {
-  "checkedAt": "2026-09-28T07:48:54.338Z",
-  "hasChanges": true,
+  "checkedAt": "2026-09-28T08:11:53.432Z",
+  "hasChanges": false,
   "services": [
     {
       "id": "hankyu_158",
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅 158系統",
       "status": "error",
-      "message": "確認エラー: 158系統「日の峰1丁目 → 谷上駅」の公式時刻表を直接取得できません"
+      "message": "158系統「日の峰1丁目 → 谷上駅」の公式時刻表を直接取得できません"
     },
     {
       "id": "subway_tanigami_sannomiya",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 → 三宮駅",
       "status": "error",
-      "message": "確認エラー: 対象方向の平日時刻表を取得できません"
+      "message": "対象方向「新神戸・三宮・名谷・西神中央方面行」が見つかりません"
     },
     {
       "id": "subway_sannomiya_tanigami",
       "name": "神戸市営地下鉄",
       "route": "三宮駅 → 谷上駅",
       "status": "error",
-      "message": "確認エラー: 対象方向の平日時刻表を取得できません"
+      "message": "対象方向「新神戸・谷上方面行」が見つかりません"
     },
     {
       "id": "portliner_sannomiya_boeki",
       "name": "ポートライナー",
       "route": "三宮駅 → 貿易センター駅",
-      "status": "changed",
-      "message": "時刻表変更を検出"
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "portliner_boeki_sannomiya",
       "name": "ポートライナー",
       "route": "貿易センター駅 → 三宮駅",
-      "status": "changed",
-      "message": "時刻表変更を検出"
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "citybus_62",
       "name": "神戸市バス",
       "route": "谷上駅 → 神戸北町 62系統",
       "status": "error",
-      "message": "確認エラー: 62系統 神戸北町方面行きが見つかりません"
+      "message": "62系統 神戸北町方面行きが見つかりません"
     },
     {
       "id": "jr_sannomiya_nada",
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
-      "status": "changed",
-      "message": "時刻表変更を検出"
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "jr_nada_sannomiya",
       "name": "JR西日本",
       "route": "灘駅 → 三ノ宮駅",
-      "status": "changed",
-      "message": "時刻表変更を検出"
+      "status": "ok",
+      "message": "基準登録"
     }
   ]
 }
