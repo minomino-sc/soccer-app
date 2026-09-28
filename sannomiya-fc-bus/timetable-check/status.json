@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-28T10:11:34.822Z",
+  "checkedAt": "2026-09-28T11:20:06.643Z",
   "hasChanges": false,
   "services": [
     {
@@ -7,21 +7,21 @@
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅 158系統",
       "status": "error",
-      "message": "158系統「日の峰1丁目 → 谷上駅」は現在未対応です"
+      "message": "確認エラー（対象158系統時刻表を自動取得できません）"
     },
     {
       "id": "subway_tanigami_sannomiya",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 → 三宮駅",
-      "status": "error",
-      "message": "「新神戸・三宮・名谷・西神中央方面行」の平日時刻を抽出できません"
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "subway_sannomiya_tanigami",
       "name": "神戸市営地下鉄",
       "route": "三宮駅 → 谷上駅",
-      "status": "error",
-      "message": "「新神戸・谷上方面行」の平日データが見つかりません"
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "portliner_sannomiya_boeki",
@@ -41,8 +41,8 @@
       "id": "citybus_62",
       "name": "神戸市バス",
       "route": "谷上駅 → 神戸北町 62系統",
-      "status": "error",
-      "message": "62系統 平日時刻を抽出できません"
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "jr_sannomiya_nada",
