@@ -4,17 +4,38 @@
 
    目的
    ---------------------------------------------------------
-   現在採用している時刻表について、
-
-   ・公式時刻表の対象部分だけを取得
-   ・前回取得した時刻表データと比較
-   ・変更なし
-   ・変更あり
-   ・確認エラー
-
-   を自動判定する。
+   各社の公式時刻表から、
+   このアプリで使用している路線・方向だけを抽出し、
+   前回の時刻表と比較します。
 
    ※ timetable.js は自動変更しません。
+   ※ 公式ページ全体の変更ではなく、
+      対象路線の時刻表データだけを比較します。
+
+   監視対象
+   1. 阪急バス
+      日の峰1丁目 → 谷上駅 158系統
+
+   2. 神戸市営地下鉄
+      谷上駅 → 三宮駅
+
+   3. 神戸市営地下鉄
+      三宮駅 → 谷上駅
+
+   4. ポートライナー
+      三宮駅 → 貿易センター駅
+
+   5. ポートライナー
+      貿易センター駅 → 三宮駅
+
+   6. 神戸市バス
+      谷上駅 → 神戸北町 62系統
+
+   7. JR西日本
+      三ノ宮駅 → 灘駅
+
+   8. JR西日本
+      灘駅 → 三ノ宮駅
 ========================================================= */
 
 const fs = require("fs");
@@ -22,22 +43,15 @@ const path = require("path");
 const crypto = require("crypto");
 const cheerio = require("cheerio");
 
-
 /* =========================================================
-   PATH
+   FILE
 ========================================================= */
 
 const STATUS_FILE =
-  path.join(
-    __dirname,
-    "status.json"
-  );
+  path.join(__dirname, "status.json");
 
 const SNAPSHOT_FILE =
-  path.join(
-    __dirname,
-    "snapshot.json"
-  );
+  path.join(__dirname, "snapshot.json");
 
 
 /* =========================================================
@@ -46,162 +60,71 @@ const SNAPSHOT_FILE =
 
 const SOURCES = [
 
-  /* =======================================================
-     阪急バス
-     -------------------------------------------------------
-     対象：
-     日の峰1丁目 → 谷上駅
-     158系統
-
-     GitHub Actionsから対象公式時刻表を安定取得できない
-     場合は「確認エラー」とする。
-  ======================================================= */
-
   {
     id: "hankyu_158",
-
     name: "阪急バス",
-
-    route:
-      "日の峰1丁目 → 谷上駅 158系統",
-
-    type: "hankyu",
-
-    url:
-      "https://www.hankyubus.co.jp/rosen/timetable/"
+    route: "日の峰1丁目 → 谷上駅 158系統",
+    url: "https://www.hankyubus.co.jp/rosen/timetable/"
   },
-
-
-  /* =======================================================
-     地下鉄
-  ======================================================= */
 
   {
     id: "subway_tanigami_sannomiya",
-
     name: "神戸市営地下鉄",
-
-    route:
-      "谷上駅 → 三宮駅",
-
+    route: "谷上駅 → 三宮駅",
+    url: "https://kotsu.city.kobe.lg.jp/subway/timetable1/tanigami/",
     type: "subway",
-
-    url:
-      "https://kotsu.city.kobe.lg.jp/subway/timetable1/tanigami/",
-
-    direction:
-      "新神戸・三宮・名谷・西神中央方面行"
+    direction: "新神戸・三宮・名谷・西神中央方面行"
   },
-
 
   {
     id: "subway_sannomiya_tanigami",
-
     name: "神戸市営地下鉄",
-
-    route:
-      "三宮駅 → 谷上駅",
-
+    route: "三宮駅 → 谷上駅",
+    url: "https://kotsu.city.kobe.lg.jp/subway/timetable1/sannomiya/",
     type: "subway",
-
-    url:
-      "https://kotsu.city.kobe.lg.jp/subway/timetable1/sannomiya/",
-
-    direction:
-      "新神戸・谷上方面行"
+    direction: "新神戸・谷上方面行"
   },
-
-
-  /* =======================================================
-     ポートライナー
-  ======================================================= */
 
   {
     id: "portliner_sannomiya_boeki",
-
     name: "ポートライナー",
-
-    route:
-      "三宮駅 → 貿易センター駅",
-
+    route: "三宮駅 → 貿易センター駅",
+    url: "https://www.knt-liner.co.jp/stationp01/",
     type: "portliner",
-
-    url:
-      "https://www.knt-liner.co.jp/stationp01/",
-
-    direction:
-      "神戸空港・北埠頭方面行"
+    direction: "神戸空港・北埠頭方面行"
   },
-
 
   {
     id: "portliner_boeki_sannomiya",
-
     name: "ポートライナー",
-
-    route:
-      "貿易センター駅 → 三宮駅",
-
+    route: "貿易センター駅 → 三宮駅",
+    url: "https://www.knt-liner.co.jp/stationp02/",
     type: "portliner",
-
-    url:
-      "https://www.knt-liner.co.jp/stationp02/",
-
-    direction:
-      "三宮方面行"
+    direction: "三宮方面行"
   },
-
-
-  /* =======================================================
-     神戸市バス
-  ======================================================= */
 
   {
     id: "citybus_62",
-
     name: "神戸市バス",
-
-    route:
-      "谷上駅 → 神戸北町 62系統",
-
-    type: "citybus",
-
-    url:
-      "https://kotsu.city.kobe.lg.jp/bus/bus-stop-list/bus-836/"
+    route: "谷上駅 → 神戸北町 62系統",
+    url: "https://kotsu.city.kobe.lg.jp/bus/bus-stop-list/bus-836/",
+    type: "citybus62"
   },
-
-
-  /* =======================================================
-     JR
-  ======================================================= */
 
   {
     id: "jr_sannomiya_nada",
-
     name: "JR西日本",
-
-    route:
-      "三ノ宮駅 → 灘駅",
-
-    type: "jr",
-
-    url:
-      "https://timetable.jr-odekake.net/station-timetable/2807012002"
+    route: "三ノ宮駅 → 灘駅",
+    url: "https://timetable.jr-odekake.net/station-timetable/2807012002",
+    type: "jr"
   },
-
 
   {
     id: "jr_nada_sannomiya",
-
     name: "JR西日本",
-
-    route:
-      "灘駅 → 三ノ宮駅",
-
-    type: "jr",
-
-    url:
-      "https://timetable.jr-odekake.net/station-timetable/2806012001"
+    route: "灘駅 → 三ノ宮駅",
+    url: "https://timetable.jr-odekake.net/station-timetable/2806012001",
+    type: "jr"
   }
 
 ];
@@ -213,19 +136,16 @@ const SOURCES = [
 
 async function fetchPage(url) {
 
-  const response =
-    await fetch(
-      url,
-      {
-        headers: {
-          "User-Agent":
-            "KOBE-SANNOMIYA-FC-Timetable-Checker/2.0",
-          "Accept":
-            "text/html,application/xhtml+xml"
-        }
-      }
-    );
+  const response = await fetch(url, {
 
+    headers: {
+      "User-Agent":
+        "KOBE-SANNOMIYA-FC-Timetable-Checker/1.0",
+      "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    }
+
+  });
 
   if (!response.ok) {
 
@@ -234,7 +154,6 @@ async function fetchPage(url) {
     );
 
   }
-
 
   return await response.text();
 
@@ -249,10 +168,7 @@ function createHash(text) {
 
   return crypto
     .createHash("sha256")
-    .update(
-      text,
-      "utf8"
-    )
+    .update(text, "utf8")
     .digest("hex");
 
 }
@@ -264,16 +180,9 @@ function createHash(text) {
 
 function loadSnapshot() {
 
-  if (
-    !fs.existsSync(
-      SNAPSHOT_FILE
-    )
-  ) {
-
+  if (!fs.existsSync(SNAPSHOT_FILE)) {
     return {};
-
   }
-
 
   try {
 
@@ -297,10 +206,7 @@ function loadSnapshot() {
    SAVE JSON
 ========================================================= */
 
-function saveJson(
-  file,
-  data
-) {
+function saveJson(file, data) {
 
   fs.writeFileSync(
     file,
@@ -319,88 +225,102 @@ function saveJson(
    NORMALIZE
 ========================================================= */
 
-function normalizeText(
-  text
-) {
+function normalize(text) {
 
   return String(text || "")
-    .replace(
-      /[０-９]/g,
-      c =>
-        String.fromCharCode(
-          c.charCodeAt(0) - 0xfee0
-        )
+    .replace(/\u00a0/g, " ")
+    .replace(/[０-９]/g, c =>
+      String.fromCharCode(
+        c.charCodeAt(0) - 0xfee0
+      )
     )
-    .replace(
-      /[：]/g,
-      ":"
-    )
-    .replace(
-      /\s+/g,
-      " "
-    )
+    .replace(/[：]/g, ":")
+    .replace(/\s+/g, " ")
     .trim();
 
 }
 
 
 /* =========================================================
-   ADD TIME
+   EXTRACT TABLE ROWS
+   地下鉄など
 ========================================================= */
 
-function addTime(
-  list,
-  hour,
-  minute
-) {
+function extractTableTimes(table) {
 
-  const h =
-    String(hour)
-      .padStart(
-        2,
-        "0"
-      );
+  const result = [];
 
-  const m =
-    String(minute)
-      .padStart(
-        2,
-        "0"
-      );
+  const $table = table;
 
-  list.push(
-    `${h}:${m}`
-  );
+  $table.find("tr").each((index, tr) => {
 
-}
+    const cells = [];
 
+    $table
+      .find("tr")
+      .eq(index)
+      .find("th,td")
+      .each((i, cell) => {
 
-/* =========================================================
-   UNIQUE SORT
-========================================================= */
+        cells.push(
+          normalize(
+            $table
+              .find("tr")
+              .eq(index)
+              .find("th,td")
+              .eq(i)
+              .text()
+          )
+        );
 
-function uniqueSorted(
-  list
-) {
+      });
 
-  return [
-    ...new Set(
-      list
-    )
-  ].sort(
-    (a, b) =>
-      a.localeCompare(
-        b
-      )
-  );
+    if (cells.length < 2) {
+      return;
+    }
+
+    const hourMatch =
+      cells[0].match(/^(\d{1,2})$/);
+
+    if (!hourMatch) {
+      return;
+    }
+
+    const hour =
+      Number(hourMatch[1]);
+
+    const minutes =
+      cells[1]
+        .match(/\d{1,2}/g);
+
+    if (!minutes || !minutes.length) {
+      return;
+    }
+
+    minutes.forEach(minute => {
+
+      const m =
+        String(minute).padStart(2, "0");
+
+      if (Number(m) <= 59) {
+
+        result.push(
+          `${String(hour).padStart(2, "0")}:${m}`
+        );
+
+      }
+
+    });
+
+  });
+
+  return result;
 
 }
 
 
 /* =========================================================
    SUBWAY
-   ---------------------------------------------------------
-   方向見出しから次の時刻表ブロックだけを抽出する。
 ========================================================= */
 
 function extractSubway(
@@ -408,427 +328,265 @@ function extractSubway(
   direction
 ) {
 
-  const $ =
-    cheerio.load(
-      html
-    );
+  const $ = cheerio.load(html);
 
+  const weekday = [];
+  const weekend = [];
 
-  const body =
-    normalizeText(
-      $("body").text()
-    );
+  $("table").each((index, table) => {
 
+    const tableText =
+      normalize($(table).text());
 
-  const start =
-    body.indexOf(
-      normalizeText(
-        direction
-      )
-    );
+    if (!tableText.includes(direction)) {
+      return;
+    }
 
+    const times =
+      extractTableTimes($(table));
 
-  if (
-    start < 0
-  ) {
+    if (!times.length) {
+      return;
+    }
+
+    /*
+     * 方向ごとに
+     * 平日 → 土日祝
+     * の順で存在する。
+     */
+    if (!weekday.length) {
+
+      weekday.push(...times);
+
+    } else {
+
+      weekend.push(...times);
+
+    }
+
+  });
+
+  if (!weekday.length) {
 
     throw new Error(
-      "対象方向の時刻表が見つかりません"
+      "対象方向の平日時刻表を取得できません"
     );
 
   }
 
-
-  const section =
-    body.slice(
-      start
-    );
-
-
-  /*
-   * 平日ブロック
-   *
-   * 最初の5時から次の5時まで。
-   */
-  const first5 =
-    section.indexOf(
-      "5 |"
-    );
-
-
-  if (
-    first5 < 0
-  ) {
+  if (!weekend.length) {
 
     throw new Error(
-      "平日時刻表を取得できません"
+      "対象方向の土日祝時刻表を取得できません"
     );
 
   }
-
-
-  const second5 =
-    section.indexOf(
-      "5 |",
-      first5 + 3
-    );
-
-
-  if (
-    second5 < 0
-  ) {
-
-    throw new Error(
-      "土日祝時刻表を取得できません"
-    );
-
-  }
-
-
-  const weekday =
-    extractClockRows(
-      section.slice(
-        first5,
-        second5
-      )
-    );
-
-
-  const weekend =
-    extractClockRows(
-      section.slice(
-        second5
-      )
-    );
-
-
-  if (
-    !weekday.length &&
-    !weekend.length
-  ) {
-
-    throw new Error(
-      "時刻データを取得できません"
-    );
-
-  }
-
 
   return {
 
-    weekday:
-      uniqueSorted(
-        weekday
-      ),
-
-    weekend:
-      uniqueSorted(
-        weekend
-      )
+    weekday,
+    weekend
 
   };
-
-}
-
-
-/* =========================================================
-   CLOCK ROW EXTRACTION
-========================================================= */
-
-function extractClockRows(
-  text
-) {
-
-  const result =
-    [];
-
-
-  /*
-   * 例
-   *
-   * 5 | 18 41 51
-   * 6 | 2 10 18 ...
-   */
-  const regex =
-    /(?:^|\s)(\d{1,2})\s*\|\s*([^|]+?)(?=\s+\d{1,2}\s*\||$)/g;
-
-
-  let match;
-
-
-  while (
-    (match = regex.exec(text))
-      !== null
-  ) {
-
-    const hour =
-      Number(
-        match[1]
-      );
-
-
-    const minutes =
-      match[2]
-        .match(
-          /(?:^|\s)(\d{1,2})(?=\s|$)/g
-        );
-
-
-    if (!minutes) {
-      continue;
-    }
-
-
-    for (
-      const raw of minutes
-    ) {
-
-      const minute =
-        Number(
-          raw.trim()
-        );
-
-
-      if (
-        minute >= 0 &&
-        minute <= 59
-      ) {
-
-        addTime(
-          result,
-          hour,
-          minute
-        );
-
-      }
-
-    }
-
-  }
-
-
-  return result;
 
 }
 
 
 /* =========================================================
    CITY BUS 62
-   ---------------------------------------------------------
-   62系統部分だけを取得。
-   111系統などは比較対象に含めない。
 ========================================================= */
 
-function extractCityBus62(
-  html
-) {
+function extractCityBus62(html) {
 
-  const $ =
-    cheerio.load(
-      html
-    );
+  const $ = cheerio.load(html);
 
-
-  const body =
-    normalizeText(
+  /*
+   * 公式ページ上の
+   *
+   * 62系統 神戸北町方面行き
+   *
+   * の位置を探す。
+   */
+  const bodyText =
+    normalize(
       $("body").text()
     );
 
-
   const start =
-    body.indexOf(
+    bodyText.indexOf(
       "62系統 神戸北町方面行き"
     );
 
-
-  if (
-    start < 0
-  ) {
+  if (start === -1) {
 
     throw new Error(
-      "62系統 神戸北町方面行き が見つかりません"
+      "62系統 神戸北町方面行きが見つかりません"
     );
 
   }
 
-
+  /*
+   * 111系統より前だけを対象にする。
+   *
+   * これで111系統の時刻を
+   * 絶対に混ぜない。
+   */
   const end =
-    body.indexOf(
+    bodyText.indexOf(
       "111系統",
       start
     );
 
+  if (end === -1) {
+
+    throw new Error(
+      "111系統の境界を確認できません"
+    );
+
+  }
 
   const section =
-    end >= 0
-      ? body.slice(
-          start,
-          end
-        )
-      : body.slice(
-          start
+    bodyText.substring(
+      start,
+      end
+    );
+
+  /*
+   * 公式ページでは
+   *
+   * 平日
+   * 5時 ...
+   * 23時 ...
+   *
+   * 土曜日
+   * 5時 ...
+   *
+   * 日曜・祝日
+   * 5時 ...
+   *
+   * の順。
+   */
+  const blocks =
+    section.split(/(?=5時)/);
+
+  const timetableBlocks = [];
+
+  for (const block of blocks) {
+
+    if (
+      block.includes("5時") &&
+      /\d{1,2}時/.test(block)
+    ) {
+
+      timetableBlocks.push(block);
+
+    }
+
+  }
+
+  if (timetableBlocks.length < 3) {
+
+    throw new Error(
+      `62系統の時刻表ブロックを3つ取得できません (${timetableBlocks.length})`
+    );
+
+  }
+
+  function parseBlock(block) {
+
+    const result = [];
+
+    const hourRegex =
+      /(\d{1,2})時([\s\S]*?)(?=\d{1,2}時|$)/g;
+
+    let match;
+
+    while (
+      (match = hourRegex.exec(block)) !== null
+    ) {
+
+      const hour =
+        Number(match[1]);
+
+      const content =
+        match[2];
+
+      const minutes =
+        content.match(
+          /\b\d{1,2}\b/g
         );
 
+      if (!minutes) {
+        continue;
+      }
 
-  const first5 =
-    section.indexOf(
-      "5時"
-    );
+      minutes.forEach(minute => {
 
+        const m =
+          String(minute).padStart(2, "0");
 
-  if (
-    first5 < 0
-  ) {
+        if (Number(m) <= 59) {
 
-    throw new Error(
-      "62系統の平日時刻表が見つかりません"
-    );
+          result.push(
+            `${String(hour).padStart(2, "0")}:${m}`
+          );
 
-  }
+        }
 
+      });
 
-  const second5 =
-    section.indexOf(
-      "5時",
-      first5 + 2
-    );
+    }
 
-
-  if (
-    second5 < 0
-  ) {
-
-    throw new Error(
-      "62系統の土曜・日祝時刻表が見つかりません"
-    );
+    return result;
 
   }
-
 
   const weekday =
-    extractJapaneseClockRows(
-      section.slice(
-        first5,
-        second5
-      )
+    parseBlock(
+      timetableBlocks[0]
     );
 
-
-  const weekend =
-    extractJapaneseClockRows(
-      section.slice(
-        second5
-      )
+  const saturday =
+    parseBlock(
+      timetableBlocks[1]
     );
 
+  const holiday =
+    parseBlock(
+      timetableBlocks[2]
+    );
 
-  if (
-    !weekday.length &&
-    !weekend.length
-  ) {
+  if (!weekday.length) {
 
     throw new Error(
-      "62系統の時刻データを取得できません"
+      "62系統 平日時刻表を抽出できません"
     );
 
   }
 
+  if (!saturday.length) {
+
+    throw new Error(
+      "62系統 土曜日時刻表を抽出できません"
+    );
+
+  }
+
+  if (!holiday.length) {
+
+    throw new Error(
+      "62系統 日曜・祝日時刻表を抽出できません"
+    );
+
+  }
 
   return {
 
-    weekday:
-      uniqueSorted(
-        weekday
-      ),
-
-    weekend:
-      uniqueSorted(
-        weekend
-      )
+    weekday,
+    saturday,
+    holiday
 
   };
-
-}
-
-
-/* =========================================================
-   JAPANESE CLOCK ROWS
-========================================================= */
-
-function extractJapaneseClockRows(
-  text
-) {
-
-  const result =
-    [];
-
-
-  /*
-   * 例
-   *
-   * 7時 45
-   * 11時 00
-   * 15時 00 30
-   */
-
-  const regex =
-    /(\d{1,2})時([^0-9]{0,20}(?:\d{1,2}(?:\s|$|○|☆|急))+(?:[^0-9]{0,20}))/g;
-
-
-  let match;
-
-
-  while (
-    (match = regex.exec(text))
-      !== null
-  ) {
-
-    const hour =
-      Number(
-        match[1]
-      );
-
-
-    const minutes =
-      match[2].match(
-        /\d{1,2}/g
-      );
-
-
-    if (!minutes) {
-      continue;
-    }
-
-
-    for (
-      const raw of minutes
-    ) {
-
-      const minute =
-        Number(
-          raw
-        );
-
-
-      if (
-        minute >= 0 &&
-        minute <= 59
-      ) {
-
-        addTime(
-          result,
-          hour,
-          minute
-        );
-
-      }
-
-    }
-
-  }
-
-
-  return result;
 
 }
 
@@ -842,321 +600,103 @@ function extractPortliner(
   direction
 ) {
 
-  const $ =
-    cheerio.load(
-      html
-    );
+  const $ = cheerio.load(html);
 
+  const tables = [];
 
-  const tables =
-    $("table");
+  $("table").each((index, table) => {
 
+    const tableText =
+      normalize($(table).text());
 
-  const results =
-    [];
+    if (
+      tableText.includes(direction)
+    ) {
 
-
-  let matched =
-    false;
-
-
-  tables.each(
-    (_, table) => {
-
-      const tableText =
-        normalizeText(
-          $(table).text()
-        );
-
-
-      if (
-        !tableText.includes(
-          normalizeText(
-            direction
-          )
-        )
-      ) {
-
-        return;
-
-      }
-
-
-      /*
-       * 最初の一致テーブルを使用。
-       *
-       * 公式ページでは
-       * 平日 / 土日祝
-       * が別テーブルになっている。
-       */
-      if (
-        matched
-      ) {
-
-        return;
-
-      }
-
-
-      matched =
-        true;
-
+      const times =
+        [];
 
       $(table)
         .find("tr")
-        .each(
-          (_, tr) => {
+        .each((i, tr) => {
 
-            const cells =
+          const hourText =
+            normalize(
               $(tr)
-                .find(
-                  "th,td"
-                )
-                .map(
-                  (_, cell) =>
-                    normalizeText(
-                      $(cell).text()
-                    )
-                )
-                .get();
+                .find("th.hour")
+                .first()
+                .text()
+            );
 
+          const hourMatch =
+            hourText.match(
+              /^(\d{1,2})$/
+            );
 
-            if (
-              cells.length < 2
-            ) {
+          if (!hourMatch) {
+            return;
+          }
 
-              return;
+          const hour =
+            Number(
+              hourMatch[1]
+            );
 
-            }
-
-
-            const hour =
-              Number(
-                cells[0]
-              );
-
-
-            if (
-              !Number.isInteger(
-                hour
-              ) ||
-              hour < 0 ||
-              hour > 23
-            ) {
-
-              return;
-
-            }
-
-
-            const minutes =
-              $(tr)
-                .find(
-                  ".info02"
-                )
-                .map(
-                  (_, el) =>
-                    normalizeText(
-                      $(el).text()
-                    )
-                )
-                .get();
-
-
-            for (
-              const raw of minutes
-            ) {
+          $(tr)
+            .find(".info02")
+            .each((j, el) => {
 
               const minute =
-                Number(
-                  raw
-                );
+                normalize(
+                  $(el).text()
+                ).match(/\d{1,2}/);
 
+              if (!minute) {
+                return;
+              }
 
-              if (
-                minute >= 0 &&
-                minute <= 59
-              ) {
+              const m =
+                String(
+                  minute[0]
+                ).padStart(2, "0");
 
-                addTime(
-                  results,
-                  hour,
-                  minute
+              if (Number(m) <= 59) {
+
+                times.push(
+                  `${String(hour).padStart(2, "0")}:${m}`
                 );
 
               }
 
-            }
+            });
 
-          }
-        );
+        });
+
+      if (times.length) {
+
+        tables.push(times);
+
+      }
 
     }
-  );
 
+  });
 
-  if (
-    !matched ||
-    !results.length
-  ) {
+  if (!tables.length) {
 
     throw new Error(
-      "対象方向のポートライナー時刻表を取得できません"
+      "ポートライナー対象方向を取得できません"
     );
 
   }
 
-
-  return uniqueSorted(
-    results
-  );
-
-}
-
-
-/* =========================================================
-   JR
-   ---------------------------------------------------------
-   JRは日付指定ページを取得する。
-   平日代表日と土日代表日の2種類を比較する。
-========================================================= */
-
-function formatDate(
-  date
-) {
-
-  const y =
-    date.getFullYear();
-
-
-  const m =
-    String(
-      date.getMonth() + 1
-    )
-      .padStart(
-        2,
-        "0"
-      );
-
-
-  const d =
-    String(
-      date.getDate()
-    )
-      .padStart(
-        2,
-        "0"
-      );
-
-
-  return `${y}${m}${d}`;
-
-}
-
-
-/* =========================================================
-   NEXT MONDAY
-========================================================= */
-
-function getNextMonday() {
-
-  const date =
-    new Date();
-
-
-  const day =
-    date.getDay();
-
-
-  const diff =
-    day === 0
-      ? 1
-      : 8 - day;
-
-
-  date.setDate(
-    date.getDate() + diff
-  );
-
-
-  return date;
-
-}
-
-
-/* =========================================================
-   NEXT SUNDAY
-========================================================= */
-
-function getNextSunday() {
-
-  const date =
-    new Date();
-
-
-  const day =
-    date.getDay();
-
-
-  const diff =
-    day === 0
-      ? 0
-      : 7 - day;
-
-
-  date.setDate(
-    date.getDate() + diff
-  );
-
-
-  return date;
-
-}
-
-
-/* =========================================================
-   JR FETCH
-========================================================= */
-
-async function fetchJR(
-  source
-) {
-
-  const weekdayDate =
-    formatDate(
-      getNextMonday()
-    );
-
-
-  const weekendDate =
-    formatDate(
-      getNextSunday()
-    );
-
-
-  const weekdayHtml =
-    await fetchPage(
-      `${source.url}?date=${weekdayDate}`
-    );
-
-
-  const weekendHtml =
-    await fetchPage(
-      `${source.url}?date=${weekendDate}`
-    );
-
-
   return {
 
     weekday:
-      extractJRTimes(
-        weekdayHtml
-      ),
+      tables[0] || [],
 
     weekend:
-      extractJRTimes(
-        weekendHtml
-      )
+      tables[1] || tables[0] || []
 
   };
 
@@ -1164,155 +704,141 @@ async function fetchJR(
 
 
 /* =========================================================
-   JR TIMES
+   JR
 ========================================================= */
 
-function extractJRTimes(
-  html
-) {
+function extractJR(html) {
 
-  const $ =
-    cheerio.load(
-      html
-    );
+  const $ = cheerio.load(html);
 
+  const times = [];
 
-  const results =
-    [];
+  $(".departure-time").each(
+    (index, element) => {
 
-
-  /*
-   * PC/SPの重複を防ぐため、
-   * 時刻そのものだけを取得して最後に重複排除。
-   */
-  $(
-    ".departure-time"
-  )
-    .each(
-      (_, el) => {
-
-        const value =
-          normalizeText(
-            $(el).text()
-          );
-
-
-        const match =
-          value.match(
-            /^(\d{1,2}):(\d{2})$/
-          );
-
-
-        if (!match) {
-          return;
-        }
-
-
-        addTime(
-          results,
-          Number(
-            match[1]
-          ),
-          Number(
-            match[2]
-          )
+      const value =
+        normalize(
+          $(element).text()
         );
 
+      if (
+        /^\d{1,2}:\d{2}$/.test(value)
+      ) {
+
+        times.push(value);
+
       }
-    );
 
+    }
+  );
 
-  if (
-    !results.length
-  ) {
+  if (!times.length) {
 
     throw new Error(
-      "JR時刻表を取得できません"
+      "JR発車時刻を取得できません"
     );
 
   }
 
-
-  return uniqueSorted(
-    results
-  );
+  /*
+   * JRページはPC/SPなど
+   * 同じ時刻が複数存在する場合がある。
+   */
+  return [
+    ...new Set(times)
+  ].sort();
 
 }
 
 
 /* =========================================================
    HANKYU
-   ---------------------------------------------------------
-   現在の公式路線一覧ページでは158系統自体は確認できるが、
-   「日の峰1丁目 → 谷上駅」の対象停留所時刻表を
-   GitHub Actionsから直接取得できない場合がある。
-
-   誤って「変更なし」と判定するより、
-   確認エラーとして扱う。
 ========================================================= */
 
-async function checkHankyu(
-  source
-) {
+function extractHankyu() {
 
   /*
-   * 公式ページ自体が取得できるかだけ確認する。
+   * 現在の阪急バス公式サイトでは、
+   * 158系統が路線別一覧には掲載されているが、
+   * GitHub Actionsから
+   * 「日の峰1丁目 → 谷上駅」
+   * の現在時刻表を安定して直接取得できる
+   * 専用URLを確定できない。
+   *
+   * 誤判定を防ぐため、
+   * 現段階では確認エラーとして扱う。
    */
-  await fetchPage(
-    source.url
-  );
-
-
   throw new Error(
-    "対象158系統時刻表を自動取得できません"
+    "158系統「日の峰1丁目 → 谷上駅」の公式時刻表を直接取得できません"
   );
 
 }
 
 
 /* =========================================================
-   EXTRACT
+   EXTRACT SOURCE
 ========================================================= */
 
-async function extractTimetable(
-  source,
-  html
-) {
+async function extractSource(source) {
 
-  switch (
-    source.type
+  if (
+    source.id === "hankyu_158"
   ) {
 
-    case "subway":
-
-      return extractSubway(
-        html,
-        source.direction
-      );
-
-
-    case "citybus":
-
-      return extractCityBus62(
-        html
-      );
-
-
-    case "portliner":
-
-      return extractPortliner(
-        html,
-        source.direction
-      );
-
-
-    default:
-
-      throw new Error(
-        "未対応の路線タイプ"
-      );
+    return extractHankyu();
 
   }
+
+  const html =
+    await fetchPage(
+      source.url
+    );
+
+  if (
+    source.type === "subway"
+  ) {
+
+    return extractSubway(
+      html,
+      source.direction
+    );
+
+  }
+
+  if (
+    source.type === "citybus62"
+  ) {
+
+    return extractCityBus62(
+      html
+    );
+
+  }
+
+  if (
+    source.type === "portliner"
+  ) {
+
+    return extractPortliner(
+      html,
+      source.direction
+    );
+
+  }
+
+  if (
+    source.type === "jr"
+  ) {
+
+    return extractJR(
+      html
+    );
+
+  }
+
+  throw new Error(
+    "未対応の監視タイプ"
+  );
 
 }
 
@@ -1326,17 +852,11 @@ async function main() {
   const previous =
     loadSnapshot();
 
+  const nextSnapshot = {};
 
-  const nextSnapshot =
-    {};
+  const results = [];
 
-
-  const results =
-    [];
-
-
-  let hasChanges =
-    false;
+  let hasChanges = false;
 
 
   for (
@@ -1347,80 +867,22 @@ async function main() {
       `Checking: ${source.name} ${source.route}`
     );
 
-
     try {
 
-      let timetable;
-
-
-      /* ---------------------------------------------------
-         阪急
-      --------------------------------------------------- */
-
-      if (
-        source.type ===
-        "hankyu"
-      ) {
-
-        await checkHankyu(
+      const timetable =
+        await extractSource(
           source
         );
 
-      }
-
-
-      /* ---------------------------------------------------
-         JR
-      --------------------------------------------------- */
-
-      else if (
-        source.type ===
-        "jr"
-      ) {
-
-        timetable =
-          await fetchJR(
-            source
-          );
-
-      }
-
-
-      /* ---------------------------------------------------
-         その他
-      --------------------------------------------------- */
-
-      else {
-
-        const html =
-          await fetchPage(
-            source.url
-          );
-
-
-        timetable =
-          await extractTimetable(
-            source,
-            html
-          );
-
-      }
-
-
-      /*
-       * 時刻表そのものをJSON化
-       */
-      const timetableText =
+      const normalized =
         JSON.stringify(
           timetable
         );
 
-
       const hash =
         createHash(
-          timetableText
+          normalized
         );
-
 
       nextSnapshot[
         source.id
@@ -1431,8 +893,7 @@ async function main() {
         timetable,
 
         checkedAt:
-          new Date()
-            .toISOString()
+          new Date().toISOString()
 
       };
 
@@ -1443,13 +904,10 @@ async function main() {
         ]?.hash;
 
 
-      /* ---------------------------------------------------
-         初回
-      --------------------------------------------------- */
-
-      if (
-        !previousHash
-      ) {
+      /*
+       * 初回
+       */
+      if (!previousHash) {
 
         results.push({
 
@@ -1470,19 +928,16 @@ async function main() {
 
         });
 
-
         continue;
 
       }
 
 
-      /* ---------------------------------------------------
-         変更なし
-      --------------------------------------------------- */
-
+      /*
+       * 変更なし
+       */
       if (
-        previousHash ===
-        hash
+        previousHash === hash
       ) {
 
         results.push({
@@ -1506,11 +961,9 @@ async function main() {
 
       }
 
-
-      /* ---------------------------------------------------
-         変更あり
-      --------------------------------------------------- */
-
+      /*
+       * 変更あり
+       */
       else {
 
         results.push({
@@ -1532,46 +985,31 @@ async function main() {
 
         });
 
-
-        hasChanges =
-          true;
+        hasChanges = true;
 
       }
 
-    }
-
-
-    catch (
-      error
-    ) {
+    } catch (error) {
 
       console.error(
-        `${source.name} ${source.route}`,
+        `[ERROR] ${source.name} ${source.route}`,
         error.message
       );
 
 
       /*
-       * エラー時は既存snapshotを
-       * 上書きしない。
-       *
-       * これが重要。
-       *
-       * 一時的な403や通信障害で
-       * 正常な基準値を消さない。
+       * 取得失敗時は、
+       * 前回正常取得したスナップショットを
+       * 消さない。
        */
       if (
-        previous[
-          source.id
-        ]
+        previous[source.id]
       ) {
 
         nextSnapshot[
           source.id
         ] =
-          previous[
-            source.id
-          ];
+          previous[source.id];
 
       }
 
@@ -1591,7 +1029,7 @@ async function main() {
           "error",
 
         message:
-          `確認エラー（${error.message}）`
+          `確認エラー: ${error.message}`
 
       });
 
@@ -1601,8 +1039,7 @@ async function main() {
 
 
   const checkedAt =
-    new Date()
-      .toISOString();
+    new Date().toISOString();
 
 
   saveJson(
@@ -1646,16 +1083,10 @@ async function main() {
 
 
 main()
-  .catch(
-    error => {
+  .catch(error => {
 
-      console.error(
-        error
-      );
+    console.error(error);
 
-      process.exit(
-        1
-      );
+    process.exit(1);
 
-    }
-  );
+  });
