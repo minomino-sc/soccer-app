@@ -2489,16 +2489,17 @@ async function main() {
          阪急
       --------------------------------------------------- */
 
-      if (
-        source.type ===
-        "hankyu"
-      ) {
+if (
+  source.type ===
+  "hankyu"
+) {
 
-        await checkHankyu(
-          source
-        );
+  timetable =
+    await checkHankyu(
+      source
+    );
 
-      }
+}
 
 
       /* ---------------------------------------------------
