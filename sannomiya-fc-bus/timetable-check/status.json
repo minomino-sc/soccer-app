@@ -1,41 +1,62 @@
 {
-  "checkedAt": "2026-09-28T05:38:02.592Z",
+  "checkedAt": "2026-09-28T05:44:52.150Z",
   "hasChanges": false,
   "services": [
     {
-      "id": "hankyu",
+      "id": "hankyu_158",
       "name": "阪急バス",
-      "route": "日の峰1丁目 → 谷上駅",
-      "status": "ok",
-      "message": "初回登録"
-    },
-    {
-      "id": "subway",
-      "name": "神戸市営地下鉄",
-      "route": "谷上駅 ↔ 三宮駅",
-      "status": "ok",
-      "message": "初回登録"
-    },
-    {
-      "id": "portliner",
-      "name": "ポートライナー",
-      "route": "三宮駅 ↔ 貿易センター駅",
-      "status": "ok",
-      "message": "初回登録"
-    },
-    {
-      "id": "citybus",
-      "name": "神戸市バス",
-      "route": "谷上駅 → 日の峰1丁目方面",
-      "status": "ok",
-      "message": "初回登録"
-    },
-    {
-      "id": "jr",
-      "name": "JR西日本",
-      "route": "三ノ宮駅 ↔ 灘駅",
+      "route": "日の峰1丁目 → 谷上駅 158系統",
       "status": "error",
-      "message": "HTTP 404"
+      "message": "確認エラー（対象158系統時刻表を自動取得できません）"
+    },
+    {
+      "id": "subway_tanigami_sannomiya",
+      "name": "神戸市営地下鉄",
+      "route": "谷上駅 → 三宮駅",
+      "status": "error",
+      "message": "確認エラー（対象方向の時刻表が見つかりません）"
+    },
+    {
+      "id": "subway_sannomiya_tanigami",
+      "name": "神戸市営地下鉄",
+      "route": "三宮駅 → 谷上駅",
+      "status": "error",
+      "message": "確認エラー（対象方向の時刻表が見つかりません）"
+    },
+    {
+      "id": "portliner_sannomiya_boeki",
+      "name": "ポートライナー",
+      "route": "三宮駅 → 貿易センター駅",
+      "status": "ok",
+      "message": "初回登録"
+    },
+    {
+      "id": "portliner_boeki_sannomiya",
+      "name": "ポートライナー",
+      "route": "貿易センター駅 → 三宮駅",
+      "status": "ok",
+      "message": "初回登録"
+    },
+    {
+      "id": "citybus_62",
+      "name": "神戸市バス",
+      "route": "谷上駅 → 神戸北町 62系統",
+      "status": "error",
+      "message": "確認エラー（62系統 神戸北町方面行き が見つかりません）"
+    },
+    {
+      "id": "jr_sannomiya_nada",
+      "name": "JR西日本",
+      "route": "三ノ宮駅 → 灘駅",
+      "status": "ok",
+      "message": "初回登録"
+    },
+    {
+      "id": "jr_nada_sannomiya",
+      "name": "JR西日本",
+      "route": "灘駅 → 三ノ宮駅",
+      "status": "ok",
+      "message": "初回登録"
     }
   ]
 }
