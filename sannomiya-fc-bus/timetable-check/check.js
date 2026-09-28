@@ -1682,7 +1682,22 @@ function extractJRTimes(
 
 
 /* =========================================================
-   HANKYU
+   HANKYU BUS 158
+   ---------------------------------------------------------
+   対象：
+   日の峰1丁目
+   158系統
+   谷上駅
+
+   阪急バス公式の停留所時刻表を取得する。
+
+   平日：
+   158系統 → 谷上駅
+
+   土休日：
+   158系統 → 谷上駅
+
+   ※ 150系統など他系統は比較対象にしない。
 ========================================================= */
 
 async function checkHankyu(
@@ -1690,20 +1705,693 @@ async function checkHankyu(
 ) {
 
   /*
-   * 公式ページ自体が取得できるか確認。
+   * 阪急バス公式の
+   * 「日の峰1丁目」停留所時刻表
+   *
+   * 2026年2月1日現在
    */
-  await fetchPage(
-    source.url
+  const url =
+    "https://transfer-cloud.navitime.biz/hankyubus/courses/timetables?busstop=00021667&timetable-id=856401";
+
+
+  const html =
+    await fetchPage(
+      url
+    );
+
+
+  const timetable =
+    extractHankyu158(
+      html
+    );
+
+
+  if (
+    !timetable.weekday.length &&
+    !timetable.weekend.length
+  ) {
+
+    throw new Error(
+      "158系統 谷上駅行きの時刻表を取得できません"
+    );
+
+  }
+
+
+  return timetable;
+
+}
+
+
+/* =========================================================
+   HANKYU 158 EXTRACTION
+========================================================= */
+
+function extractHankyu158(
+  html
+) {
+
+  const $ =
+    cheerio.load(
+      html
+    );
+
+
+  const weekday =
+    [];
+
+
+  const weekend =
+    [];
+
+
+  /*
+   * -------------------------------------------------------
+   * 阪急公式ページの構造
+   *
+   * 平日
+   *   系統 [158] [150]
+   *   行先 谷上駅 ...
+   *
+   * 土休日
+   *   系統 [158] [150]
+   *   行先 谷上駅 ...
+   *
+   * 158は左側の列。
+   * -------------------------------------------------------
+   */
+
+
+  const tables =
+    $("table");
+
+
+  let foundWeekday =
+    false;
+
+
+  let foundWeekend =
+    false;
+
+
+  tables.each(
+    (_, table) => {
+
+      const tableText =
+        normalizeText(
+          $(table).text()
+        );
+
+
+      /*
+       * 158と谷上駅の両方が存在する
+       * テーブルだけを対象にする。
+       */
+      if (
+        !tableText.includes("[158]") ||
+        !tableText.includes("谷上駅")
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+       * テーブル内の行を解析。
+       */
+      const rows =
+        [];
+
+
+      $(table)
+        .find("tr")
+        .each(
+          (_, tr) => {
+
+            const cells =
+              $(tr)
+                .find("th,td")
+                .map(
+                  (_, cell) =>
+                    normalizeText(
+                      $(cell).text()
+                    )
+                )
+                .get();
+
+
+            if (
+              cells.length
+            ) {
+
+              rows.push(
+                cells
+              );
+
+            }
+
+          }
+        );
+
+
+      if (
+        !rows.length
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+       * [158]列を探す。
+       */
+      let routeIndex =
+        -1;
+
+
+      let routeHeaderRow =
+        -1;
+
+
+      for (
+        let r = 0;
+        r < rows.length;
+        r++
+      ) {
+
+        const index =
+          rows[r].findIndex(
+            cell =>
+              cell === "[158]" ||
+              cell.includes("[158]")
+          );
+
+
+        if (
+          index >= 0
+        ) {
+
+          routeIndex =
+            index;
+
+          routeHeaderRow =
+            r;
+
+          break;
+
+        }
+
+      }
+
+
+      if (
+        routeIndex < 0
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+       * 158列のすぐ近くに
+       * 「谷上駅」があることを確認。
+       */
+      let isTanigami =
+        false;
+
+
+      for (
+        let r = routeHeaderRow;
+        r < Math.min(
+          rows.length,
+          routeHeaderRow + 5
+        );
+        r++
+      ) {
+
+        if (
+          rows[r].some(
+            cell =>
+              cell.includes("谷上駅")
+          )
+        ) {
+
+          isTanigami =
+            true;
+
+          break;
+
+        }
+
+      }
+
+
+      if (
+        !isTanigami
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+       * 時刻行を取得。
+       *
+       * 例：
+       *
+       * 8 | 47
+       * 9 | 16 58
+       * 10 | 22
+       */
+      for (
+        let r = routeHeaderRow + 1;
+        r < rows.length;
+        r++
+      ) {
+
+        const row =
+          rows[r];
+
+
+        /*
+         * 時刻の行では、
+         * 左右に「8」「9」「10」などの
+         * hourセルが存在する。
+         *
+         * 最初の1～2桁を時刻として扱う。
+         */
+        let hourIndex =
+          -1;
+
+
+        let hour =
+          -1;
+
+
+        for (
+          let c = 0;
+          c < row.length;
+          c++
+        ) {
+
+          if (
+            /^\d{1,2}$/.test(
+              row[c]
+            )
+          ) {
+
+            const value =
+              Number(
+                row[c]
+              );
+
+
+            if (
+              value >= 0 &&
+              value <= 23
+            ) {
+
+              hourIndex =
+                c;
+
+              hour =
+                value;
+
+              break;
+
+            }
+
+          }
+
+        }
+
+
+        if (
+          hourIndex < 0
+        ) {
+
+          continue;
+
+        }
+
+
+        /*
+         * 158列のセルを取得。
+         */
+        if (
+          routeIndex >= row.length
+        ) {
+
+          continue;
+
+        }
+
+
+        const timeCell =
+          row[
+            routeIndex
+          ];
+
+
+        /*
+         * 空欄は便なし。
+         */
+        if (
+          !timeCell
+        ) {
+
+          continue;
+
+        }
+
+
+        /*
+         * 158列に入っている
+         * 分だけを取得。
+         *
+         * 遅延情報などが入っても
+         * 数字だけを見る。
+         */
+        const minutes =
+          timeCell.match(
+            /\d{1,2}/g
+          );
+
+
+        if (
+          !minutes
+        ) {
+
+          continue;
+
+        }
+
+
+        for (
+          const raw of minutes
+        ) {
+
+          const minute =
+            Number(
+              raw
+            );
+
+
+          if (
+            minute >= 0 &&
+            minute <= 59
+          ) {
+
+            addTime(
+              weekday,
+              hour,
+              minute
+            );
+
+          }
+
+        }
+
+      }
+
+
+      /*
+       * このテーブルが平日か土休日かを
+       * テーブル周辺のテキストから判定。
+       */
+      const parentText =
+        normalizeText(
+          $(table)
+            .parent()
+            .text()
+        );
+
+
+      /*
+       * 「土休日」が含まれるテーブルは
+       * 土休日として扱う。
+       */
+      if (
+        parentText.includes("土休日") ||
+        parentText.includes("土・休日")
+      ) {
+
+        /*
+         * 現在weekdayに入れた値を
+         * weekendへ移動。
+         */
+        weekend.push(
+          ...weekday
+        );
+
+        weekday.length =
+          0;
+
+        foundWeekend =
+          true;
+
+      }
+
+      else {
+
+        foundWeekday =
+          true;
+
+      }
+
+    }
   );
 
 
   /*
-   * 158系統の対象停留所時刻表は
-   * 今回はまだ自動抽出対象にしない。
+   * -------------------------------------------------------
+   * 上のDOM解析でページ構造に依存しすぎないよう、
+   * bodyテキストからのフォールバックも用意する。
+   * -------------------------------------------------------
    */
-  throw new Error(
-    "対象158系統時刻表を自動取得できません"
-  );
+
+  if (
+    !weekday.length &&
+    !weekend.length
+  ) {
+
+    const body =
+      normalizeText(
+        $("body").text()
+      );
+
+
+    const weekdayStart =
+      body.indexOf(
+        "曜日 平日"
+      );
+
+
+    const holidayStart =
+      body.indexOf(
+        "曜日 土休日"
+      );
+
+
+    if (
+      weekdayStart >= 0
+    ) {
+
+      const weekdayEnd =
+        holidayStart > weekdayStart
+          ? holidayStart
+          : body.length;
+
+
+      const weekdayText =
+        body.slice(
+          weekdayStart,
+          weekdayEnd
+        );
+
+
+      extractHankyuTextTimes(
+        weekdayText,
+        weekday
+      );
+
+    }
+
+
+    if (
+      holidayStart >= 0
+    ) {
+
+      const holidayText =
+        body.slice(
+          holidayStart
+        );
+
+
+      extractHankyuTextTimes(
+        holidayText,
+        weekend
+      );
+
+    }
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * 最終確認
+   * -------------------------------------------------------
+   */
+
+  if (
+    !weekday.length &&
+    !weekend.length
+  ) {
+
+    throw new Error(
+      "158系統 谷上駅行きの時刻データが見つかりません"
+    );
+
+  }
+
+
+  return {
+
+    weekday:
+      uniqueSorted(
+        weekday
+      ),
+
+    weekend:
+      uniqueSorted(
+        weekend
+      )
+
+  };
+
+}
+
+
+/* =========================================================
+   HANKYU TEXT FALLBACK
+========================================================= */
+
+function extractHankyuTextTimes(
+  text,
+  result
+) {
+
+  /*
+   * 158系統の行先が
+   * 谷上駅であることを確認。
+   */
+  if (
+    !text.includes(
+      "[158]"
+    ) ||
+    !text.includes(
+      "谷上駅"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  /*
+   * 時刻表部分から
+   *
+   * 8 47
+   * 9 16 58
+   *
+   * のような形を取得。
+   *
+   * 「系統」「行先」などの数字は
+   * 時刻として扱わない。
+   */
+
+  const lines =
+    text.split(
+      /\s+/
+    );
+
+
+  let currentHour =
+    null;
+
+
+  for (
+    const token of lines
+  ) {
+
+    /*
+     * 時刻表の時間
+     */
+    if (
+      /^\d{1,2}$/.test(
+        token
+      )
+    ) {
+
+      const value =
+        Number(
+          token
+        );
+
+
+      if (
+        value >= 6 &&
+        value <= 22
+      ) {
+
+        currentHour =
+          value;
+
+        continue;
+
+      }
+
+    }
+
+
+    /*
+     * 分
+     */
+    if (
+      currentHour !== null &&
+      /^\d{1,2}$/.test(
+        token
+      )
+    ) {
+
+      const minute =
+        Number(
+          token
+        );
+
+
+      if (
+        minute >= 0 &&
+        minute <= 59
+      ) {
+
+        addTime(
+          result,
+          currentHour,
+          minute
+        );
+
+      }
+
+    }
+
+  }
 
 }
 
