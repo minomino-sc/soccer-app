@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-28T08:11:53.432Z",
+  "checkedAt": "2026-09-28T08:38:42.495Z",
   "hasChanges": false,
   "services": [
     {
@@ -28,14 +28,14 @@
       "name": "ポートライナー",
       "route": "三宮駅 → 貿易センター駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "portliner_boeki_sannomiya",
       "name": "ポートライナー",
       "route": "貿易センター駅 → 三宮駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "citybus_62",
@@ -49,14 +49,14 @@
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "jr_nada_sannomiya",
       "name": "JR西日本",
       "route": "灘駅 → 三ノ宮駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     }
   ]
 }

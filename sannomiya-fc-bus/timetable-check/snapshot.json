@@ -528,7 +528,7 @@
           "23:52"
         ]
       },
-      "checkedAt": "2026-09-28T08:11:51.268Z"
+      "checkedAt": "2026-09-28T08:38:40.266Z"
     },
     "portliner_boeki_sannomiya": {
       "hash": "f8da4fe05f579af3e488bb7c2ee41f50ce4ea7a0dcb5cc2ce3b0ec19aec8258d",
@@ -1061,7 +1061,7 @@
           "23:50"
         ]
       },
-      "checkedAt": "2026-09-28T08:11:52.510Z"
+      "checkedAt": "2026-09-28T08:38:41.478Z"
     },
     "jr_sannomiya_nada": {
       "hash": "f05169d075e7408158b0bb4519fcc4aeb271f7d2b636d88b2e5fafd60a56f772",
@@ -1360,7 +1360,7 @@
         "9:55",
         "9:58"
       ],
-      "checkedAt": "2026-09-28T08:11:53.106Z"
+      "checkedAt": "2026-09-28T08:38:42.174Z"
     },
     "jr_nada_sannomiya": {
       "hash": "d414cfc788573f576ec926d7f8141287a645bb3508b58895feffecc76293eb67",
@@ -1511,7 +1511,7 @@
         "9:47",
         "9:58"
       ],
-      "checkedAt": "2026-09-28T08:11:53.432Z"
+      "checkedAt": "2026-09-28T08:38:42.495Z"
     }
   }
 }
