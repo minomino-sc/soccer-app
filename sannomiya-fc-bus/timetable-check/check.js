@@ -2,15 +2,46 @@
    KOBE SANNOMIYA FC
    公式時刻表 自動チェック
 
-   ・公式ページの実際の時刻だけを比較
-   ・ページ全体のHTMLは比較しない
-   ・お知らせ、更新日、デザイン変更は無視
-   ・timetable.js は変更しない
+   重要
+   ・timetable.js は絶対に変更しない
+   ・公式ページの「実際の時刻」だけを比較
+   ・更新日、ページデザイン、お知らせ等は無視
+   ・解析できない場合は「確認エラー」
+   ・初回は現在の時刻表を基準値として保存
+   ・旧snapshotが別形式なら自動的に基準値を作り直す
+
+   監視対象
+
+   ① 阪急バス
+      日の峰1丁目 → 谷上駅
+      158系統
+
+   ② 神戸市営地下鉄
+      谷上駅 → 三宮駅
+      三宮駅 → 谷上駅
+
+   ③ 神戸市バス
+      谷上駅 → 神戸北町
+      62系統
+
+   ④ ポートライナー
+      三宮駅 → 貿易センター駅
+      貿易センター駅 → 三宮駅
+
+   ⑤ JR西日本
+      三ノ宮駅 → 灘駅
+      灘駅 → 三ノ宮駅
 ========================================================= */
 
 const fs = require("fs");
 const crypto = require("crypto");
-const cheerio = require("cheerio");
+
+const BASE = "sannomiya-fc-bus/timetable-check";
+
+const SNAPSHOT_FILE = `${BASE}/snapshot.json`;
+const STATUS_FILE = `${BASE}/status.json`;
+
+const SCHEMA_VERSION = 4;
 
 
 /* =========================================================
@@ -18,9 +49,6 @@ const cheerio = require("cheerio");
 ========================================================= */
 
 const URLS = {
-
-  hankyu:
-    "https://transfer-cloud.navitime.biz/hankyubus/courses/timetables?busstop=00021667&timetable-id=856401",
 
   subwayTanigami:
     "https://kotsu.city.kobe.lg.jp/subway/timetable1/tanigami/",
@@ -42,61 +70,46 @@ const URLS = {
 
   jrNada:
     "https://timetable.jr-odekake.net/station-timetable/2806012001"
+
 };
 
 
 /* =========================================================
-   ファイル
+   表示名
 ========================================================= */
 
-const BASE =
-  "sannomiya-fc-bus/timetable-check";
+const NAMES = {
 
-const SNAPSHOT_FILE =
-  `${BASE}/snapshot.json`;
+  subwayTanigami:
+    "神戸市営地下鉄 谷上駅 → 三宮駅",
 
-const STATUS_FILE =
-  `${BASE}/status.json`;
+  subwaySannomiya:
+    "神戸市営地下鉄 三宮駅 → 谷上駅",
 
+  cityBus62:
+    "神戸市バス 谷上駅 → 神戸北町 62系統",
 
-/* =========================================================
-   HTTP
-========================================================= */
+  portlinerSannomiya:
+    "ポートライナー 三宮駅 → 貿易センター駅",
 
-async function fetchHtml(url) {
+  portlinerBoeki:
+    "ポートライナー 貿易センター駅 → 三宮駅",
 
-  const response = await fetch(url, {
-    redirect: "follow",
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
-      "Accept":
-        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language":
-        "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7",
-      "Cache-Control":
-        "no-cache"
-    }
-  });
+  jrSannomiya:
+    "JR西日本 三ノ宮駅 → 灘駅",
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
+  jrNada:
+    "JR西日本 灘駅 → 三ノ宮駅"
 
-  return await response.text();
-}
+};
 
 
 /* =========================================================
    共通
 ========================================================= */
 
-function normalize(text) {
-
-  return String(text || "")
-    .replace(/\u3000/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+function now() {
+  return new Date().toISOString();
 }
 
 
@@ -106,355 +119,335 @@ function hash(text) {
     .createHash("sha256")
     .update(text)
     .digest("hex");
+
 }
 
 
-function now() {
+function normalize(text) {
 
-  return new Date().toISOString();
+  return String(text || "")
+    .replace(/\u3000/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 }
 
 
-function saveSnapshot(snapshot) {
+/* =========================================================
+   HTML取得
+========================================================= */
 
-  fs.writeFileSync(
-    SNAPSHOT_FILE,
-    JSON.stringify(
-      snapshot,
-      null,
-      2
-    )
-  );
-}
+async function fetchHtml(url) {
 
+  const response = await fetch(url, {
 
-function loadSnapshot() {
+    redirect: "follow",
 
-  if (!fs.existsSync(SNAPSHOT_FILE)) {
-    return {};
+    headers: {
+
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+
+      "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+
+      "Accept-Language":
+        "ja-JP,ja;q=0.9,en-US;q=0.8"
+
+    }
+
+  });
+
+  if (!response.ok) {
+
+    throw new Error(`HTTP ${response.status}`);
+
   }
 
-  try {
+  return await response.text();
 
-    return JSON.parse(
-      fs.readFileSync(
-        SNAPSHOT_FILE,
-        "utf8"
+}
+
+
+/* =========================================================
+   HTML → 行
+========================================================= */
+
+function htmlToLines(html) {
+
+  return html
+
+    .replace(/<\/tr>/gi, "\n")
+
+    .replace(/<\/li>/gi, "\n")
+
+    .replace(/<\/p>/gi, "\n")
+
+    .replace(/<\/div>/gi, "\n")
+
+    .replace(/<br\s*\/?>/gi, " ")
+
+    .replace(/<\/h[1-6]>/gi, "\n")
+
+    .replace(/<\/button>/gi, "\n")
+
+    .replace(/<\/td>/gi, " | ")
+
+    .replace(/<\/th>/gi, " | ")
+
+    .replace(/<[^>]+>/g, "")
+
+    .replace(/&nbsp;/gi, " ")
+
+    .replace(/&gt;/gi, ">")
+
+    .replace(/&lt;/gi, "<")
+
+    .replace(/&amp;/gi, "&")
+
+    .split("\n")
+
+    .map(normalize)
+
+    .filter(Boolean);
+
+}
+
+
+/* =========================================================
+   時刻行解析
+========================================================= */
+
+function parseHourLine(line) {
+
+  const match =
+    line.match(/^(\d{1,2})\s*\|\s*(.*)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const hour = Number(match[1]);
+
+  if (hour < 0 || hour > 24) {
+    return null;
+  }
+
+  let rest = match[2];
+
+  /*
+   * HTMLの表によっては
+   *
+   * 7 | 45 | 7
+   *
+   * のように右端に「7」がもう一度存在する。
+   *
+   * その場合は最後の7を削除。
+   */
+
+  const parts =
+    rest
+      .split("|")
+      .map(normalize)
+      .filter(Boolean);
+
+  if (
+    parts.length >= 2 &&
+    parts[parts.length - 1] === String(hour)
+  ) {
+
+    parts.pop();
+
+  }
+
+  rest = parts.join(" ");
+
+
+  /*
+   * 時刻以外の記号・文字を除去
+   */
+
+  const minutes =
+    rest.match(/\d{1,2}/g) || [];
+
+
+  const cleaned =
+    minutes
+
+      .map(Number)
+
+      .filter(
+        n => n >= 0 && n <= 59
       )
+
+      .map(
+        n => String(n).padStart(2, "0")
+      );
+
+
+  /*
+   * 同じ時刻が重複している場合は除去
+   */
+
+  return {
+
+    hour,
+
+    minutes:
+      [...new Set(cleaned)]
+
+  };
+
+}
+
+
+/* =========================================================
+   セクション抽出
+========================================================= */
+
+function extractSection(
+  lines,
+  startKeywords,
+  stopKeywords = []
+) {
+
+  let startIndex = -1;
+
+
+  for (let i = 0; i < lines.length; i++) {
+
+    if (
+      startKeywords.some(
+        keyword => lines[i].includes(keyword)
+      )
+    ) {
+
+      startIndex = i;
+      break;
+
+    }
+
+  }
+
+
+  if (startIndex === -1) {
+
+    throw new Error(
+      `対象セクションが見つかりません`
     );
 
-  } catch {
-
-    return {};
   }
-}
 
 
-/* =========================================================
-   セル取得
-========================================================= */
+  const result = [];
 
-function getCells($, tr) {
+  for (
+    let i = startIndex + 1;
+    i < lines.length;
+    i++
+  ) {
 
-  return $(tr)
-    .find("th, td")
-    .map((i, el) =>
-      normalize($(el).text())
-    )
-    .get()
-    .filter(Boolean);
-}
+    const line = lines[i];
 
 
-/* =========================================================
-   時刻文字列を抽出
-========================================================= */
+    /*
+     * 古いポートライナー時刻表は
+     * ここで打ち切る。
+     */
 
-function extractMinutes(text) {
+    if (
+      line.includes("Revised March 28, 2016") ||
+      line.includes("改正日：2016年3月28日") ||
+      line.includes("改正日:2016年3月28日")
+    ) {
 
-  return (String(text || "")
-    .match(/\d{1,2}/g) || [])
-    .map(x => Number(x))
-    .filter(x => x >= 0 && x <= 59)
-    .map(x => String(x).padStart(2, "0"));
-}
+      break;
+
+    }
 
 
-/* =========================================================
-   表から「時 → 分」を取得
-========================================================= */
+    /*
+     * 次の方向へ移ったら終了
+     */
 
-function extractTableRows($, table) {
+    if (
+      stopKeywords.some(
+        keyword => line.includes(keyword)
+      )
+    ) {
 
-  const result = {};
+      break;
 
-  $(table)
-    .find("tr")
-    .each((i, tr) => {
+    }
 
-      const cells =
-        getCells($, tr);
 
-      if (cells.length < 2) {
-        return;
-      }
+    const row =
+      parseHourLine(line);
 
-      const hour =
-        Number(
-          cells[0]
-            .replace(/時/g, "")
-        );
+    if (row) {
 
-      if (
-        !Number.isInteger(hour) ||
-        hour < 0 ||
-        hour > 24
-      ) {
-        return;
-      }
+      result.push(row);
 
-      const minutes =
-        extractMinutes(
-          cells.slice(1).join(" ")
-        );
+    }
 
-      if (!minutes.length) {
-        return;
-      }
+  }
 
-      result[hour] =
-        minutes;
-    });
+
+  if (!result.length) {
+
+    throw new Error(
+      `時刻表データを取得できません`
+    );
+
+  }
+
 
   return result;
+
 }
 
 
 /* =========================================================
    地下鉄
-
-   対象方向を含む表・周辺の時刻表を取得する。
 ========================================================= */
 
-function extractSubway(
-  html,
-  direction
-) {
+function extractSubwayTanigami(html) {
 
-  const $ =
-    cheerio.load(html);
+  const lines =
+    htmlToLines(html);
 
-  const result = {
-    weekday: {},
-    holiday: {}
-  };
+  return extractSection(
 
-  let currentDay = null;
+    lines,
 
-  $("body *").each((i, el) => {
+    [
+      "新神戸・三宮・名谷・西神中央方面行"
+    ]
 
-    const text =
-      normalize($(el).text());
+  );
 
-    if (
-      text === "平日"
-    ) {
-      currentDay = "weekday";
-    }
-
-    if (
-      text === "土日・祝日"
-    ) {
-      currentDay = "holiday";
-    }
-  });
+}
 
 
-  /*
-   * 方向名を含む要素を探す。
-   */
-  const directionElements =
-    $("body *")
-      .filter((i, el) =>
-        normalize($(el).text()) === direction
-      );
+function extractSubwaySannomiyaToTanigami(html) {
 
+  const lines =
+    htmlToLines(html);
 
-  if (!directionElements.length) {
-    throw new Error(
-      `方向「${direction}」が見つかりません`
-    );
-  }
+  return extractSection(
 
+    lines,
 
-  /*
-   * 公式ページのtableを順番に調査。
-   * 時刻表らしいtableだけを対象にする。
-   */
-  $("table").each((i, table) => {
+    [
+      "新神戸・谷上方面行"
+    ],
 
-    const tableText =
-      normalize($(table).text());
+    [
+      "名谷・西神中央方面行"
+    ]
 
-    if (
-      !/\b5\b/.test(tableText) &&
-      !/5時/.test(tableText)
-    ) {
-      return;
-    }
+  );
 
-    const data =
-      extractTableRows($, table);
-
-    if (
-      Object.keys(data).length < 3
-    ) {
-      return;
-    }
-
-    /*
-     * 周囲の見出しから曜日を判定。
-     */
-    let day = null;
-
-    let prevText = "";
-
-    $(table)
-      .prevAll()
-      .slice(0, 15)
-      .each((j, el) => {
-
-        const t =
-          normalize($(el).text());
-
-        if (
-          t === "平日"
-        ) {
-          prevText = "weekday";
-        }
-
-        if (
-          t === "土日・祝日"
-        ) {
-          prevText = "holiday";
-        }
-      });
-
-    if (prevText) {
-      day = prevText;
-    }
-
-    /*
-     * 判定できない場合は、
-     * tableの親要素周辺を確認。
-     */
-    if (!day) {
-
-      const parentText =
-        normalize(
-          $(table)
-            .parent()
-            .text()
-        );
-
-      if (
-        parentText.includes("平日")
-      ) {
-        day = "weekday";
-      }
-
-      if (
-        parentText.includes("土日・祝日")
-      ) {
-        day = "holiday";
-      }
-    }
-
-    if (day) {
-
-      /*
-       * 方向に近い表だけ採用
-       */
-      const nearText =
-        normalize(
-          $(table)
-            .prevAll()
-            .slice(0, 10)
-            .text()
-        );
-
-      if (
-        nearText.includes(direction) ||
-        directionElements.length
-      ) {
-
-        result[day] = {
-          ...result[day],
-          ...data
-        };
-      }
-    }
-  });
-
-
-  /*
-   * table構造が特殊な場合の保険。
-   * ページ全体から曜日別の時刻表を取得する。
-   */
-  if (
-    !Object.keys(result.weekday).length ||
-    !Object.keys(result.holiday).length
-  ) {
-
-    const allTables =
-      $("table").toArray();
-
-    for (const table of allTables) {
-
-      const text =
-        normalize($(table).text());
-
-      if (
-        !text.includes(direction)
-      ) {
-        continue;
-      }
-
-      const data =
-        extractTableRows($, table);
-
-      if (
-        Object.keys(data).length < 3
-      ) {
-        continue;
-      }
-
-      if (
-        text.includes("平日")
-      ) {
-        result.weekday = data;
-      }
-
-      if (
-        text.includes("土日・祝日")
-      ) {
-        result.holiday = data;
-      }
-    }
-  }
-
-
-  if (
-    !Object.keys(result.weekday).length ||
-    !Object.keys(result.holiday).length
-  ) {
-
-    throw new Error(
-      "地下鉄時刻表を取得できません"
-    );
-  }
-
-  return result;
 }
 
 
@@ -464,172 +457,19 @@ function extractSubway(
 
 function extractCityBus62(html) {
 
-  const $ =
-    cheerio.load(html);
+  const lines =
+    htmlToLines(html);
 
-  const result = {
-    weekday: {},
-    saturday: {},
-    holiday: {}
-  };
+  return extractSection(
 
+    lines,
 
-  /*
-   * 62系統の見出しを探す。
-   */
-  const headings =
-    $("body *")
-      .filter((i, el) => {
+    [
+      "62系統 神戸北町方面行き"
+    ]
 
-        const text =
-          normalize($(el).text());
+  );
 
-        return (
-          text.includes("62系統") &&
-          text.includes("神戸北町")
-        );
-      });
-
-
-  if (!headings.length) {
-    throw new Error(
-      "62系統 神戸北町方面行きが見つかりません"
-    );
-  }
-
-
-  /*
-   * 62系統の見出し以降にあるtableだけを対象。
-   */
-  let started = false;
-
-  $("table").each((i, table) => {
-
-    const tableText =
-      normalize($(table).text());
-
-    /*
-     * 62系統のtableか確認
-     */
-    const parentText =
-      normalize(
-        $(table)
-          .parent()
-          .text()
-      );
-
-    if (
-      !tableText.includes("62") &&
-      !parentText.includes("62系統") &&
-      !parentText.includes("神戸北町")
-    ) {
-      return;
-    }
-
-    started = true;
-
-    const data =
-      extractTableRows($, table);
-
-    if (
-      Object.keys(data).length < 1
-    ) {
-      return;
-    }
-
-    /*
-     * 曜日をtable周辺から判定
-     */
-    let day = null;
-
-    const around =
-      normalize(
-        $(table)
-          .parent()
-          .parent()
-          .text()
-      );
-
-    if (around.includes("平日")) {
-      day = "weekday";
-    }
-
-    if (around.includes("土曜日")) {
-      day = "saturday";
-    }
-
-    if (around.includes("日曜・祝日")) {
-      day = "holiday";
-    }
-
-    if (day) {
-
-      result[day] = {
-        ...result[day],
-        ...data
-      };
-    }
-  });
-
-
-  /*
-   * ページ構造上、tableの親から
-   * 曜日を取れない場合の補助処理。
-   */
-  if (
-    Object.keys(result.weekday).length === 0 ||
-    Object.keys(result.saturday).length === 0 ||
-    Object.keys(result.holiday).length === 0
-  ) {
-
-    const lines =
-      $("body")
-        .text()
-        .split(/\n/)
-        .map(normalize)
-        .filter(Boolean);
-
-    let day = null;
-
-    for (const line of lines) {
-
-      if (line === "平日") {
-        day = "weekday";
-        continue;
-      }
-
-      if (line === "土曜日") {
-        day = "saturday";
-        continue;
-      }
-
-      if (line === "日曜・祝日") {
-        day = "holiday";
-        continue;
-      }
-
-      if (
-        day &&
-        /^(\d{1,2})時$/.test(line)
-      ) {
-        continue;
-      }
-    }
-  }
-
-
-  if (
-    !Object.keys(result.weekday).length ||
-    !Object.keys(result.saturday).length ||
-    !Object.keys(result.holiday).length
-  ) {
-
-    throw new Error(
-      "62系統の3種類の時刻表を取得できません"
-    );
-  }
-
-  return result;
 }
 
 
@@ -637,316 +477,950 @@ function extractCityBus62(html) {
    ポートライナー
 ========================================================= */
 
-function extractPortliner(
-  html,
-  direction
-) {
+function extractPortlinerSannomiya(html) {
 
-  const $ =
-    cheerio.load(html);
+  const lines =
+    htmlToLines(html);
 
-  const result = {
-    weekday: {},
-    holiday: {}
-  };
+  return extractSection(
 
+    lines,
 
-  $("table").each((i, table) => {
+    [
+      "神戸空港・北埠頭方面行",
+      "For Kobe Airport / Kita Futo",
+      "開往神户机场、北码头方向"
+    ]
 
-    const text =
-      normalize($(table).text());
+  );
 
-    if (
-      !text.includes(direction)
-    ) {
-      return;
-    }
-
-    const data =
-      extractTableRows($, table);
-
-    if (
-      Object.keys(data).length < 3
-    ) {
-      return;
-    }
-
-    /*
-     * テーブル周辺から曜日を判定
-     */
-    const around =
-      normalize(
-        $(table)
-          .parent()
-          .parent()
-          .text()
-      );
-
-    if (
-      around.includes("Weekday") ||
-      around.includes("平日")
-    ) {
-
-      result.weekday = {
-        ...result.weekday,
-        ...data
-      };
-    }
-
-    if (
-      around.includes("Saturdays") ||
-      around.includes("Sundays") ||
-      around.includes("holidays") ||
-      around.includes("土日") ||
-      around.includes("休日")
-    ) {
-
-      result.holiday = {
-        ...result.holiday,
-        ...data
-      };
-    }
-  });
+}
 
 
-  /*
-   * Portlinerページは曜日見出しが
-   * table外にある場合があるため、
-   * table付近を広めに確認。
-   */
-  if (
-    !Object.keys(result.weekday).length ||
-    !Object.keys(result.holiday).length
-  ) {
+function extractPortlinerBoeki(html) {
 
-    $("table").each((i, table) => {
+  const lines =
+    htmlToLines(html);
 
-      const text =
-        normalize($(table).text());
+  return extractSection(
 
-      if (
-        !text.includes(direction)
-      ) {
-        return;
-      }
+    lines,
 
-      const data =
-        extractTableRows($, table);
+    [
+      "三宮方面行",
+      "For Sannomiya",
+      "开往三宫方向"
+    ]
 
-      if (
-        Object.keys(data).length < 3
-      ) {
-        return;
-      }
+  );
 
-      const section =
-        normalize(
-          $(table)
-            .closest("section, div")
-            .text()
-        );
-
-      if (
-        section.includes("Weekday") ||
-        section.includes("平日")
-      ) {
-
-        result.weekday = {
-          ...result.weekday,
-          ...data
-        };
-      }
-
-      if (
-        section.includes("Saturdays") ||
-        section.includes("Sundays") ||
-        section.includes("holidays") ||
-        section.includes("土日")
-      ) {
-
-        result.holiday = {
-          ...result.holiday,
-          ...data
-        };
-      }
-    });
-  }
-
-
-  if (
-    !Object.keys(result.weekday).length ||
-    !Object.keys(result.holiday).length
-  ) {
-
-    throw new Error(
-      `ポートライナー「${direction}」を取得できません`
-    );
-  }
-
-  return result;
 }
 
 
 /* =========================================================
-   JR
+   JR西日本
 ========================================================= */
 
 function extractJR(html) {
 
-  const $ =
-    cheerio.load(html);
+  const lines =
+    htmlToLines(html);
 
-  const result = {};
+  const result = [];
 
-  $("table").each((i, table) => {
+  for (const line of lines) {
 
-    const data =
-      extractTableRows($, table);
+    const row =
+      parseHourLine(line);
 
-    if (
-      Object.keys(data).length < 3
-    ) {
-      return;
+    if (row) {
+
+      result.push(row);
+
     }
 
-    for (
-      const [hour, minutes]
-      of Object.entries(data)
-    ) {
-
-      result[hour] = [
-        ...(result[hour] || []),
-        ...minutes
-      ];
-    }
-  });
-
-
-  /*
-   * 重複除去・順番統一
-   */
-  for (
-    const hour of Object.keys(result)
-  ) {
-
-    result[hour] =
-      [...new Set(result[hour])]
-        .sort(
-          (a, b) => Number(a) - Number(b)
-        );
   }
 
 
-  if (
-    !Object.keys(result).length
-  ) {
+  if (!result.length) {
 
     throw new Error(
       "JR時刻表を取得できません"
     );
+
   }
 
+
   return result;
+
 }
 
 
 /* =========================================================
-   比較
+   データ正規化
 ========================================================= */
 
-function checkService(
-  id,
-  name,
-  route,
-  value,
-  oldSnapshot,
-  newSnapshot,
-  services
-) {
+function normalizeTimetable(data) {
 
-  const newHash =
-    hash(
-      JSON.stringify(value)
+  return data.map(row => ({
+
+    hour: row.hour,
+
+    minutes:
+      [...row.minutes].sort()
+
+  }));
+
+}
+
+
+/* =========================================================
+   差分
+========================================================= */
+
+function diffTimetable(oldData, newData) {
+
+  const oldMap = new Map();
+  const newMap = new Map();
+
+
+  for (const row of oldData || []) {
+
+    oldMap.set(
+      row.hour,
+      row.minutes
     );
 
-  const old =
-    oldSnapshot[id];
+  }
+
+
+  for (const row of newData || []) {
+
+    newMap.set(
+      row.hour,
+      row.minutes
+    );
+
+  }
+
+
+  const hours =
+    [...new Set([
+      ...oldMap.keys(),
+      ...newMap.keys()
+    ])].sort(
+      (a, b) => a - b
+    );
+
+
+  const changes = [];
+
+
+  for (const hour of hours) {
+
+    const oldMinutes =
+      oldMap.get(hour) || [];
+
+    const newMinutes =
+      newMap.get(hour) || [];
+
+
+    if (
+      JSON.stringify(oldMinutes) !==
+      JSON.stringify(newMinutes)
+    ) {
+
+      changes.push({
+
+        hour,
+
+        oldMinutes,
+
+        newMinutes
+
+      });
+
+    }
+
+  }
+
+
+  return changes;
+
+}
+
+
+/* =========================================================
+   ファイル読み込み
+========================================================= */
+
+function loadJson(file) {
+
+  if (!fs.existsSync(file)) {
+
+    return null;
+
+  }
+
+  try {
+
+    return JSON.parse(
+      fs.readFileSync(
+        file,
+        "utf8"
+      )
+    );
+
+  } catch {
+
+    return null;
+
+  }
+
+}
+
+
+/* =========================================================
+   メイン
+========================================================= */
+
+async function main() {
+
+  console.log("");
+
+  console.log(
+    `🔍 公式時刻表 自動チェック 最終チェック：${
+      new Date().toLocaleString(
+        "ja-JP",
+        {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit"
+        }
+      )
+    }`
+  );
+
+  console.log("");
 
 
   /*
-   * 正常取得できたものだけ
-   * 新しいsnapshotに保存する。
+   * 旧snapshotは一旦基準として使わない。
+   *
+   * 今回 parser を変更したため、
+   * schemaVersion が違えば
+   * 現在の公式時刻表を新しい基準にする。
    */
-  newSnapshot[id] = {
-    hash: newHash,
-    data: value,
-    checkedAt: now()
+
+  const oldSnapshot =
+    loadJson(SNAPSHOT_FILE);
+
+  const baselineValid =
+    oldSnapshot &&
+    oldSnapshot.schemaVersion === SCHEMA_VERSION &&
+    oldSnapshot.services;
+
+
+  const newSnapshot = {
+
+    schemaVersion:
+      SCHEMA_VERSION,
+
+    checkedAt:
+      now(),
+
+    services: {}
+
   };
 
 
-  if (!old) {
+  const status = {
 
-    services.push({
-      id,
-      name,
-      route,
-      status: "ok",
-      message: "初回登録"
-    });
+    schemaVersion:
+      SCHEMA_VERSION,
 
-    return false;
-  }
+    checkedAt:
+      now(),
 
+    services: {}
 
-  if (
-    old.hash === newHash
-  ) {
-
-    services.push({
-      id,
-      name,
-      route,
-      status: "ok",
-      message: "変更なし"
-    });
-
-    return false;
-  }
+  };
 
 
-  services.push({
-    id,
-    name,
-    route,
-    status: "changed",
-    message: "時刻表変更を検出"
+  let hasChanged = false;
+
+  let hasError = false;
+
+  let initialized = !baselineValid;
+
+
+  /*
+   * -------------------------------------------------------
+   * 地下鉄 谷上 → 三宮
+   * -------------------------------------------------------
+   */
+
+  await checkService({
+
+    key:
+      "subwayTanigami",
+
+    url:
+      URLS.subwayTanigami,
+
+    name:
+      NAMES.subwayTanigami,
+
+    parser:
+      extractSubwayTanigami,
+
+    oldSnapshot,
+
+    baselineValid,
+
+    newSnapshot,
+
+    status,
+
+    onChanged:
+      () => {
+        hasChanged = true;
+      },
+
+    onError:
+      () => {
+        hasError = true;
+      }
+
   });
 
-  return true;
+
+  /*
+   * -------------------------------------------------------
+   * 地下鉄 三宮 → 谷上
+   * -------------------------------------------------------
+   */
+
+  await checkService({
+
+    key:
+      "subwaySannomiya",
+
+    url:
+      URLS.subwaySannomiya,
+
+    name:
+      NAMES.subwaySannomiya,
+
+    parser:
+      extractSubwaySannomiyaToTanigami,
+
+    oldSnapshot,
+
+    baselineValid,
+
+    newSnapshot,
+
+    status,
+
+    onChanged:
+      () => {
+        hasChanged = true;
+      },
+
+    onError:
+      () => {
+        hasError = true;
+      }
+
+  });
+
+
+  /*
+   * -------------------------------------------------------
+   * 市バス 62
+   * -------------------------------------------------------
+   */
+
+  await checkService({
+
+    key:
+      "cityBus62",
+
+    url:
+      URLS.cityBus62,
+
+    name:
+      NAMES.cityBus62,
+
+    parser:
+      extractCityBus62,
+
+    oldSnapshot,
+
+    baselineValid,
+
+    newSnapshot,
+
+    status,
+
+    onChanged:
+      () => {
+        hasChanged = true;
+      },
+
+    onError:
+      () => {
+        hasError = true;
+      }
+
+  });
+
+
+  /*
+   * -------------------------------------------------------
+   * ポートライナー 三宮 → 貿易センター
+   * -------------------------------------------------------
+   */
+
+  await checkService({
+
+    key:
+      "portlinerSannomiya",
+
+    url:
+      URLS.portlinerSannomiya,
+
+    name:
+      NAMES.portlinerSannomiya,
+
+    parser:
+      extractPortlinerSannomiya,
+
+    oldSnapshot,
+
+    baselineValid,
+
+    newSnapshot,
+
+    status,
+
+    onChanged:
+      () => {
+        hasChanged = true;
+      },
+
+    onError:
+      () => {
+        hasError = true;
+      }
+
+  });
+
+
+  /*
+   * -------------------------------------------------------
+   * ポートライナー 貿易センター → 三宮
+   * -------------------------------------------------------
+   */
+
+  await checkService({
+
+    key:
+      "portlinerBoeki",
+
+    url:
+      URLS.portlinerBoeki,
+
+    name:
+      NAMES.portlinerBoeki,
+
+    parser:
+      extractPortlinerBoeki,
+
+    oldSnapshot,
+
+    baselineValid,
+
+    newSnapshot,
+
+    status,
+
+    onChanged:
+      () => {
+        hasChanged = true;
+      },
+
+    onError:
+      () => {
+        hasError = true;
+      }
+
+  });
+
+
+  /*
+   * -------------------------------------------------------
+   * JR 三ノ宮 → 灘
+   * -------------------------------------------------------
+   */
+
+  await checkService({
+
+    key:
+      "jrSannomiya",
+
+    url:
+      URLS.jrSannomiya,
+
+    name:
+      NAMES.jrSannomiya,
+
+    parser:
+      extractJR,
+
+    oldSnapshot,
+
+    baselineValid,
+
+    newSnapshot,
+
+    status,
+
+    onChanged:
+      () => {
+        hasChanged = true;
+      },
+
+    onError:
+      () => {
+        hasError = true;
+      }
+
+  });
+
+
+  /*
+   * -------------------------------------------------------
+   * JR 灘 → 三ノ宮
+   * -------------------------------------------------------
+   */
+
+  await checkService({
+
+    key:
+      "jrNada",
+
+    url:
+      URLS.jrNada,
+
+    name:
+      NAMES.jrNada,
+
+    parser:
+      extractJR,
+
+    oldSnapshot,
+
+    baselineValid,
+
+    newSnapshot,
+
+    status,
+
+    onChanged:
+      () => {
+        hasChanged = true;
+      },
+
+    onError:
+      () => {
+        hasError = true;
+      }
+
+  });
+
+
+  /*
+   * -------------------------------------------------------
+   * 阪急バス
+   *
+   * GitHub Actionsから公式NAVITIMEページは403。
+   * 無理に解析しない。
+   * -------------------------------------------------------
+   */
+
+  console.log(
+    `⚠️ 阪急バス 日の峰1丁目 → 谷上駅 158系統`
+  );
+
+  console.log(
+    "確認エラー（公式ページ HTTP 403）"
+  );
+
+  console.log("");
+
+  hasError = true;
+
+
+  /*
+   * -------------------------------------------------------
+   * snapshot保存
+   *
+   * エラーになったサービスは
+   * 新しいsnapshotを保存しない。
+   * -------------------------------------------------------
+   */
+
+  if (baselineValid) {
+
+    for (const key of Object.keys(oldSnapshot.services)) {
+
+      if (
+        !newSnapshot.services[key]
+      ) {
+
+        newSnapshot.services[key] =
+          oldSnapshot.services[key];
+
+      }
+
+    }
+
+  }
+
+
+  fs.writeFileSync(
+
+    SNAPSHOT_FILE,
+
+    JSON.stringify(
+      newSnapshot,
+      null,
+      2
+    ),
+
+    "utf8"
+
+  );
+
+
+  fs.writeFileSync(
+
+    STATUS_FILE,
+
+    JSON.stringify(
+      status,
+      null,
+      2
+    ),
+
+    "utf8"
+
+  );
+
+
+  /*
+   * -------------------------------------------------------
+   * 結果
+   * -------------------------------------------------------
+   */
+
+  if (initialized) {
+
+    console.log(
+      "🟡 今回の解析方式で現在の公式時刻表を基準値として保存しました。"
+    );
+
+    console.log(
+      "次回チェックから実際の時刻変更を検出します。"
+    );
+
+  } else if (hasChanged) {
+
+    console.log(
+      "🔴 公式時刻表に変更が検出されています。"
+    );
+
+  } else if (hasError) {
+
+    console.log(
+      "⚠️ 一部の公式時刻表を確認できませんでした。"
+    );
+
+  } else {
+
+    console.log(
+      "🟢 公式時刻表に変更はありません。"
+    );
+
+  }
+
 }
 
 
 /* =========================================================
-   エラー
+   サービスチェック
 ========================================================= */
 
-function addError(
-  services,
-  id,
-  name,
-  route,
-  error
-) {
+async function checkService(options) {
 
-  services.push({
-    id,
+  const {
+
+    key,
+    url,
     name,
-    route,
-    status: "error",
-    message:
-      "確認エラー: " +
-      error.message
-  });
+    parser,
+    oldSnapshot,
+    baselineValid,
+    newSnapshot,
+    status,
+    onChanged,
+    onError
+
+  } = options;
+
+
+  try {
+
+    const html =
+      await fetchHtml(url);
+
+
+    const data =
+      normalizeTimetable(
+        parser(html)
+      );
+
+
+    const dataHash =
+      hash(
+        JSON.stringify(data)
+      );
+
+
+    newSnapshot.services[key] = {
+
+      name,
+
+      url,
+
+      hash:
+        dataHash,
+
+      data
+
+    };
+
+
+    /*
+     * 初回は比較しない。
+     */
+
+    if (!baselineValid) {
+
+      console.log(
+        `🟡 ${name}`
+      );
+
+      console.log(
+        "基準値を作成"
+      );
+
+      console.log("");
+
+      status.services[key] = {
+
+        status:
+          "initialized",
+
+        name
+
+      };
+
+      return;
+
+    }
+
+
+    const old =
+      oldSnapshot.services[key];
+
+
+    /*
+     * 旧データが存在しない場合
+     */
+
+    if (
+      !old ||
+      !Array.isArray(old.data)
+    ) {
+
+      console.log(
+        `🟡 ${name}`
+      );
+
+      console.log(
+        "基準値を作成"
+      );
+
+      console.log("");
+
+      status.services[key] = {
+
+        status:
+          "initialized",
+
+        name
+
+      };
+
+      return;
+
+    }
+
+
+    const changes =
+      diffTimetable(
+        old.data,
+        data
+      );
+
+
+    if (!changes.length) {
+
+      console.log(
+        `🟢 ${name}`
+      );
+
+      console.log(
+        "変更なし"
+      );
+
+      console.log("");
+
+      status.services[key] = {
+
+        status:
+          "ok",
+
+        name
+
+      };
+
+      return;
+
+    }
+
+
+    /*
+     * 実際の変更
+     */
+
+    console.log(
+      `🔴 ${name}`
+    );
+
+    console.log(
+      "変更を検出"
+    );
+
+
+    for (const change of changes) {
+
+      console.log(
+        `  ${change.hour}時`
+      );
+
+      console.log(
+        `    旧: ${
+          change.oldMinutes.length
+            ? change.oldMinutes.join(" ")
+            : "なし"
+        }`
+      );
+
+      console.log(
+        `    新: ${
+          change.newMinutes.length
+            ? change.newMinutes.join(" ")
+            : "なし"
+        }`
+      );
+
+    }
+
+    console.log("");
+
+
+    status.services[key] = {
+
+      status:
+        "changed",
+
+      name,
+
+      changes
+
+    };
+
+
+    onChanged();
+
+
+  } catch (error) {
+
+    console.log(
+      `⚠️ ${name}`
+    );
+
+    console.log(
+      `確認エラー`
+    );
+
+    console.log(
+      `  ${error.message}`
+    );
+
+    console.log("");
+
+
+    /*
+     * エラー時は新しい時刻を
+     * snapshotとして保存しない。
+     */
+
+    if (
+      baselineValid &&
+      oldSnapshot.services[key]
+    ) {
+
+      newSnapshot.services[key] =
+        oldSnapshot.services[key];
+
+    }
+
+
+    status.services[key] = {
+
+      status:
+        "error",
+
+      name,
+
+      error:
+        error.message
+
+    };
+
+
+    onError();
+
+  }
+
 }
 
 
@@ -954,397 +1428,12 @@ function addError(
    実行
 ========================================================= */
 
-async function main() {
-
-  console.log(
-    "🔍 公式時刻表 自動チェック"
-  );
-
-  console.log(
-    "最終チェック：" +
-    new Date().toLocaleString(
-      "ja-JP",
-      {
-        timeZone: "Asia/Tokyo"
-      }
-    )
-  );
-
-  console.log("");
-
-
-  const oldSnapshot =
-    loadSnapshot();
-
-  /*
-   * 古いsnapshotをコピー。
-   *
-   * エラーになった路線については
-   * 古い正常データを残す。
-   */
-  const newSnapshot =
-    {
-      ...oldSnapshot
-    };
-
-  const services = [];
-
-  let hasChanges = false;
-
-
-  /* =======================================================
-     阪急
-  ======================================================= */
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.hankyu
-      );
-
-    const data =
-      extractHankyu158(html);
-
-    hasChanges =
-      checkService(
-        "hankyu_158",
-        "阪急バス",
-        "日の峰1丁目 → 谷上駅 158系統",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "hankyu_158",
-      "阪急バス",
-      "日の峰1丁目 → 谷上駅 158系統",
-      e
-    );
-  }
-
-
-  /* =======================================================
-     地下鉄
-  ======================================================= */
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.subwayTanigami
-      );
-
-    const data =
-      extractSubway(
-        html,
-        "新神戸・三宮・名谷・西神中央方面行"
-      );
-
-    hasChanges =
-      checkService(
-        "subway_tanigami_sannomiya",
-        "神戸市営地下鉄",
-        "谷上駅 → 三宮駅",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "subway_tanigami_sannomiya",
-      "神戸市営地下鉄",
-      "谷上駅 → 三宮駅",
-      e
-    );
-  }
-
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.subwaySannomiya
-      );
-
-    const data =
-      extractSubway(
-        html,
-        "新神戸・谷上方面行"
-      );
-
-    hasChanges =
-      checkService(
-        "subway_sannomiya_tanigami",
-        "神戸市営地下鉄",
-        "三宮駅 → 谷上駅",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "subway_sannomiya_tanigami",
-      "神戸市営地下鉄",
-      "三宮駅 → 谷上駅",
-      e
-    );
-  }
-
-
-  /* =======================================================
-     市バス62
-  ======================================================= */
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.cityBus62
-      );
-
-    const data =
-      extractCityBus62(html);
-
-    hasChanges =
-      checkService(
-        "citybus_62",
-        "神戸市バス",
-        "谷上駅 → 神戸北町 62系統",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "citybus_62",
-      "神戸市バス",
-      "谷上駅 → 神戸北町 62系統",
-      e
-    );
-  }
-
-
-  /* =======================================================
-     ポートライナー
-  ======================================================= */
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.portlinerSannomiya
-      );
-
-    const data =
-      extractPortliner(
-        html,
-        "For Kobe Airport / Kita Futo"
-      );
-
-    hasChanges =
-      checkService(
-        "portliner_sannomiya_boeki",
-        "ポートライナー",
-        "三宮駅 → 貿易センター駅",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "portliner_sannomiya_boeki",
-      "ポートライナー",
-      "三宮駅 → 貿易センター駅",
-      e
-    );
-  }
-
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.portlinerBoeki
-      );
-
-    const data =
-      extractPortliner(
-        html,
-        "For Sannomiya"
-      );
-
-    hasChanges =
-      checkService(
-        "portliner_boeki_sannomiya",
-        "ポートライナー",
-        "貿易センター駅 → 三宮駅",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "portliner_boeki_sannomiya",
-      "ポートライナー",
-      "貿易センター駅 → 三宮駅",
-      e
-    );
-  }
-
-
-  /* =======================================================
-     JR
-  ======================================================= */
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.jrSannomiya
-      );
-
-    const data =
-      extractJR(html);
-
-    hasChanges =
-      checkService(
-        "jr_sannomiya_nada",
-        "JR西日本",
-        "三ノ宮駅 → 灘駅",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "jr_sannomiya_nada",
-      "JR西日本",
-      "三ノ宮駅 → 灘駅",
-      e
-    );
-  }
-
-
-  try {
-
-    const html =
-      await fetchHtml(
-        URLS.jrNada
-      );
-
-    const data =
-      extractJR(html);
-
-    hasChanges =
-      checkService(
-        "jr_nada_sannomiya",
-        "JR西日本",
-        "灘駅 → 三ノ宮駅",
-        data,
-        oldSnapshot,
-        newSnapshot,
-        services
-      ) || hasChanges;
-
-  } catch (e) {
-
-    addError(
-      services,
-      "jr_nada_sannomiya",
-      "JR西日本",
-      "灘駅 → 三ノ宮駅",
-      e
-    );
-  }
-
-
-  /* =======================================================
-     保存
-  ======================================================= */
-
-  saveSnapshot(
-    newSnapshot
-  );
-
-  fs.writeFileSync(
-    STATUS_FILE,
-    JSON.stringify(
-      {
-        checkedAt: now(),
-        hasChanges,
-        services
-      },
-      null,
-      2
-    )
-  );
-
-
-  /* =======================================================
-     結果表示
-  ======================================================= */
-
-  for (
-    const service of services
-  ) {
-
-    const icon =
-      service.status === "changed"
-        ? "🔴"
-        : service.status === "error"
-          ? "⚠️"
-          : "🟢";
-
-    console.log(
-      `${icon} ${service.name} ${service.route}`
-    );
-
-    console.log(
-      `   ${service.message}`
-    );
-  }
-
-  console.log("");
-
-  console.log(
-    "※公式時刻表の実データだけを比較しています。"
-  );
-}
-
-
 main().catch(error => {
 
+  console.error("");
+  console.error("❌ チェック処理そのものが失敗しました");
   console.error(error);
 
   process.exit(1);
+
 });
