@@ -1,66 +1,61 @@
 {
-  "checkedAt": "2026-09-27T23:40:46.318Z",
-  "hasChanges": false,
+  "checkedAt": "2026-09-28T00:26:42.736Z",
   "services": [
     {
-      "id": "hankyu_158_hinomin1_to_tanigami",
+      "id": "v2_hankyu_158_hinomine1_tanigami",
       "name": "阪急バス",
-      "route": "日の峰1丁目 → 谷上駅",
+      "route": "日の峰1丁目 → 谷上駅 158系統",
       "status": "error",
-      "message": "HTTP 403"
+      "message": "確認エラー: HTTP 403: https://transfer-cloud.navitime.biz/hankyubus/courses?external-busstop=8564"
     },
     {
-      "id": "subway_tanigami_to_sannomiya",
+      "id": "v2_subway_tanigami_sannomiya",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 → 三宮駅",
-      "status": "error",
-      "message": "時刻表を取得できませんでした (0/2)"
+      "status": "unchanged",
+      "message": "初回登録"
     },
     {
-      "id": "subway_sannomiya_to_tanigami",
+      "id": "v2_subway_sannomiya_tanigami",
       "name": "神戸市営地下鉄",
       "route": "三宮駅 → 谷上駅",
-      "status": "error",
-      "message": "時刻表を取得できませんでした (0/2)"
+      "status": "unchanged",
+      "message": "初回登録"
     },
     {
-      "id": "port_sannomiya_to_boeki",
-      "name": "ポートライナー",
-      "route": "三宮駅 → 貿易センター駅",
-      "status": "ok",
-      "message": "初回登録",
-      "changes": []
-    },
-    {
-      "id": "port_boeki_to_sannomiya",
-      "name": "ポートライナー",
-      "route": "貿易センター駅 → 三宮駅",
-      "status": "ok",
-      "message": "初回登録",
-      "changes": []
-    },
-    {
-      "id": "citybus_62_tanigami_to_kobekitamachi",
+      "id": "v2_citybus_62_tanigami_kobekitamachi",
       "name": "神戸市バス",
       "route": "谷上駅 → 神戸北町 62系統",
-      "status": "error",
-      "message": "時刻表を取得できませんでした (0/3)"
+      "status": "unchanged",
+      "message": "初回登録"
     },
     {
-      "id": "jr_sannomiya_to_nada",
+      "id": "v2_portliner_sannomiya_boeki",
+      "name": "ポートライナー",
+      "route": "三宮駅 → 貿易センター駅",
+      "status": "error",
+      "message": "確認エラー: ポートライナー時刻表を取得できません"
+    },
+    {
+      "id": "v2_portliner_boeki_sannomiya",
+      "name": "ポートライナー",
+      "route": "貿易センター駅 → 三宮駅",
+      "status": "error",
+      "message": "確認エラー: ポートライナー時刻表を取得できません"
+    },
+    {
+      "id": "v2_jr_sannomiya_nada",
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
-      "status": "ok",
-      "message": "初回登録",
-      "changes": []
+      "status": "unchanged",
+      "message": "初回登録"
     },
     {
-      "id": "jr_nada_to_sannomiya",
+      "id": "v2_jr_nada_sannomiya",
       "name": "JR西日本",
       "route": "灘駅 → 三ノ宮駅",
-      "status": "ok",
-      "message": "初回登録",
-      "changes": []
+      "status": "unchanged",
+      "message": "初回登録"
     }
   ]
 }
