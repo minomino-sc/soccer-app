@@ -1684,7 +1684,6 @@ function extractJRTimes(
 
 
 
-
 /* =========================================================
    HANKYU BUS 158
    ---------------------------------------------------------
@@ -1695,15 +1694,18 @@ function extractJRTimes(
    日の峰1丁目 → 谷上駅
    158系統
 
-   PDF実データ：
-   ・3～4ページ：平日
-   ・7～8ページ：土休日
+   PDFは表形式になっており、
+   「150」「158」が複数列に並んでいる。
 
-   PDFでは
-   「日の峰１丁目」
-   と全角数字で記載されている。
+   そのため単純な文字列位置ではなく、
+   pdftotext の bbox 座標を使って
 
-   150系統など他系統は比較対象にしない。
+     ① 系統番号「158」のX座標
+     ② 「日の峰１丁目」行の時刻のX座標
+
+   を照合する。
+
+   これにより150系統の時刻を混ぜない。
 ========================================================= */
 
 const HANKYU_PDF_URL =
@@ -1711,7 +1713,7 @@ const HANKYU_PDF_URL =
 
 
 /* =========================================================
-   HANKYU CHECK
+   阪急バス チェック
 ========================================================= */
 
 async function checkHankyu(
@@ -1724,7 +1726,7 @@ async function checkHankyu(
 
   /*
    * -------------------------------------------------------
-   * 公式PDF取得
+   * PDF取得
    * -------------------------------------------------------
    */
 
@@ -1775,23 +1777,23 @@ async function checkHankyu(
 
   /*
    * -------------------------------------------------------
-   * PDF → テキスト
+   * PDFを座標付きXMLへ変換
    *
-   * -layout
-   * を使用して表の横位置を維持する。
+   * bbox-layoutを使用することで、
+   * 表の各文字のX/Y座標を取得する。
    * -------------------------------------------------------
    */
 
-  let text;
+  let xml;
 
 
   try {
 
-    text =
+    xml =
       execFileSync(
         "pdftotext",
         [
-          "-layout",
+          "-bbox-layout",
           tmpPdf,
           "-"
         ],
@@ -1811,7 +1813,7 @@ async function checkHankyu(
   ) {
 
     throw new Error(
-      "阪急バスPDFのテキスト解析に失敗しました（pdftotext）"
+      "阪急バスPDFの座標解析に失敗しました（pdftotext）"
     );
 
   }
@@ -1833,73 +1835,79 @@ async function checkHankyu(
 
   /*
    * -------------------------------------------------------
-   * PDFページ分割
-   *
-   * 3～4ページ → 平日
-   * 7～8ページ → 土休日
-   *
-   * 配列は0始まりなので
-   *
-   * 3ページ = pages[2]
-   * 4ページ = pages[3]
-   * 7ページ = pages[6]
-   * 8ページ = pages[7]
+   * XML解析
    * -------------------------------------------------------
    */
+
+  const $ =
+    cheerio.load(
+      xml,
+      {
+        xmlMode:
+          true
+      }
+    );
+
 
   const pages =
-    text.split(
-      "\f"
+    $("page");
+
+
+  if (
+    !pages.length
+  ) {
+
+    throw new Error(
+      "阪急バスPDFのページ情報を取得できません"
     );
 
-
-  const weekdayPages =
-    [
-      pages[2],
-      pages[3]
-    ]
-      .filter(
-        Boolean
-      );
-
-
-  const weekendPages =
-    [
-      pages[6],
-      pages[7]
-    ]
-      .filter(
-        Boolean
-      );
+  }
 
 
   /*
    * -------------------------------------------------------
-   * 平日
+   * PDFページ
+   *
+   * 3～4ページ：平日
+   * 7～8ページ：土休日
+   *
+   * 配列は0始まり。
    * -------------------------------------------------------
    */
+
+  const weekdayPageIndexes =
+    [
+      2,
+      3
+    ];
+
+
+  const weekendPageIndexes =
+    [
+      6,
+      7
+    ];
+
 
   const weekday =
-    extractHankyu158Pages(
-      weekdayPages
+    extractHankyu158FromPages(
+      $,
+      pages,
+      weekdayPageIndexes
     );
 
-
-  /*
-   * -------------------------------------------------------
-   * 土休日
-   * -------------------------------------------------------
-   */
 
   const weekend =
-    extractHankyu158Pages(
-      weekendPages
+    extractHankyu158FromPages(
+      $,
+      pages,
+      weekendPageIndexes
     );
 
 
   /*
    * -------------------------------------------------------
-   * 最終確認
+   * データ確認
    * -------------------------------------------------------
    */
 
@@ -1914,6 +1922,10 @@ async function checkHankyu(
 
   }
 
+
+  /*
+   * 平日・土休日の両方を返す。
+   */
 
   return {
 
@@ -1933,137 +1945,192 @@ async function checkHankyu(
 
 
 /* =========================================================
-   HANKYU PDF PAGE PARSER
+   阪急PDFページ解析
 ========================================================= */
 
-function extractHankyu158Pages(
-  pages
+function extractHankyu158FromPages(
+  $,
+  pages,
+  pageIndexes
 ) {
 
   const result =
     [];
 
 
+  /*
+   * 指定ページを順番に処理
+   */
+
   for (
-    const page of pages
+    const pageIndex of pageIndexes
   ) {
+
+    const page =
+      pages.eq(
+        pageIndex
+      );
+
+
+    if (
+      !page.length
+    ) {
+
+      continue;
+
+    }
+
 
     /*
      * -----------------------------------------------------
-     * 行単位に分解
+     * すべての行を取得
      * -----------------------------------------------------
      */
 
     const lines =
-      page.split(
-        /\r?\n/
+      page.find(
+        "line"
       );
 
 
     /*
      * -----------------------------------------------------
-     * 系統番号ヘッダーを探す
-     *
-     * 実際のPDF：
-     *
-     * 系統番号
-     * 150 158 150 158 ...
-     *
+     * 系統番号「158」の列を探す
      * -----------------------------------------------------
      */
 
-    const headerIndex =
-      lines.findIndex(
-        line => {
-
-          const normalized =
-            normalizeText(
-              line
-            );
-
-          return (
-            normalized.includes(
-              "系統番号"
-            ) &&
-            /\b158\b/.test(
-              normalized
-            )
-          );
-
-        }
-      );
+    let routeHeaderLine =
+      null;
 
 
-    if (
-      headerIndex < 0
-    ) {
-
-      continue;
-
-    }
-
-
-    const header =
-      lines[
-        headerIndex
-      ];
-
-
-    /*
-     * -----------------------------------------------------
-     * ヘッダーから158列の横位置を取得
-     *
-     * 150系統は無視。
-     * -----------------------------------------------------
-     */
-
-    const routeRegex =
-      /\b(150|151|158)\b/g;
-
-
-    const routeColumns =
+    let target158X =
       [];
 
 
-    let match;
+    lines.each(
+      (_, line) => {
+
+        if (
+          routeHeaderLine
+        ) {
+
+          return;
+
+        }
 
 
-    while (
-      (
-        match =
-          routeRegex.exec(
-            header
+        const words =
+          $(line).find(
+            "word"
+          );
+
+
+        const lineText =
+          words
+            .map(
+              (_, word) =>
+                normalizePdfWord(
+                  $(word).text()
+                )
+            )
+            .get()
+            .join("");
+
+
+        /*
+         * 「系統番号」が含まれる行を
+         * ヘッダー候補にする。
+         */
+
+        if (
+          !lineText.includes(
+            "系統番号"
           )
-      ) !== null
-    ) {
+        ) {
 
-      routeColumns.push({
+          return;
 
-        route:
-          match[1],
+        }
 
-        position:
-          match.index
 
-      });
+        /*
+         * この行の「158」のX座標を取得。
+         */
 
-    }
+        words.each(
+          (_, word) => {
+
+            const text =
+              normalizePdfWord(
+                $(word).text()
+              );
+
+
+            if (
+              text === "158"
+            ) {
+
+              const xMin =
+                Number(
+                  $(word).attr(
+                    "xMin"
+                  )
+                );
+
+
+              const xMax =
+                Number(
+                  $(word).attr(
+                    "xMax"
+                  )
+                );
+
+
+              if (
+                Number.isFinite(
+                  xMin
+                ) &&
+                Number.isFinite(
+                  xMax
+                )
+              ) {
+
+                target158X.push(
+                  (
+                    xMin +
+                    xMax
+                  ) / 2
+                );
+
+              }
+
+            }
+
+          }
+        );
+
+
+        if (
+          target158X.length
+        ) {
+
+          routeHeaderLine =
+            line;
+
+        }
+
+      }
+    );
 
 
     /*
-     * 158系統だけ残す
+     * -----------------------------------------------------
+     * 158列が見つからなかった場合
+     * -----------------------------------------------------
      */
 
-    const targetColumns =
-      routeColumns.filter(
-        column =>
-          column.route ===
-          "158"
-      );
-
-
     if (
-      !targetColumns.length
+      !target158X.length
     ) {
 
       continue;
@@ -2073,141 +2140,239 @@ function extractHankyu158Pages(
 
     /*
      * -----------------------------------------------------
-     * 「日の峰１丁目」の行を探す
+     * 「日の峰１丁目」行を探す
      *
-     * PDFでは「１」が全角。
-     *
-     * そのため
-     *
-     * 日の峰1丁目
-     * 日の峰１丁目
-     *
-     * の両方に対応。
+     * PDFでは全角の「１」。
+     * normalizePdfWord()で半角化する。
      * -----------------------------------------------------
      */
 
-    const rowIndex =
-      lines.findIndex(
-        line => {
+    let targetRow =
+      null;
 
-          const normalized =
-            normalizeText(
-              line
+
+    lines.each(
+      (_, line) => {
+
+        if (
+          targetRow
+        ) {
+
+          return;
+
+        }
+
+
+        const words =
+          $(line).find(
+            "word"
+          );
+
+
+        const text =
+          words
+            .map(
+              (_, word) =>
+                normalizePdfWord(
+                  $(word).text()
+                )
+            )
+            .get()
+            .join("");
+
+
+        if (
+          text.includes(
+            "日の峰1丁目"
+          )
+        ) {
+
+          targetRow =
+            line;
+
+        }
+
+      }
+    );
+
+
+    /*
+     * 対象行がない場合は次ページへ。
+     */
+
+    if (
+      !targetRow
+    ) {
+
+      continue;
+
+    }
+
+
+    /*
+     * -----------------------------------------------------
+     * 「日の峰１丁目」行の各時刻を取得
+     * -----------------------------------------------------
+     */
+
+    const timeWords =
+      [];
+
+
+    $(targetRow)
+      .find(
+        "word"
+      )
+      .each(
+        (_, word) => {
+
+          const text =
+            normalizePdfWord(
+              $(word).text()
             );
 
 
-          return (
-            normalized.includes(
-              "日の峰1丁目"
+          /*
+           * HH:MM のみ対象。
+           */
+
+          const match =
+            text.match(
+              /^(\d{1,2}):(\d{2})$/
+            );
+
+
+          if (
+            !match
+          ) {
+
+            return;
+
+          }
+
+
+          const xMin =
+            Number(
+              $(word).attr(
+                "xMin"
+              )
+            );
+
+
+          const xMax =
+            Number(
+              $(word).attr(
+                "xMax"
+              )
+            );
+
+
+          if (
+            !Number.isFinite(
+              xMin
             ) ||
-            normalized.includes(
-              "日の峰１丁目"
+            !Number.isFinite(
+              xMax
             )
-          );
+          ) {
+
+            return;
+
+          }
+
+
+          timeWords.push({
+
+            time:
+              `${String(
+                Number(
+                  match[1]
+                )
+              ).padStart(
+                2,
+                "0"
+              )}:${match[2]}`,
+
+            x:
+              (
+                xMin +
+                xMax
+              ) / 2
+
+          });
 
         }
       );
 
 
-    if (
-      rowIndex < 0
-    ) {
-
-      continue;
-
-    }
-
-
-    const row =
-      lines[
-        rowIndex
-      ];
-
-
     /*
      * -----------------------------------------------------
-     * 158列だけ取り出す
+     * 158列と時刻をX座標で照合
+     *
+     * PDFでは
+     *
+     * 150 | 158 | 150 | 158 ...
+     *
+     * のように並んでいる。
+     *
+     * 158列のX座標に最も近い時刻を
+     * その158系統の時刻として採用する。
      * -----------------------------------------------------
      */
 
     for (
-      let i = 0;
-      i < targetColumns.length;
-      i++
+      const x158 of target158X
     ) {
 
-      const current =
-        targetColumns[i];
+      let nearest =
+        null;
 
 
-      const next =
-        targetColumns[
-          i + 1
-        ];
+      let nearestDistance =
+        Infinity;
 
 
-      /*
-       * 次の158列との中間を
-       * 現在列の終端とする。
-       *
-       * これにより
-       * 150列の時刻が混ざらない。
-       */
+      for (
+        const timeWord of timeWords
+      ) {
 
-      const end =
-        next
-          ? Math.floor(
-              (
-                current.position +
-                next.position
-              ) / 2
-            )
-          : row.length;
-
-
-      const cell =
-        row
-          .slice(
-            current.position,
-            end
+        const distance =
+          Math.abs(
+            timeWord.x -
+            x158
           );
 
 
-      /*
-       * ---------------------------------------------------
-       * 時刻だけ取得
-       *
-       * 例：
-       *
-       * 08:47
-       * 09:16
-       * 10:22
-       *
-       * 「・・」
-       * 「v」
-       * などは無視。
-       * ---------------------------------------------------
-       */
+        if (
+          distance <
+          nearestDistance
+        ) {
 
-      const times =
-        cell.match(
-          /\b\d{1,2}:\d{2}\b/g
-        );
+          nearest =
+            timeWord;
 
+          nearestDistance =
+            distance;
 
-      if (!times) {
-
-        continue;
+        }
 
       }
 
 
-      for (
-        const time of times
+      /*
+       * 同じ列の時刻であることを
+       *十分近いX座標で確認。
+       *
+       * 表の列幅に対して十分小さい値。
+       */
+
+      if (
+        nearest &&
+        nearestDistance <= 8
       ) {
 
         result.push(
-          time
+          nearest.time
         );
 
       }
@@ -2217,15 +2382,57 @@ function extractHankyu158Pages(
   }
 
 
-  /*
-   * -------------------------------------------------------
-   * 重複除去 + 時刻順
-   * -------------------------------------------------------
-   */
-
   return uniqueSorted(
     result
   );
+
+}
+
+
+/* =========================================================
+   PDF文字の正規化
+========================================================= */
+
+function normalizePdfWord(
+  text
+) {
+
+  return String(
+    text || ""
+  )
+
+    /*
+     * 全角数字 → 半角数字
+     */
+
+    .replace(
+      /[０-９]/g,
+      c =>
+        String.fromCharCode(
+          c.charCodeAt(0) -
+          0xfee0
+        )
+    )
+
+    /*
+     * 全角コロン → 半角
+     */
+
+    .replace(
+      /：/g,
+      ":"
+    )
+
+    /*
+     * NBSP除去
+     */
+
+    .replace(
+      /\u00a0/g,
+      " "
+    )
+
+    .trim();
 
 }
 
@@ -2271,6 +2478,7 @@ function compareTime(
   );
 
 }
+
 
 
 
