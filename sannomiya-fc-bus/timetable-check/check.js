@@ -112,7 +112,7 @@ const SOURCES = [
     name: "神戸市営地下鉄",
     route: "三宮駅 → 谷上駅",
     url:
-      "https://kotsu.city/kobe.lg.jp/subway/timetable1/sannomiya/",
+      "https://kotsu.city.kobe.lg.jp/subway/timetable1/sannomiya/",
     type: "subway",
     direction:
       "新神戸・谷上方面行"
