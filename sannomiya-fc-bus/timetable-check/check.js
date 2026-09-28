@@ -1682,572 +1682,134 @@ function extractJRTimes(
 }
 
 
+
 /* =========================================================
    HANKYU BUS 158
    ---------------------------------------------------------
+   公式PDF：
+   https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf
+
    対象：
-   日の峰1丁目
+   日の峰1丁目 → 谷上駅
    158系統
-   谷上駅
 
-   阪急バス公式の停留所時刻表を取得する。
+   3～4ページ：平日
+   7～8ページ：土休日
 
-   平日：
-   158系統 → 谷上駅
-
-   土休日：
-   158系統 → 谷上駅
-
-   ※ 150系統など他系統は比較対象にしない。
+   PDF内の158系統列だけを抽出する
 ========================================================= */
 
-async function checkHankyu(
-  source
-) {
+const HANKYU_PDF_URL =
+  "https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf";
+
+
+async function checkHankyu(source) {
+
+  const tmpPdf =
+    "/tmp/hankyu-kobe-tanigami.pdf";
 
   /*
-   * 阪急バス公式の
-   * 「日の峰1丁目」停留所時刻表
-   *
-   * 2026年2月1日現在
+   * PDF取得
    */
-  const url =
-    "https://transfer-cloud.navitime.biz/hankyubus/courses/timetables?busstop=00021667&timetable-id=856401";
-
-
-  const html =
-    await fetchPage(
-      url
+  const response =
+    await fetch(
+      HANKYU_PDF_URL,
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+        }
+      }
     );
 
-
-  const timetable =
-    extractHankyu158(
-      html
-    );
-
-
-  if (
-    !timetable.weekday.length &&
-    !timetable.weekend.length
-  ) {
-
+  if (!response.ok) {
     throw new Error(
-      "158系統 谷上駅行きの時刻表を取得できません"
+      `阪急バスPDF取得失敗 HTTP ${response.status}`
     );
-
   }
 
-
-  return timetable;
-
-}
-
-
-/* =========================================================
-   HANKYU 158 EXTRACTION
-========================================================= */
-
-function extractHankyu158(
-  html
-) {
-
-  const $ =
-    cheerio.load(
-      html
+  const buffer =
+    Buffer.from(
+      await response.arrayBuffer()
     );
 
-
-  const weekday =
-    [];
-
-
-  const weekend =
-    [];
-
-
-  /*
-   * -------------------------------------------------------
-   * 阪急公式ページの構造
-   *
-   * 平日
-   *   系統 [158] [150]
-   *   行先 谷上駅 ...
-   *
-   * 土休日
-   *   系統 [158] [150]
-   *   行先 谷上駅 ...
-   *
-   * 158は左側の列。
-   * -------------------------------------------------------
-   */
-
-
-  const tables =
-    $("table");
-
-
-  let foundWeekday =
-    false;
-
-
-  let foundWeekend =
-    false;
-
-
-  tables.each(
-    (_, table) => {
-
-      const tableText =
-        normalizeText(
-          $(table).text()
-        );
-
-
-      /*
-       * 158と谷上駅の両方が存在する
-       * テーブルだけを対象にする。
-       */
-      if (
-        !tableText.includes("[158]") ||
-        !tableText.includes("谷上駅")
-      ) {
-
-        return;
-
-      }
-
-
-      /*
-       * テーブル内の行を解析。
-       */
-      const rows =
-        [];
-
-
-      $(table)
-        .find("tr")
-        .each(
-          (_, tr) => {
-
-            const cells =
-              $(tr)
-                .find("th,td")
-                .map(
-                  (_, cell) =>
-                    normalizeText(
-                      $(cell).text()
-                    )
-                )
-                .get();
-
-
-            if (
-              cells.length
-            ) {
-
-              rows.push(
-                cells
-              );
-
-            }
-
-          }
-        );
-
-
-      if (
-        !rows.length
-      ) {
-
-        return;
-
-      }
-
-
-      /*
-       * [158]列を探す。
-       */
-      let routeIndex =
-        -1;
-
-
-      let routeHeaderRow =
-        -1;
-
-
-      for (
-        let r = 0;
-        r < rows.length;
-        r++
-      ) {
-
-        const index =
-          rows[r].findIndex(
-            cell =>
-              cell === "[158]" ||
-              cell.includes("[158]")
-          );
-
-
-        if (
-          index >= 0
-        ) {
-
-          routeIndex =
-            index;
-
-          routeHeaderRow =
-            r;
-
-          break;
-
-        }
-
-      }
-
-
-      if (
-        routeIndex < 0
-      ) {
-
-        return;
-
-      }
-
-
-      /*
-       * 158列のすぐ近くに
-       * 「谷上駅」があることを確認。
-       */
-      let isTanigami =
-        false;
-
-
-      for (
-        let r = routeHeaderRow;
-        r < Math.min(
-          rows.length,
-          routeHeaderRow + 5
-        );
-        r++
-      ) {
-
-        if (
-          rows[r].some(
-            cell =>
-              cell.includes("谷上駅")
-          )
-        ) {
-
-          isTanigami =
-            true;
-
-          break;
-
-        }
-
-      }
-
-
-      if (
-        !isTanigami
-      ) {
-
-        return;
-
-      }
-
-
-      /*
-       * 時刻行を取得。
-       *
-       * 例：
-       *
-       * 8 | 47
-       * 9 | 16 58
-       * 10 | 22
-       */
-      for (
-        let r = routeHeaderRow + 1;
-        r < rows.length;
-        r++
-      ) {
-
-        const row =
-          rows[r];
-
-
-        /*
-         * 時刻の行では、
-         * 左右に「8」「9」「10」などの
-         * hourセルが存在する。
-         *
-         * 最初の1～2桁を時刻として扱う。
-         */
-        let hourIndex =
-          -1;
-
-
-        let hour =
-          -1;
-
-
-        for (
-          let c = 0;
-          c < row.length;
-          c++
-        ) {
-
-          if (
-            /^\d{1,2}$/.test(
-              row[c]
-            )
-          ) {
-
-            const value =
-              Number(
-                row[c]
-              );
-
-
-            if (
-              value >= 0 &&
-              value <= 23
-            ) {
-
-              hourIndex =
-                c;
-
-              hour =
-                value;
-
-              break;
-
-            }
-
-          }
-
-        }
-
-
-        if (
-          hourIndex < 0
-        ) {
-
-          continue;
-
-        }
-
-
-        /*
-         * 158列のセルを取得。
-         */
-        if (
-          routeIndex >= row.length
-        ) {
-
-          continue;
-
-        }
-
-
-        const timeCell =
-          row[
-            routeIndex
-          ];
-
-
-        /*
-         * 空欄は便なし。
-         */
-        if (
-          !timeCell
-        ) {
-
-          continue;
-
-        }
-
-
-        /*
-         * 158列に入っている
-         * 分だけを取得。
-         *
-         * 遅延情報などが入っても
-         * 数字だけを見る。
-         */
-        const minutes =
-          timeCell.match(
-            /\d{1,2}/g
-          );
-
-
-        if (
-          !minutes
-        ) {
-
-          continue;
-
-        }
-
-
-        for (
-          const raw of minutes
-        ) {
-
-          const minute =
-            Number(
-              raw
-            );
-
-
-          if (
-            minute >= 0 &&
-            minute <= 59
-          ) {
-
-            addTime(
-              weekday,
-              hour,
-              minute
-            );
-
-          }
-
-        }
-
-      }
-
-
-      /*
-       * このテーブルが平日か土休日かを
-       * テーブル周辺のテキストから判定。
-       */
-      const parentText =
-        normalizeText(
-          $(table)
-            .parent()
-            .text()
-        );
-
-
-      /*
-       * 「土休日」が含まれるテーブルは
-       * 土休日として扱う。
-       */
-      if (
-        parentText.includes("土休日") ||
-        parentText.includes("土・休日")
-      ) {
-
-        /*
-         * 現在weekdayに入れた値を
-         * weekendへ移動。
-         */
-        weekend.push(
-          ...weekday
-        );
-
-        weekday.length =
-          0;
-
-        foundWeekend =
-          true;
-
-      }
-
-      else {
-
-        foundWeekday =
-          true;
-
-      }
-
-    }
+  fs.writeFileSync(
+    tmpPdf,
+    buffer
   );
 
-
   /*
-   * -------------------------------------------------------
-   * 上のDOM解析でページ構造に依存しすぎないよう、
-   * bodyテキストからのフォールバックも用意する。
-   * -------------------------------------------------------
+   * PDF → テキスト
+   *
+   * -layout により
+   * 表の横位置をできるだけ維持する
    */
+  let text;
 
-  if (
-    !weekday.length &&
-    !weekend.length
-  ) {
+  try {
 
-    const body =
-      normalizeText(
-        $("body").text()
+    text =
+      execFileSync(
+        "pdftotext",
+        [
+          "-layout",
+          tmpPdf,
+          "-"
+        ],
+        {
+          encoding: "utf8",
+          maxBuffer:
+            10 * 1024 * 1024
+        }
       );
 
+  } catch (error) {
 
-    const weekdayStart =
-      body.indexOf(
-        "曜日 平日"
+    throw new Error(
+      "阪急バスPDFのテキスト解析に失敗しました（pdftotext）"
+    );
+
+  } finally {
+
+    try {
+      fs.unlinkSync(
+        tmpPdf
       );
-
-
-    const holidayStart =
-      body.indexOf(
-        "曜日 土休日"
-      );
-
-
-    if (
-      weekdayStart >= 0
-    ) {
-
-      const weekdayEnd =
-        holidayStart > weekdayStart
-          ? holidayStart
-          : body.length;
-
-
-      const weekdayText =
-        body.slice(
-          weekdayStart,
-          weekdayEnd
-        );
-
-
-      extractHankyuTextTimes(
-        weekdayText,
-        weekday
-      );
-
-    }
-
-
-    if (
-      holidayStart >= 0
-    ) {
-
-      const holidayText =
-        body.slice(
-          holidayStart
-        );
-
-
-      extractHankyuTextTimes(
-        holidayText,
-        weekend
-      );
-
-    }
+    } catch (_) {}
 
   }
 
-
   /*
-   * -------------------------------------------------------
-   * 最終確認
-   * -------------------------------------------------------
+   * ページ分割
+   *
+   * PDFページ：
+   * 3,4 = 平日
+   * 7,8 = 土休日
    */
+  const pages =
+    text.split("\f");
+
+  const weekdayPages =
+    [
+      pages[2],
+      pages[3]
+    ].filter(Boolean);
+
+  const weekendPages =
+    [
+      pages[6],
+      pages[7]
+    ].filter(Boolean);
+
+  const weekday =
+    extractHankyu158Pages(
+      weekdayPages
+    );
+
+  const weekend =
+    extractHankyu158Pages(
+      weekendPages
+    );
 
   if (
     !weekday.length &&
@@ -2255,137 +1817,184 @@ function extractHankyu158(
   ) {
 
     throw new Error(
-      "158系統 谷上駅行きの時刻データが見つかりません"
+      "158系統「日の峰1丁目 → 谷上駅」の時刻をPDFから取得できません"
     );
 
   }
 
-
   return {
-
-    weekday:
-      uniqueSorted(
-        weekday
-      ),
-
-    weekend:
-      uniqueSorted(
-        weekend
-      )
-
+    weekday,
+    weekend
   };
-
 }
 
 
 /* =========================================================
-   HANKYU TEXT FALLBACK
+   阪急PDFページ解析
 ========================================================= */
 
-function extractHankyuTextTimes(
-  text,
-  result
+function extractHankyu158Pages(
+  pages
 ) {
 
-  /*
-   * 158系統の行先が
-   * 谷上駅であることを確認。
-   */
-  if (
-    !text.includes(
-      "[158]"
-    ) ||
-    !text.includes(
-      "谷上駅"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  /*
-   * 時刻表部分から
-   *
-   * 8 47
-   * 9 16 58
-   *
-   * のような形を取得。
-   *
-   * 「系統」「行先」などの数字は
-   * 時刻として扱わない。
-   */
-
-  const lines =
-    text.split(
-      /\s+/
-    );
-
-
-  let currentHour =
-    null;
-
+  const result =
+    [];
 
   for (
-    const token of lines
+    const page of pages
   ) {
 
-    /*
-     * 時刻表の時間
-     */
-    if (
-      /^\d{1,2}$/.test(
-        token
-      )
-    ) {
-
-      const value =
-        Number(
-          token
+    const lines =
+      page
+        .split(/\r?\n/)
+        .map(
+          line =>
+            line.replace(/\r/g, "")
         );
 
+    /*
+     * 系統番号のヘッダーを探す
+     *
+     * 例：
+     * 150 158 150 158 ...
+     */
+    const headerIndex =
+      lines.findIndex(
+        line =>
+          line.includes("系統番号") &&
+          /\b158\b/.test(line)
+      );
 
-      if (
-        value >= 6 &&
-        value <= 22
-      ) {
+    if (
+      headerIndex < 0
+    ) {
+      continue;
+    }
 
-        currentHour =
-          value;
+    const header =
+      lines[headerIndex];
 
-        continue;
+    /*
+     * 「150」「158」「151」などの
+     * 系統番号と、その横位置を取得
+     */
+    const columns =
+      [];
 
-      }
+    const routeRegex =
+      /\b(150|151|158)\b/g;
+
+    let match;
+
+    while (
+      (match =
+        routeRegex.exec(header)) !== null
+    ) {
+
+      columns.push({
+        route:
+          match[1],
+        position:
+          match.index
+      });
 
     }
 
+    /*
+     * 158系統の列だけ取得
+     */
+    const targetColumns =
+      columns.filter(
+        column =>
+          column.route === "158"
+      );
+
+    if (
+      !targetColumns.length
+    ) {
+      continue;
+    }
 
     /*
-     * 分
+     * 「日の峰1丁目」の行を探す
      */
+    const rowIndex =
+      lines.findIndex(
+        line =>
+          line.includes(
+            "日の峰1丁目"
+          )
+      );
+
     if (
-      currentHour !== null &&
-      /^\d{1,2}$/.test(
-        token
-      )
+      rowIndex < 0
+    ) {
+      continue;
+    }
+
+    const row =
+      lines[rowIndex];
+
+    /*
+     * 各158列の値を取得
+     */
+    for (
+      let i = 0;
+      i < targetColumns.length;
+      i++
     ) {
 
-      const minute =
-        Number(
-          token
+      const current =
+        targetColumns[i];
+
+      const next =
+        targetColumns[i + 1];
+
+      /*
+       * 列の終端
+       *
+       * 次の系統番号の中間位置まで
+       */
+      const end =
+        next
+          ? Math.floor(
+              (
+                current.position +
+                next.position
+              ) / 2
+            )
+          : row.length;
+
+      const cell =
+        row
+          .slice(
+            current.position,
+            end
+          )
+          .trim();
+
+      /*
+       * 時刻だけ取得
+       *
+       * 例：
+       * 08:08
+       * 09:15
+       */
+      const times =
+        cell.match(
+          /\b\d{1,2}:\d{2}\b/g
         );
 
+      if (!times) {
+        continue;
+      }
 
-      if (
-        minute >= 0 &&
-        minute <= 59
+      for (
+        const time of times
       ) {
 
-        addTime(
-          result,
-          currentHour,
-          minute
+        result.push(
+          time
         );
 
       }
@@ -2394,7 +2003,58 @@ function extractHankyuTextTimes(
 
   }
 
+  /*
+   * 重複除去
+   * 並び替え
+   */
+  return [
+    ...new Set(
+      result
+    )
+  ].sort(
+    compareTime
+  );
 }
+
+
+/* =========================================================
+   時刻比較
+========================================================= */
+
+function compareTime(
+  a,
+  b
+) {
+
+  const [
+    ah,
+    am
+  ] =
+    a
+      .split(":")
+      .map(Number);
+
+  const [
+    bh,
+    bm
+  ] =
+    b
+      .split(":")
+      .map(Number);
+
+  return (
+    ah * 60 +
+    am
+  ) -
+  (
+    bh * 60 +
+    bm
+  );
+
+}
+
+
+
 
 
 /* =========================================================
