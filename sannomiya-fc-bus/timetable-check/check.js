@@ -35,13 +35,23 @@
 
 const fs = require("fs");
 const crypto = require("crypto");
+const cheerio = require("cheerio");
 
-const BASE = "sannomiya-fc-bus/timetable-check";
+const BASE =
+  "sannomiya-fc-bus/timetable-check";
 
-const SNAPSHOT_FILE = `${BASE}/snapshot.json`;
-const STATUS_FILE = `${BASE}/status.json`;
+const SNAPSHOT_FILE =
+  `${BASE}/snapshot.json`;
 
-const SCHEMA_VERSION = 5;
+const STATUS_FILE =
+  `${BASE}/status.json`;
+
+
+/*
+ * 今回の解析方式は全面変更
+ * → 旧snapshotは基準値として使用しない
+ */
+const SCHEMA_VERSION = 6;
 
 
 /* =========================================================
@@ -141,24 +151,25 @@ function normalize(text) {
 
 async function fetchHtml(url) {
 
-  const response = await fetch(url, {
+  const response =
+    await fetch(url, {
 
-    redirect: "follow",
+      redirect: "follow",
 
-    headers: {
+      headers: {
 
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
 
-      "Accept":
-        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept":
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 
-      "Accept-Language":
-        "ja-JP,ja;q=0.9,en-US;q=0.8"
+        "Accept-Language":
+          "ja-JP,ja;q=0.9,en-US;q=0.8"
 
-    }
+      }
 
-  });
+    });
 
 
   if (!response.ok) {
@@ -176,639 +187,84 @@ async function fetchHtml(url) {
 
 
 /* =========================================================
-   HTML → 行
+   時刻データ共通
 ========================================================= */
 
-function htmlToLines(html) {
-
-  return html
-
-    .replace(/<\/tr>/gi, "\n")
-
-    .replace(/<\/li>/gi, "\n")
-
-    .replace(/<\/p>/gi, "\n")
-
-    .replace(/<\/div>/gi, "\n")
-
-    .replace(/<br\s*\/?>/gi, " ")
-
-    .replace(/<\/h[1-6]>/gi, "\n")
-
-    .replace(/<\/button>/gi, "\n")
-
-    .replace(/<\/td>/gi, " | ")
-
-    .replace(/<\/th>/gi, " | ")
-
-    .replace(/<[^>]+>/g, "")
-
-    .replace(/&nbsp;/gi, " ")
-
-    .replace(/&gt;/gi, ">")
-
-    .replace(/&lt;/gi, "<")
-
-    .replace(/&amp;/gi, "&")
-
-    .split("\n")
-
-    .map(normalize)
-
-    .filter(Boolean);
-
-}
-
-
-/* =========================================================
-   時刻行
-========================================================= */
-
-function parseTableRow(line) {
-
-  /*
-   * 例
-   *
-   * 5 | 18 41 51
-   * 7 | 02 09 13
-   *
-   */
-
-  const match =
-    line.match(/^(\d{1,2})\s*\|\s*(.*)$/);
-
-  if (!match) {
-
-    return null;
-
-  }
-
-
-  const hour =
-    Number(match[1]);
+function addRow(
+  result,
+  hour,
+  minutes
+) {
 
   if (
     hour < 0 ||
     hour > 24
   ) {
 
-    return null;
+    return;
 
   }
 
 
-  const minutes =
-    match[2]
-      .match(/\d{1,2}/g) || [];
-
-
-  const result =
+  const clean =
     minutes
 
       .map(Number)
 
       .filter(
-        n => n >= 0 && n <= 59
+        n =>
+          n >= 0 &&
+          n <= 59
       )
 
       .map(
-        n => String(n).padStart(2, "0")
+        n =>
+          String(n).padStart(2, "0")
       );
 
 
-  if (!result.length) {
+  if (!clean.length) {
 
-    return null;
-
-  }
-
-
-  return {
-
-    hour,
-
-    minutes:
-      [...new Set(result)]
-
-  };
-
-}
-
-
-/* =========================================================
-   市バス用
-========================================================= */
-
-function parseBusRows(lines) {
-
-  const result = [];
-
-  let currentHour = null;
-
-
-  for (const line of lines) {
-
-    /*
-     * 例
-     * 7時
-     * 45
-     */
-
-    const hourMatch =
-      line.match(/^(\d{1,2})時$/);
-
-    if (hourMatch) {
-
-      currentHour =
-        Number(hourMatch[1]);
-
-      continue;
-
-    }
-
-
-    if (
-      currentHour === null
-    ) {
-
-      continue;
-
-    }
-
-
-    /*
-     * 分だけの行
-     *
-     * 00
-     * 30
-     * 00○
-     * 00☆急
-     */
-
-    const minuteMatch =
-      line.match(
-        /^(\d{1,2})(?:\D.*)?$/
-      );
-
-    if (!minuteMatch) {
-
-      continue;
-
-    }
-
-
-    const minute =
-      Number(minuteMatch[1]);
-
-
-    if (
-      minute < 0 ||
-      minute > 59
-    ) {
-
-      continue;
-
-    }
-
-
-    let row =
-      result.find(
-        r => r.hour === currentHour
-      );
-
-
-    if (!row) {
-
-      row = {
-
-        hour:
-          currentHour,
-
-        minutes: []
-
-      };
-
-      result.push(row);
-
-    }
-
-
-    const value =
-      String(minute)
-        .padStart(2, "0");
-
-
-    if (
-      !row.minutes.includes(value)
-    ) {
-
-      row.minutes.push(value);
-
-    }
+    return;
 
   }
 
 
-  return result;
-
-}
-
-
-/* =========================================================
-   共通：最初の時刻表
-========================================================= */
-
-function extractFirstTable(
-  lines,
-  startKeywords,
-  stopKeywords = []
-) {
-
-  let start = -1;
-
-
-  for (
-    let i = 0;
-    i < lines.length;
-    i++
-  ) {
-
-    const line =
-      lines[i];
-
-
-    if (
-      startKeywords.some(
-        keyword =>
-          line.includes(keyword)
-      )
-    ) {
-
-      start = i;
-
-      break;
-
-    }
-
-  }
-
-
-  if (start === -1) {
-
-    throw new Error(
-      "対象時刻表が見つかりません"
+  let row =
+    result.find(
+      r => r.hour === hour
     );
 
+
+  if (!row) {
+
+    row = {
+
+      hour,
+
+      minutes: []
+
+    };
+
+    result.push(row);
+
   }
 
 
-  const rows = [];
-
-
-  for (
-    let i = start + 1;
-    i < lines.length;
-    i++
-  ) {
-
-    const line =
-      lines[i];
-
-
-    /*
-     * 旧時刻表開始
-     */
+  for (const minute of clean) {
 
     if (
-      /Revised March 28, 2016/i.test(line) ||
-      /改正日.*2016年3月28日/.test(line)
+      !row.minutes.includes(minute)
     ) {
 
-      break;
-
-    }
-
-
-    /*
-     * 別方向
-     */
-
-    if (
-      stopKeywords.some(
-        keyword =>
-          line.includes(keyword)
-      )
-    ) {
-
-      break;
-
-    }
-
-
-    const row =
-      parseTableRow(line);
-
-
-    if (row) {
-
-      rows.push(row);
+      row.minutes.push(minute);
 
     }
 
   }
-
-
-  if (!rows.length) {
-
-    throw new Error(
-      "時刻データを取得できません"
-    );
-
-  }
-
-
-  return rows;
 
 }
 
-
-/* =========================================================
-   地下鉄
-========================================================= */
-
-function extractSubwayTanigami(html) {
-
-  const lines =
-    htmlToLines(html);
-
-
-  return extractFirstTable(
-
-    lines,
-
-    [
-      "新神戸・三宮・名谷・西神中央方面行"
-    ]
-
-  );
-
-}
-
-
-function extractSubwaySannomiyaToTanigami(html) {
-
-  const lines =
-    htmlToLines(html);
-
-
-  return extractFirstTable(
-
-    lines,
-
-    [
-      "新神戸・谷上方面行"
-    ],
-
-    [
-      "名谷・西神中央方面行"
-    ]
-
-  );
-
-}
-
-
-/* =========================================================
-   神戸市バス 62系統
-========================================================= */
-
-function extractCityBus62(html) {
-
-  const lines =
-    htmlToLines(html);
-
-
-  let start = -1;
-
-
-  for (
-    let i = 0;
-    i < lines.length;
-    i++
-  ) {
-
-    if (
-      lines[i].includes(
-        "62系統 神戸北町方面行き"
-      )
-    ) {
-
-      start = i;
-
-      break;
-
-    }
-
-  }
-
-
-  if (start === -1) {
-
-    throw new Error(
-      "62系統 神戸北町方面行きが見つかりません"
-    );
-
-  }
-
-
-  const section = [];
-
-
-  for (
-    let i = start + 1;
-    i < lines.length;
-    i++
-  ) {
-
-    const line =
-      lines[i];
-
-
-    /*
-     * 111系統へ移ったら終了
-     */
-
-    if (
-      line.includes(
-        "111系統"
-      )
-    ) {
-
-      break;
-
-    }
-
-
-    section.push(line);
-
-  }
-
-
-  const data =
-    parseBusRows(section);
-
-
-  if (!data.length) {
-
-    throw new Error(
-      "62系統の時刻データを取得できません"
-    );
-
-  }
-
-
-  return data;
-
-}
-
-
-/* =========================================================
-   ポートライナー
-========================================================= */
-
-function extractPortlinerSannomiya(html) {
-
-  const lines =
-    htmlToLines(html);
-
-
-  return extractFirstTable(
-
-    lines,
-
-    [
-      "For Kobe Airport / Kita Futo",
-      "神戸空港・北埠頭方面行",
-      "神戸空港・北ふ頭方面行"
-    ],
-
-    [
-      "For Sannomiya",
-      "三宮方面行"
-    ]
-
-  );
-
-}
-
-
-function extractPortlinerBoeki(html) {
-
-  const lines =
-    htmlToLines(html);
-
-
-  return extractFirstTable(
-
-    lines,
-
-    [
-      "For Sannomiya",
-      "三宮方面行"
-    ]
-
-  );
-
-}
-
-
-/* =========================================================
-   JR
-========================================================= */
-
-function extractJR(html) {
-
-  const lines =
-    htmlToLines(html);
-
-
-  const rows = [];
-
-
-  /*
-   * JRはページ上の最初の
-   * 時刻表テーブルを取得する。
-   *
-   * 時刻表以外の数字を拾わない。
-   */
-
-  let started = false;
-
-
-  for (const line of lines) {
-
-    if (
-      /^(5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|0|24)\s*\|/.test(line)
-    ) {
-
-      started = true;
-
-    }
-
-
-    if (!started) {
-
-      continue;
-
-    }
-
-
-    const row =
-      parseTableRow(line);
-
-
-    if (row) {
-
-      rows.push(row);
-
-    }
-
-
-    /*
-     * 連続した時刻表が終わった後、
-     * 十分な行数が取れたら終了。
-     */
-
-    if (
-      rows.length >= 20
-    ) {
-
-      break;
-
-    }
-
-  }
-
-
-  if (
-    rows.length < 5
-  ) {
-
-    throw new Error(
-      "JR時刻表を取得できません"
-    );
-
-  }
-
-
-  return rows;
-
-}
-
-
-/* =========================================================
-   データ正規化
-========================================================= */
 
 function normalizeTimetable(data) {
 
@@ -822,11 +278,6 @@ function normalizeTimetable(data) {
       minutes:
         [...new Set(
           row.minutes
-            .map(String)
-            .map(
-              x =>
-                x.padStart(2, "0")
-            )
         )]
         .sort(
           (a, b) =>
@@ -849,6 +300,824 @@ function normalizeTimetable(data) {
 
 
 /* =========================================================
+   テーブル解析
+========================================================= */
+
+function parseTimetableTable(table) {
+
+  const result = [];
+
+
+  table.find("tr").each(
+    (_, tr) => {
+
+      const cells =
+        cheerio(tr)
+          .find("th,td")
+          .map(
+            (_, el) =>
+              normalize(
+                cheerio(el).text()
+              )
+          )
+          .get();
+
+
+      if (
+        cells.length < 2
+      ) {
+
+        return;
+
+      }
+
+
+      const hourMatch =
+        cells[0].match(
+          /^(\d{1,2})$/
+        );
+
+
+      if (!hourMatch) {
+
+        return;
+
+      }
+
+
+      const hour =
+        Number(hourMatch[1]);
+
+
+      /*
+       * 行全体から数字を取得。
+       *
+       * 地下鉄：
+       * 18 41 51
+       *
+       * ポートライナー：
+       * 40 北50
+       *
+       * などに対応。
+       */
+
+      const minutes =
+        cells
+          .slice(1)
+          .join(" ")
+          .match(/\d{1,2}/g) || [];
+
+
+      addRow(
+        result,
+        hour,
+        minutes
+      );
+
+    }
+  );
+
+
+  return normalizeTimetable(
+    result
+  );
+
+}
+
+
+/* =========================================================
+   地下鉄
+========================================================= */
+
+function extractSubway(
+  html,
+  direction
+) {
+
+  const $ =
+    cheerio.load(html);
+
+
+  const tables =
+    $("table");
+
+
+  /*
+   * 対象方向を含む最初の
+   * 時刻表テーブルを探す。
+   */
+
+  let target =
+    null;
+
+
+  tables.each(
+    (_, table) => {
+
+      if (target) {
+
+        return;
+
+      }
+
+
+      const text =
+        normalize(
+          $(table).text()
+        );
+
+
+      if (
+        text.includes(
+          direction
+        )
+      ) {
+
+        target =
+          $(table);
+
+      }
+
+    }
+  );
+
+
+  /*
+   * 方向名がtable内にない場合、
+   * 最初に十分な時刻行を持つtableを使用。
+   */
+
+  if (!target) {
+
+    tables.each(
+      (_, table) => {
+
+        if (target) {
+
+          return;
+
+        }
+
+
+        const data =
+          parseTimetableTable(
+            $(table)
+          );
+
+
+        if (
+          data.length >= 5
+        ) {
+
+          target =
+            $(table);
+
+        }
+
+      }
+    );
+
+  }
+
+
+  if (!target) {
+
+    throw new Error(
+      "地下鉄の時刻表テーブルが見つかりません"
+    );
+
+  }
+
+
+  const data =
+    parseTimetableTable(
+      target
+    );
+
+
+  if (
+    data.length < 5
+  ) {
+
+    throw new Error(
+      "地下鉄の時刻データを取得できません"
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+function extractSubwayTanigami(html) {
+
+  return extractSubway(
+    html,
+    "新神戸・三宮・名谷・西神中央方面行"
+  );
+
+}
+
+
+function extractSubwaySannomiya(html) {
+
+  return extractSubway(
+    html,
+    "新神戸・谷上方面行"
+  );
+
+}
+
+
+/* =========================================================
+   神戸市バス 62系統
+========================================================= */
+
+function extractCityBus62(html) {
+
+  const $ =
+    cheerio.load(html);
+
+
+  const text =
+    normalize(
+      $("body").text()
+    );
+
+
+  const start =
+    text.indexOf(
+      "62系統 神戸北町方面行き"
+    );
+
+
+  if (
+    start === -1
+  ) {
+
+    throw new Error(
+      "62系統 神戸北町方面行きが見つかりません"
+    );
+
+  }
+
+
+  const end =
+    text.indexOf(
+      "111系統",
+      start
+    );
+
+
+  if (
+    end === -1
+  ) {
+
+    throw new Error(
+      "62系統の終了位置が見つかりません"
+    );
+
+  }
+
+
+  const section =
+    text.slice(
+      start,
+      end
+    );
+
+
+  /*
+   * 62系統の平日部分だけ取得。
+   *
+   * 構造：
+   *
+   * 平日
+   * 5時
+   * 6時
+   * 7時 45急
+   * ...
+   *
+   * 土曜日
+   * ...
+   */
+
+  const weekdayStart =
+    section.indexOf("平日");
+
+
+  const saturdayStart =
+    section.indexOf(
+      "土曜日",
+      weekdayStart + 2
+    );
+
+
+  if (
+    weekdayStart === -1 ||
+    saturdayStart === -1
+  ) {
+
+    throw new Error(
+      "62系統の平日部分が見つかりません"
+    );
+
+  }
+
+
+  const weekday =
+    section.slice(
+      weekdayStart + 2,
+      saturdayStart
+    );
+
+
+  const result = [];
+
+
+  /*
+   * 「7時45急」
+   * 「15時00○30○」
+   * などを処理。
+   */
+
+  const hourRegex =
+    /(\d{1,2})時([\s\S]*?)(?=\d{1,2}時|$)/g;
+
+
+  let match;
+
+
+  while (
+    (match =
+      hourRegex.exec(weekday))
+  ) {
+
+    const hour =
+      Number(match[1]);
+
+
+    const body =
+      match[2];
+
+
+    const minutes =
+      body.match(
+        /\d{1,2}/g
+      ) || [];
+
+
+    addRow(
+      result,
+      hour,
+      minutes
+    );
+
+  }
+
+
+  const data =
+    normalizeTimetable(
+      result
+    );
+
+
+  if (
+    !data.length
+  ) {
+
+    throw new Error(
+      "62系統の時刻データを取得できません"
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+/* =========================================================
+   ポートライナー
+========================================================= */
+
+function findPortlinerTable(
+  html,
+  direction
+) {
+
+  const $ =
+    cheerio.load(html);
+
+
+  let target =
+    null;
+
+
+  $("table").each(
+    (_, table) => {
+
+      if (target) {
+
+        return;
+
+      }
+
+
+      const text =
+        normalize(
+          $(table).text()
+        );
+
+
+      if (
+        text.includes(direction)
+      ) {
+
+        /*
+         * 最初の方向該当table
+         * → 平日ダイヤ
+         */
+
+        target =
+          $(table);
+
+      }
+
+    }
+  );
+
+
+  if (!target) {
+
+    throw new Error(
+      `ポートライナー「${direction}」の時刻表が見つかりません`
+    );
+
+  }
+
+
+  const result = [];
+
+
+  target.find("tr").each(
+    (_, tr) => {
+
+      const hourCell =
+        $(tr)
+          .find(
+            "th.hour"
+          )
+          .first();
+
+
+      if (
+        !hourCell.length
+      ) {
+
+        return;
+
+      }
+
+
+      const hour =
+        Number(
+          normalize(
+            hourCell.text()
+          )
+        );
+
+
+      if (
+        Number.isNaN(hour)
+      ) {
+
+        return;
+
+      }
+
+
+      const minutes =
+        $(tr)
+          .find(
+            ".info02"
+          )
+          .map(
+            (_, el) =>
+              normalize(
+                $(el).text()
+              )
+          )
+          .get()
+          .map(
+            Number
+          );
+
+
+      addRow(
+        result,
+        hour,
+        minutes
+      );
+
+    }
+  );
+
+
+  const data =
+    normalizeTimetable(
+      result
+    );
+
+
+  if (
+    !data.length
+  ) {
+
+    throw new Error(
+      "ポートライナーの時刻データを取得できません"
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+function extractPortlinerSannomiya(html) {
+
+  return findPortlinerTable(
+    html,
+    "神戸空港・北埠頭方面行"
+  );
+
+}
+
+
+function extractPortlinerBoeki(html) {
+
+  return findPortlinerTable(
+    html,
+    "三宮方面行"
+  );
+
+}
+
+
+/* =========================================================
+   JR
+========================================================= */
+
+function getWeekdayDate() {
+
+  const date =
+    new Date();
+
+
+  /*
+   * 日本時間で取得
+   */
+
+  const japan =
+    new Date(
+      date.toLocaleString(
+        "en-US",
+        {
+          timeZone:
+            "Asia/Tokyo"
+        }
+      )
+    );
+
+
+  /*
+   * 土日なら次の月曜日
+   */
+
+  const day =
+    japan.getDay();
+
+
+  if (
+    day === 6
+  ) {
+
+    japan.setDate(
+      japan.getDate() + 2
+    );
+
+  } else if (
+    day === 0
+  ) {
+
+    japan.setDate(
+      japan.getDate() + 1
+    );
+
+  }
+
+
+  const y =
+    japan.getFullYear();
+
+  const m =
+    String(
+      japan.getMonth() + 1
+    ).padStart(2, "0");
+
+  const d =
+    String(
+      japan.getDate()
+    ).padStart(2, "0");
+
+
+  return `${y}${m}${d}`;
+
+}
+
+
+async function fetchJRHtml(url) {
+
+  const date =
+    getWeekdayDate();
+
+
+  const separator =
+    url.includes("?")
+      ? "&"
+      : "?";
+
+
+  return fetchHtml(
+    `${url}${separator}date=${date}`
+  );
+
+}
+
+
+function extractJR(html) {
+
+  const $ =
+    cheerio.load(html);
+
+
+  const result = [];
+
+
+  /*
+   * JRの実際のHTML構造
+   *
+   * .accordion-item
+   *   .accordion-title
+   *   .departure-time
+   */
+
+  $(".accordion-item").each(
+    (_, item) => {
+
+      const hourText =
+        normalize(
+          $(item)
+            .find(
+              ".accordion-title"
+            )
+            .first()
+            .text()
+        );
+
+
+      const hourMatch =
+        hourText.match(
+          /(\d{1,2})/
+        );
+
+
+      if (!hourMatch) {
+
+        return;
+
+      }
+
+
+      const hour =
+        Number(
+          hourMatch[1]
+        );
+
+
+      const minutes =
+        $(item)
+          .find(
+            ".departure-time"
+          )
+          .map(
+            (_, el) => {
+
+              const text =
+                normalize(
+                  $(el).text()
+                );
+
+
+              const match =
+                text.match(
+                  /(\d{1,2}):(\d{2})/
+                );
+
+
+              return match
+                ? Number(match[2])
+                : null;
+
+            }
+          )
+          .get()
+          .filter(
+            value =>
+              value !== null
+          );
+
+
+      addRow(
+        result,
+        hour,
+        minutes
+      );
+
+    }
+  );
+
+
+  /*
+   * 念のためtable形式にも対応。
+   */
+
+  if (
+    result.length < 5
+  ) {
+
+    $("table").each(
+      (_, table) => {
+
+        const data =
+          parseTimetableTable(
+            $(table)
+          );
+
+
+        if (
+          data.length >= 5 &&
+          result.length < 5
+        ) {
+
+          for (
+            const row of data
+          ) {
+
+            addRow(
+              result,
+              row.hour,
+              row.minutes
+            );
+
+          }
+
+        }
+
+      }
+    );
+
+  }
+
+
+  const data =
+    normalizeTimetable(
+      result
+    );
+
+
+  if (
+    data.length < 5
+  ) {
+
+    throw new Error(
+      "JR時刻表を取得できません"
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+/* =========================================================
    差分
 ========================================================= */
 
@@ -864,7 +1133,9 @@ function diffTimetable(
     new Map();
 
 
-  for (const row of oldData || []) {
+  for (
+    const row of oldData || []
+  ) {
 
     oldMap.set(
       row.hour,
@@ -874,7 +1145,9 @@ function diffTimetable(
   }
 
 
-  for (const row of newData || []) {
+  for (
+    const row of newData || []
+  ) {
 
     newMap.set(
       row.hour,
@@ -885,12 +1158,12 @@ function diffTimetable(
 
 
   const hours =
-    [...new Set([
-
-      ...oldMap.keys(),
-      ...newMap.keys()
-
-    ])]
+    [
+      ...new Set([
+        ...oldMap.keys(),
+        ...newMap.keys()
+      ])
+    ]
     .sort(
       (a, b) => a - b
     );
@@ -899,7 +1172,9 @@ function diffTimetable(
   const changes = [];
 
 
-  for (const hour of hours) {
+  for (
+    const hour of hours
+  ) {
 
     const oldMinutes =
       oldMap.get(hour) || [];
@@ -934,7 +1209,7 @@ function diffTimetable(
 
 
 /* =========================================================
-   ファイル読み込み
+   JSON
 ========================================================= */
 
 function loadJson(file) {
@@ -973,7 +1248,6 @@ function loadJson(file) {
 async function checkService(options) {
 
   const {
-
     key,
     url,
     name,
@@ -981,15 +1255,17 @@ async function checkService(options) {
     oldSnapshot,
     baselineValid,
     newSnapshot,
-    status
-
+    status,
+    fetcher
   } = options;
 
 
   try {
 
     const html =
-      await fetchHtml(url);
+      fetcher
+        ? await fetcher(url)
+        : await fetchHtml(url);
 
 
     const data =
@@ -1030,10 +1306,12 @@ async function checkService(options) {
 
 
     /*
-     * 初回
+     * 初回 / schema変更
      */
 
-    if (!baselineValid) {
+    if (
+      !baselineValid
+    ) {
 
       console.log(
         `🟡 ${name}`
@@ -1055,6 +1333,7 @@ async function checkService(options) {
 
       };
 
+
       return "initialized";
 
     }
@@ -1063,10 +1342,6 @@ async function checkService(options) {
     const old =
       oldSnapshot.services[key];
 
-
-    /*
-     * 旧形式・旧データなし
-     */
 
     if (
       !old ||
@@ -1093,6 +1368,7 @@ async function checkService(options) {
 
       };
 
+
       return "initialized";
 
     }
@@ -1104,10 +1380,6 @@ async function checkService(options) {
         data
       );
 
-
-    /*
-     * 変更なし
-     */
 
     if (
       !changes.length
@@ -1133,14 +1405,11 @@ async function checkService(options) {
 
       };
 
+
       return "ok";
 
     }
 
-
-    /*
-     * 実際の時刻変更
-     */
 
     console.log(
       `🔴 ${name}`
@@ -1214,7 +1483,7 @@ async function checkService(options) {
 
     /*
      * エラー時は
-     * 前回の正常データを維持
+     * 前回正常値を維持
      */
 
     if (
@@ -1256,34 +1525,13 @@ async function main() {
 
   console.log("");
 
-
   console.log(
-    `🔍 公式時刻表 自動チェック 最終チェック：${
-      new Date().toLocaleString(
-        "ja-JP",
-        {
-          timeZone:
-            "Asia/Tokyo",
-
-          year:
-            "numeric",
-
-          month:
-            "2-digit",
-
-          day:
-            "2-digit",
-
-          hour:
-            "2-digit",
-
-          minute:
-            "2-digit"
-        }
-      )
-    }`
+    "🔍 KOBE SANNOMIYA FC"
   );
 
+  console.log(
+    "公式時刻表 自動チェック"
+  );
 
   console.log("");
 
@@ -1346,7 +1594,10 @@ async function main() {
    * =======================================================
    */
 
-  const subwayTanigami =
+  const results = [];
+
+
+  results.push(
     await checkService({
 
       key:
@@ -1369,29 +1620,11 @@ async function main() {
 
       status
 
-    });
+    })
+  );
 
 
-  if (
-    subwayTanigami ===
-    "changed"
-  ) {
-
-    hasChanged = true;
-
-  }
-
-  if (
-    subwayTanigami ===
-    "error"
-  ) {
-
-    hasError = true;
-
-  }
-
-
-  const subwaySannomiya =
+  results.push(
     await checkService({
 
       key:
@@ -1404,7 +1637,7 @@ async function main() {
         NAMES.subwaySannomiya,
 
       parser:
-        extractSubwaySannomiyaToTanigami,
+        extractSubwaySannomiya,
 
       oldSnapshot,
 
@@ -1414,26 +1647,8 @@ async function main() {
 
       status
 
-    });
-
-
-  if (
-    subwaySannomiya ===
-    "changed"
-  ) {
-
-    hasChanged = true;
-
-  }
-
-  if (
-    subwaySannomiya ===
-    "error"
-  ) {
-
-    hasError = true;
-
-  }
+    })
+  );
 
 
   /*
@@ -1442,7 +1657,7 @@ async function main() {
    * =======================================================
    */
 
-  const cityBus =
+  results.push(
     await checkService({
 
       key:
@@ -1465,26 +1680,8 @@ async function main() {
 
       status
 
-    });
-
-
-  if (
-    cityBus ===
-    "changed"
-  ) {
-
-    hasChanged = true;
-
-  }
-
-  if (
-    cityBus ===
-    "error"
-  ) {
-
-    hasError = true;
-
-  }
+    })
+  );
 
 
   /*
@@ -1493,7 +1690,7 @@ async function main() {
    * =======================================================
    */
 
-  const portSannomiya =
+  results.push(
     await checkService({
 
       key:
@@ -1516,29 +1713,11 @@ async function main() {
 
       status
 
-    });
+    })
+  );
 
 
-  if (
-    portSannomiya ===
-    "changed"
-  ) {
-
-    hasChanged = true;
-
-  }
-
-  if (
-    portSannomiya ===
-    "error"
-  ) {
-
-    hasError = true;
-
-  }
-
-
-  const portBoeki =
+  results.push(
     await checkService({
 
       key:
@@ -1561,26 +1740,8 @@ async function main() {
 
       status
 
-    });
-
-
-  if (
-    portBoeki ===
-    "changed"
-  ) {
-
-    hasChanged = true;
-
-  }
-
-  if (
-    portBoeki ===
-    "error"
-  ) {
-
-    hasError = true;
-
-  }
+    })
+  );
 
 
   /*
@@ -1589,7 +1750,7 @@ async function main() {
    * =======================================================
    */
 
-  const jrSannomiya =
+  results.push(
     await checkService({
 
       key:
@@ -1604,6 +1765,9 @@ async function main() {
       parser:
         extractJR,
 
+      fetcher:
+        fetchJRHtml,
+
       oldSnapshot,
 
       baselineValid,
@@ -1612,29 +1776,11 @@ async function main() {
 
       status
 
-    });
+    })
+  );
 
 
-  if (
-    jrSannomiya ===
-    "changed"
-  ) {
-
-    hasChanged = true;
-
-  }
-
-  if (
-    jrSannomiya ===
-    "error"
-  ) {
-
-    hasError = true;
-
-  }
-
-
-  const jrNada =
+  results.push(
     await checkService({
 
       key:
@@ -1649,6 +1795,9 @@ async function main() {
       parser:
         extractJR,
 
+      fetcher:
+        fetchJRHtml,
+
       oldSnapshot,
 
       baselineValid,
@@ -1657,26 +1806,8 @@ async function main() {
 
       status
 
-    });
-
-
-  if (
-    jrNada ===
-    "changed"
-  ) {
-
-    hasChanged = true;
-
-  }
-
-  if (
-    jrNada ===
-    "error"
-  ) {
-
-    hasError = true;
-
-  }
+    })
+  );
 
 
   /*
@@ -1684,10 +1815,9 @@ async function main() {
    * 阪急バス
    * =======================================================
    *
-   * GitHub Actionsから公式NAVITIMEページは403。
+   * GitHub Actionsから公式NAVITIMEは403。
    *
-   * 現時点では無理に解析せず、
-   * 確認エラーとして扱う。
+   * 無理に別データを使わない。
    */
 
   console.log(
@@ -1699,9 +1829,6 @@ async function main() {
   );
 
   console.log("");
-
-
-  hasError = true;
 
 
   status.services.hankyu = {
@@ -1718,14 +1845,47 @@ async function main() {
   };
 
 
+  hasError = true;
+
+
   /*
    * =======================================================
-   * エラーになったサービスは
-   * 新しいデータで上書きしない。
+   * 結果集計
    * =======================================================
    */
 
-  if (baselineValid) {
+  for (
+    const result of results
+  ) {
+
+    if (
+      result === "changed"
+    ) {
+
+      hasChanged = true;
+
+    }
+
+
+    if (
+      result === "error"
+    ) {
+
+      hasError = true;
+
+    }
+
+  }
+
+
+  /*
+   * エラー時は
+   * 既存正常データを保持
+   */
+
+  if (
+    baselineValid
+  ) {
 
     for (
       const key of Object.keys(
@@ -1746,12 +1906,6 @@ async function main() {
 
   }
 
-
-  /*
-   * =======================================================
-   * 最終状態
-   * =======================================================
-   */
 
   status.hasChanges =
     hasChanged;
@@ -1817,7 +1971,6 @@ async function main() {
 
     console.log(
       "次回チェックから時刻変更を比較します。"
-
     );
 
   } else if (
