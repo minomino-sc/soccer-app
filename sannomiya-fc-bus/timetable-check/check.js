@@ -1683,6 +1683,8 @@ function extractJRTimes(
 
 
 
+
+
 /* =========================================================
    HANKYU BUS 158
    ---------------------------------------------------------
@@ -1693,58 +1695,95 @@ function extractJRTimes(
    日の峰1丁目 → 谷上駅
    158系統
 
-   3～4ページ：平日
-   7～8ページ：土休日
+   PDF実データ：
+   ・3～4ページ：平日
+   ・7～8ページ：土休日
 
-   PDF内の158系統列だけを抽出する
+   PDFでは
+   「日の峰１丁目」
+   と全角数字で記載されている。
+
+   150系統など他系統は比較対象にしない。
 ========================================================= */
 
 const HANKYU_PDF_URL =
   "https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf";
 
 
-async function checkHankyu(source) {
+/* =========================================================
+   HANKYU CHECK
+========================================================= */
+
+async function checkHankyu(
+  source
+) {
 
   const tmpPdf =
     "/tmp/hankyu-kobe-tanigami.pdf";
 
+
   /*
-   * PDF取得
+   * -------------------------------------------------------
+   * 公式PDF取得
+   * -------------------------------------------------------
    */
+
   const response =
     await fetch(
       HANKYU_PDF_URL,
       {
         headers: {
+
           "User-Agent":
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+            "Mozilla/5.0 (X11; Linux x86_64) " +
+            "AppleWebKit/537.36 " +
+            "Chrome/140.0 Safari/537.36",
+
+          "Accept":
+            "application/pdf,*/*",
+
+          "Accept-Language":
+            "ja-JP,ja;q=0.9"
+
         }
       }
     );
 
-  if (!response.ok) {
+
+  if (
+    !response.ok
+  ) {
+
     throw new Error(
       `阪急バスPDF取得失敗 HTTP ${response.status}`
     );
+
   }
+
 
   const buffer =
     Buffer.from(
       await response.arrayBuffer()
     );
 
+
   fs.writeFileSync(
     tmpPdf,
     buffer
   );
 
+
   /*
+   * -------------------------------------------------------
    * PDF → テキスト
    *
-   * -layout により
-   * 表の横位置をできるだけ維持する
+   * -layout
+   * を使用して表の横位置を維持する。
+   * -------------------------------------------------------
    */
+
   let text;
+
 
   try {
 
@@ -1757,59 +1796,112 @@ async function checkHankyu(source) {
           "-"
         ],
         {
-          encoding: "utf8",
+          encoding:
+            "utf8",
+
           maxBuffer:
-            10 * 1024 * 1024
+            20 * 1024 * 1024
         }
       );
 
-  } catch (error) {
+  }
+
+  catch (
+    error
+  ) {
 
     throw new Error(
       "阪急バスPDFのテキスト解析に失敗しました（pdftotext）"
     );
 
-  } finally {
+  }
+
+  finally {
 
     try {
+
       fs.unlinkSync(
         tmpPdf
       );
-    } catch (_) {}
+
+    }
+
+    catch (_) {}
 
   }
 
+
   /*
-   * ページ分割
+   * -------------------------------------------------------
+   * PDFページ分割
    *
-   * PDFページ：
-   * 3,4 = 平日
-   * 7,8 = 土休日
+   * 3～4ページ → 平日
+   * 7～8ページ → 土休日
+   *
+   * 配列は0始まりなので
+   *
+   * 3ページ = pages[2]
+   * 4ページ = pages[3]
+   * 7ページ = pages[6]
+   * 8ページ = pages[7]
+   * -------------------------------------------------------
    */
+
   const pages =
-    text.split("\f");
+    text.split(
+      "\f"
+    );
+
 
   const weekdayPages =
     [
       pages[2],
       pages[3]
-    ].filter(Boolean);
+    ]
+      .filter(
+        Boolean
+      );
+
 
   const weekendPages =
     [
       pages[6],
       pages[7]
-    ].filter(Boolean);
+    ]
+      .filter(
+        Boolean
+      );
+
+
+  /*
+   * -------------------------------------------------------
+   * 平日
+   * -------------------------------------------------------
+   */
 
   const weekday =
     extractHankyu158Pages(
       weekdayPages
     );
 
+
+  /*
+   * -------------------------------------------------------
+   * 土休日
+   * -------------------------------------------------------
+   */
+
   const weekend =
     extractHankyu158Pages(
       weekendPages
     );
+
+
+  /*
+   * -------------------------------------------------------
+   * 最終確認
+   * -------------------------------------------------------
+   */
 
   if (
     !weekday.length &&
@@ -1822,15 +1914,26 @@ async function checkHankyu(source) {
 
   }
 
+
   return {
-    weekday,
-    weekend
+
+    weekday:
+      uniqueSorted(
+        weekday
+      ),
+
+    weekend:
+      uniqueSorted(
+        weekend
+      )
+
   };
+
 }
 
 
 /* =========================================================
-   阪急PDFページ解析
+   HANKYU PDF PAGE PARSER
 ========================================================= */
 
 function extractHankyu158Pages(
@@ -1840,104 +1943,193 @@ function extractHankyu158Pages(
   const result =
     [];
 
+
   for (
     const page of pages
   ) {
 
+    /*
+     * -----------------------------------------------------
+     * 行単位に分解
+     * -----------------------------------------------------
+     */
+
     const lines =
-      page
-        .split(/\r?\n/)
-        .map(
-          line =>
-            line.replace(/\r/g, "")
-        );
+      page.split(
+        /\r?\n/
+      );
+
 
     /*
-     * 系統番号のヘッダーを探す
+     * -----------------------------------------------------
+     * 系統番号ヘッダーを探す
      *
-     * 例：
+     * 実際のPDF：
+     *
+     * 系統番号
      * 150 158 150 158 ...
+     *
+     * -----------------------------------------------------
      */
+
     const headerIndex =
       lines.findIndex(
-        line =>
-          line.includes("系統番号") &&
-          /\b158\b/.test(line)
+        line => {
+
+          const normalized =
+            normalizeText(
+              line
+            );
+
+          return (
+            normalized.includes(
+              "系統番号"
+            ) &&
+            /\b158\b/.test(
+              normalized
+            )
+          );
+
+        }
       );
+
 
     if (
       headerIndex < 0
     ) {
+
       continue;
+
     }
 
+
     const header =
-      lines[headerIndex];
+      lines[
+        headerIndex
+      ];
+
 
     /*
-     * 「150」「158」「151」などの
-     * 系統番号と、その横位置を取得
+     * -----------------------------------------------------
+     * ヘッダーから158列の横位置を取得
+     *
+     * 150系統は無視。
+     * -----------------------------------------------------
      */
-    const columns =
-      [];
 
     const routeRegex =
       /\b(150|151|158)\b/g;
 
+
+    const routeColumns =
+      [];
+
+
     let match;
 
+
     while (
-      (match =
-        routeRegex.exec(header)) !== null
+      (
+        match =
+          routeRegex.exec(
+            header
+          )
+      ) !== null
     ) {
 
-      columns.push({
+      routeColumns.push({
+
         route:
           match[1],
+
         position:
           match.index
+
       });
 
     }
 
+
     /*
-     * 158系統の列だけ取得
+     * 158系統だけ残す
      */
+
     const targetColumns =
-      columns.filter(
+      routeColumns.filter(
         column =>
-          column.route === "158"
+          column.route ===
+          "158"
       );
+
 
     if (
       !targetColumns.length
     ) {
+
       continue;
+
     }
 
+
     /*
-     * 「日の峰1丁目」の行を探す
+     * -----------------------------------------------------
+     * 「日の峰１丁目」の行を探す
+     *
+     * PDFでは「１」が全角。
+     *
+     * そのため
+     *
+     * 日の峰1丁目
+     * 日の峰１丁目
+     *
+     * の両方に対応。
+     * -----------------------------------------------------
      */
+
     const rowIndex =
       lines.findIndex(
-        line =>
-          line.includes(
-            "日の峰1丁目"
-          )
+        line => {
+
+          const normalized =
+            normalizeText(
+              line
+            );
+
+
+          return (
+            normalized.includes(
+              "日の峰1丁目"
+            ) ||
+            normalized.includes(
+              "日の峰１丁目"
+            )
+          );
+
+        }
       );
+
 
     if (
       rowIndex < 0
     ) {
+
       continue;
+
     }
 
+
     const row =
-      lines[rowIndex];
+      lines[
+        rowIndex
+      ];
+
 
     /*
-     * 各158列の値を取得
+     * -----------------------------------------------------
+     * 158列だけ取り出す
+     * -----------------------------------------------------
      */
+
     for (
       let i = 0;
       i < targetColumns.length;
@@ -1947,14 +2139,21 @@ function extractHankyu158Pages(
       const current =
         targetColumns[i];
 
+
       const next =
-        targetColumns[i + 1];
+        targetColumns[
+          i + 1
+        ];
+
 
       /*
-       * 列の終端
+       * 次の158列との中間を
+       * 現在列の終端とする。
        *
-       * 次の系統番号の中間位置まで
+       * これにより
+       * 150列の時刻が混ざらない。
        */
+
       const end =
         next
           ? Math.floor(
@@ -1965,29 +2164,43 @@ function extractHankyu158Pages(
             )
           : row.length;
 
+
       const cell =
         row
           .slice(
             current.position,
             end
-          )
-          .trim();
+          );
+
 
       /*
+       * ---------------------------------------------------
        * 時刻だけ取得
        *
        * 例：
-       * 08:08
-       * 09:15
+       *
+       * 08:47
+       * 09:16
+       * 10:22
+       *
+       * 「・・」
+       * 「v」
+       * などは無視。
+       * ---------------------------------------------------
        */
+
       const times =
         cell.match(
           /\b\d{1,2}:\d{2}\b/g
         );
 
+
       if (!times) {
+
         continue;
+
       }
+
 
       for (
         const time of times
@@ -2003,17 +2216,17 @@ function extractHankyu158Pages(
 
   }
 
+
   /*
-   * 重複除去
-   * 並び替え
+   * -------------------------------------------------------
+   * 重複除去 + 時刻順
+   * -------------------------------------------------------
    */
-  return [
-    ...new Set(
-      result
-    )
-  ].sort(
-    compareTime
+
+  return uniqueSorted(
+    result
   );
+
 }
 
 
@@ -2032,7 +2245,10 @@ function compareTime(
   ] =
     a
       .split(":")
-      .map(Number);
+      .map(
+        Number
+      );
+
 
   const [
     bh,
@@ -2040,7 +2256,10 @@ function compareTime(
   ] =
     b
       .split(":")
-      .map(Number);
+      .map(
+        Number
+      );
+
 
   return (
     ah * 60 +
@@ -2052,6 +2271,10 @@ function compareTime(
   );
 
 }
+
+
+
+
 
 
 
