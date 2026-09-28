@@ -55,24 +55,105 @@ async function test(name, url) {
     console.log("HTTP:", response.status);
     console.log("URL :", response.url);
 
-    const text = await response.text();
+    const html = await response.text();
 
-    console.log("文字数:", text.length);
+    console.log("文字数:", html.length);
+
+    if (response.status !== 200) {
+      console.log("");
+      console.log("⚠️ HTTPエラーのため解析を終了");
+      return;
+    }
+
+    /*
+     * HTMLをある程度読みやすい文字列に変換
+     */
+
+    const text = html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/tr>/gi, "\n")
+      .replace(/<\/li>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<\/div>/gi, "\n")
+      .replace(/<\/td>/gi, " | ")
+      .replace(/<\/th>/gi, " | ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/\r/g, "")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n\s+/g, "\n")
+      .trim();
+
+    /*
+     * 時刻らしい行を抽出
+     */
+
+    const lines = text
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    const timeLines = [];
+
+    for (const line of lines) {
+
+      /*
+       * 例
+       * 5 | 12 | 28 | 44
+       * 6 | 03 | 15 | 27
+       * 7時 03 15 27
+       */
+
+      if (
+        /^\d{1,2}\s*\|/.test(line) ||
+        /^\d{1,2}時/.test(line) ||
+        /^\d{1,2}\s+\d{1,2}\s+\d{1,2}/.test(line)
+      ) {
+
+        timeLines.push(line);
+      }
+
+    }
 
     console.log("");
-    console.log("先頭500文字");
+    console.log("【時刻らしい行】");
     console.log("----------------------------------------");
 
-    console.log(
-      text
-        .replace(/\s+/g, " ")
-        .substring(0, 500)
-    );
+    if (timeLines.length === 0) {
+
+      console.log("該当なし");
+
+    } else {
+
+      /*
+       * 全部出すとログが巨大になるので最大100行
+       */
+
+      for (const line of timeLines.slice(0, 100)) {
+
+        console.log(line);
+
+      }
+
+      if (timeLines.length > 100) {
+
+        console.log(
+          `... ${timeLines.length - 100}行省略`
+        );
+
+      }
+
+    }
 
     console.log("----------------------------------------");
 
     /*
-     * 実際の時刻データが返っているか確認
+     * 主要キーワード周辺も確認
      */
 
     const keywords = [
@@ -90,7 +171,7 @@ async function test(name, url) {
     ];
 
     console.log("");
-    console.log("キーワード確認");
+    console.log("【キーワード確認】");
 
     for (const keyword of keywords) {
 
@@ -100,6 +181,7 @@ async function test(name, url) {
           ? "○"
           : "×"
       );
+
     }
 
   } catch (error) {
@@ -108,7 +190,9 @@ async function test(name, url) {
       "ERROR:",
       error.message
     );
+
   }
+
 }
 
 
@@ -117,6 +201,7 @@ async function main() {
   for (const [name, url] of Object.entries(urls)) {
 
     await test(name, url);
+
   }
 
 }
