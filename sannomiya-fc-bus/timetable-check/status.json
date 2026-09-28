@@ -1,43 +1,39 @@
 {
-  "schemaVersion": 5,
-  "checkedAt": "2026-09-28T03:31:39.791Z",
+  "schemaVersion": 6,
+  "checkedAt": "2026-09-28T05:23:49.407Z",
   "hasChanges": false,
   "hasErrors": true,
   "services": {
     "subwayTanigami": {
       "status": "error",
       "name": "神戸市営地下鉄 谷上駅 → 三宮駅",
-      "error": "時刻データを取得できません"
+      "error": "cheerio is not a function"
     },
     "subwaySannomiya": {
       "status": "error",
       "name": "神戸市営地下鉄 三宮駅 → 谷上駅",
-      "error": "時刻データを取得できません"
+      "error": "cheerio is not a function"
     },
     "cityBus62": {
       "status": "error",
       "name": "神戸市バス 谷上駅 → 神戸北町 62系統",
-      "error": "62系統 神戸北町方面行きが見つかりません"
+      "error": "62系統の時刻データを取得できません"
     },
     "portlinerSannomiya": {
-      "status": "error",
-      "name": "ポートライナー 三宮駅 → 貿易センター駅",
-      "error": "時刻データを取得できません"
+      "status": "initialized",
+      "name": "ポートライナー 三宮駅 → 貿易センター駅"
     },
     "portlinerBoeki": {
-      "status": "error",
-      "name": "ポートライナー 貿易センター駅 → 三宮駅",
-      "error": "時刻データを取得できません"
+      "status": "initialized",
+      "name": "ポートライナー 貿易センター駅 → 三宮駅"
     },
     "jrSannomiya": {
-      "status": "error",
-      "name": "JR西日本 三ノ宮駅 → 灘駅",
-      "error": "JR時刻表を取得できません"
+      "status": "initialized",
+      "name": "JR西日本 三ノ宮駅 → 灘駅"
     },
     "jrNada": {
-      "status": "error",
-      "name": "JR西日本 灘駅 → 三ノ宮駅",
-      "error": "JR時刻表を取得できません"
+      "status": "initialized",
+      "name": "JR西日本 灘駅 → 三ノ宮駅"
     },
     "hankyu": {
       "status": "error",
