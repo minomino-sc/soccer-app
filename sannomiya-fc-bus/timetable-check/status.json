@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-09-28T01:01:02.388Z",
-  "hasChanges": false,
+  "checkedAt": "2026-09-28T02:05:40.588Z",
+  "hasChanges": true,
   "services": [
     {
       "id": "hankyu_158",
@@ -28,7 +28,7 @@
       "name": "神戸市バス",
       "route": "谷上駅 → 神戸北町 62系統",
       "status": "error",
-      "message": "確認エラー: 62系統 神戸北町方面行きが見つかりません"
+      "message": "確認エラー: 62系統の3種類の時刻表を取得できません"
     },
     {
       "id": "portliner_sannomiya_boeki",
@@ -48,15 +48,15 @@
       "id": "jr_sannomiya_nada",
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
-      "status": "ok",
-      "message": "変更なし"
+      "status": "changed",
+      "message": "時刻表変更を検出"
     },
     {
       "id": "jr_nada_sannomiya",
       "name": "JR西日本",
       "route": "灘駅 → 三ノ宮駅",
-      "status": "ok",
-      "message": "変更なし"
+      "status": "changed",
+      "message": "時刻表変更を検出"
     }
   ]
 }
