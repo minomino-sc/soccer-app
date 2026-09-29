@@ -1692,15 +1692,28 @@ function extractJRTimes(
    公式PDF：
    https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf
 
-   PDFは画像ベースのため、
-   OCRで「158」を探す方式ではなく、
-   公式PDFの表上の対象セルを画像として切り出して
-   ハッシュ比較する。
-
    3・4ページ：平日
    7・8ページ：土休日
 
    ※ timetable.js は変更しない
+
+   ---------------------------------------------------------
+   比較方式
+
+   PDF
+    ↓
+   PNG化
+    ↓
+   対象セル切り出し
+    ↓
+   グレースケール
+    ↓
+   2値化
+    ↓
+   正規化画像をSHA256
+
+   PDF描画時の微細な差による
+   誤検出を減らす。
 ========================================================= */
 
 const HANKYU_PDF_URL =
@@ -1716,15 +1729,19 @@ async function downloadHankyuPdf() {
   const tmpPdf =
     "/tmp/hankyu-kobe-tanigami.pdf";
 
-  const response = await fetch(
-    HANKYU_PDF_URL,
-    {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+  const response =
+    await fetch(
+      HANKYU_PDF_URL,
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+            "AppleWebKit/537.36 " +
+            "Chrome/140.0 Safari/537.36"
+        }
       }
-    }
-  );
+    );
+
 
   if (!response.ok) {
 
@@ -1734,15 +1751,18 @@ async function downloadHankyuPdf() {
 
   }
 
+
   const buffer =
     Buffer.from(
       await response.arrayBuffer()
     );
 
+
   fs.writeFileSync(
     tmpPdf,
     buffer
   );
+
 
   return tmpPdf;
 
@@ -1784,31 +1804,14 @@ function renderHankyuPage(
     }
   );
 
+
   return `${outputPrefix}.png`;
 
 }
 
 
 /* =========================================================
-   画像ハッシュ
-========================================================= */
-
-function hashFile(filePath) {
-
-  const data =
-    fs.readFileSync(filePath);
-
-  return crypto
-    .createHash("sha256")
-    .update(data)
-    .digest("hex");
-
-}
-
-
-/* =========================================================
-   阪急ページから
-   「日の峰1丁目」158系統部分を切り出す
+   阪急対象セル切り出し
 ========================================================= */
 
 function cropHankyuTarget(
@@ -1818,33 +1821,17 @@ function cropHankyuTarget(
 ) {
 
   /*
-   * PDFを150dpiでPNG化した場合の
-   * 表の位置を基準にする。
-   *
-   * ページ3・7
+   * 3・7ページ
    * → 16列
-   *
-   * ページ4・8
-   * → 15列
-   *
-   * 「日の峰1丁目」は
-   * 表の下側、約75%付近。
    */
 
   let crop;
+
 
   if (
     page === 3 ||
     page === 7
   ) {
-
-    /*
-     * 16列ページ
-     *
-     * 158列：
-     *
-     * 2,4,6,7,9,11,14,15
-     */
 
     crop = [
       [0.272, 0.681],
@@ -1857,15 +1844,15 @@ function cropHankyuTarget(
       [0.741, 0.681]
     ];
 
-  } else {
+  }
 
-    /*
-     * 15列ページ
-     *
-     * 158列：
-     *
-     * 1,2,4,5,7,8,10,12,13,14,15
-     */
+
+  /*
+   * 4・8ページ
+   * → 15列
+   */
+
+  else {
 
     crop = [
       [0.141, 0.681],
@@ -1885,11 +1872,7 @@ function cropHankyuTarget(
 
 
   /*
-   * 画像全体を取得して、
-   * 対象セルを縦方向にまとめて切り出す。
-   *
-   * ここではsharp等の追加依存を使わず、
-   * ImageMagick convertを利用する。
+   * 画像サイズ取得
    */
 
   const identify =
@@ -1908,8 +1891,12 @@ function cropHankyuTarget(
       .split(/\s+/)
       .map(Number);
 
-  const width = identify[0];
-  const height = identify[1];
+
+  const width =
+    identify[0];
+
+  const height =
+    identify[1];
 
 
   const cellWidth =
@@ -1919,10 +1906,15 @@ function cropHankyuTarget(
 
 
   const startY =
-    Math.floor(height * 0.675);
+    Math.floor(
+      height * 0.675
+    );
+
 
   const cellHeight =
-    Math.floor(height * 0.026);
+    Math.floor(
+      height * 0.026
+    );
 
 
   const files = [];
@@ -1937,10 +1929,12 @@ function cropHankyuTarget(
     const xRatio =
       crop[i][0];
 
+
     const x =
       Math.floor(
         width * xRatio
       );
+
 
     const output =
       `${outputPath}-${i}.png`;
@@ -1964,7 +1958,9 @@ function cropHankyuTarget(
     );
 
 
-    files.push(output);
+    files.push(
+      output
+    );
 
   }
 
@@ -1975,10 +1971,101 @@ function cropHankyuTarget(
 
 
 /* =========================================================
+   阪急セル正規化
+   ---------------------------------------------------------
+   PDF描画時のアンチエイリアス等による
+   微細な画像差を吸収する。
+========================================================= */
+
+function normalizeHankyuImage(
+  inputPath,
+  outputPath
+) {
+
+  execFileSync(
+    "convert",
+    [
+      inputPath,
+
+      /*
+       * グレースケール
+       */
+      "-colorspace",
+      "Gray",
+
+      /*
+       * コントラストを明確化
+       */
+      "-contrast-stretch",
+      "0x10%",
+
+      /*
+       * 2値化
+       *
+       * 微妙な濃淡差を捨て、
+       * 文字・線の形だけを比較する。
+       */
+      "-threshold",
+      "65%",
+
+      /*
+       * サイズを固定
+       */
+      "-resize",
+      "200x100!",
+
+      /*
+       * PNGとして保存
+       */
+      outputPath
+    ],
+    {
+      stdio: "pipe"
+    }
+  );
+
+}
+
+
+/* =========================================================
+   阪急正規化画像ハッシュ
+========================================================= */
+
+function hashHankyuCell(
+  filePath
+) {
+
+  const normalized =
+    `${filePath}.normalized.png`;
+
+
+  normalizeHankyuImage(
+    filePath,
+    normalized
+  );
+
+
+  const data =
+    fs.readFileSync(
+      normalized
+    );
+
+
+  return crypto
+    .createHash("sha256")
+    .update(data)
+    .digest("hex");
+
+}
+
+
+/* =========================================================
    阪急158系統チェック
 ========================================================= */
 
-async function checkHankyu(source) {
+async function checkHankyu(
+  source
+) {
 
   const pdfPath =
     await downloadHankyuPdf();
@@ -1987,17 +2074,22 @@ async function checkHankyu(source) {
   const weekdayPages =
     [3, 4];
 
+
   const weekendPages =
     [7, 8];
 
 
-  const weekdayHashes = [];
-  const weekendHashes = [];
+  const weekdayHashes =
+    [];
 
 
-  /*
-   * 平日
-   */
+  const weekendHashes =
+    [];
+
+
+  /* =======================================================
+     平日
+  ======================================================= */
 
   for (
     const page of weekdayPages
@@ -2029,7 +2121,9 @@ async function checkHankyu(source) {
     ) {
 
       weekdayHashes.push(
-        hashFile(cell)
+        hashHankyuCell(
+          cell
+        )
       );
 
     }
@@ -2037,9 +2131,9 @@ async function checkHankyu(source) {
   }
 
 
-  /*
-   * 土休日
-   */
+  /* =======================================================
+     土休日
+  ======================================================= */
 
   for (
     const page of weekendPages
@@ -2071,7 +2165,9 @@ async function checkHankyu(source) {
     ) {
 
       weekendHashes.push(
-        hashFile(cell)
+        hashHankyuCell(
+          cell
+        )
       );
 
     }
@@ -2079,13 +2175,9 @@ async function checkHankyu(source) {
   }
 
 
-  /*
-   * 比較用データ
-   *
-   * 時刻そのものをOCRしていないが、
-   * 対象セルの画像が変わればハッシュが変わるため、
-   * 時刻表変更を検出できる。
-   */
+  /* =======================================================
+     結果
+  ======================================================= */
 
   return {
 
