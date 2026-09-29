@@ -1685,32 +1685,22 @@ function extractJRTimes(
 
 
 
-
 /* =========================================================
    HANKYU BUS 158
-   ---------------------------------------------------------
+   日の峰1丁目 → 谷上駅
+
    公式PDF：
    https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf
 
-   対象：
-   日の峰1丁目 → 谷上駅
-   158系統
+   PDFは画像ベースのため、
+   OCRで「158」を探す方式ではなく、
+   公式PDFの表上の対象セルを画像として切り出して
+   ハッシュ比較する。
 
-   3～4ページ：平日
-   7～8ページ：土休日
+   3・4ページ：平日
+   7・8ページ：土休日
 
-   PDFは文字情報ではなく画像ベースのため、
-   PDF → PNG → Tesseract OCR
-   の順で解析する。
-
-   OCRの座標から、
-
-   ・158列
-   ・日の峰1丁目行
-
-   を特定し、その交差位置にある時刻だけを取得する。
-
-   ※ timetable.js は変更しない。
+   ※ timetable.js は変更しない
 ========================================================= */
 
 const HANKYU_PDF_URL =
@@ -1718,1083 +1708,397 @@ const HANKYU_PDF_URL =
 
 
 /* =========================================================
-   阪急バスチェック
+   PDF取得
 ========================================================= */
 
-async function checkHankyu(source) {
-
-  const tmpDir =
-    "/tmp/hankyu-timetable";
-
-
-  fs.mkdirSync(
-    tmpDir,
-    {
-      recursive: true
-    }
-  );
-
+async function downloadHankyuPdf() {
 
   const tmpPdf =
-    path.join(
-      tmpDir,
-      "hankyu.pdf"
-    );
+    "/tmp/hankyu-kobe-tanigami.pdf";
 
-
-  /* -------------------------------------------------------
-     PDF取得
-  ------------------------------------------------------- */
-
-  const response =
-    await fetch(
-      HANKYU_PDF_URL,
-      {
-        headers: {
-
-          "User-Agent":
-            "Mozilla/5.0 (X11; Linux x86_64) " +
-            "AppleWebKit/537.36 " +
-            "Chrome/140.0 Safari/537.36",
-
-          "Accept":
-            "application/pdf,*/*",
-
-          "Accept-Language":
-            "ja-JP,ja;q=0.9"
-
-        }
+  const response = await fetch(
+    HANKYU_PDF_URL,
+    {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
       }
-    );
-
+    }
+  );
 
   if (!response.ok) {
 
     throw new Error(
-      `阪急バスPDF取得失敗 HTTP ${response.status}`
+      `阪急PDF HTTP ${response.status}`
     );
 
   }
-
 
   const buffer =
     Buffer.from(
       await response.arrayBuffer()
     );
 
-
   fs.writeFileSync(
     tmpPdf,
     buffer
   );
 
+  return tmpPdf;
 
-  /* -------------------------------------------------------
-     平日
-     PDF 3・4ページ
-  ------------------------------------------------------- */
-
-  const weekday =
-    extractHankyuPages(
-      tmpPdf,
-      tmpDir,
-      [3, 4]
-    );
+}
 
 
-  /* -------------------------------------------------------
-     土休日
-     PDF 7・8ページ
-  ------------------------------------------------------- */
+/* =========================================================
+   PDFページをPNG化
+========================================================= */
 
-  const weekend =
-    extractHankyuPages(
-      tmpPdf,
-      tmpDir,
-      [7, 8]
-    );
+function renderHankyuPage(
+  pdfPath,
+  page,
+  outputPrefix
+) {
+
+  execFileSync(
+    "pdftoppm",
+    [
+      "-f",
+      String(page),
+
+      "-l",
+      String(page),
+
+      "-r",
+      "150",
+
+      "-png",
+
+      "-singlefile",
+
+      pdfPath,
+
+      outputPrefix
+    ],
+    {
+      stdio: "pipe"
+    }
+  );
+
+  return `${outputPrefix}.png`;
+
+}
 
 
-  /* -------------------------------------------------------
-     最低限の取得チェック
-  ------------------------------------------------------- */
+/* =========================================================
+   画像ハッシュ
+========================================================= */
+
+function hashFile(filePath) {
+
+  const data =
+    fs.readFileSync(filePath);
+
+  return crypto
+    .createHash("sha256")
+    .update(data)
+    .digest("hex");
+
+}
+
+
+/* =========================================================
+   阪急ページから
+   「日の峰1丁目」158系統部分を切り出す
+========================================================= */
+
+function cropHankyuTarget(
+  inputPath,
+  outputPath,
+  page
+) {
+
+  /*
+   * PDFを150dpiでPNG化した場合の
+   * 表の位置を基準にする。
+   *
+   * ページ3・7
+   * → 16列
+   *
+   * ページ4・8
+   * → 15列
+   *
+   * 「日の峰1丁目」は
+   * 表の下側、約75%付近。
+   */
+
+  let crop;
 
   if (
-    !weekday.length &&
-    !weekend.length
+    page === 3 ||
+    page === 7
   ) {
 
-    throw new Error(
-      "158系統「日の峰1丁目 → 谷上駅」の時刻をOCRから取得できません"
-    );
+    /*
+     * 16列ページ
+     *
+     * 158列：
+     *
+     * 2,4,6,7,9,11,14,15
+     */
+
+    crop = [
+      [0.272, 0.681],
+      [0.319, 0.681],
+      [0.396, 0.681],
+      [0.443, 0.681],
+      [0.522, 0.681],
+      [0.647, 0.681],
+      [0.694, 0.681],
+      [0.741, 0.681]
+    ];
+
+  } else {
+
+    /*
+     * 15列ページ
+     *
+     * 158列：
+     *
+     * 1,2,4,5,7,8,10,12,13,14,15
+     */
+
+    crop = [
+      [0.141, 0.681],
+      [0.186, 0.681],
+      [0.276, 0.681],
+      [0.321, 0.681],
+      [0.411, 0.681],
+      [0.456, 0.681],
+      [0.546, 0.681],
+      [0.636, 0.681],
+      [0.681, 0.681],
+      [0.726, 0.681],
+      [0.771, 0.681]
+    ];
 
   }
 
 
-  /* -------------------------------------------------------
-     一時ファイル削除
-  ------------------------------------------------------- */
+  /*
+   * 画像全体を取得して、
+   * 対象セルを縦方向にまとめて切り出す。
+   *
+   * ここではsharp等の追加依存を使わず、
+   * ImageMagick convertを利用する。
+   */
 
-  try {
-
-    fs.rmSync(
-      tmpDir,
+  const identify =
+    execFileSync(
+      "identify",
+      [
+        "-format",
+        "%w %h",
+        inputPath
+      ],
       {
-        recursive:
-          true,
-        force:
-          true
+        encoding: "utf8"
+      }
+    )
+      .trim()
+      .split(/\s+/)
+      .map(Number);
+
+  const width = identify[0];
+  const height = identify[1];
+
+
+  const cellWidth =
+    page === 3 || page === 7
+      ? width * 0.044
+      : width * 0.045;
+
+
+  const startY =
+    Math.floor(height * 0.675);
+
+  const cellHeight =
+    Math.floor(height * 0.026);
+
+
+  const files = [];
+
+
+  for (
+    let i = 0;
+    i < crop.length;
+    i++
+  ) {
+
+    const xRatio =
+      crop[i][0];
+
+    const x =
+      Math.floor(
+        width * xRatio
+      );
+
+    const output =
+      `${outputPath}-${i}.png`;
+
+
+    execFileSync(
+      "convert",
+      [
+        inputPath,
+
+        "-crop",
+        `${Math.floor(cellWidth)}x${cellHeight}+${x}+${startY}`,
+
+        "+repage",
+
+        output
+      ],
+      {
+        stdio: "pipe"
       }
     );
 
+
+    files.push(output);
+
   }
 
-  catch (_) {}
 
+  return files;
+
+}
+
+
+/* =========================================================
+   阪急158系統チェック
+========================================================= */
+
+async function checkHankyu(source) {
+
+  const pdfPath =
+    await downloadHankyuPdf();
+
+
+  const weekdayPages =
+    [3, 4];
+
+  const weekendPages =
+    [7, 8];
+
+
+  const weekdayHashes = [];
+  const weekendHashes = [];
+
+
+  /*
+   * 平日
+   */
+
+  for (
+    const page of weekdayPages
+  ) {
+
+    console.log(
+      `  阪急 ${page}ページ：日の峰1丁目 158系統を確認`
+    );
+
+
+    const png =
+      renderHankyuPage(
+        pdfPath,
+        page,
+        `/tmp/hankyu-${page}`
+      );
+
+
+    const cells =
+      cropHankyuTarget(
+        png,
+        `/tmp/hankyu-${page}-target`,
+        page
+      );
+
+
+    for (
+      const cell of cells
+    ) {
+
+      weekdayHashes.push(
+        hashFile(cell)
+      );
+
+    }
+
+  }
+
+
+  /*
+   * 土休日
+   */
+
+  for (
+    const page of weekendPages
+  ) {
+
+    console.log(
+      `  阪急 ${page}ページ：日の峰1丁目 158系統を確認`
+    );
+
+
+    const png =
+      renderHankyuPage(
+        pdfPath,
+        page,
+        `/tmp/hankyu-${page}`
+      );
+
+
+    const cells =
+      cropHankyuTarget(
+        png,
+        `/tmp/hankyu-${page}-target`,
+        page
+      );
+
+
+    for (
+      const cell of cells
+    ) {
+
+      weekendHashes.push(
+        hashFile(cell)
+      );
+
+    }
+
+  }
+
+
+  /*
+   * 比較用データ
+   *
+   * 時刻そのものをOCRしていないが、
+   * 対象セルの画像が変わればハッシュが変わるため、
+   * 時刻表変更を検出できる。
+   */
 
   return {
 
     weekday:
-      uniqueSorted(
-        weekday
-      ),
+      weekdayHashes,
 
     weekend:
-      uniqueSorted(
-        weekend
-      )
+      weekendHashes
 
   };
 
 }
 
-
-/* =========================================================
-   阪急ページ解析
-========================================================= */
-
-function extractHankyuPages(
-  pdfPath,
-  tmpDir,
-  pageNumbers
-) {
-
-  const result =
-    [];
-
-
-  for (
-    const pageNumber of pageNumbers
-  ) {
-
-    const imagePath =
-      renderHankyuPage(
-        pdfPath,
-        tmpDir,
-        pageNumber
-      );
-
-
-    const tsv =
-      runHankyuOCR(
-        imagePath
-      );
-
-
-    const words =
-      parseHankyuTSV(
-        tsv
-      );
-
-
-    if (!words.length) {
-
-      console.log(
-        `  阪急 ${pageNumber}ページ：OCR文字なし`
-      );
-
-      continue;
-
-    }
-
-
-    const pageTimes =
-      extractHankyuTargetRow(
-        words,
-        pageNumber
-      );
-
-
-    result.push(
-      ...pageTimes
-    );
-
-  }
-
-
-  return uniqueSorted(
-    result
-  );
-
-}
-
-
-/* =========================================================
-   PDF → PNG
-========================================================= */
-
-function renderHankyuPage(
-  pdfPath,
-  tmpDir,
-  pageNumber
-) {
-
-  const outputBase =
-    path.join(
-      tmpDir,
-      `page-${pageNumber}`
-    );
-
-
-  const imagePath =
-    `${outputBase}.png`;
-
-
-  try {
-
-    execFileSync(
-      "pdftoppm",
-      [
-        "-f",
-        String(
-          pageNumber
-        ),
-
-        "-l",
-        String(
-          pageNumber
-        ),
-
-        "-singlefile",
-
-        "-r",
-        "200",
-
-        "-png",
-
-        pdfPath,
-
-        outputBase
-      ],
-      {
-        stdio:
-          "pipe",
-        maxBuffer:
-          20 * 1024 * 1024
-      }
-    );
-
-  }
-
-  catch (error) {
-
-    throw new Error(
-      `阪急PDF ${pageNumber}ページの画像化に失敗しました`
-    );
-
-  }
-
-
-  if (
-    !fs.existsSync(
-      imagePath
-    )
-  ) {
-
-    throw new Error(
-      `阪急PDF ${pageNumber}ページのPNGが作成されませんでした`
-    );
-
-  }
-
-
-  return imagePath;
-
-}
-
-
-/* =========================================================
-   Tesseract OCR
-   ---------------------------------------------------------
-   TSV形式で座標付きOCR結果を取得する。
-========================================================= */
-
-function runHankyuOCR(
-  imagePath
-) {
-
-  try {
-
-    return execFileSync(
-      "tesseract",
-      [
-        imagePath,
-
-        "stdout",
-
-        "-l",
-        "jpn+eng",
-
-        "--psm",
-        "6",
-
-        "tsv"
-      ],
-      {
-        encoding:
-          "utf8",
-
-        maxBuffer:
-          50 * 1024 * 1024
-      }
-    );
-
-  }
-
-  catch (error) {
-
-    throw new Error(
-      "阪急バスOCRに失敗しました（Tesseract）"
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   TSV解析
-========================================================= */
-
-function parseHankyuTSV(
-  tsv
-) {
-
-  const lines =
-    String(
-      tsv || ""
-    )
-      .split(
-        /\r?\n/
-      );
-
-
-  const result =
-    [];
-
-
-  /*
-   * TSV:
-   *
-   * level
-   * page_num
-   * block_num
-   * par_num
-   * line_num
-   * word_num
-   * left
-   * top
-   * width
-   * height
-   * conf
-   * text
-   */
-
-  for (
-    let i = 1;
-    i < lines.length;
-    i++
-  ) {
-
-    const line =
-      lines[i];
-
-
-    if (!line) {
-      continue;
-    }
-
-
-    const fields =
-      line.split(
-        "\t"
-      );
-
-
-    if (
-      fields.length < 12
-    ) {
-
-      continue;
-
-    }
-
-
-    const level =
-      Number(
-        fields[0]
-      );
-
-
-    /*
-     * level 5 = word
-     */
-    if (
-      level !== 5
-    ) {
-
-      continue;
-
-    }
-
-
-    const left =
-      Number(
-        fields[6]
-      );
-
-
-    const top =
-      Number(
-        fields[7]
-      );
-
-
-    const width =
-      Number(
-        fields[8]
-      );
-
-
-    const height =
-      Number(
-        fields[9]
-      );
-
-
-    const conf =
-      Number(
-        fields[10]
-      );
-
-
-    const text =
-      normalizeHankyuOCRText(
-        fields.slice(
-          11
-        ).join(
-          "\t"
-        )
-      );
-
-
-    if (
-      !text
-    ) {
-
-      continue;
-
-    }
-
-
-    if (
-      !Number.isFinite(
-        left
-      ) ||
-      !Number.isFinite(
-        top
-      ) ||
-      !Number.isFinite(
-        width
-      ) ||
-      !Number.isFinite(
-        height
-      )
-    ) {
-
-      continue;
-
-    }
-
-
-    result.push({
-
-      text,
-
-      x:
-        left +
-        width / 2,
-
-      y:
-        top +
-        height / 2,
-
-      left,
-
-      top,
-
-      width,
-
-      height,
-
-      conf
-
-    });
-
-  }
-
-
-  return result;
-
-}
-
-
-/* =========================================================
-   OCR文字正規化
-========================================================= */
-
-function normalizeHankyuOCRText(
-  text
-) {
-
-  return String(
-    text || ""
-  )
-
-    .replace(
-      /[０-９]/g,
-      c =>
-        String.fromCharCode(
-          c.charCodeAt(0) -
-          0xfee0
-        )
-    )
-
-    .replace(
-      /：/g,
-      ":"
-    )
-
-    .replace(
-      /\s+/g,
-      ""
-    )
-
-    .trim();
-
-}
-
-
-/* =========================================================
-   阪急対象行抽出
-========================================================= */
-
-function extractHankyuTargetRow(
-  words,
-  pageNumber
-) {
-
-  /* -------------------------------------------------------
-     ① 158列を探す
-
-     上部の系統番号行にある「158」だけを見る。
-  ------------------------------------------------------- */
-
-  const routeWords =
-    words
-      .filter(
-        word => {
-
-          const text =
-            word.text
-              .replace(
-                /[０-９]/g,
-                c =>
-                  String.fromCharCode(
-                    c.charCodeAt(0) -
-                    0xfee0
-                  )
-              );
-
-          return (
-            text === "158" &&
-            word.y < 250
-          );
-
-        }
-      )
-      .sort(
-        (a, b) =>
-          a.x -
-          b.x
-      );
-
-
-  if (
-    !routeWords.length
-  ) {
-
-    console.log(
-      `  阪急 ${pageNumber}ページ：158列をOCRで検出できません`
-    );
-
-    return [];
-
-  }
-
-
-  /*
-   * OCRの誤認識による重複を除去
-   */
-
-  const routeXs =
-    [];
-
-
-  for (
-    const word of routeWords
-  ) {
-
-    if (
-      !routeXs.some(
-        x =>
-          Math.abs(
-            x -
-            word.x
-          ) < 15
-      )
-    ) {
-
-      routeXs.push(
-        word.x
-      );
-
-    }
-
-  }
-
-
-  /* -------------------------------------------------------
-     ② 「日の峰1丁目」を探す
-
-     OCRでは
-       日の峰１丁目
-       日の峰1丁目
-       日の峰１丁目
-     のような揺れがあるため、
-     「日の峰」と「丁目」で判定する。
-  ------------------------------------------------------- */
-
-  const targetWords =
-    words.filter(
-      word => {
-
-        const text =
-          word.text;
-
-        return (
-          text.includes(
-            "日の峰"
-          ) &&
-          text.includes(
-            "丁目"
-          )
-        );
-
-      }
-    );
-
-
-  if (
-    !targetWords.length
-  ) {
-
-    console.log(
-      `  阪急 ${pageNumber}ページ：「日の峰1丁目」をOCRで検出できません`
-    );
-
-    return [];
-
-  }
-
-
-  /*
-   * 通常は1件。
-   * 複数件あれば表の左側にあるものを使用。
-   */
-
-  const target =
-    targetWords
-      .sort(
-        (a, b) =>
-          a.x -
-          b.x
-      )[0];
-
-
-  const targetY =
-    target.y;
-
-
-  /* -------------------------------------------------------
-     ③ 「158」列の境界を作る
-
-     158同士の中間を境界にする。
-
-     これにより、
-
-       150 | 158 | 150 | 158
-
-     のように158が複数あっても
-     各列を正しく分離できる。
-  ------------------------------------------------------- */
-
-  const columns =
-    routeXs
-      .map(
-        x => ({
-
-          center:
-            x,
-
-          left:
-            -Infinity,
-
-          right:
-            Infinity
-
-        })
-      );
-
-
-  for (
-    let i = 0;
-    i < columns.length;
-    i++
-  ) {
-
-    if (
-      i > 0
-    ) {
-
-      columns[i].left =
-        (
-          columns[i - 1].center +
-          columns[i].center
-        ) / 2;
-
-    }
-
-
-    if (
-      i <
-      columns.length - 1
-    ) {
-
-      columns[i].right =
-        (
-          columns[i].center +
-          columns[i + 1].center
-        ) / 2;
-
-    }
-
-  }
-
-
-  /* -------------------------------------------------------
-     ④ 同じ行の時刻を探す
-  ------------------------------------------------------- */
-
-  const timeWords =
-    words
-      .map(
-        word => {
-
-          const normalized =
-            normalizeHankyuTime(
-              word.text
-            );
-
-
-          if (
-            !normalized
-          ) {
-
-            return null;
-
-          }
-
-
-          return {
-
-            ...word,
-
-            time:
-              normalized
-
-          };
-
-        }
-      )
-      .filter(
-        Boolean
-      )
-      .filter(
-        word => {
-
-          /*
-           * OCRの行位置には多少の誤差があるので、
-           * ±18pxまで許容。
-           */
-
-          return (
-            Math.abs(
-              word.y -
-              targetY
-            ) <= 18
-          );
-
-        }
-      );
-
-
-  if (
-    !timeWords.length
-  ) {
-
-    console.log(
-      `  阪急 ${pageNumber}ページ：「日の峰1丁目」行の時刻をOCRで検出できません`
-    );
-
-    return [];
-
-  }
-
-
-  /* -------------------------------------------------------
-     ⑤ 158列に入っている時刻だけ取得
-  ------------------------------------------------------- */
-
-  const result =
-    [];
-
-
-  for (
-    const column of columns
-  ) {
-
-    const candidates =
-      timeWords
-        .filter(
-          word => {
-
-            return (
-              word.x >= column.left &&
-              word.x < column.right
-            );
-
-          }
-        );
-
-
-    /*
-     * 同じ列に複数候補がある場合は、
-     * 行中央に最も近いものを採用。
-     */
-
-    if (
-      candidates.length
-    ) {
-
-      candidates.sort(
-        (a, b) => {
-
-          return (
-            Math.abs(
-              a.y -
-              targetY
-            ) -
-            Math.abs(
-              b.y -
-              targetY
-            )
-          );
-
-        }
-      );
-
-
-      result.push(
-        candidates[0].time
-      );
-
-    }
-
-  }
-
-
-  console.log(
-    `  阪急 ${pageNumber}ページ：158列 ${result.length}件取得`
-  );
-
-
-  return result;
-
-}
-
-
-/* =========================================================
-   阪急時刻正規化
-========================================================= */
-
-function normalizeHankyuTime(
-  text
-) {
-
-  let value =
-    String(
-      text || ""
-    )
-
-      .replace(
-        /[０-９]/g,
-        c =>
-          String.fromCharCode(
-            c.charCodeAt(0) -
-            0xfee0
-          )
-      )
-
-      .replace(
-        /：/g,
-        ":"
-      )
-
-      .replace(
-        /\s/g,
-        ""
-      );
-
-
-  /*
-   * OCRが
-   *
-   * 08:46
-   * 8:46
-   *
-   * のように認識した場合。
-   */
-
-  const match =
-    value.match(
-      /^(\d{1,2})[:：](\d{2})$/
-    );
-
-
-  if (
-    !match
-  ) {
-
-    return null;
-
-  }
-
-
-  const hour =
-    Number(
-      match[1]
-    );
-
-
-  const minute =
-    Number(
-      match[2]
-    );
-
-
-  if (
-    hour < 0 ||
-    hour > 23 ||
-    minute < 0 ||
-    minute > 59
-  ) {
-
-    return null;
-
-  }
-
-
-  return (
-    String(
-      hour
-    ).padStart(
-      2,
-      "0"
-    ) +
-    ":" +
-    String(
-      minute
-    ).padStart(
-      2,
-      "0"
-    )
-  );
-
-}
-
-
-/* =========================================================
-   時刻比較
-========================================================= */
-
-function compareTime(
-  a,
-  b
-) {
-
-  const [
-    ah,
-    am
-  ] =
-    a
-      .split(":")
-      .map(
-        Number
-      );
-
-
-  const [
-    bh,
-    bm
-  ] =
-    b
-      .split(":")
-      .map(
-        Number
-      );
-
-
-  return (
-    ah * 60 +
-    am
-  ) -
-  (
-    bh * 60 +
-    bm
-  );
-
-}
 
 
 
