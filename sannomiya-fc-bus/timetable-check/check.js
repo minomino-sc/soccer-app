@@ -1684,6 +1684,8 @@ function extractJRTimes(
 
 
 
+
+
 /* =========================================================
    HANKYU BUS 158
    ---------------------------------------------------------
@@ -1694,18 +1696,10 @@ function extractJRTimes(
    日の峰1丁目 → 谷上駅
    158系統
 
-   PDFは表形式になっており、
-   「150」「158」が複数列に並んでいる。
+   3～4ページ：平日
+   7～8ページ：土休日
 
-   そのため単純な文字列位置ではなく、
-   pdftotext の bbox 座標を使って
-
-     ① 系統番号「158」のX座標
-     ② 「日の峰１丁目」行の時刻のX座標
-
-   を照合する。
-
-   これにより150系統の時刻を混ぜない。
+   PDFの「文字の座標」を利用して抽出する。
 ========================================================= */
 
 const HANKYU_PDF_URL =
@@ -1713,22 +1707,18 @@ const HANKYU_PDF_URL =
 
 
 /* =========================================================
-   阪急バス チェック
+   阪急バスチェック
 ========================================================= */
 
-async function checkHankyu(
-  source
-) {
+async function checkHankyu(source) {
 
   const tmpPdf =
     "/tmp/hankyu-kobe-tanigami.pdf";
 
 
-  /*
-   * -------------------------------------------------------
-   * PDF取得
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     PDF取得
+  ------------------------------------------------------- */
 
   const response =
     await fetch(
@@ -1752,9 +1742,7 @@ async function checkHankyu(
     );
 
 
-  if (
-    !response.ok
-  ) {
+  if (!response.ok) {
 
     throw new Error(
       `阪急バスPDF取得失敗 HTTP ${response.status}`
@@ -1775,17 +1763,14 @@ async function checkHankyu(
   );
 
 
-  /*
-   * -------------------------------------------------------
-   * PDFを座標付きXMLへ変換
-   *
-   * bbox-layoutを使用することで、
-   * 表の各文字のX/Y座標を取得する。
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     PDF → bbox XML
+     
+     「行」ではなく
+     PDF上の各文字の座標を取得する。
+  ------------------------------------------------------- */
 
   let xml;
-
 
   try {
 
@@ -1793,7 +1778,7 @@ async function checkHankyu(
       execFileSync(
         "pdftotext",
         [
-          "-bbox-layout",
+          "-bbox",
           tmpPdf,
           "-"
         ],
@@ -1808,9 +1793,7 @@ async function checkHankyu(
 
   }
 
-  catch (
-    error
-  ) {
+  catch (error) {
 
     throw new Error(
       "阪急バスPDFの座標解析に失敗しました（pdftotext）"
@@ -1833,11 +1816,9 @@ async function checkHankyu(
   }
 
 
-  /*
-   * -------------------------------------------------------
-   * XML解析
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     XML解析
+  ------------------------------------------------------- */
 
   const $ =
     cheerio.load(
@@ -1853,9 +1834,7 @@ async function checkHankyu(
     $("page");
 
 
-  if (
-    !pages.length
-  ) {
+  if (!pages.length) {
 
     throw new Error(
       "阪急バスPDFのページ情報を取得できません"
@@ -1864,52 +1843,32 @@ async function checkHankyu(
   }
 
 
-  /*
-   * -------------------------------------------------------
-   * PDFページ
-   *
-   * 3～4ページ：平日
-   * 7～8ページ：土休日
-   *
-   * 配列は0始まり。
-   * -------------------------------------------------------
-   */
+  /* -------------------------------------------------------
+     ページ
 
-  const weekdayPageIndexes =
-    [
-      2,
-      3
-    ];
+     PDFは8ページ。
 
+     3,4 → 平日
+     7,8 → 土休日
 
-  const weekendPageIndexes =
-    [
-      6,
-      7
-    ];
-
+     配列は0始まり。
+  ------------------------------------------------------- */
 
   const weekday =
-    extractHankyu158FromPages(
+    extractHankyu158ByCoordinates(
       $,
       pages,
-      weekdayPageIndexes
+      [2, 3]
     );
 
 
   const weekend =
-    extractHankyu158FromPages(
+    extractHankyu158ByCoordinates(
       $,
       pages,
-      weekendPageIndexes
+      [6, 7]
     );
 
-
-  /*
-   * -------------------------------------------------------
-   * データ確認
-   * -------------------------------------------------------
-   */
 
   if (
     !weekday.length &&
@@ -1922,10 +1881,6 @@ async function checkHankyu(
 
   }
 
-
-  /*
-   * 平日・土休日の両方を返す。
-   */
 
   return {
 
@@ -1945,10 +1900,10 @@ async function checkHankyu(
 
 
 /* =========================================================
-   阪急PDFページ解析
+   座標ベースで158系統を抽出
 ========================================================= */
 
-function extractHankyu158FromPages(
+function extractHankyu158ByCoordinates(
   $,
   pages,
   pageIndexes
@@ -1957,10 +1912,6 @@ function extractHankyu158FromPages(
   const result =
     [];
 
-
-  /*
-   * 指定ページを順番に処理
-   */
 
   for (
     const pageIndex of pageIndexes
@@ -1972,356 +1923,243 @@ function extractHankyu158FromPages(
       );
 
 
-    if (
-      !page.length
-    ) {
-
+    if (!page.length) {
       continue;
-
     }
 
 
-    /*
-     * -----------------------------------------------------
-     * すべての行を取得
-     * -----------------------------------------------------
-     */
+    /* -----------------------------------------------------
+       PDF上の全単語
+    ----------------------------------------------------- */
 
-    const lines =
-      page.find(
-        "line"
-      );
-
-
-    /*
-     * -----------------------------------------------------
-     * 系統番号「158」の列を探す
-     * -----------------------------------------------------
-     */
-
-    let routeHeaderLine =
-      null;
-
-
-    let target158X =
+    const words =
       [];
 
 
-    lines.each(
-      (_, line) => {
+    page.find(
+      "word"
+    ).each(
+      (_, element) => {
 
-        if (
-          routeHeaderLine
-        ) {
-
-          return;
-
-        }
-
-
-        const words =
-          $(line).find(
-            "word"
-          );
-
-
-        const lineText =
-          words
-            .map(
-              (_, word) =>
-                normalizePdfWord(
-                  $(word).text()
-                )
-            )
-            .get()
-            .join("");
-
-
-        /*
-         * 「系統番号」が含まれる行を
-         * ヘッダー候補にする。
-         */
-
-        if (
-          !lineText.includes(
-            "系統番号"
-          )
-        ) {
-
-          return;
-
-        }
-
-
-        /*
-         * この行の「158」のX座標を取得。
-         */
-
-        words.each(
-          (_, word) => {
-
-            const text =
-              normalizePdfWord(
-                $(word).text()
-              );
-
-
-            if (
-              text === "158"
-            ) {
-
-              const xMin =
-                Number(
-                  $(word).attr(
-                    "xMin"
-                  )
-                );
-
-
-              const xMax =
-                Number(
-                  $(word).attr(
-                    "xMax"
-                  )
-                );
-
-
-              if (
-                Number.isFinite(
-                  xMin
-                ) &&
-                Number.isFinite(
-                  xMax
-                )
-              ) {
-
-                target158X.push(
-                  (
-                    xMin +
-                    xMax
-                  ) / 2
-                );
-
-              }
-
-            }
-
-          }
-        );
-
-
-        if (
-          target158X.length
-        ) {
-
-          routeHeaderLine =
-            line;
-
-        }
-
-      }
-    );
-
-
-    /*
-     * -----------------------------------------------------
-     * 158列が見つからなかった場合
-     * -----------------------------------------------------
-     */
-
-    if (
-      !target158X.length
-    ) {
-
-      continue;
-
-    }
-
-
-    /*
-     * -----------------------------------------------------
-     * 「日の峰１丁目」行を探す
-     *
-     * PDFでは全角の「１」。
-     * normalizePdfWord()で半角化する。
-     * -----------------------------------------------------
-     */
-
-    let targetRow =
-      null;
-
-
-    lines.each(
-      (_, line) => {
-
-        if (
-          targetRow
-        ) {
-
-          return;
-
-        }
-
-
-        const words =
-          $(line).find(
-            "word"
-          );
+        const raw =
+          $(element).text();
 
 
         const text =
-          words
-            .map(
-              (_, word) =>
-                normalizePdfWord(
-                  $(word).text()
-                )
+          normalizePdfText(
+            raw
+          );
+
+
+        const xMin =
+          Number(
+            $(element).attr(
+              "xmin"
+            ) ||
+            $(element).attr(
+              "xMin"
             )
-            .get()
-            .join("");
+          );
+
+
+        const xMax =
+          Number(
+            $(element).attr(
+              "xmax"
+            ) ||
+            $(element).attr(
+              "xMax"
+            )
+          );
+
+
+        const yMin =
+          Number(
+            $(element).attr(
+              "ymin"
+            ) ||
+            $(element).attr(
+              "yMin"
+            )
+          );
+
+
+        const yMax =
+          Number(
+            $(element).attr(
+              "ymax"
+            ) ||
+            $(element).attr(
+              "yMax"
+            )
+          );
 
 
         if (
-          text.includes(
-            "日の峰1丁目"
-          )
+          !Number.isFinite(xMin) ||
+          !Number.isFinite(xMax) ||
+          !Number.isFinite(yMin) ||
+          !Number.isFinite(yMax)
         ) {
 
-          targetRow =
-            line;
+          return;
 
         }
+
+
+        words.push({
+
+          text,
+
+          x:
+            (xMin + xMax) / 2,
+
+          y:
+            (yMin + yMax) / 2,
+
+          xMin,
+          xMax,
+          yMin,
+          yMax
+
+        });
 
       }
     );
 
 
-    /*
-     * 対象行がない場合は次ページへ。
-     */
-
-    if (
-      !targetRow
-    ) {
-
+    if (!words.length) {
       continue;
+    }
 
+
+    /* -----------------------------------------------------
+       ① 上部の「158」を探す
+
+       ヘッダーはページ上部にある。
+
+       158のX座標を全部取得。
+    ----------------------------------------------------- */
+
+    const route158 =
+      words
+        .filter(
+          word =>
+
+            word.text === "158" &&
+
+            word.y < 150
+        )
+        .sort(
+          (a, b) =>
+            a.x - b.x
+        );
+
+
+    if (!route158.length) {
+      continue;
     }
 
 
     /*
-     * -----------------------------------------------------
-     * 「日の峰１丁目」行の各時刻を取得
-     * -----------------------------------------------------
+     * 重複X座標を除去
      */
 
-    const timeWords =
+    const routeXs =
       [];
 
 
-    $(targetRow)
-      .find(
-        "word"
-      )
-      .each(
-        (_, word) => {
+    for (
+      const word of route158
+    ) {
 
-          const text =
-            normalizePdfWord(
-              $(word).text()
+      const exists =
+        routeXs.some(
+          x =>
+            Math.abs(
+              x -
+              word.x
+            ) < 3
+        );
+
+
+      if (!exists) {
+
+        routeXs.push(
+          word.x
+        );
+
+      }
+
+    }
+
+
+    /* -----------------------------------------------------
+       ② 「日の峰１丁目」を探す
+    ----------------------------------------------------- */
+
+    const targetLabels =
+      words.filter(
+        word =>
+          word.text.includes(
+            "日の峰"
+          )
+      );
+
+
+    if (!targetLabels.length) {
+      continue;
+    }
+
+
+    /*
+     * 「日の峰１丁目」のY座標
+     */
+
+    const targetY =
+      targetLabels[0].y;
+
+
+    /* -----------------------------------------------------
+       ③ 同じ行の時刻を取得
+    ----------------------------------------------------- */
+
+    const timeWords =
+      words.filter(
+        word => {
+
+          const yDistance =
+            Math.abs(
+              word.y -
+              targetY
             );
 
 
-          /*
-           * HH:MM のみ対象。
-           */
+          return (
 
-          const match =
-            text.match(
-              /^(\d{1,2}):(\d{2})$/
-            );
+            yDistance <= 2.5 &&
 
-
-          if (
-            !match
-          ) {
-
-            return;
-
-          }
-
-
-          const xMin =
-            Number(
-              $(word).attr(
-                "xMin"
-              )
-            );
-
-
-          const xMax =
-            Number(
-              $(word).attr(
-                "xMax"
-              )
-            );
-
-
-          if (
-            !Number.isFinite(
-              xMin
-            ) ||
-            !Number.isFinite(
-              xMax
+            /^\d{1,2}:\d{2}$/.test(
+              word.text
             )
-          ) {
 
-            return;
-
-          }
-
-
-          timeWords.push({
-
-            time:
-              `${String(
-                Number(
-                  match[1]
-                )
-              ).padStart(
-                2,
-                "0"
-              )}:${match[2]}`,
-
-            x:
-              (
-                xMin +
-                xMax
-              ) / 2
-
-          });
+          );
 
         }
       );
 
 
-    /*
-     * -----------------------------------------------------
-     * 158列と時刻をX座標で照合
-     *
-     * PDFでは
-     *
-     * 150 | 158 | 150 | 158 ...
-     *
-     * のように並んでいる。
-     *
-     * 158列のX座標に最も近い時刻を
-     * その158系統の時刻として採用する。
-     * -----------------------------------------------------
-     */
+    if (!timeWords.length) {
+      continue;
+    }
+
+
+    /* -----------------------------------------------------
+       ④ 158のX座標と時刻のX座標を照合
+    ----------------------------------------------------- */
 
     for (
-      const x158 of target158X
+      const routeX of routeXs
     ) {
 
       let nearest =
@@ -2339,7 +2177,7 @@ function extractHankyu158FromPages(
         const distance =
           Math.abs(
             timeWord.x -
-            x158
+            routeX
           );
 
 
@@ -2360,19 +2198,16 @@ function extractHankyu158FromPages(
 
 
       /*
-       * 同じ列の時刻であることを
-       *十分近いX座標で確認。
-       *
-       * 表の列幅に対して十分小さい値。
+       * 同じ列と判断できるものだけ採用
        */
 
       if (
         nearest &&
-        nearestDistance <= 8
+        nearestDistance <= 15
       ) {
 
         result.push(
-          nearest.time
+          nearest.text
         );
 
       }
@@ -2390,10 +2225,10 @@ function extractHankyu158FromPages(
 
 
 /* =========================================================
-   PDF文字の正規化
+   PDF文字正規化
 ========================================================= */
 
-function normalizePdfWord(
+function normalizePdfText(
   text
 ) {
 
@@ -2424,7 +2259,7 @@ function normalizePdfWord(
     )
 
     /*
-     * NBSP除去
+     * NBSP
      */
 
     .replace(
@@ -2478,8 +2313,6 @@ function compareTime(
   );
 
 }
-
-
 
 
 
