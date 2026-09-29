@@ -2,7 +2,7 @@ name: Timetable Check
 
 on:
   schedule:
-    - cron: "30 12 * * *"
+    - cron: "30 * * * *"
       timezone: "Asia/Tokyo"
 
   workflow_dispatch:
