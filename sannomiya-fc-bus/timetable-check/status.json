@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-29T11:57:02.928Z",
+  "checkedAt": "2026-09-29T12:00:42.440Z",
   "hasChanges": true,
   "services": [
     {
@@ -13,8 +13,8 @@
       "id": "subway_tanigami_sannomiya",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 → 三宮駅",
-      "status": "changed",
-      "message": "時刻表変更を検出"
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "subway_sannomiya_tanigami",
