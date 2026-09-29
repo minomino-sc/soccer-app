@@ -111,7 +111,7 @@ const SUBWAY_TANIGAMI_TO_SANNOMIYA = {
 
   weekday: {
 
-    5:  [18, 41, 51],
+    5:  [19, 41, 51],
 
     6:  [2, 10, 18, 27, 36, 43, 53, 57],
 
