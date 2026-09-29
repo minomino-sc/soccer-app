@@ -1,13 +1,13 @@
 {
-  "checkedAt": "2026-09-29T02:28:43.021Z",
+  "checkedAt": "2026-09-29T02:41:37.832Z",
   "hasChanges": false,
   "services": [
     {
       "id": "hankyu_158",
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅 158系統",
-      "status": "error",
-      "message": "確認エラー（spawnSync identify ENOENT）"
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "subway_tanigami_sannomiya",
