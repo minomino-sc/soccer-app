@@ -1927,7 +1927,11 @@ function findHankyuRouteHeader(
 ) {
 
   /*
-   * まず「系統番号」を含む行を探す。
+   * PDFの日本語文字は
+   * pdftotextで正常に取得できない場合がある。
+   *
+   * そのため「系統番号」という日本語には依存せず、
+   * 158を含む行を探す。
    */
 
   for (
@@ -1935,8 +1939,7 @@ function findHankyuRouteHeader(
   ) {
 
     if (
-      line.includes("系統番号") &&
-      line.includes("158")
+      line.includes("[158]")
     ) {
 
       return line;
@@ -1947,8 +1950,7 @@ function findHankyuRouteHeader(
 
 
   /*
-   * 念のため、
-   * 158 と 150 の両方を含む行も探す。
+   * [158] の括弧が消える場合に備える。
    */
 
   for (
@@ -1956,8 +1958,7 @@ function findHankyuRouteHeader(
   ) {
 
     if (
-      line.includes("158") &&
-      line.includes("150")
+      /\b158\b/.test(line)
     ) {
 
       return line;
