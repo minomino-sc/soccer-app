@@ -397,6 +397,101 @@ function normalizeText(
 }
 
 
+function compareTimetable(previousTimetable, currentTimetable) {
+
+  const changes = [];
+
+  if (!previousTimetable || !currentTimetable) {
+    return changes;
+  }
+
+  const periods = new Set([
+    ...Object.keys(previousTimetable),
+    ...Object.keys(currentTimetable)
+  ]);
+
+  for (const period of periods) {
+
+    const previousList =
+      Array.isArray(previousTimetable[period])
+        ? previousTimetable[period]
+        : [];
+
+    const currentList =
+      Array.isArray(currentTimetable[period])
+        ? currentTimetable[period]
+        : [];
+
+    const previousSet = new Set(previousList);
+    const currentSet = new Set(currentList);
+
+    const removed = previousList.filter(
+      time => !currentSet.has(time)
+    );
+
+    const added = currentList.filter(
+      time => !previousSet.has(time)
+    );
+
+    while (removed.length && added.length) {
+
+      let bestRemovedIndex = 0;
+      let bestAddedIndex = 0;
+      let bestDifference = Infinity;
+
+      for (let i = 0; i < removed.length; i++) {
+
+        for (let j = 0; j < added.length; j++) {
+
+          const [rh, rm] = removed[i].split(":").map(Number);
+          const [ah, am] = added[j].split(":").map(Number);
+
+          const removedMinutes = rh * 60 + rm;
+          const addedMinutes = ah * 60 + am;
+
+          const difference =
+            Math.abs(removedMinutes - addedMinutes);
+
+          if (difference < bestDifference) {
+            bestDifference = difference;
+            bestRemovedIndex = i;
+            bestAddedIndex = j;
+          }
+        }
+      }
+
+      const before = removed.splice(bestRemovedIndex, 1)[0];
+      const after = added.splice(bestAddedIndex, 1)[0];
+
+      changes.push({
+        period,
+        before,
+        after
+      });
+    }
+
+    for (const time of removed) {
+      changes.push({
+        period,
+        before: time,
+        after: "なし"
+      });
+    }
+
+    for (const time of added) {
+      changes.push({
+        period,
+        before: "なし",
+        after: time
+      });
+    }
+  }
+
+  return changes;
+}
+
+
+
 /* =========================================================
    ADD TIME
 ========================================================= */
@@ -2450,41 +2545,79 @@ if (
       }
 
 
-      /* ---------------------------------------------------
-         変更あり
-      --------------------------------------------------- */
+ /* ---------------------------------------------------
+   変更あり
+--------------------------------------------------- */
 
-      else {
+else {
 
-        console.log(
-          "  → 時刻表変更を検出"
-        );
-
-
-        results.push({
-
-          id:
-            source.id,
-
-          name:
-            source.name,
-
-          route:
-            source.route,
-
-          status:
-            "changed",
-
-          message:
-            "時刻表変更を検出"
-
-        });
+  console.log(
+    "  → 時刻表変更を検出"
+  );
 
 
-        hasChanges =
-          true;
+  const changes =
+    compareTimetable(
+      previous[
+        source.id
+      ]?.timetable,
 
-      }
+      timetable
+    );
+
+
+  /*
+   * コンソールにも変更箇所を表示
+   */
+  if (
+    changes.length
+  ) {
+
+    console.log(
+      "  変更箇所："
+    );
+
+
+    for (
+      const change of changes
+    ) {
+
+      console.log(
+        `    ${change.period} ` +
+        `${change.before} → ${change.after}`
+      );
+
+    }
+
+  }
+
+
+  results.push({
+
+    id:
+      source.id,
+
+    name:
+      source.name,
+
+    route:
+      source.route,
+
+    status:
+      "changed",
+
+    message:
+      "時刻表変更を検出",
+
+    changes
+
+  });
+
+
+  hasChanges =
+    true;
+
+}
 
     }
 
