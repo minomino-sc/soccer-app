@@ -2478,19 +2478,64 @@ searchButton.addEventListener(
             </div>
 
 
+
+
             <div class="timetable-check-status">
 
               ${
                 status === "ok"
                   ? "変更なし"
                   : status === "changed"
-                    ? "変更を検出"
+                    ? `
+                      <div>変更を検出</div>
+
+                      ${
+                        Array.isArray(service.changes) &&
+                        service.changes.length
+                          ? `
+                            <div class="timetable-change-details">
+
+                              ${service.changes.map(change => {
+
+                                const periodLabel =
+                                  change.period === "weekday"
+                                    ? "平日"
+                                    : change.period === "weekend"
+                                      ? "土日・祝日"
+                                      : change.period === "saturday"
+                                        ? "土曜日"
+                                        : change.period === "holiday"
+                                          ? "日曜・祝日"
+                                          : change.period || "";
+
+                                return `
+                                  <div>
+                                    ${escapeHtml(periodLabel)}
+                                    ${escapeHtml(change.before || "なし")}
+                                    →
+                                    ${escapeHtml(change.after || "なし")}
+                                  </div>
+                                `;
+
+                              }).join("")}
+
+                            </div>
+                          `
+                          : ""
+                      }
+
+                    `
                     : status === "error"
                       ? "確認エラー"
                       : "未確認"
               }
 
             </div>
+
+
+
+
+  
 
           </div>
 
