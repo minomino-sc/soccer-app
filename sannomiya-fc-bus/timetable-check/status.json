@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-29T12:00:42.440Z",
+  "checkedAt": "2026-09-29T12:27:05.490Z",
   "hasChanges": true,
   "services": [
     {
@@ -7,14 +7,213 @@
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅 158系統",
       "status": "changed",
-      "message": "時刻表変更を検出"
+      "message": "時刻表変更を検出",
+      "changes": [
+        {
+          "period": "weekday",
+          "before": "53f74a0742ab444136e214467d6a3eca2e50d818770e947e114c34af7c2d4776",
+          "after": "c24015c756e901ffc898d19f3c4e00b5d59ec1363f72e1b4448938f1a7b65476"
+        },
+        {
+          "period": "weekday",
+          "before": "b2334b5a1678eddb72cbdc57283a2450bae498b65a743cd97441b0c0741c0946",
+          "after": "169ba7782565fae499100b43f12b893a0c47d4b89f3d97d32adabf4379dd6dd7"
+        },
+        {
+          "period": "weekday",
+          "before": "7d570dc6368bcc674837b32f4dd489450f5726f0d9a5d87280dda0d5fd227311",
+          "after": "733ee280c167ce4b93bef8e0ffa5536bf78a02e3742cda1a0899ee3bdddaaa97"
+        },
+        {
+          "period": "weekday",
+          "before": "eaba361cc29adda55368c5928899e39bf40267990ea7307cb1ba6106d94aaf56",
+          "after": "d88d594bbc029ca13dd6ffd74c632146592e29d4980f03592f3b6f776693ca00"
+        },
+        {
+          "period": "weekday",
+          "before": "407a53efc76b89ada77801fc2d9636819005f01b6f8d611c2f4b6868980f895f",
+          "after": "28ec3a2364c9103815544f013413eb3928ce07f28082ec0089f7a597d71196aa"
+        },
+        {
+          "period": "weekday",
+          "before": "eb6135f8535151e1f2448c3c820d3ce8c644e40f55963ed5a596affb035122ee",
+          "after": "4b4292d9fb2276f09fc2917b9514fed99b32efc5c6d13ebc090c844845d94cd2"
+        },
+        {
+          "period": "weekday",
+          "before": "66b5623fdbc14d10d986005ee2a1c88c737932b39720c4e0298116f95ba5df1d",
+          "after": "60d77c2a3b2fb72be338037a07aeafbd593bf4bddb2c05730aa23f65b76cb3aa"
+        },
+        {
+          "period": "weekday",
+          "before": "df8611cebe7cb1ae0adfb8544a3c72dc8d4e677db0396a4f3a21beb84c195fa7",
+          "after": "a51a3d877c893b194b3c3e61b95a75dc7c8e4f2a36b1710231fa0aab541dada2"
+        },
+        {
+          "period": "weekday",
+          "before": "2b6ff05190f45248db22268d6df60b10f48ae5a8c1cbbeab58628b7840b47b1b",
+          "after": "0f953c7598675def25c4262394b4844c08230aa482734b1c7c42adfd86b9ebae"
+        },
+        {
+          "period": "weekday",
+          "before": "28f3e658307d575d4823d83552f196568343fdc9da85ab80362b55319a758355",
+          "after": "aa2fa5f38de2946a75d3bf50d7ef2bc61a7ff43720799293e047c944f6e6048e"
+        },
+        {
+          "period": "weekday",
+          "before": "fc5673825f48bb2d1d06255e9db1503a8f0e6d186708ee708f02e49542b06f6c",
+          "after": "61e10ea577d102596ee84343e1d34078469f8cdeca86b1a70572a453e9bd8595"
+        },
+        {
+          "period": "weekday",
+          "before": "5571e045fdcf1d77bcea68bd7237f179b26418cf455b303f2a9e2e251b7c6340",
+          "after": "44a337c8aae88cbe3197808f15ddb61352fb9eb6ba3ea31042931d2db54edafb"
+        },
+        {
+          "period": "weekday",
+          "before": "c94bdd0b81f9d5d32da8396f365adcfe293e301ff1d046cd1f33b033880a78ba",
+          "after": "da34e8a0c5267f9359607a6bc33853848b1d9a2f6a616e7b0c30b94c6500f7b5"
+        },
+        {
+          "period": "weekday",
+          "before": "7170df9adb285307914e8e0bf815da643600059981b24c8cae80ce869b771a3f",
+          "after": "53e493acfe618803553f777d9e635a0f324bb1382e15b3618b87bb2bfcf8ff89"
+        },
+        {
+          "period": "weekday",
+          "before": "69283d62caaf7ee14bfddfd0e908ca2f59d26725f1a6af8431295c8f1fd9bdf4",
+          "after": "eee1475fb1c9b84c1ee963bf94c820e98a01fc86373925ffbf9a08ad2e62c064"
+        },
+        {
+          "period": "weekday",
+          "before": "24dde4ed9cff0c334e642a0d65f045a943a5cb9625d673656e4790d2110e9ebf",
+          "after": "a47ac40da875bea0f09ffe73d148d29b6e994fa648ab0af7c36c7e16f7439883"
+        },
+        {
+          "period": "weekday",
+          "before": "dc5a59597beec02e89e579bde7e0ae937222ddb84b0c8b8f822b1f8ac8081c24",
+          "after": "ed3150dbdda7cd8b5a27c6979890b246824c15818ae111d1a190c2b01f9dcca7"
+        },
+        {
+          "period": "weekday",
+          "before": "211f92b9af9283fbf20b4767e20c1f0e5e229b4521f7bc8d9a5ba7731fca1026",
+          "after": "3b418e870b2ddb485fd368643ca1ee68d18238233b75528ee00d402c358cf4dc"
+        },
+        {
+          "period": "weekday",
+          "before": "f044070b613503ec106fe5f723505158a656729add938a030796047cefd96e48",
+          "after": "3e5f1f4e16162545dca34a6a7d37e3d451173863363405430067476adfad5114"
+        },
+        {
+          "period": "weekend",
+          "before": "0811c40cf46d001e6eceb0db6310da21d76a6f829c94e74b9078545a3b30a2a9",
+          "after": "04b10a0e5555c21416db188b650dc19e6b879e9206c4c66029606c2a5a7a5ca9"
+        },
+        {
+          "period": "weekend",
+          "before": "ad83a2dc27346759769262fa00acea986d833d316ef6d73b0ae68575e8cb2b0e",
+          "after": "ffb82d71ca17b5acb8555b6b95ca2a81e478cc413863930ed7cd9642c4927ba7"
+        },
+        {
+          "period": "weekend",
+          "before": "2b52b272749b727956889963ef46b1021de5b582a1137bc6f0b500d92d824dd5",
+          "after": "34f01390a40b31a0b512c3e26d4c381e3d96cfead7197025f4b6107d3d53d37d"
+        },
+        {
+          "period": "weekend",
+          "before": "2b16aa4f1c020d4ed8423fe9c282f9caba105c0c7ec49454e1daa3fc9d50c5ed",
+          "after": "c52668ba739c8dd34e4259206f8824fb5f8f9ee3e0149f528dadf6649b4aaec6"
+        },
+        {
+          "period": "weekend",
+          "before": "61b56d47e677cdd088209cc6e67788a933729baac61e5f58d15c32502e31604d",
+          "after": "1d8892ded555bc8259b782257f5c1b65f868d2f33ac9fd058867b6140da95bfc"
+        },
+        {
+          "period": "weekend",
+          "before": "c6330bd4fe61d1ab2b4f11ac95463f046a7d1b69f98d0613a35e806b7d9e428c",
+          "after": "18916644e0249e131bb7afe99954ca9b791a80dc38d1ae39993902daf0849127"
+        },
+        {
+          "period": "weekend",
+          "before": "dcd33154b86f2b855f814fb788a72a77348e715b06142f59dad19be9e1d43b99",
+          "after": "52042f0f58a7fbaceb7a3a504bba1ff490f416f2ea112831ba4d138c18c3e69e"
+        },
+        {
+          "period": "weekend",
+          "before": "6ac36befa7b831249ac6f439a92238fd253b951005c260b99be3546a4b48906b",
+          "after": "bbea261dc0369387f6010b77ffe5d4cd8d7daf76a0abad3d906fb99c8c88d519"
+        },
+        {
+          "period": "weekend",
+          "before": "7b19fcc0fbd5b21b2c79a27cadefe091ab7289b47f28e8225db518e38993a62d",
+          "after": "249fa1dcc07ca509d800a7b7aa40c497681df7545f633e5d7836d04377f74106"
+        },
+        {
+          "period": "weekend",
+          "before": "5c368547c283b07140508b9dfead93c26802317962864b3090f0a73f83344e40",
+          "after": "8433619eb0b5ec47ada9e210c95c667948af79cf5b8af14b1567efaa7870fec0"
+        },
+        {
+          "period": "weekend",
+          "before": "d61da101653ee17255bcfb348d18083a149343c7952914aa67247c71b5875d8b",
+          "after": "b933fd659e8115f297046a3135d1eb58a2aba4931718dfb1e8e60e8df43336c6"
+        },
+        {
+          "period": "weekend",
+          "before": "fc9c47fdbdaf2f3b27f0d374c678541ed331f54b29986af96baf0f89e03c4369",
+          "after": "acee48c309554d549e5405567f63648e228d75cd0605b7d123c4cb009c253a25"
+        },
+        {
+          "period": "weekend",
+          "before": "3b4ea00667c135fdafa7c2572da6bc0b398ea5ef8a31c5a2887b599ec0985f8f",
+          "after": "36e9d301d9740de4733ceb3e2ffa8b7499c1606647fbc76dff661aeb275f5072"
+        },
+        {
+          "period": "weekend",
+          "before": "dad816ed44194c6d77cde51b6402b4bdd3776dd5eb027ac46a330f96008ee66f",
+          "after": "733ea6e3f8e3983ab8b807d4059cf82c9ca6ac72f953c1309615bbe125b03161"
+        },
+        {
+          "period": "weekend",
+          "before": "b3eae7ee56be7108ba8727df13cc4a3e5b57338cd6e98fa210490a761906cab6",
+          "after": "3bf5c298e713faa655b5957336733ced32d37fa932c889436b8c8bf919fa743e"
+        },
+        {
+          "period": "weekend",
+          "before": "5e8ced0588eaebd1e73579311666bf0a686a9408b26d275f88fe8ba6b56d460a",
+          "after": "2afd8f34c7f62d9c2b4f06b961e0a96ecf48d0ba2eb0cb3dbbce5b02bfb1c9a6"
+        },
+        {
+          "period": "weekend",
+          "before": "e4cfd3e741a27acf6296c26c71ef70901ceb7c6d146eb00963ee9df2aa1970f8",
+          "after": "413fa9d43f0888cd3a9ffc5c6d57d1028e7bd543b6976e4bb53f9c5c23370472"
+        },
+        {
+          "period": "weekend",
+          "before": "bb09fb48cf2d16fdeef7e7f1c9bca2cbebe738028e8e437baad6fe9600d3b912",
+          "after": "eb35baefa5953ab1315f8c0e9a9eca26dce39dd42d4eb1b23dace2ca8ea3a98f"
+        },
+        {
+          "period": "weekend",
+          "before": "226f5859536a9a415a6b9e1521afac0f344f8b3bf8c327a6c6a45a005964ccc1",
+          "after": "87f22fcd237035582ba7f75f8a0e83cb49aaf3729c3cac8d8780faf68c1cd33b"
+        }
+      ]
     },
     {
       "id": "subway_tanigami_sannomiya",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 → 三宮駅",
-      "status": "ok",
-      "message": "変更なし"
+      "status": "changed",
+      "message": "時刻表変更を検出",
+      "changes": [
+        {
+          "period": "weekday",
+          "before": "05:19",
+          "after": "05:18"
+        }
+      ]
     },
     {
       "id": "subway_sannomiya_tanigami",
