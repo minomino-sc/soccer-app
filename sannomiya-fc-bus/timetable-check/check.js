@@ -1781,508 +1781,336 @@ function extractJRTimes(
 
 
 /* =========================================================
-   HANKYU BUS 158
+   阪急バス
    日の峰1丁目 → 谷上駅
+   158系統
 
-   公式PDF：
-   https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf
-
-   3・4ページ：平日
-   7・8ページ：土休日
-
-   ※ timetable.js は変更しない
-
-   ---------------------------------------------------------
-   比較方式
-
-   PDF
-    ↓
-   PNG化
-    ↓
-   対象セル切り出し
-    ↓
-   グレースケール
-    ↓
-   2値化
-    ↓
-   正規化画像をSHA256
-
-   PDF描画時の微細な差による
-   誤検出を減らす。
+   公式停留所時刻表を直接取得する
+   平日 / 土休日を分離して実時刻を比較する
 ========================================================= */
 
-const HANKYU_PDF_URL =
-  "https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf";
+const HANKYU_TIMETABLE_URL =
+  "https://transfer-cloud.navitime.biz/hankyubus/courses/timetables?busstop=00021667&timetable-id=856401";
 
 
 /* =========================================================
-   PDF取得
+   HTML → テキスト
 ========================================================= */
 
-async function downloadHankyuPdf() {
+function stripHtml(text) {
 
-  const tmpPdf =
-    "/tmp/hankyu-kobe-tanigami.pdf";
-
-  const response =
-    await fetch(
-      HANKYU_PDF_URL,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-            "AppleWebKit/537.36 " +
-            "Chrome/140.0 Safari/537.36"
-        }
-      }
-    );
-
-
-  if (!response.ok) {
-
-    throw new Error(
-      `阪急PDF HTTP ${response.status}`
-    );
-
-  }
-
-
-  const buffer =
-    Buffer.from(
-      await response.arrayBuffer()
-    );
-
-
-  fs.writeFileSync(
-    tmpPdf,
-    buffer
-  );
-
-
-  return tmpPdf;
+  return String(text || "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
 
 }
 
 
 /* =========================================================
-   PDFページをPNG化
+   <td>...</td> を取得
 ========================================================= */
 
-function renderHankyuPage(
-  pdfPath,
-  page,
-  outputPrefix
-) {
+function extractTdCells(row) {
 
-  execFileSync(
-    "pdftoppm",
-    [
-      "-f",
-      String(page),
-
-      "-l",
-      String(page),
-
-      "-r",
-      "150",
-
-      "-png",
-
-      "-singlefile",
-
-      pdfPath,
-
-      outputPrefix
-    ],
-    {
-      stdio: "pipe"
-    }
-  );
-
-
-  return `${outputPrefix}.png`;
-
-}
-
-
-/* =========================================================
-   阪急対象セル切り出し
-========================================================= */
-
-function cropHankyuTarget(
-  inputPath,
-  outputPath,
-  page
-) {
-
-  /*
-   * 3・7ページ
-   * → 16列
-   */
-
-  let crop;
-
-
-  if (
-    page === 3 ||
-    page === 7
-  ) {
-
-    crop = [
-      [0.272, 0.681],
-      [0.319, 0.681],
-      [0.396, 0.681],
-      [0.443, 0.681],
-      [0.522, 0.681],
-      [0.647, 0.681],
-      [0.694, 0.681],
-      [0.741, 0.681]
-    ];
-
-  }
-
-
-  /*
-   * 4・8ページ
-   * → 15列
-   */
-
-  else {
-
-    crop = [
-      [0.141, 0.681],
-      [0.186, 0.681],
-      [0.276, 0.681],
-      [0.321, 0.681],
-      [0.411, 0.681],
-      [0.456, 0.681],
-      [0.546, 0.681],
-      [0.636, 0.681],
-      [0.681, 0.681],
-      [0.726, 0.681],
-      [0.771, 0.681]
-    ];
-
-  }
-
-
-  /*
-   * 画像サイズ取得
-   */
-
-  const identify =
-    execFileSync(
-      "identify",
-      [
-        "-format",
-        "%w %h",
-        inputPath
-      ],
-      {
-        encoding: "utf8"
-      }
+  return [
+    ...row.matchAll(
+      /<td\b[^>]*>([\s\S]*?)<\/td>/gi
     )
-      .trim()
-      .split(/\s+/)
-      .map(Number);
+  ].map(
+    m => stripHtml(m[1])
+  );
+
+}
 
 
-  const width =
-    identify[0];
+/* =========================================================
+   1つの曜日ブロックから
+   158系統の時刻を取得
+========================================================= */
 
-  const height =
-    identify[1];
+function extractHankyuDayBlock(
+  html,
+  startIndex,
+  endIndex
+) {
 
-
-  const cellWidth =
-    page === 3 || page === 7
-      ? width * 0.044
-      : width * 0.045;
-
-
-  const startY =
-    Math.floor(
-      height * 0.675
+  const block =
+    html.slice(
+      startIndex,
+      endIndex
     );
 
+  const times = [];
 
-  const cellHeight =
-    Math.floor(
-      height * 0.026
-    );
+  const rows = [
+    ...block.matchAll(
+      /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi
+    )
+  ];
 
+  for (const rowMatch of rows) {
 
-  const files = [];
+    const row =
+      rowMatch[1];
 
+    const cells =
+      extractTdCells(row);
 
-  for (
-    let i = 0;
-    i < crop.length;
-    i++
-  ) {
+    if (cells.length < 2) {
+      continue;
+    }
 
-    const xRatio =
-      crop[i][0];
+    /*
+     * 先頭セルが「時」
+     *
+     * 例
+     * 8
+     * 9
+     * 10
+     * ...
+     */
 
-
-    const x =
-      Math.floor(
-        width * xRatio
+    const hourText =
+      normalizeText(
+        cells[0]
       );
 
+    const hourMatch =
+      hourText.match(
+        /^([0-9]{1,2})$/
+      );
 
-    const output =
-      `${outputPath}-${i}.png`;
+    if (!hourMatch) {
+      continue;
+    }
 
+    const hour =
+      Number(
+        hourMatch[1]
+      );
 
-    execFileSync(
-      "convert",
-      [
-        inputPath,
+    if (
+      hour < 0 ||
+      hour > 23
+    ) {
+      continue;
+    }
 
-        "-crop",
-        `${Math.floor(cellWidth)}x${cellHeight}+${x}+${startY}`,
+    /*
+     * 2番目のセルが
+     * 158系統の列
+     *
+     * このページでは
+     *
+     * [158] | [150]
+     *
+     * の順番になっている。
+     */
 
-        "+repage",
+    const hankyuCell =
+      cells[1] || "";
 
-        output
-      ],
-      {
-        stdio: "pipe"
+    /*
+     * 158列のセルから
+     * 分だけを取得する。
+     *
+     * 「03」「43」「53」など。
+     */
+
+    const minuteMatches =
+      hankyuCell.match(
+        /(?:^|\s)([0-5][0-9])(?:\s|$)/g
+      );
+
+    if (!minuteMatches) {
+      continue;
+    }
+
+    for (const match of minuteMatches) {
+
+      const minute =
+        Number(
+          match.trim()
+        );
+
+      if (
+        minute < 0 ||
+        minute > 59
+      ) {
+        continue;
       }
-    );
 
+      times.push(
+        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
+      );
 
-    files.push(
-      output
-    );
+    }
 
   }
 
-
-  return files;
-
-}
-
-
-/* =========================================================
-   阪急セル正規化
-   ---------------------------------------------------------
-   PDF描画時のアンチエイリアス等による
-   微細な画像差を吸収する。
-========================================================= */
-
-function normalizeHankyuImage(
-  inputPath,
-  outputPath
-) {
-
-  execFileSync(
-    "convert",
-    [
-      inputPath,
-
-      /*
-       * グレースケール
-       */
-      "-colorspace",
-      "Gray",
-
-      /*
-       * コントラストを明確化
-       */
-      "-contrast-stretch",
-      "0x10%",
-
-      /*
-       * 2値化
-       *
-       * 微妙な濃淡差を捨て、
-       * 文字・線の形だけを比較する。
-       */
-      "-threshold",
-      "65%",
-
-      /*
-       * サイズを固定
-       */
-      "-resize",
-      "200x100!",
-
-      /*
-       * PNGとして保存
-       */
-      outputPath
-    ],
-    {
-      stdio: "pipe"
-    }
+  return uniqueSorted(
+    times
   );
 
 }
 
 
 /* =========================================================
-   阪急正規化画像ハッシュ
+   阪急バス公式ページから
+   平日 / 土休日を抽出
 ========================================================= */
 
-function hashHankyuCell(
-  filePath
+function extractHankyuTimetable(
+  html
 ) {
 
   const normalized =
-    `${filePath}.normalized.png`;
-
-
-  normalizeHankyuImage(
-    filePath,
-    normalized
-  );
-
-
-  const data =
-    fs.readFileSync(
-      normalized
+    normalizeText(
+      html
     );
 
+  /*
+   * 「平日」と「土休日」の位置を探す。
+   */
 
-  return crypto
-    .createHash("sha256")
-    .update(data)
-    .digest("hex");
+  const weekdayIndex =
+    normalized.indexOf(
+      "平日"
+    );
+
+  const weekendIndex =
+    normalized.indexOf(
+      "土休日"
+    );
+
+  if (
+    weekdayIndex === -1 ||
+    weekendIndex === -1
+  ) {
+
+    throw new Error(
+      "阪急バス時刻表の曜日情報を取得できませんでした"
+    );
+
+  }
+
+
+  /*
+   * HTMLそのものから曜日ブロックを切り出す。
+   *
+   * ページ構造上、
+   * 平日ブロック → 土休日ブロック
+   * の順番。
+   */
+
+  const htmlWeekdayStart =
+    html.indexOf(
+      "平日"
+    );
+
+  const htmlWeekendStart =
+    html.indexOf(
+      "土休日"
+    );
+
+  if (
+    htmlWeekdayStart === -1 ||
+    htmlWeekendStart === -1
+  ) {
+
+    throw new Error(
+      "阪急バス時刻表HTMLの曜日ブロックを特定できませんでした"
+    );
+
+  }
+
+  const weekday =
+    extractHankyuDayBlock(
+      html,
+      htmlWeekdayStart,
+      htmlWeekendStart
+    );
+
+  /*
+   * 土休日はページ末尾まで。
+   */
+
+  const weekend =
+    extractHankyuDayBlock(
+      html,
+      htmlWeekendStart,
+      html.length
+    );
+
+  if (!weekday.length) {
+
+    throw new Error(
+      "阪急バス平日時刻表を取得できませんでした"
+    );
+
+  }
+
+  if (!weekend.length) {
+
+    throw new Error(
+      "阪急バス土休日時刻表を取得できませんでした"
+    );
+
+  }
+
+  return {
+    weekday,
+    weekend
+  };
 
 }
 
 
 /* =========================================================
-   阪急158系統チェック
+   阪急バスチェック
 ========================================================= */
 
 async function checkHankyu(
   source
 ) {
 
-  const pdfPath =
-    await downloadHankyuPdf();
+  console.log(
+    "  阪急バス公式時刻表を直接取得"
+  );
 
-
-  const weekdayPages =
-    [3, 4];
-
-
-  const weekendPages =
-    [7, 8];
-
-
-  const weekdayHashes =
-    [];
-
-
-  const weekendHashes =
-    [];
-
-
-  /* =======================================================
-     平日
-  ======================================================= */
-
-  for (
-    const page of weekdayPages
-  ) {
-
-    console.log(
-      `  阪急 ${page}ページ：日の峰1丁目 158系統を確認`
+  const html =
+    await fetchPage(
+      HANKYU_TIMETABLE_URL
     );
 
-
-    const png =
-      renderHankyuPage(
-        pdfPath,
-        page,
-        `/tmp/hankyu-${page}`
-      );
-
-
-    const cells =
-      cropHankyuTarget(
-        png,
-        `/tmp/hankyu-${page}-target`,
-        page
-      );
-
-
-    for (
-      const cell of cells
-    ) {
-
-      weekdayHashes.push(
-        hashHankyuCell(
-          cell
-        )
-      );
-
-    }
-
-  }
-
-
-  /* =======================================================
-     土休日
-  ======================================================= */
-
-  for (
-    const page of weekendPages
-  ) {
-
-    console.log(
-      `  阪急 ${page}ページ：日の峰1丁目 158系統を確認`
+  const timetable =
+    extractHankyuTimetable(
+      html
     );
 
+  console.log(
+    `  → 平日 ${timetable.weekday.length}便`
+  );
 
-    const png =
-      renderHankyuPage(
-        pdfPath,
-        page,
-        `/tmp/hankyu-${page}`
-      );
+  console.log(
+    `  → 土休日 ${timetable.weekend.length}便`
+  );
 
+  console.log(
+    `  → 平日: ${timetable.weekday.join(", ")}`
+  );
 
-    const cells =
-      cropHankyuTarget(
-        png,
-        `/tmp/hankyu-${page}-target`,
-        page
-      );
+  console.log(
+    `  → 土休日: ${timetable.weekend.join(", ")}`
+  );
 
-
-    for (
-      const cell of cells
-    ) {
-
-      weekendHashes.push(
-        hashHankyuCell(
-          cell
-        )
-      );
-
-    }
-
-  }
-
-
-  /* =======================================================
-     結果
-  ======================================================= */
-
-  return {
-
-    weekday:
-      weekdayHashes,
-
-    weekend:
-      weekendHashes
-
-  };
+  return timetable;
 
 }
 
