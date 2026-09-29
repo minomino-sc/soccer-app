@@ -2,8 +2,8 @@ name: Timetable Check
 
 on:
   schedule:
-    # テスト：5分おきに実行
-    - cron: "*/5 * * * *"
+    - cron: "10 12 * * *"
+      timezone: "Asia/Tokyo"
 
   workflow_dispatch:
 
