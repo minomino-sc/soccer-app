@@ -29,7 +29,7 @@ jobs:
         run: |
           npm install cheerio
           sudo apt-get update
-          sudo apt-get install -y poppler-utils
+          sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-jpn
 
       - name: Run timetable check
         run: node sannomiya-fc-bus/timetable-check/check.js
