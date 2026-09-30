@@ -2588,9 +2588,6 @@ searchButton.addEventListener(
 
 });
 
-loadTimetableCheckStatus();
-
-
 function openTimetableWorkflow() {
 
   window.open(
@@ -2599,4 +2596,3 @@ function openTimetableWorkflow() {
   );
 
 }
-
