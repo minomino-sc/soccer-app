@@ -1784,52 +1784,48 @@ function extractJRTimes(
    HANKYU BUS 158
    日の峰1丁目 → 谷上駅
 
-   公式PDF：
-   https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf
-
-   3・4ページ：平日
-   7・8ページ：土休日
-
    ---------------------------------------------------------
-   比較方式
+   阪急バス専用・更新情報監視
 
-   公式PDF
-      ↓
-   pdftotext -layout
-      ↓
-   「系統番号」の158列を特定
-      ↓
-   「日の峰1丁目」の行を取得
-      ↓
-   158列の時刻だけ抽出
-      ↓
-   weekday / weekend
-      ↓
-   compareTimetable()
+   PDFの時刻表を解析しない。
+   OCRもしない。
+   PDFの座標も使わない。
+
+   阪急バス公式サイトのお知らせから、
+
+   ・唐櫃営業所
+   ・時刻の変更
+
+   に該当する公式情報を監視する。
+
+   ※ timetable.js は自動変更しない。
 ========================================================= */
 
-const HANKYU_PDF_URL =
-  "https://www.hankyubus.co.jp/rosen/timetable/pdf/20230201_n.k_kobe-tanigami.pdf";
+const HANKYU_HOME_URL =
+  "https://www.hankyubus.co.jp/";
 
 
 /* =========================================================
-   PDF取得
+   阪急バス公式ページ取得
 ========================================================= */
 
-async function downloadHankyuPdf() {
-
-  const tmpPdf =
-    "/tmp/hankyu-kobe-tanigami.pdf";
+async function fetchHankyuHome() {
 
   const response =
     await fetch(
-      HANKYU_PDF_URL,
+      HANKYU_HOME_URL,
       {
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
             "AppleWebKit/537.36 " +
-            "Chrome/140.0 Safari/537.36"
+            "Chrome/140.0 Safari/537.36",
+
+          "Accept":
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+
+          "Accept-Language":
+            "ja-JP,ja;q=0.9"
         }
       }
     );
@@ -1838,397 +1834,171 @@ async function downloadHankyuPdf() {
   if (!response.ok) {
 
     throw new Error(
-      `阪急PDF HTTP ${response.status}`
+      `阪急バス公式サイト HTTP ${response.status}`
     );
 
   }
 
 
-  const buffer =
-    Buffer.from(
-      await response.arrayBuffer()
+  return await response.text();
+
+}
+
+
+/* =========================================================
+   阪急バス公式のお知らせから
+   「唐櫃営業所」「時刻の変更」を探す
+========================================================= */
+
+function extractHankyuUpdateInfo(
+  html
+) {
+
+  const $ =
+    cheerio.load(
+      html
     );
 
 
-  fs.writeFileSync(
-    tmpPdf,
-    buffer
-  );
+  const results =
+    [];
 
 
-  return tmpPdf;
+  $("a").each(
+    (_, element) => {
 
-}
-
-
-/* =========================================================
-   PDF → テキスト
-   ---------------------------------------------------------
-   -layout により表の横位置を維持する。
-========================================================= */
-
-function extractHankyuPdfText(
-  pdfPath,
-  page
-) {
-
-  return execFileSync(
-    "pdftotext",
-    [
-      "-layout",
-
-      "-f",
-      String(page),
-
-      "-l",
-      String(page),
-
-      pdfPath,
-
-      "-"
-    ],
-    {
-      encoding: "utf8",
-      stdio: [
-        "ignore",
-        "pipe",
-        "pipe"
-      ]
-    }
-  );
-
-}
+      const title =
+        normalizeText(
+          $(element).text()
+        );
 
 
-/* =========================================================
-   改行コード統一
-========================================================= */
+      const href =
+        $(element).attr(
+          "href"
+        );
 
-function normalizeHankyuPdfText(
-  text
-) {
-
-  return String(text || "")
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n");
-
-}
-
-
-/* =========================================================
-   系統番号ヘッダー取得
-   ---------------------------------------------------------
-   「系統番号」の行から
-   158 の文字位置を取得する。
-========================================================= */
-
-function findHankyuRouteHeader(
-  lines
-) {
-
-  /*
-   * PDFの日本語文字は
-   * pdftotextで正常に取得できない場合がある。
-   *
-   * そのため「系統番号」という日本語には依存せず、
-   * 158を含む行を探す。
-   */
-
-  for (
-    const line of lines
-  ) {
-
-    if (
-      line.includes("[158]")
-    ) {
-
-      return line;
-
-    }
-
-  }
-
-
-  /*
-   * [158] の括弧が消える場合に備える。
-   */
-
-  for (
-    const line of lines
-  ) {
-
-    if (
-      /\b158\b/.test(line)
-    ) {
-
-      return line;
-
-    }
-
-  }
-
-
-  return null;
-
-}
-
-
-/* =========================================================
-   158の文字位置を取得
-========================================================= */
-
-function find158Positions(
-  headerLine
-) {
-
-  const positions = [];
-
-  const regex =
-    /158/g;
-
-  let match;
-
-  while (
-    (match = regex.exec(headerLine))
-    !== null
-  ) {
-
-    positions.push(
-      match.index
-    );
-
-  }
-
-  return positions;
-
-}
-
-
-/* =========================================================
-   日の峰1丁目の行を探す
-========================================================= */
-
-function findHankyuHinomineRow(
-  lines
-) {
-
-  const candidates = [
-    "日の峰１丁目",
-    "日の峰1丁目",
-    "日の峰１丁目 ",
-    "日の峰1丁目 "
-  ];
-
-
-  for (
-    const line of lines
-  ) {
-
-    for (
-      const keyword of candidates
-    ) {
 
       if (
-        line.includes(keyword)
+        !title ||
+        !href
       ) {
 
-        return line;
+        return;
 
       }
 
-    }
 
-  }
-
-
-  return null;
-
-}
-
-
-/* =========================================================
-   158列の時刻を抽出
-   ---------------------------------------------------------
-   ヘッダーの158と同じ横位置から
-   「日の峰1丁目」行の時刻を取得する。
-========================================================= */
-
-function extractHankyuTimesFromRow(
-  headerLine,
-  rowLine
-) {
-
-  const positions =
-    find158Positions(
-      headerLine
-    );
-
-
-  if (!positions.length) {
-
-    throw new Error(
-      "阪急158系統の列を特定できませんでした"
-    );
-
-  }
-
-
-  const times = [];
-
-
-  for (
-    const position of positions
-  ) {
-
-    /*
-     * PDFの表では、
-     * 時刻は158列の中央付近に配置される。
-     *
-     * 前後に余裕を持って取得する。
-     */
-
-    const start =
-      Math.max(
-        0,
-        position - 6
-      );
-
-
-    const end =
-      Math.min(
-        rowLine.length,
-        position + 12
-      );
-
-
-    const cell =
-      rowLine.slice(
-        start,
-        end
-      );
-
-
-    const matches =
-      cell.match(
-        /(?:^|\s)([01]\d|2[0-3]):([0-5]\d)(?=\s|$)/g
-      );
-
-
-    if (!matches) {
-      continue;
-    }
-
-
-    for (
-      const value of matches
-    ) {
-
-      const time =
-        value.trim();
-
+      /*
+       * 今回は阪急バスの中でも
+       *
+       * 「唐櫃営業所」
+       * ＋
+       * 「時刻の変更」
+       *
+       * に限定する。
+       */
 
       if (
-        /^\d{2}:\d{2}$/.test(
-          time
+        !title.includes(
+          "唐櫃営業所"
         )
       ) {
 
-        times.push(
-          time
-        );
+        return;
 
       }
 
+
+      if (
+        !title.includes(
+          "時刻"
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      let url;
+
+      try {
+
+        url =
+          new URL(
+            href,
+            HANKYU_HOME_URL
+          ).href;
+
+      } catch {
+
+        return;
+
+      }
+
+
+      results.push({
+
+        title,
+
+        url
+
+      });
+
+    }
+  );
+
+
+  /*
+   * 同じリンクが複数回出る場合があるので
+   * 重複を削除する。
+   */
+
+  const unique =
+    [];
+
+
+  const seen =
+    new Set();
+
+
+  for (
+    const item of results
+  ) {
+
+    const key =
+      `${item.title}|${item.url}`;
+
+
+    if (
+      seen.has(key)
+    ) {
+
+      continue;
+
     }
 
+
+    seen.add(
+      key
+    );
+
+
+    unique.push(
+      item
+    );
+
   }
 
 
-  return uniqueSorted(
-    times
-  );
+  return unique;
 
 }
 
 
 /* =========================================================
-   1ページから
-   日の峰1丁目・158系統の時刻を取得
-========================================================= */
-
-function extractHankyuPageTimes(
-  text,
-  page
-) {
-
-  const normalized =
-    normalizeHankyuPdfText(
-      text
-    );
-
-
-  const lines =
-    normalized.split("\n");
-
-
-  const headerLine =
-    findHankyuRouteHeader(
-      lines
-    );
-
-
-  if (!headerLine) {
-
-    throw new Error(
-      `阪急${page}ページ：系統番号ヘッダーを取得できませんでした`
-    );
-
-  }
-
-
-  const rowLine =
-    findHankyuHinomineRow(
-      lines
-    );
-
-
-  if (!rowLine) {
-
-    throw new Error(
-      `阪急${page}ページ：日の峰1丁目の行を取得できませんでした`
-    );
-
-  }
-
-
-  const times =
-    extractHankyuTimesFromRow(
-      headerLine,
-      rowLine
-    );
-
-
-  if (!times.length) {
-
-    throw new Error(
-      `阪急${page}ページ：日の峰1丁目・158系統の時刻を取得できませんでした`
-    );
-
-  }
-
-
-  console.log(
-    `    ${page}ページ：${times.join(", ")}`
-  );
-
-
-  return times;
-
-}
-
-
-/* =========================================================
-   阪急158系統チェック
+   阪急バス更新情報チェック
 ========================================================= */
 
 async function checkHankyu(
@@ -2236,147 +2006,91 @@ async function checkHankyu(
 ) {
 
   console.log(
-    "  阪急バス公式PDFを取得"
+    "  阪急バス公式サイトを確認"
   );
 
 
-  const pdfPath =
-    await downloadHankyuPdf();
+  const html =
+    await fetchHankyuHome();
 
 
-  /* =======================================================
-     平日
-  ======================================================= */
-
-  const weekdayPages =
-    [3, 4];
+  const updates =
+    extractHankyuUpdateInfo(
+      html
+    );
 
 
-  const weekdayTimes =
-    [];
-
-
-  for (
-    const page of weekdayPages
+  if (
+    !updates.length
   ) {
 
-    console.log(
-      `  阪急 ${page}ページ：日の峰1丁目 158系統を確認`
-    );
-
-
-    const text =
-      extractHankyuPdfText(
-        pdfPath,
-        page
-      );
-
-
-    const times =
-      extractHankyuPageTimes(
-        text,
-        page
-      );
-
-
-    weekdayTimes.push(
-      ...times
-    );
-
-  }
-
-
-  /* =======================================================
-     土休日
-  ======================================================= */
-
-  const weekendPages =
-    [7, 8];
-
-
-  const weekendTimes =
-    [];
-
-
-  for (
-    const page of weekendPages
-  ) {
+    /*
+     * 「唐櫃営業所・時刻変更」の公式情報が
+     * 見つからない場合。
+     *
+     * これは「時刻表が変更されていない」と
+     * 断定するのではなく、
+     * 公式サイト上に対象のお知らせがない状態。
+     */
 
     console.log(
-      `  阪急 ${page}ページ：日の峰1丁目 158系統を確認`
+      "  → 対象の時刻変更情報なし"
     );
 
 
-    const text =
-      extractHankyuPdfText(
-        pdfPath,
-        page
-      );
+    return {
 
+      type:
+        "hankyu-update-check",
 
-    const times =
-      extractHankyuPageTimes(
-        text,
-        page
-      );
+      route:
+        source.route,
 
+      updates:
+        []
 
-    weekendTimes.push(
-      ...times
-    );
-
-  }
-
-
-  /* =======================================================
-     重複除去・時刻順
-  ======================================================= */
-
-  const weekday =
-    uniqueSorted(
-      weekdayTimes
-    );
-
-
-  const weekend =
-    uniqueSorted(
-      weekendTimes
-    );
-
-
-  if (!weekday.length) {
-
-    throw new Error(
-      "阪急バス平日時刻を取得できませんでした"
-    );
-
-  }
-
-
-  if (!weekend.length) {
-
-    throw new Error(
-      "阪急バス土休日時刻を取得できませんでした"
-    );
+    };
 
   }
 
 
   console.log(
-    `  → 平日 ${weekday.length}便`
+    `  → 対象のお知らせ ${updates.length}件`
   );
 
 
-  console.log(
-    `  → 土休日 ${weekend.length}便`
-  );
+  for (
+    const update of updates
+  ) {
 
+    console.log(
+      `    ${update.title}`
+    );
+
+    console.log(
+      `    ${update.url}`
+    );
+
+  }
+
+
+  /*
+   * 今回の監視対象そのものを返す。
+   *
+   * main() 側でJSON化・ハッシュ化されるので、
+   * お知らせの内容やURLが変われば
+   * 「変更あり」と判定される。
+   */
 
   return {
 
-    weekday,
+    type:
+      "hankyu-update-check",
 
-    weekend
+    route:
+      source.route,
+
+    updates
 
   };
 
