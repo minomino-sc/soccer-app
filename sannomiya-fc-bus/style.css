@@ -1398,15 +1398,25 @@ footer {
 }
 
 .timetable-check-run-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   border: 1px solid #4caf50;
   background: #1f2f26;
   color: #d9ffe5;
   border-radius: 8px;
+
   padding: 6px 10px;
+
   font-size: 12px;
   font-weight: 700;
+
   cursor: pointer;
+
   white-space: nowrap;
+
+  text-decoration: none;
 }
 
 .timetable-check-run-button:hover {
