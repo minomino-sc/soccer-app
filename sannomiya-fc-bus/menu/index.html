@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="神戸三宮FC"
+  >
+
+  <title>⚽ KOBE SANNOMIYA FC</title>
+
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+
+    body {
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Helvetica Neue",
+        "Hiragino Kaku Gothic ProN",
+        "Yu Gothic",
+        sans-serif;
+
+      color: #ffffff;
+
+      background:
+        radial-gradient(
+          circle at 50% 0%,
+          rgba(0, 170, 90, 0.24),
+          transparent 42%
+        ),
+        linear-gradient(
+          160deg,
+          #020a06 0%,
+          #061a10 48%,
+          #020805 100%
+        );
+
+      overflow-x: hidden;
+    }
+
+
+    .app {
+
+      width: 100%;
+      max-width: 760px;
+
+      min-height: 100vh;
+
+      margin: 0 auto;
+
+      padding:
+        32px 16px 45px;
+
+      position: relative;
+    }
+
+
+    /* =========================================
+       HEADER
+    ========================================= */
+
+    .header {
+
+      text-align: center;
+
+      padding:
+        25px 10px 30px;
+
+      border-bottom:
+        1px solid
+        rgba(80, 220, 130, 0.20);
+    }
+
+
+    .title {
+
+      font-size: 25px;
+
+      font-weight: 900;
+
+      letter-spacing: 1.5px;
+    }
+
+
+    .subtitle {
+
+      margin-top: 7px;
+
+      color: #67e69a;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      letter-spacing: 3px;
+    }
+
+
+    /* =========================================
+       MENU
+    ========================================= */
+
+    .menu {
+
+      display: grid;
+
+      gap: 14px;
+
+      margin-top: 30px;
+    }
+
+
+    .menu-link {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 15px;
+
+      width: 100%;
+
+      min-height: 82px;
+
+      padding:
+        16px 18px;
+
+      border:
+        1px solid
+        rgba(80, 220, 130, 0.22);
+
+      border-radius: 17px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(10, 55, 34, 0.96),
+          rgba(4, 24, 14, 0.97)
+        );
+
+      color: #ffffff;
+
+      text-decoration: none;
+
+      box-shadow:
+        0 8px 24px
+        rgba(0, 0, 0, 0.22);
+
+      -webkit-tap-highlight-color:
+        rgba(50, 220, 120, 0.18);
+
+      transition:
+        transform 0.15s,
+        border-color 0.15s,
+        background 0.15s;
+    }
+
+
+    .menu-link:active {
+
+      transform:
+        scale(0.985);
+
+      border-color:
+        #38dc7a;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(14, 78, 46, 0.98),
+          rgba(5, 32, 19, 0.98)
+        );
+    }
+
+
+    .menu-icon {
+
+      width: 48px;
+      height: 48px;
+
+      flex-shrink: 0;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 14px;
+
+      background:
+        rgba(53, 217, 120, 0.12);
+
+      font-size: 27px;
+    }
+
+
+    .menu-text {
+
+      min-width: 0;
+    }
+
+
+    .menu-title {
+
+      font-size: 17px;
+
+      font-weight: 900;
+    }
+
+
+    .menu-subtitle {
+
+      margin-top: 4px;
+
+      color: #8fb5a0;
+
+      font-size: 10px;
+
+      letter-spacing: 0.5px;
+    }
+
+
+    .menu-arrow {
+
+      margin-left: auto;
+
+      color: #63df96;
+
+      font-size: 20px;
+
+      font-weight: 700;
+    }
+
+
+    /* =========================================
+       FOOTER
+    ========================================= */
+
+    footer {
+
+      margin-top: 45px;
+
+      text-align: center;
+
+      color:
+        rgba(255, 255, 255, 0.30);
+
+      font-size: 9px;
+
+      letter-spacing: 1.5px;
+    }
+
+
+    @media (max-width: 600px) {
+
+      .app {
+        padding:
+          22px 12px 35px;
+      }
+
+      .title {
+        font-size: 21px;
+      }
+
+      .menu-title {
+        font-size: 16px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <div class="app">
+
+
+    <header class="header">
+
+      <div class="title">
+        ⚽ KOBE SANNOMIYA FC
+      </div>
+
+      <div class="subtitle">
+        JUNIOR YOUTH
+      </div>
+
+    </header>
+
+
+    <main class="menu">
+
+
+      <!-- =====================================
+           送迎システム
+      ====================================== -->
+
+      <a
+        class="menu-link"
+        href="../"
+      >
+
+        <div class="menu-icon">
+          🚌
+        </div>
+
+        <div class="menu-text">
+
+          <div class="menu-title">
+            送迎システム
+          </div>
+
+          <div class="menu-subtitle">
+            JUNIOR YOUTH TRANSPORT
+          </div>
+
+        </div>
+
+        <div class="menu-arrow">
+          ›
+        </div>
+
+      </a>
+
+
+    </main>
+
+
+    <footer>
+
+      KOBE SANNOMIYA FC
+
+    </footer>
+
+
+  </div>
+
+</body>
+
+</html>
