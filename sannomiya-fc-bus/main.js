@@ -2586,9 +2586,79 @@ searchButton.addEventListener(
 
   loadTimetableCheckStatus();
 
+  const timetableCheckToggle =
+    document.getElementById(
+      "timetableCheckToggle"
+    );
+
+  const timetableCheckPanel =
+    document.getElementById(
+      "timetableCheckPanel"
+    );
+
+  const timetableCheckToggleIcon =
+    document.getElementById(
+      "timetableCheckToggleIcon"
+    );
+
+
+  if (
+    timetableCheckToggle &&
+    timetableCheckPanel &&
+    timetableCheckToggleIcon
+  ) {
+
+    timetableCheckToggle.addEventListener(
+      "click",
+      () => {
+
+        const isHidden =
+          timetableCheckPanel
+            .classList
+            .contains("hidden");
+
+
+        if (isHidden) {
+
+          timetableCheckPanel
+            .classList
+            .remove("hidden");
+
+          timetableCheckToggleIcon
+            .textContent = "▼";
+
+          timetableCheckToggle
+            .setAttribute(
+              "aria-expanded",
+              "true"
+            );
+
+        } else {
+
+          timetableCheckPanel
+            .classList
+            .add("hidden");
+
+          timetableCheckToggleIcon
+            .textContent = "▶";
+
+          timetableCheckToggle
+            .setAttribute(
+              "aria-expanded",
+              "false"
+            );
+
+        }
+
+      }
+    );
+
+  }
+
 });
 
 function openTimetableWorkflow() {
+
 
   window.open(
     "https://github.com/minomino-sc/soccer-app/actions/workflows/timetable-check.yml",
