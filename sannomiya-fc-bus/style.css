@@ -1412,3 +1412,38 @@ footer {
 .timetable-check-run-button:hover {
   background: #294033;
 }
+
+/* =========================================================
+   TIMETABLE CHECK TOGGLE
+========================================================= */
+
+.timetable-check-toggle {
+  width: 100%;
+  margin-top: 8px;
+
+  border: 0;
+  background: transparent;
+
+  color: #d9ffe5;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 4px 0;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.timetable-check-toggle:hover {
+  opacity: 0.8;
+}
+
+.timetable-check-toggle span:first-child {
+  font-size: 10px;
+  width: 12px;
+}
