@@ -280,41 +280,60 @@
   </section>
 
 
-  <!-- =========================================
-       TIMETABLE CHECK
-  ========================================== -->
-  <section
-    id="timetableCheckSection"
-    class="section timetable-check-section"
-  >
+<!-- =========================================
+     TIMETABLE CHECK
+========================================== -->
+<section
+  id="timetableCheckSection"
+  class="section timetable-check-section"
+>
 
   <div class="timetable-check-title-row">
-  <h2>
-    TIMETABLE STATUS
-  </h2>
 
+    <h2>
+      TIMETABLE STATUS
+    </h2>
+
+    <button
+      type="button"
+      class="timetable-check-run-button"
+      onclick="openTimetableWorkflow()"
+    >
+      🔄 今すぐチェック
+    </button>
+
+  </div>
+
+
+  <!-- チェック結果の開閉 -->
   <button
     type="button"
-    class="timetable-check-run-button"
-    onclick="openTimetableWorkflow()"
+    id="timetableCheckToggle"
+    class="timetable-check-toggle"
+    aria-expanded="false"
   >
-    🔄 今すぐチェック
+    <span id="timetableCheckToggleIcon">
+      ▶
+    </span>
+
+    <span>
+      チェック結果を表示
+    </span>
   </button>
-    
-</div>
 
-    <div
-      id="timetableCheckPanel"
-      class="timetable-check-panel"
-    >
 
-      <div class="timetable-check-loading">
-        時刻表チェック状況を確認中…
-      </div>
+  <div
+    id="timetableCheckPanel"
+    class="timetable-check-panel hidden"
+  >
 
+    <div class="timetable-check-loading">
+      時刻表チェック状況を確認中…
     </div>
 
-  </section>
+  </div>
+
+</section>
   
 
   <!-- =========================================
