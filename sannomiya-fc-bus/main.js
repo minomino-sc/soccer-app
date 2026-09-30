@@ -2587,3 +2587,16 @@ searchButton.addEventListener(
   loadTimetableCheckStatus();
 
 });
+
+loadTimetableCheckStatus();
+
+
+function openTimetableWorkflow() {
+
+  window.open(
+    "https://github.com/minomino-sc/soccer-app/actions",
+    "_blank"
+  );
+
+}
+
