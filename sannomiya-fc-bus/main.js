@@ -2659,7 +2659,9 @@ searchButton.addEventListener(
 
 function openTimetableWorkflow() {
 
-  window.location.href =
-    "https://github.com/minomino-sc/soccer-app/actions/workflows/timetable-check.yml";
+  window.open(
+    "https://github.com/minomino/soccer-app/actions/workflows/timetable-check.yml",
+    "_blank"
+  );
 
 }
