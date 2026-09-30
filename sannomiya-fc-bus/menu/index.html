@@ -206,6 +206,10 @@
     }
 
 
+    /* =========================================
+       MENU ICON
+    ========================================= */
+
     .menu-icon {
 
       width: 48px;
@@ -266,6 +270,94 @@
 
 
     /* =========================================
+       SERVICE BRAND ICONS
+    ========================================= */
+
+    .brand-icon {
+
+      overflow: hidden;
+
+      color: #ffffff;
+    }
+
+
+    .brand-icon svg {
+
+      width: 30px;
+      height: 30px;
+
+      display: block;
+    }
+
+
+    /* =========================================
+       INSTAGRAM
+    ========================================= */
+
+    .instagram-icon {
+
+      background:
+        linear-gradient(
+          135deg,
+          #7b2cff,
+          #e1306c,
+          #ff9f0a
+        );
+    }
+
+
+    /* =========================================
+       LINE
+    ========================================= */
+
+    .line-icon {
+
+      background: #06c755;
+    }
+
+
+    /* =========================================
+       ANYTEAM
+    ========================================= */
+
+    .anyteam-icon {
+
+      flex-direction: column;
+
+      gap: 0;
+
+      color: #ffffff;
+
+      background:
+        linear-gradient(
+          145deg,
+          #0aa8d8,
+          #35c7d0
+        );
+
+      font-size: 8px;
+
+      font-weight: 900;
+
+      line-height: 0.95;
+
+      letter-spacing: 0.2px;
+    }
+
+
+    .anyteam-icon span {
+
+      font-size: 8px;
+    }
+
+
+    .anyteam-icon strong {
+
+      font-size: 7px;
+    }
+
+
+    /* =========================================
        FOOTER
     ========================================= */
 
@@ -284,18 +376,27 @@
     }
 
 
+    /* =========================================
+       MOBILE
+    ========================================= */
+
     @media (max-width: 600px) {
 
       .app {
+
         padding:
           22px 12px 35px;
       }
 
+
       .title {
+
         font-size: 21px;
       }
 
+
       .menu-title {
+
         font-size: 16px;
       }
 
@@ -311,6 +412,10 @@
   <div class="app">
 
 
+    <!-- =====================================
+         HEADER
+    ====================================== -->
+
     <header class="header">
 
       <div class="title">
@@ -324,12 +429,10 @@
     </header>
 
 
+    <!-- =====================================
+         MENU
+    ====================================== -->
 
-
-
-
-
-    
     <main class="menu">
 
 
@@ -374,9 +477,44 @@
         href="#"
       >
 
-        <div class="menu-icon">
-          📷
+        <div class="menu-icon brand-icon instagram-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+
+            <circle
+              cx="12"
+              cy="12"
+              r="4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+
+            <circle
+              cx="17.5"
+              cy="6.5"
+              r="1.2"
+              fill="currentColor"
+            />
+
+          </svg>
+
         </div>
+
 
         <div class="menu-text">
 
@@ -389,6 +527,7 @@
           </div>
 
         </div>
+
 
         <div class="menu-arrow">
           ›
@@ -406,9 +545,25 @@
         href="#"
       >
 
-        <div class="menu-icon">
-          💬
+        <div class="menu-icon brand-icon line-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <path
+              d="M21 11.5C21 7.36 16.97 4 12 4S3 7.36 3 11.5c0 3.7 3.21 6.78 7.56 7.38.29.06.68.18.78.42.09.22.06.57.03.8l-.13.76c-.04.22-.18.86.76.47.94-.4 5.08-2.99 6.93-5.12C20.25 15.1 21 13.42 21 11.5Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round"
+            />
+
+          </svg>
+
         </div>
+
 
         <div class="menu-text">
 
@@ -421,6 +576,7 @@
           </div>
 
         </div>
+
 
         <div class="menu-arrow">
           ›
@@ -438,9 +594,18 @@
         href="#"
       >
 
-        <div class="menu-icon">
-          👥
+        <div class="menu-icon brand-icon anyteam-icon">
+
+          <span>
+            ANY
+          </span>
+
+          <strong>
+            TEAM
+          </strong>
+
         </div>
+
 
         <div class="menu-text">
 
@@ -454,19 +619,27 @@
 
         </div>
 
+
         <div class="menu-arrow">
           ›
         </div>
 
       </a>
 
+
     </main>
+
+
+    <!-- =====================================
+         FOOTER
+    ====================================== -->
 
     <footer>
 
       KOBE SANNOMIYA FC
 
     </footer>
+
 
   </div>
 
