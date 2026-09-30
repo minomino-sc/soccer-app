@@ -1,0 +1,26 @@
+name: Hankyu PDF bbox test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check pdftotext
+        run: |
+          which pdftotext
+          pdftotext -v
+
+      - name: Run Hankyu bbox test
+        run: |
+          node sannomiya-fc-bus/timetable-check/test-hankyu-bbox.js
