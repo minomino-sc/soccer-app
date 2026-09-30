@@ -1417,6 +1417,12 @@ footer {
    TIMETABLE CHECK TOGGLE
 ========================================================= */
 
+/* 折りたたみ */
+.timetable-check-panel.hidden {
+  display: none;
+}
+
+
 .timetable-check-toggle {
   width: 100%;
   margin-top: 8px;
