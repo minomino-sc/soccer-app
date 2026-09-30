@@ -105,6 +105,13 @@ function main() {
         "bytes"
       );
 
+console.log("");
+console.log("===== RAW HTML =====");
+console.log(html);
+console.log("====================");
+
+      
+
       console.log("");
       console.log("===== 対象文字列確認 =====");
 
