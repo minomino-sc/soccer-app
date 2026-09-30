@@ -1,52 +1,13 @@
 {
   "__version": 5,
   "hankyu_158": {
-    "hash": "e953dea07a598c3c734eba8a9cb6d207b9de09b689c948516aa76c3e1173901c",
+    "hash": "7531e3d69c0c271d46503686cef4b56dd759daefe2c66fe5cd614f4cc7a3e65d",
     "timetable": {
-      "weekday": [
-        "9e9234697734876469ad07beada4e05d6a2d797aa4c8f35401ac0a236abb67bd",
-        "4e6113470acca51e058b7cfd819d678f47b8a7feb570145afab457fc9c69babd",
-        "9dbee9c214b78b6eb93382a6835b8620e80d168f7ea48f42f36ed9c230feaeca",
-        "1bbb5e43623c99cfdd842b50e523c88c968489ccf87653e7e28def06fb5b9598",
-        "4968a7f0c795e6643731db458e20e9fcbf115641b21a758d54441095f21f9331",
-        "b017c7d6fbab78a1a6ca7d9b46a0dc9c435e276aae9888aeafe324c755328378",
-        "01a08aafab85a9f76524a6f4046ea409bf63f218a1b692d03e95d1cd3d92d0f0",
-        "8f7be49fa1112e99ae77ad3882b3b8bd5373489eb2f02da8c67469361b311105",
-        "7e4bfdede7734c9979486f187f96c2c96846381c1ae6055679b13efda822ddf0",
-        "2723af5392c290adbbacf7aa5710e3bc5c76852070f5d1daa716e9669ab725cd",
-        "fcb3b6b28b28d3696f0a3c68474c2e2e4cd8eb096ea82f691d669acfb3e290db",
-        "36268cfe02a6f1fcc83dc2f6da3d88d22a946d7993d99992cd60a929728812f1",
-        "da6ba4d376d3f21d67672aec06ef95df91dccca40c91b272c27588791f311c5f",
-        "f27cccf04d08e5f8bede1e80cb7e727436fd52ef55c3814d61c6f3efbff02ab7",
-        "52c1b78ba104f0904903bf342681191c843cc6ce8b17525a32733b7f74dd39f3",
-        "e6d872262619d1c1b210b4a2f22711eb71905a1132a1ecc775ecd892a6f1baa0",
-        "7b504edd7f217392b01f08b3814c6465545cfab2a904fb15968007dd1cf19340",
-        "374213cef23d94e0fdf3b1dbc35048643c84ee4f936097f990554e38fe5f5819",
-        "a6bac7526cd12e81a2ecffdfc499383da8f5696096f338d2e841b588b6c8f2b2"
-      ],
-      "weekend": [
-        "c626e2c14d6662ab326b3d60a57da123e9f203102863253f93ff9f976970fe9d",
-        "ed481eafa4501eb28847eaeecb43457060de7b1e90c179c668ac2e46eb18b2cf",
-        "2ef648088e07914051aee1847a32d1449a0527950f7296fa667e494e5e2926d4",
-        "0f9ecff746ae2fa16d17494880af4fc11da9d5bf6d9412a6882a2dddbc1a2098",
-        "b6286889381b71072d2b09f403ff7de0a82a846c6de882f2beab4d60dadd4353",
-        "3a90f12b3ea789e9694a369a4887aadf35111309fcc6cfd88b63fad714bd2501",
-        "a7752ca50c5b175313f46f9458bdb4c62d02dde16df99e1e00e1e96a38827570",
-        "579d90026939d588657b49ad2833da80b2f22739d271f927d1f726d4cc79fe84",
-        "689db8d6c649d25d584c6db51e2d6fa4d0ed9f360c67a91dfa1b81c8f0145886",
-        "21a8db2e3e59a408ecbb187b07f96175af8088458e51d9b31f69eb9b326f0a84",
-        "433d4453334265ab8a6340644f6c543567872412a600c79680a38dc3f8a2d2be",
-        "9e49b1ec2d3602c60be78360adc66b59ec0f2ca978105a69f9f4e0f8226c28a5",
-        "c1ca1fc3a599fd7c7adaef6c6dbfca5638b6774b5d3647fc7a64940331fb86c3",
-        "b00a3fc094a0706205621d9aba1d40a6eb147afb6acc07e2b9a099ba55e5d917",
-        "a11545fe9ff1c093aa042941bd6662024cbb4eb165746153b48cc05998ef634e",
-        "99248f9c720ce14a0b7a58ac9151ad85ccca29334a73056a46e7dbd957f5fc6f",
-        "a1cf7f8231b11dffd141ec13375dfac180a7fd9d2a358e21ed7b6ece63c2c9aa",
-        "99f474141a9ab8bbc07294d6ff3b46882b234c83b2fdac6df6b822a520394e7b",
-        "65b4ea9e282e054ad9875f2d079e1bba468d64983e73d35fe763386b9aea366c"
-      ]
+      "type": "hankyu-update-check",
+      "route": "日の峰1丁目 → 谷上駅 158系統",
+      "updates": []
     },
-    "checkedAt": "2026-09-29T12:41:39.490Z"
+    "checkedAt": "2026-09-30T03:49:35.624Z"
   },
   "subway_tanigami_sannomiya": {
     "hash": "6fadb531040bddbeff95667ee3bb5028350da5d3fbae98ccdf2a6123d29ff82c",
@@ -236,7 +197,7 @@
         "23:55"
       ]
     },
-    "checkedAt": "2026-09-30T01:27:34.593Z"
+    "checkedAt": "2026-09-30T03:49:36.710Z"
   },
   "subway_sannomiya_tanigami": {
     "hash": "c453de3427920dbf62b19a42e8d285a7c3acd53691237c5dd217f65502a3328e",
@@ -426,7 +387,7 @@
         "23:46"
       ]
     },
-    "checkedAt": "2026-09-30T01:27:35.543Z"
+    "checkedAt": "2026-09-30T03:49:37.498Z"
   },
   "portliner_sannomiya_boeki": {
     "hash": "6a38ce7443f1c7a9a117b872eb4d48ec2f2cc9fe860e29503cbdebdd43e7afbd",
@@ -741,7 +702,7 @@
       "23:45",
       "23:52"
     ],
-    "checkedAt": "2026-09-30T01:27:37.164Z"
+    "checkedAt": "2026-09-30T03:49:38.602Z"
   },
   "portliner_boeki_sannomiya": {
     "hash": "8bfc713ca0a4c4b53ab3b102aff06e74069108a07bc3b057811eba1ab6bcdb3b",
@@ -1058,7 +1019,7 @@
       "23:46",
       "23:50"
     ],
-    "checkedAt": "2026-09-30T01:27:38.466Z"
+    "checkedAt": "2026-09-30T03:49:39.591Z"
   },
   "citybus_62": {
     "hash": "75e52a61051c19e09aec31c91f924dad4d5282c7ac6662e0949580694d8a111c",
@@ -1114,7 +1075,7 @@
         "23:50"
       ]
     },
-    "checkedAt": "2026-09-30T01:27:39.404Z"
+    "checkedAt": "2026-09-30T03:49:40.350Z"
   },
   "jr_sannomiya_nada": {
     "hash": "8eeb19b4f1fe175f8048190e4f7efc419e01f9a65b5d9fdd19c117a4ecd5eecf",
@@ -1698,7 +1659,7 @@
         "23:52"
       ]
     },
-    "checkedAt": "2026-09-30T01:27:40.371Z"
+    "checkedAt": "2026-09-30T03:49:41.260Z"
   },
   "jr_nada_sannomiya": {
     "hash": "9c0d75d715e958452f9864be24e46700a742bd2b8471d7d67ee4f1a08d00b9f0",
@@ -1991,6 +1952,6 @@
         "23:49"
       ]
     },
-    "checkedAt": "2026-09-30T01:27:40.998Z"
+    "checkedAt": "2026-09-30T03:49:41.806Z"
   }
 }

@@ -1,13 +1,20 @@
 {
-  "checkedAt": "2026-09-30T01:27:40.999Z",
-  "hasChanges": false,
+  "checkedAt": "2026-09-30T03:49:41.806Z",
+  "hasChanges": true,
   "services": [
     {
       "id": "hankyu_158",
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅 158系統",
-      "status": "error",
-      "message": "確認エラー（阪急3ページ：系統番号ヘッダーを取得できませんでした）"
+      "status": "changed",
+      "message": "時刻表変更を検出",
+      "changes": [
+        {
+          "period": "公式お知らせ",
+          "before": "前回確認時",
+          "after": "公式サイトに変更情報あり"
+        }
+      ]
     },
     {
       "id": "subway_tanigami_sannomiya",
