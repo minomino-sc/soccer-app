@@ -2366,14 +2366,29 @@ else {
   );
 
 
-  const changes =
-    compareTimetable(
-      previous[
-        source.id
-      ]?.timetable,
+const changes =
+  source.type === "hankyu"
 
-      timetable
-    );
+    ? [
+        {
+          period:
+            "公式お知らせ",
+
+          before:
+            "前回確認時",
+
+          after:
+            "公式サイトに変更情報あり"
+        }
+      ]
+
+    : compareTimetable(
+        previous[
+          source.id
+        ]?.timetable,
+
+        timetable
+      );
 
 
   /*
