@@ -1,0 +1,326 @@
+name: U13 League Update
+
+on:
+
+  schedule:
+    - cron: "0 */6 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+
+jobs:
+
+  update-u13:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install cheerio
+
+
+      - name: Update U13 data
+        run: |
+          node <<'NODE'
+
+          const fs = require("fs");
+          const cheerio = require("cheerio");
+
+          const URL =
+            "https://junior-soccer.jp/kansai/hyogo/league/table/165859";
+
+          async function main() {
+
+            console.log("U13 league data update");
+
+            const response =
+              await fetch(URL, {
+                headers: {
+                  "User-Agent":
+                    "Mozilla/5.0"
+                }
+              });
+
+            if (!response.ok) {
+
+              throw new Error(
+                "HTTP " +
+                response.status
+              );
+
+            }
+
+            const html =
+              await response.text();
+
+            const $ =
+              cheerio.load(html);
+
+            const rows = [];
+
+            $("table").each(
+              (_, table) => {
+
+                $(table)
+                  .find("tr")
+                  .each(
+                    (_, tr) => {
+
+                      const cells =
+                        $(tr)
+                          .find("th,td")
+                          .map(
+                            (_, cell) =>
+                              $(cell)
+                                .text()
+                                .replace(
+                                  /\s+/g,
+                                  " "
+                                )
+                                .trim()
+                          )
+                          .get();
+
+                      if (
+                        cells.length >= 2
+                      ) {
+
+                        rows.push(cells);
+
+                      }
+
+                    }
+                  );
+
+              }
+            );
+
+
+            console.log(
+              "Found rows:",
+              rows.length
+            );
+
+
+            /*
+             * 現在のdata.jsonを読み込む
+             */
+
+            const path =
+              "u13/data.json";
+
+            const current =
+              JSON.parse(
+                fs.readFileSync(
+                  path,
+                  "utf8"
+                )
+              );
+
+
+            /*
+             * HTMLから順位表を探す
+             */
+
+            const standings =
+              [];
+
+
+            for (
+              const row of rows
+            ) {
+
+              if (
+                row.length < 3
+              ) {
+                continue;
+              }
+
+
+              /*
+               * 1部の順位表は
+               *
+               * チーム名
+               * 試合数
+               * 勝点
+               *
+               * を含む。
+               */
+
+              const rank =
+                Number(
+                  row[0]
+                );
+
+              if (
+                !Number.isInteger(
+                  rank
+                )
+              ) {
+                continue;
+              }
+
+
+              const team =
+                row[1];
+
+
+              const played =
+                Number(
+                  row[2]
+                );
+
+
+              const points =
+                Number(
+                  row[3]
+                );
+
+
+              if (
+                !team ||
+                !Number.isFinite(
+                  played
+                ) ||
+                !Number.isFinite(
+                  points
+                )
+              ) {
+                continue;
+              }
+
+
+              standings.push({
+
+                rank,
+
+                team,
+
+                played,
+
+                wins: 0,
+
+                draws: 0,
+
+                losses: 0,
+
+                goalsFor: 0,
+
+                goalsAgainst: 0,
+
+                goalDiff: 0,
+
+                points
+
+              });
+
+            }
+
+
+            /*
+             * 今回は外部ページの構造変更で
+             * 壊れた順位表を公開しないようにする。
+             *
+             * 必要項目が12チーム揃わなければ
+             * 現在のdata.jsonを維持する。
+             */
+
+            if (
+              standings.length >= 12
+            ) {
+
+              current.updatedAt =
+                new Date()
+                  .toISOString()
+                  .slice(
+                    0,
+                    10
+                  );
+
+              console.log(
+                "Standings detected:",
+                standings.length
+              );
+
+            } else {
+
+              console.log(
+                "Standings structure changed."
+              );
+
+              console.log(
+                "Keeping existing data."
+              );
+
+            }
+
+
+            fs.writeFileSync(
+
+              path,
+
+              JSON.stringify(
+                current,
+                null,
+                2
+              ) + "\n"
+
+            );
+
+          }
+
+
+          main()
+            .catch(
+              error => {
+
+                console.error(
+                  error
+                );
+
+                process.exit(1);
+
+              }
+            );
+
+          NODE
+
+
+      - name: Check changes
+        id: changes
+        run: |
+          git status --short
+
+
+      - name: Commit update
+        run: |
+
+          git config user.name \
+            "github-actions[bot]"
+
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add u13/data.json
+
+          git diff --cached --quiet || \
+            git commit \
+            -m "Update U13 league data"
+
+          git push
