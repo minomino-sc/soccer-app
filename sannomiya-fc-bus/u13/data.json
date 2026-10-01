@@ -1,0 +1,198 @@
+{
+  "league": "2026年度 兵庫県ルーキーリーグ（U-13）1部",
+  "team": "神戸三宮FC",
+
+  "updatedAt": "2026-09-24",
+
+  "standings": [
+    {
+      "rank": 1,
+      "team": "神戸三宮FC",
+      "played": 7,
+      "wins": 4,
+      "draws": 0,
+      "losses": 3,
+      "goalsFor": 12,
+      "goalsAgainst": 10,
+      "goalDiff": 2,
+      "points": 12
+    },
+    {
+      "rank": 2,
+      "team": "神戸FC B",
+      "played": 3,
+      "wins": 3,
+      "draws": 0,
+      "losses": 0,
+      "goalsFor": 13,
+      "goalsAgainst": 3,
+      "goalDiff": 10,
+      "points": 9
+    },
+    {
+      "rank": 3,
+      "team": "BASARA HYOGO",
+      "played": 3,
+      "wins": 3,
+      "draws": 0,
+      "losses": 0,
+      "goalsFor": 7,
+      "goalsAgainst": 3,
+      "goalDiff": 4,
+      "points": 9
+    },
+    {
+      "rank": 4,
+      "team": "パスィーノ",
+      "played": 2,
+      "wins": 2,
+      "draws": 0,
+      "losses": 0,
+      "goalsFor": 3,
+      "goalsAgainst": 0,
+      "goalDiff": 3,
+      "points": 6
+    },
+    {
+      "rank": 5,
+      "team": "みなとGRAW",
+      "played": 3,
+      "wins": 2,
+      "draws": 0,
+      "losses": 1,
+      "goalsFor": 4,
+      "goalsAgainst": 5,
+      "goalDiff": -1,
+      "points": 6
+    },
+    {
+      "rank": 6,
+      "team": "サルパB",
+      "played": 6,
+      "wins": 2,
+      "draws": 0,
+      "losses": 4,
+      "goalsFor": 7,
+      "goalsAgainst": 13,
+      "goalDiff": -6,
+      "points": 6
+    },
+    {
+      "rank": 7,
+      "team": "Lavizon",
+      "played": 2,
+      "wins": 1,
+      "draws": 0,
+      "losses": 1,
+      "goalsFor": 5,
+      "goalsAgainst": 2,
+      "goalDiff": 3,
+      "points": 3
+    },
+    {
+      "rank": 8,
+      "team": "西宮タイガース",
+      "played": 1,
+      "wins": 1,
+      "draws": 0,
+      "losses": 0,
+      "goalsFor": 3,
+      "goalsAgainst": 1,
+      "goalDiff": 2,
+      "points": 3
+    },
+    {
+      "rank": 9,
+      "team": "Brillare",
+      "played": 3,
+      "wins": 1,
+      "draws": 0,
+      "losses": 2,
+      "goalsFor": 7,
+      "goalsAgainst": 8,
+      "goalDiff": -1,
+      "points": 3
+    },
+    {
+      "rank": 10,
+      "team": "JOGA MAIS",
+      "played": 2,
+      "wins": 0,
+      "draws": 0,
+      "losses": 2,
+      "goalsFor": 0,
+      "goalsAgainst": 5,
+      "goalDiff": -5,
+      "points": 0
+    },
+    {
+      "rank": 11,
+      "team": "芦屋学園FC",
+      "played": 4,
+      "wins": 0,
+      "draws": 0,
+      "losses": 4,
+      "goalsFor": 1,
+      "goalsAgainst": 12,
+      "goalDiff": -11,
+      "points": 0
+    },
+    {
+      "rank": 12,
+      "team": "レアルコリーダ",
+      "played": 3,
+      "wins": 0,
+      "draws": 0,
+      "losses": 3,
+      "goalsFor": 0,
+      "goalsAgainst": 11,
+      "goalDiff": -11,
+      "points": 0
+    }
+  ],
+
+  "matches": [
+    {
+      "date": "2026-09-19",
+      "home": "神戸三宮FC",
+      "away": "西宮タイガース",
+      "homeScore": 1,
+      "awayScore": 3
+    },
+    {
+      "date": "2026-08-29",
+      "home": "神戸三宮FC",
+      "away": "Lavizon",
+      "homeScore": 2,
+      "awayScore": 0
+    },
+    {
+      "date": "2026-07-19",
+      "home": "神戸三宮FC",
+      "away": "Brillare",
+      "homeScore": 2,
+      "awayScore": 1
+    },
+    {
+      "date": "2026-07-11",
+      "home": "BASARA HYOGO",
+      "away": "神戸三宮FC",
+      "homeScore": 2,
+      "awayScore": 1
+    },
+    {
+      "date": "2026-07-05",
+      "home": "神戸三宮FC",
+      "away": "JOGA MAIS",
+      "homeScore": 3,
+      "awayScore": 0
+    },
+    {
+      "date": "2026-06-14",
+      "home": "神戸三宮FC",
+      "away": "芦屋学園FC",
+      "homeScore": 3,
+      "awayScore": 1
+    }
+  ]
+}
