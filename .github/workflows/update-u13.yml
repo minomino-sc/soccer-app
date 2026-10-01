@@ -37,6 +37,7 @@ jobs:
 
       - name: Update U13 data
         run: |
+
           node <<'NODE'
 
           const fs = require("fs");
@@ -45,17 +46,161 @@ jobs:
           const URL =
             "https://junior-soccer.jp/kansai/hyogo/league/table/165859";
 
+          const TEAM_NAME =
+            "神戸三宮FC";
+
+          const DATA_PATH =
+            "u13/data.json";
+
+
+          /*
+           * -------------------------------------------------------
+           * 数値変換
+           * -------------------------------------------------------
+           */
+
+          function toNumber(value) {
+
+            const n =
+              Number(
+                String(value || "")
+                  .replace(/[^\d-]/g, "")
+              );
+
+            return Number.isFinite(n)
+              ? n
+              : null;
+
+          }
+
+
+          /*
+           * -------------------------------------------------------
+           * スコア解析
+           *
+           * 例
+           * 2○1
+           * 1●3
+           * 0△0
+           * -------------------------------------------------------
+           */
+
+          function parseScore(text) {
+
+            const value =
+              String(text || "")
+                .replace(/\s+/g, "")
+                .trim();
+
+            const match =
+              value.match(
+                /^(\d+)([○●△])(\d+)$/
+              );
+
+            if (!match) {
+              return null;
+            }
+
+            return {
+
+              home:
+                Number(match[1]),
+
+              symbol:
+                match[2],
+
+              away:
+                Number(match[3])
+
+            };
+
+          }
+
+
+          /*
+           * -------------------------------------------------------
+           * 勝敗判定
+           * -------------------------------------------------------
+           */
+
+          function resultFromScore(
+            score,
+            isHome
+          ) {
+
+            if (!score) {
+              return null;
+            }
+
+            const myScore =
+              isHome
+                ? score.home
+                : score.away;
+
+            const opponentScore =
+              isHome
+                ? score.away
+                : score.home;
+
+            if (
+              myScore >
+              opponentScore
+            ) {
+
+              return "win";
+
+            }
+
+            if (
+              myScore <
+              opponentScore
+            ) {
+
+              return "loss";
+
+            }
+
+            return "draw";
+
+          }
+
+
+          /*
+           * -------------------------------------------------------
+           * メイン
+           * -------------------------------------------------------
+           */
+
           async function main() {
 
-            console.log("U13 league data update");
+            console.log(
+              "======================================"
+            );
+
+            console.log(
+              "U13 league data update"
+            );
+
+            console.log(
+              "======================================"
+            );
+
+
+            /*
+             * 外部ページ取得
+             */
 
             const response =
-              await fetch(URL, {
-                headers: {
-                  "User-Agent":
-                    "Mozilla/5.0"
+              await fetch(
+                URL,
+                {
+                  headers: {
+                    "User-Agent":
+                      "Mozilla/5.0"
+                  }
                 }
-              });
+              );
+
 
             if (!response.ok) {
 
@@ -66,214 +211,690 @@ jobs:
 
             }
 
+
             const html =
               await response.text();
+
 
             const $ =
               cheerio.load(html);
 
-            const rows = [];
+
+            /*
+             * -----------------------------------------------------
+             * 1部の対戦表を探す
+             * -----------------------------------------------------
+             */
+
+            let leagueTable = null;
+
 
             $("table").each(
               (_, table) => {
 
-                $(table)
-                  .find("tr")
-                  .each(
-                    (_, tr) => {
+                if (leagueTable) {
+                  return;
+                }
 
-                      const cells =
-                        $(tr)
-                          .find("th,td")
-                          .map(
-                            (_, cell) =>
-                              $(cell)
-                                .text()
-                                .replace(
-                                  /\s+/g,
-                                  " "
-                                )
-                                .trim()
-                          )
-                          .get();
 
-                      if (
-                        cells.length >= 2
-                      ) {
+                const text =
+                  $(table).text();
 
-                        rows.push(cells);
 
-                      }
+                if (
+                  text.includes(
+                    TEAM_NAME
+                  ) &&
+                  text.includes(
+                    "BASARA HYOGO"
+                  ) &&
+                  text.includes(
+                    "パスィーノ"
+                  )
+                ) {
 
-                    }
-                  );
+                  leagueTable =
+                    $(table);
+
+                }
 
               }
             );
 
 
+            if (!leagueTable) {
+
+              throw new Error(
+                "U13 1部の対戦表を検出できませんでした。"
+              );
+
+            }
+
+
             console.log(
-              "Found rows:",
-              rows.length
+              "U13 1部対戦表を検出しました。"
             );
 
 
             /*
-             * 現在のdata.jsonを読み込む
+             * -----------------------------------------------------
+             * ヘッダー取得
+             * -----------------------------------------------------
              */
 
-            const path =
-              "u13/data.json";
+            const headerRows =
+              leagueTable
+                .find("tr")
+                .first()
+                .find("th,td");
+
+
+            const teams = [];
+
+
+            headerRows.each(
+              (_, cell) => {
+
+                const name =
+                  $(cell)
+                    .text()
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+
+                if (
+                  name &&
+                  name !== "暫定順位"
+                ) {
+
+                  teams.push(name);
+
+                }
+
+              }
+            );
+
+
+            /*
+             * -----------------------------------------------------
+             * 12チーム確認
+             * -----------------------------------------------------
+             */
+
+            console.log(
+              "Detected teams:",
+              teams.length
+            );
+
+
+            console.log(
+              teams
+            );
+
+
+            if (
+              teams.length !== 12
+            ) {
+
+              throw new Error(
+                "12チームを検出できませんでした。検出数: " +
+                teams.length
+              );
+
+            }
+
+
+            if (
+              !teams.includes(
+                TEAM_NAME
+              )
+            ) {
+
+              throw new Error(
+                TEAM_NAME +
+                " が対戦表に存在しません。"
+              );
+
+            }
+
+
+            /*
+             * -----------------------------------------------------
+             * チーム統計初期化
+             * -----------------------------------------------------
+             */
+
+            const stats = {};
+
+
+            teams.forEach(
+              team => {
+
+                stats[team] = {
+
+                  rank: 0,
+
+                  team,
+
+                  played: 0,
+
+                  wins: 0,
+
+                  draws: 0,
+
+                  losses: 0,
+
+                  goalsFor: 0,
+
+                  goalsAgainst: 0,
+
+                  goalDiff: 0,
+
+                  points: 0
+
+                };
+
+              }
+            );
+
+
+            /*
+             * -----------------------------------------------------
+             * 対戦結果
+             *
+             * 同じ試合を2回数えないように、
+             * 左上から右下方向だけ処理する。
+             * -----------------------------------------------------
+             */
+
+            const matches = [];
+
+
+            const bodyRows =
+              leagueTable
+                .find("tr")
+                .slice(1);
+
+
+            bodyRows.each(
+              (_, tr) => {
+
+                const cells =
+                  $(tr)
+                    .find("th,td");
+
+
+                if (
+                  cells.length < 13
+                ) {
+
+                  return;
+
+                }
+
+
+                const homeTeam =
+                  $(cells[0])
+                    .text()
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+
+                if (
+                  !stats[homeTeam]
+                ) {
+
+                  return;
+
+                }
+
+
+                for (
+                  let j = 1;
+                  j <= 12;
+                  j++
+                ) {
+
+                  const awayTeam =
+                    teams[j - 1];
+
+
+                  if (
+                    !awayTeam ||
+                    homeTeam === awayTeam
+                  ) {
+
+                    continue;
+
+                  }
+
+
+                  /*
+                   * 同じ試合を重複取得しない。
+                   */
+
+                  const homeIndex =
+                    teams.indexOf(
+                      homeTeam
+                    );
+
+
+                  const awayIndex =
+                    teams.indexOf(
+                      awayTeam
+                    );
+
+
+                  if (
+                    homeIndex >=
+                    awayIndex
+                  ) {
+
+                    continue;
+
+                  }
+
+
+                  const cellText =
+                    $(cells[j])
+                      .text()
+                      .replace(/\s+/g, "")
+                      .trim();
+
+
+                  const score =
+                    parseScore(
+                      cellText
+                    );
+
+
+                  if (!score) {
+                    continue;
+                  }
+
+
+                  console.log(
+                    homeTeam +
+                    " " +
+                    score.home +
+                    "-" +
+                    score.away +
+                    " " +
+                    awayTeam
+                  );
+
+
+                  /*
+                   * ホーム側
+                   */
+
+                  stats[homeTeam]
+                    .played++;
+
+                  stats[homeTeam]
+                    .goalsFor +=
+                    score.home;
+
+                  stats[homeTeam]
+                    .goalsAgainst +=
+                    score.away;
+
+
+                  /*
+                   * アウェイ側
+                   */
+
+                  stats[awayTeam]
+                    .played++;
+
+                  stats[awayTeam]
+                    .goalsFor +=
+                    score.away;
+
+                  stats[awayTeam]
+                    .goalsAgainst +=
+                    score.home;
+
+
+                  /*
+                   * 勝敗
+                   */
+
+                  if (
+                    score.home >
+                    score.away
+                  ) {
+
+                    stats[homeTeam]
+                      .wins++;
+
+                    stats[homeTeam]
+                      .points += 3;
+
+                    stats[awayTeam]
+                      .losses++;
+
+                  }
+
+                  else if (
+                    score.home <
+                    score.away
+                  ) {
+
+                    stats[awayTeam]
+                      .wins++;
+
+                    stats[awayTeam]
+                      .points += 3;
+
+                    stats[homeTeam]
+                      .losses++;
+
+                  }
+
+                  else {
+
+                    stats[homeTeam]
+                      .draws++;
+
+                    stats[awayTeam]
+                      .draws++;
+
+                    stats[homeTeam]
+                      .points++;
+
+                    stats[awayTeam]
+                      .points++;
+
+                  }
+
+
+                  /*
+                   * 神戸三宮FCの試合を保存
+                   */
+
+                  if (
+                    homeTeam ===
+                      TEAM_NAME ||
+                    awayTeam ===
+                      TEAM_NAME
+                  ) {
+
+                    const isHome =
+                      homeTeam ===
+                      TEAM_NAME;
+
+                    const myScore =
+                      isHome
+                        ? score.home
+                        : score.away;
+
+                    const opponentScore =
+                      isHome
+                        ? score.away
+                        : score.home;
+
+                    const opponent =
+                      isHome
+                        ? awayTeam
+                        : homeTeam;
+
+
+                    const result =
+                      resultFromScore(
+                        score,
+                        isHome
+                      );
+
+
+                    matches.push({
+
+                      date: "",
+
+                      opponent,
+
+                      score:
+                        myScore +
+                        "-" +
+                        opponentScore,
+
+                      result
+
+                    });
+
+                  }
+
+                }
+
+              }
+            );
+
+
+            /*
+             * -----------------------------------------------------
+             * 得失点差
+             * -----------------------------------------------------
+             */
+
+            Object.values(
+              stats
+            ).forEach(
+              item => {
+
+                item.goalDiff =
+                  item.goalsFor -
+                  item.goalsAgainst;
+
+              }
+            );
+
+
+            /*
+             * -----------------------------------------------------
+             * 順位決定
+             *
+             * 勝点
+             * 得失点差
+             * 得点
+             * の順
+             * -----------------------------------------------------
+             */
+
+            const standings =
+              Object.values(stats)
+                .sort(
+                  (a, b) => {
+
+                    if (
+                      b.points !==
+                      a.points
+                    ) {
+
+                      return (
+                        b.points -
+                        a.points
+                      );
+
+                    }
+
+                    if (
+                      b.goalDiff !==
+                      a.goalDiff
+                    ) {
+
+                      return (
+                        b.goalDiff -
+                        a.goalDiff
+                      );
+
+                    }
+
+                    return (
+                      b.goalsFor -
+                      a.goalsFor
+                    );
+
+                  }
+                )
+                .map(
+                  (item, index) => {
+
+                    return {
+
+                      ...item,
+
+                      rank:
+                        index + 1
+
+                    };
+
+                  }
+                );
+
+
+            /*
+             * -----------------------------------------------------
+             * 12チームの順位表として成立しているか確認
+             * -----------------------------------------------------
+             */
+
+            if (
+              standings.length !== 12
+            ) {
+
+              throw new Error(
+                "順位表が12チームになっていません。"
+              );
+
+            }
+
+
+            /*
+             * -----------------------------------------------------
+             * 神戸三宮FCの存在確認
+             * -----------------------------------------------------
+             */
+
+            const sannomiya =
+              standings.find(
+                item =>
+                  item.team ===
+                  TEAM_NAME
+              );
+
+
+            if (!sannomiya) {
+
+              throw new Error(
+                "神戸三宮FCの順位を取得できませんでした。"
+              );
+
+            }
+
+
+            console.log(
+              "--------------------------------------"
+            );
+
+            console.log(
+              "神戸三宮FC"
+            );
+
+            console.log(
+              "順位:",
+              sannomiya.rank
+            );
+
+            console.log(
+              "試合:",
+              sannomiya.played
+            );
+
+            console.log(
+              "勝:",
+              sannomiya.wins
+            );
+
+            console.log(
+              "分:",
+              sannomiya.draws
+            );
+
+            console.log(
+              "負:",
+              sannomiya.losses
+            );
+
+            console.log(
+              "得点:",
+              sannomiya.goalsFor
+            );
+
+            console.log(
+              "失点:",
+              sannomiya.goalsAgainst
+            );
+
+            console.log(
+              "得失:",
+              sannomiya.goalDiff
+            );
+
+            console.log(
+              "勝点:",
+              sannomiya.points
+            );
+
+            console.log(
+              "--------------------------------------"
+            );
+
+
+            /*
+             * -----------------------------------------------------
+             * data.json読み込み
+             * -----------------------------------------------------
+             */
 
             const current =
               JSON.parse(
                 fs.readFileSync(
-                  path,
+                  DATA_PATH,
                   "utf8"
                 )
               );
 
 
             /*
-             * HTMLから順位表を探す
+             * -----------------------------------------------------
+             * data.json更新
+             * -----------------------------------------------------
              */
 
-            const standings =
-              [];
+            current.standings =
+              standings;
 
+            current.matches =
+              matches;
 
-            for (
-              const row of rows
-            ) {
-
-              if (
-                row.length < 3
-              ) {
-                continue;
-              }
-
-
-              /*
-               * 1部の順位表は
-               *
-               * チーム名
-               * 試合数
-               * 勝点
-               *
-               * を含む。
-               */
-
-              const rank =
-                Number(
-                  row[0]
+            current.updatedAt =
+              new Date()
+                .toISOString()
+                .slice(
+                  0,
+                  10
                 );
-
-              if (
-                !Number.isInteger(
-                  rank
-                )
-              ) {
-                continue;
-              }
-
-
-              const team =
-                row[1];
-
-
-              const played =
-                Number(
-                  row[2]
-                );
-
-
-              const points =
-                Number(
-                  row[3]
-                );
-
-
-              if (
-                !team ||
-                !Number.isFinite(
-                  played
-                ) ||
-                !Number.isFinite(
-                  points
-                )
-              ) {
-                continue;
-              }
-
-
-              standings.push({
-
-                rank,
-
-                team,
-
-                played,
-
-                wins: 0,
-
-                draws: 0,
-
-                losses: 0,
-
-                goalsFor: 0,
-
-                goalsAgainst: 0,
-
-                goalDiff: 0,
-
-                points
-
-              });
-
-            }
 
 
             /*
-             * 今回は外部ページの構造変更で
-             * 壊れた順位表を公開しないようにする。
-             *
-             * 必要項目が12チーム揃わなければ
-             * 現在のdata.jsonを維持する。
+             * -----------------------------------------------------
+             * 保存
+             * -----------------------------------------------------
              */
-
-            if (
-              standings.length >= 12
-            ) {
-
-              current.updatedAt =
-                new Date()
-                  .toISOString()
-                  .slice(
-                    0,
-                    10
-                  );
-
-              console.log(
-                "Standings detected:",
-                standings.length
-              );
-
-            } else {
-
-              console.log(
-                "Standings structure changed."
-              );
-
-              console.log(
-                "Keeping existing data."
-              );
-
-            }
-
 
             fs.writeFileSync(
 
-              path,
+              DATA_PATH,
 
               JSON.stringify(
                 current,
@@ -281,6 +902,29 @@ jobs:
                 2
               ) + "\n"
 
+            );
+
+
+            console.log(
+              "======================================"
+            );
+
+            console.log(
+              "U13 data.json updated"
+            );
+
+            console.log(
+              "Standings:",
+              standings.length
+            );
+
+            console.log(
+              "Sannomiya matches:",
+              matches.length
+            );
+
+            console.log(
+              "======================================"
             );
 
           }
@@ -303,7 +947,6 @@ jobs:
 
 
       - name: Check changes
-        id: changes
         run: |
           git status --short
 
