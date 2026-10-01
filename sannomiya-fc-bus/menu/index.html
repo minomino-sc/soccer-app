@@ -66,6 +66,47 @@
       overflow-x: hidden;
     }
 
+
+    /* =========================================
+       SANNOMIYA FC EMBLEM BACKGROUND
+       乗換案内システムと同じ背景
+    ========================================= */
+
+    body::before {
+      content: "";
+
+      position: fixed;
+      left: 50%;
+      top: 120px;
+
+      width: 100vw;
+      height: 750px;
+
+      transform: translateX(-50%);
+
+      background-image:
+        url("../36DFB140-A00A-4A74-8352-88AB4126CB2E.png");
+
+      background-repeat: no-repeat;
+
+      background-position:
+        center top;
+
+      background-size:
+        420px auto;
+
+      opacity: 0.14;
+
+      pointer-events: none;
+
+      z-index: 0;
+    }
+
+
+    /* =========================================
+       APP
+    ========================================= */
+
     .app {
       width: 100%;
       max-width: 760px;
@@ -76,6 +117,8 @@
         32px 16px 45px;
 
       position: relative;
+
+      z-index: 1;
     }
 
 
@@ -94,17 +137,33 @@
         rgba(80, 220, 130, 0.20);
     }
 
-.team-emblem {
-  width: 82px;
-  height: 82px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto 14px;
-}    
+
+    /* =========================================
+       TEAM EMBLEM
+    ========================================= */
+
+    .team-emblem {
+      width: 82px;
+      height: 82px;
+
+      object-fit: contain;
+
+      display: block;
+
+      margin:
+        0 auto 14px;
+    }
+
+
+    /* =========================================
+       TITLE
+    ========================================= */
 
     .title {
       font-size: 25px;
+
       font-weight: 900;
+
       letter-spacing: 1.5px;
     }
 
@@ -114,6 +173,7 @@
       color: #67e69a;
 
       font-size: 11px;
+
       font-weight: 700;
 
       letter-spacing: 3px;
@@ -134,11 +194,13 @@
 
     .menu-link {
       display: flex;
+
       align-items: center;
 
       gap: 15px;
 
       width: 100%;
+
       min-height: 82px;
 
       padding:
@@ -201,6 +263,7 @@
       flex-shrink: 0;
 
       display: flex;
+
       align-items: center;
       justify-content: center;
 
@@ -218,6 +281,7 @@
 
     .menu-title {
       font-size: 17px;
+
       font-weight: 900;
     }
 
@@ -278,22 +342,6 @@
 
 
     /* =========================================
-       JUNIOR YOUTH MATCH RESULTS
-    ========================================= */
-
-    .result-icon {
-      background:
-        linear-gradient(
-          145deg,
-          rgba(21, 116, 67, 0.95),
-          rgba(8, 53, 31, 0.98)
-        );
-
-      font-size: 25px;
-    }
-
-
-    /* =========================================
        FOOTER
     ========================================= */
 
@@ -345,23 +393,23 @@
          HEADER
     ====================================== -->
 
-<header class="header">
+    <header class="header">
 
-  <img
-    class="team-emblem"
-    src="../36DFB140-A00A-4A74-8352-88AB4126CB2E.png"
-    alt="KOBE SANNOMIYA FC"
-  >
+      <img
+        class="team-emblem"
+        src="../36DFB140-A00A-4A74-8352-88AB4126CB2E.png"
+        alt="KOBE SANNOMIYA FC"
+      >
 
-  <div class="title">
-    ⚽️ 神戸三宮FC ⚽️
-  </div>
+      <div class="title">
+        ⚽️ 神戸三宮FC ⚽️
+      </div>
 
-  <div class="subtitle">
-    JUNIOR YOUTH
-  </div>
+      <div class="subtitle">
+        JUNIOR YOUTH
+      </div>
 
-</header>
+    </header>
 
 
     <!-- =====================================
