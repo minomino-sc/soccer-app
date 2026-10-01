@@ -1,12 +1,11 @@
 <!doctype html>
+
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚽ 箕谷SC（6年生） メインメニュー ⚽</title>
-
 <link rel="apple-touch-icon" href="IMG_4611.jpeg">
- 
 <style>
 /*body{
   margin:0;
@@ -14,15 +13,13 @@
   background: url("IMG_4611.jpeg") no-repeat center center/cover;
   height:100vh;
 }*/
- 
- body{
+body{
   margin:0;
   font-family: system-ui;
   background: url("IMG_4611.jpeg") no-repeat center center/contain;
   background-color: black;
   height:100vh;
 }
-
 /* 背景を暗くする */
 .overlay{
   background: rgba(0,0,0,0.1);
@@ -30,24 +27,20 @@
   padding:20px;
   box-sizing:border-box;
 }
-
 h1{
   text-align:center;
   color:white;
   margin-bottom:30px;
   text-shadow:0 2px 8px rgba(0,0,0,0.7);
-  /* 追加 ↓ */
   white-space: nowrap;
   font-size:20px;
 }
-
 /* メニュー */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:15px;
 }
-
 /* カード */
 .card{
   background: rgba(255,255,255,0.9);
@@ -61,190 +54,385 @@ h1{
   box-shadow:0 4px 12px rgba(0,0,0,0.2);
   transition:0.2s;
 }
-
 /* タップ時 */
 .card:active{
   transform:scale(0.95);
 }
-
 .icon{
   font-size:28px;
   display:block;
   margin-bottom:6px;
 }
- 
 /* =========================
-   Instagram フッター（改善版）
+   Instagram フッター
 ========================= */
-
 .footer-insta{
   text-align:center;
-  margin-top:80px;   /* ←ここでしっかり離す */
+  margin-top:80px;
   padding-bottom:20px;
 }
-
 /* 上のライン */
 .insta-line{
   width:50%;
   height:1px;
-  margin:0 auto 20px;  /* ←下に余白 */
+  margin:0 auto 20px;
   background:rgba(255,255,255,0.2);
 }
-
 /* リンク */
 .footer-insta a{
   display:inline-flex;
   align-items:center;
   gap:12px;
   text-decoration:none;
-  color:#fff;   /* ←白に変更（青っぽさ消す） */
+  color:#fff;
 }
-
 /* チーム名 */
 .team-name{
   font-size:16px;
   font-weight:bold;
   letter-spacing:1px;
 }
-
 /* FOLLOW US */
 .follow-text{
   font-size:11px;
-  opacity:0.7;   /* ←控えめにする */
+  opacity:0.7;
   letter-spacing:2px;
 }
-
 /* アイコン */
 .insta-icon{
   width:20px;
   height:20px;
 }
-
 /* タップ */
 .footer-insta a:active{
   transform:scale(0.95);
 }
-
-/* ホバー（スマホでも一応効く） */
+/* ホバー */
 .footer-insta a:hover{
   opacity:0.7;
 }
-
-/* 黒背景ゾーン（これが無いとダサい） */
+/* 黒背景ゾーン */
 .insta-bg{
- background: transparent;   /* ←黒消す */
+  background:transparent;
   padding:30px 0;
   text-align:center;
-} 
+}
+/* =========================
+   管理者メニュー
+========================= */
+.admin-card{
+  cursor:pointer;
+  border:2px solid rgba(255,255,255,0.8);
+}
+/* =========================
+   パスワード入力画面
+========================= */
+.password-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.75);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
+}
+.password-box{
+  width:100%;
+  max-width:340px;
+  background:white;
+  border-radius:18px;
+  padding:25px 20px;
+  box-sizing:border-box;
+  text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+}
+.password-box h2{
+  margin:0 0 10px;
+  font-size:20px;
+}
+.password-box p{
+  margin:0 0 18px;
+  color:#666;
+  font-size:14px;
+}
+.password-input{
+  width:100%;
+  box-sizing:border-box;
+  padding:13px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  font-size:16px;
+  text-align:center;
+  margin-bottom:12px;
+}
+.password-buttons{
+  display:flex;
+  gap:10px;
+}
+.password-buttons button{
+  flex:1;
+  padding:12px 5px;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.cancel-btn{
+  background:#ddd;
+  color:#333;
+}
+.login-btn{
+  background:#222;
+  color:white;
+}
+.password-error{
+  display:none;
+  color:#d00;
+  font-size:13px;
+  margin:-3px 0 10px;
+}
  
 </style>
 </head>
-
 <body>
-
 <div class="overlay">
-
 <h1>⚽ 箕谷SC（6年生） メインメニュー ⚽</h1>
-
 <div class="grid">
-
   <a class="card" href="../">
     <span class="icon">🎥</span>
     動画共有システム
   </a>
-
   <a class="card" href="../attendance/">
     <span class="icon">📋</span>
     出欠管理システム
   </a>
-
   <a class="card" href="../annual/">
     <span class="icon">📅</span>
     年間スケジュール
   </a>
-
   <a class="card" href="../coach/">
     <span class="icon">👨‍🏫</span>
     コーチ練習出欠
   </a>
-
   <a class="card" href="https://band.us/">
     <span class="icon">💬</span>
     BAND
   </a>
-
   <a class="card" href="https://drive.google.com/drive/mobile/folders/1dqvJjv3m3YinhfBeg07RRLMaZioZ9bsv">
     <span class="icon">📁</span>
     Googleドライブ
   </a>
-
   <a class="card" href="../haisha/">
     <span class="icon">🚗</span>
     配車管理システム
   </a>
-
+  <!-- =========================
+       ゴールハイライト作成
+       管理者専用
+  ========================== -->
+  <div class="card admin-card" onclick="openAdminLogin()">
+    <span class="icon">⚽</span>
+    ゴールハイライト作成
+  </div>
 </div>
-
 <div id="counter" style="
   text-align:center;
   color:white;
   margin-top:20px;
- margin-bottom:30px;  /* ←これ追加 */
+  margin-bottom:30px;
   font-size:18px;
   font-weight:bold;
   text-shadow:0 2px 6px rgba(0,0,0,0.8);
 ">
   閲覧数：...
 </div>
-
 <div class="footer-insta">
-
   <div class="insta-bg">
-
-    <div class="insta-line"></div>
-
-    <a href="https://instagram.com/minotani_sc" target="_blank">
-      <span class="team-name">Minotani SC</span>
-      <span class="follow-text">FOLLOW US</span>
-      <img src="IMG_4662.jpeg" class="insta-icon">
-    </a>
-
+<div class="insta-line"></div>
+<a href="https://instagram.com/minotani_sc" target="_blank">
+  <span class="team-name">Minotani SC</span>
+  <span class="follow-text">FOLLOW US</span>
+  <img src="IMG_4662.jpeg" class="insta-icon">
+</a>
   </div>
-
 </div>
-
+</div>
+<!-- =========================
+     管理者パスワード入力
+========================= -->
+<div id="passwordModal" class="password-modal">
+  <div class="password-box">
+<h2>🔐 管理者専用</h2>
+<p>
+  ゴールハイライト作成システムを<br>
+  開くにはパスワードが必要です。
+</p>
+<input
+  id="adminPassword"
+  class="password-input"
+  type="password"
+  placeholder="パスワード"
+  autocomplete="off"
+>
+<div id="passwordError" class="password-error">
+  パスワードが違います。
+</div>
+<div class="password-buttons">
+  <button
+    type="button"
+    class="cancel-btn"
+    onclick="closeAdminLogin()">
+    キャンセル
+  </button>
+  <button
+    type="button"
+    class="login-btn"
+    onclick="checkAdminPassword()">
+    開く
+  </button>
+</div>
+  </div>
+</div>
+<script>
+/* =========================================================
+   管理者パスワード
+========================================================= */
+/*
+ * ゴールハイライト作成システムの管理者パスワード
+ *
+ * ここを書き換えるだけで変更できます。
+ */
+const ADMIN_PASSWORD = "minotani2026";
+/* =========================================================
+   ゴールハイライト作成システム
+========================================================= */
+const GOAL_HIGHLIGHT_URL =
+  "../goal-highlight/";
+/* =========================================================
+   パスワード画面を開く
+========================================================= */
+function openAdminLogin(){
+  const modal =
+    document.getElementById("passwordModal");
+  const input =
+    document.getElementById("adminPassword");
+  const error =
+    document.getElementById("passwordError");
+  input.value = "";
+  error.style.display = "none";
+  modal.style.display = "flex";
+  setTimeout(() => {
+    input.focus();
+  }, 100);
+}
+/* =========================================================
+   パスワード画面を閉じる
+========================================================= */
+function closeAdminLogin(){
+  document.getElementById("passwordModal").style.display =
+    "none";
+}
+/* =========================================================
+   パスワード確認
+========================================================= */
+function checkAdminPassword(){
+  const input =
+    document.getElementById("adminPassword");
+  const error =
+    document.getElementById("passwordError");
+  if(input.value === ADMIN_PASSWORD){
+    /*
+     * 正しいパスワードなら
+     * ゴールハイライト作成システムへ移動
+     */
+    window.location.href =
+      GOAL_HIGHLIGHT_URL;
+  }else{
+    error.style.display = "block";
+    input.value = "";
+    input.focus();
+  }
+}
+/* =========================================================
+   Enterキーでもログイン
+========================================================= */
+document
+  .getElementById("adminPassword")
+  .addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      checkAdminPassword();
+    }
+    if(e.key === "Escape"){
+      closeAdminLogin();
+    }
+  });
+/* =========================================================
+   モーダル外をタップしたら閉じる
+========================================================= */
+document
+  .getElementById("passwordModal")
+  .addEventListener("click", function(e){
+    if(e.target === this){
+      closeAdminLogin();
+    }
+  });
+</script>
+<!-- =========================================================
+     Firebase 閲覧数
+========================================================= -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, increment } 
+import {
+  initializeApp
+}
+from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  increment
+}
 from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
- 
-// あなたのFirebase設定
+/* あなたのFirebase設定 */
 const firebaseConfig = {
   apiKey: "★★★★★",
   authDomain: "★★★★★",
   projectId: "minotani-sc-app"
-
 };
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const ref = doc(db, "app", "menu");
-
-try {
- await setDoc(ref, {
-  views: increment(1)
-}, { merge: true });
-
-  const snap = await getDoc(ref);
-  const count = snap.data().views;
-
-  document.getElementById("counter").innerText = "閲覧数 👀：" + count;
-
-} catch(e){
+const app =
+  initializeApp(firebaseConfig);
+const db =
+  getFirestore(app);
+const ref =
+  doc(
+    db,
+    "app",
+    "menu"
+  );
+try{
+  await setDoc(
+    ref,
+    {
+      views: increment(1)
+    },
+    {
+      merge:true
+    }
+  );
+  const snap =
+    await getDoc(ref);
+  const count =
+    snap.data().views;
+  document
+    .getElementById("counter")
+    .innerText =
+      "閲覧数 👀：" + count;
+}catch(e){
   alert(e.message);
 }
 </script>
-
 </body>
 </html>
