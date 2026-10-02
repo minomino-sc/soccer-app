@@ -24,13 +24,14 @@
     content="神戸三宮FC"
   >
 
-<link
-  rel="apple-touch-icon"
-  sizes="180x180"
-  href="./36DFB140-A00A-4A74-8352-88AB4126CB2E.png?v=2"
->
-  
+  <link
+    rel="apple-touch-icon"
+    sizes="180x180"
+    href="./36DFB140-A00A-4A74-8352-88AB4126CB2E.png?v=2"
+  >
+
   <title>⚽ 神戸三宮FC ⚽</title>
+
 
   <style>
 
@@ -38,12 +39,14 @@
       box-sizing: border-box;
     }
 
+
     html,
     body {
       margin: 0;
       padding: 0;
       min-height: 100%;
     }
+
 
     body {
       font-family:
@@ -75,7 +78,6 @@
 
     /* =========================================
        SANNOMIYA FC EMBLEM BACKGROUND
-       乗換案内システムと同じ背景
     ========================================= */
 
     body::before {
@@ -117,6 +119,7 @@
       width: 100%;
       max-width: 760px;
       min-height: 100vh;
+
       margin: 0 auto;
 
       padding:
@@ -145,23 +148,6 @@
 
 
     /* =========================================
-       TEAM EMBLEM
-    ========================================= */
-
-    .team-emblem {
-      width: 82px;
-      height: 82px;
-
-      object-fit: contain;
-
-      display: block;
-
-      margin:
-        0 auto 14px;
-    }
-
-
-    /* =========================================
        TITLE
     ========================================= */
 
@@ -172,6 +158,7 @@
 
       letter-spacing: 1.5px;
     }
+
 
     .subtitle {
       margin-top: 7px;
@@ -197,6 +184,7 @@
 
       margin-top: 30px;
     }
+
 
     .menu-link {
       display: flex;
@@ -242,6 +230,7 @@
         background 0.15s;
     }
 
+
     .menu-link:active {
       transform:
         scale(0.985);
@@ -281,15 +270,18 @@
       font-size: 27px;
     }
 
+
     .menu-text {
       min-width: 0;
     }
+
 
     .menu-title {
       font-size: 17px;
 
       font-weight: 900;
     }
+
 
     .menu-subtitle {
       margin-top: 4px;
@@ -302,6 +294,7 @@
 
       line-height: 1.5;
     }
+
 
     .menu-arrow {
       margin-left: auto;
@@ -324,6 +317,7 @@
       color: #ffffff;
     }
 
+
     .brand-icon svg {
       width: 30px;
       height: 30px;
@@ -344,6 +338,163 @@
           #e1306c,
           #ff9f0a
         );
+    }
+
+
+    /* =========================================
+       MATCH RESULTS
+    ========================================= */
+
+    .results-menu {
+      display: none;
+
+      margin-top: -4px;
+
+      padding:
+        0 4px 4px;
+    }
+
+
+    .results-menu.open {
+      display: grid;
+
+      gap: 10px;
+    }
+
+
+    /* =========================================
+       AGE BUTTON
+    ========================================= */
+
+    .age-button {
+      width: 100%;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 12px;
+
+      padding:
+        14px 16px;
+
+      border:
+        1px solid
+        rgba(80, 220, 130, 0.18);
+
+      border-radius: 13px;
+
+      background:
+        rgba(5, 30, 18, 0.92);
+
+      color: #ffffff;
+
+      font-size: 15px;
+
+      font-weight: 900;
+
+      text-align: left;
+
+      cursor: pointer;
+
+      -webkit-tap-highlight-color:
+        rgba(50, 220, 120, 0.18);
+    }
+
+
+    .age-button:active {
+      transform:
+        scale(0.99);
+    }
+
+
+    .age-arrow {
+      color: #63df96;
+
+      font-size: 18px;
+
+      transition:
+        transform 0.2s;
+    }
+
+
+    .age-button.active .age-arrow {
+      transform:
+        rotate(90deg);
+    }
+
+
+    /* =========================================
+       TOURNAMENT LIST
+    ========================================= */
+
+    .tournament-list {
+      display: none;
+
+      padding:
+        2px 0 5px 10px;
+
+      gap: 7px;
+    }
+
+
+    .tournament-list.open {
+      display: grid;
+    }
+
+
+    .tournament-link {
+      display: flex;
+
+      align-items: center;
+
+      gap: 9px;
+
+      min-height: 45px;
+
+      padding:
+        9px 12px;
+
+      border:
+        1px solid
+        rgba(80, 220, 130, 0.13);
+
+      border-radius: 11px;
+
+      background:
+        rgba(9, 48, 29, 0.88);
+
+      color: #ffffff;
+
+      text-decoration: none;
+
+      font-size: 12px;
+
+      font-weight: 700;
+
+      line-height: 1.45;
+
+      transition:
+        background 0.15s,
+        border-color 0.15s;
+    }
+
+
+    .tournament-link:active {
+      background:
+        rgba(20, 80, 47, 0.95);
+
+      border-color:
+        rgba(80, 220, 130, 0.42);
+    }
+
+
+    .tournament-icon {
+      flex-shrink: 0;
+
+      font-size: 15px;
     }
 
 
@@ -376,12 +527,19 @@
           22px 12px 35px;
       }
 
+
       .title {
         font-size: 21px;
       }
 
+
       .menu-title {
         font-size: 16px;
+      }
+
+
+      .tournament-link {
+        font-size: 11px;
       }
 
     }
@@ -389,6 +547,7 @@
   </style>
 
 </head>
+
 
 <body>
 
@@ -449,6 +608,279 @@
         </div>
 
       </a>
+
+
+      <!-- =====================================
+           試合結果
+      ====================================== -->
+
+      <button
+        class="menu-link"
+        type="button"
+        id="resultsButton"
+        onclick="toggleResults()"
+      >
+
+        <div class="menu-icon">
+          ⚽
+        </div>
+
+        <div class="menu-text">
+
+          <div class="menu-title">
+            試合結果
+          </div>
+
+          <div class="menu-subtitle">
+            MATCH RESULTS
+          </div>
+
+        </div>
+
+        <div
+          class="menu-arrow"
+          id="resultsArrow"
+        >
+          ›
+        </div>
+
+      </button>
+
+
+      <!-- =====================================
+           試合結果
+           年代・大会選択
+      ====================================== -->
+
+      <div
+        class="results-menu"
+        id="resultsMenu"
+      >
+
+
+        <!-- ===================================
+             U-13
+        ==================================== -->
+
+        <button
+          class="age-button"
+          type="button"
+          onclick="toggleAge('u13')"
+        >
+
+          <span>
+            🟢 U-13
+          </span>
+
+          <span class="age-arrow">
+            ›
+          </span>
+
+        </button>
+
+
+        <div
+          class="tournament-list"
+          id="u13"
+        >
+
+          <a
+            class="tournament-link"
+            href="https://junior-soccer.jp/kansai/hyogo/league/table/165921"
+            target="_blank"
+            rel="noopener"
+          >
+
+            <span class="tournament-icon">
+              🏆
+            </span>
+
+            <span>
+              兵庫県ルーキーリーグ U-13
+            </span>
+
+          </a>
+
+        </div>
+
+
+        <!-- ===================================
+             U-14
+        ==================================== -->
+
+        <button
+          class="age-button"
+          type="button"
+          onclick="toggleAge('u14')"
+        >
+
+          <span>
+            🔵 U-14
+          </span>
+
+          <span class="age-arrow">
+            ›
+          </span>
+
+        </button>
+
+
+        <div
+          class="tournament-list"
+          id="u14"
+        >
+
+          <a
+            class="tournament-link"
+            href="https://www.juniorsoccer-news.com/post-1907287"
+            target="_blank"
+            rel="noopener"
+          >
+
+            <span class="tournament-icon">
+              🏆
+            </span>
+
+            <span>
+              COPA AZUFLAGY U-14 関西
+            </span>
+
+          </a>
+
+        </div>
+
+
+        <!-- ===================================
+             U-15
+        ==================================== -->
+
+        <button
+          class="age-button"
+          type="button"
+          onclick="toggleAge('u15')"
+        >
+
+          <span>
+            🔴 U-15
+          </span>
+
+          <span class="age-arrow">
+            ›
+          </span>
+
+        </button>
+
+
+        <div
+          class="tournament-list"
+          id="u15"
+        >
+
+
+          <!-- 高円宮杯 -->
+
+          <a
+            class="tournament-link"
+            href="https://www.juniorsoccer-news.com/post-1878025"
+            target="_blank"
+            rel="noopener"
+          >
+
+            <span class="tournament-icon">
+              🏆
+            </span>
+
+            <span>
+              高円宮杯 JFA U-15 兵庫県トップリーグ
+            </span>
+
+          </a>
+
+
+          <!-- フェニックスリーグ -->
+
+          <a
+            class="tournament-link"
+            href="https://www.kobe-fa.gr.jp/wp-content/uploads/2026/02/26_phoenix_lea0330.pdf"
+            target="_blank"
+            rel="noopener"
+          >
+
+            <span class="tournament-icon">
+              🏆
+            </span>
+
+            <span>
+              神戸市フェニックスリーグ
+            </span>
+
+          </a>
+
+
+          <!-- 兵庫県クラブユース -->
+
+          <a
+            class="tournament-link"
+            href="https://www.juniorsoccer-news.com/"
+            target="_blank"
+            rel="noopener"
+          >
+
+            <span class="tournament-icon">
+              🏆
+            </span>
+
+            <span>
+              兵庫県クラブユースサッカー選手権 U-15
+            </span>
+
+          </a>
+
+
+          <!-- 関西クラブユース -->
+
+          <a
+            class="tournament-link"
+            href="https://www.juniorsoccer-news.com/"
+            target="_blank"
+            rel="noopener"
+          >
+
+            <span class="tournament-icon">
+              🏆
+            </span>
+
+            <span>
+              関西クラブユースサッカー選手権 U-15
+            </span>
+
+          </a>
+
+
+          <!-- 秋季クラブユース -->
+
+          <a
+            class="tournament-link"
+            href="https://www.juniorsoccer-news.com/post-1899291"
+            target="_blank"
+            rel="noopener"
+          >
+
+            <span class="tournament-icon">
+              🏆
+            </span>
+
+            <span>
+              クラブユース秋季大会 U-15
+            </span>
+
+          </a>
+
+
+        </div>
+
+
+      </div>
 
 
       <!-- =====================================
@@ -518,6 +950,7 @@
 
       </a>
 
+
     </main>
 
 
@@ -531,6 +964,124 @@
 
 
   </div>
+
+
+  <script>
+
+    /* =========================================
+       試合結果メニュー開閉
+    ========================================= */
+
+    function toggleResults() {
+
+      const menu =
+        document.getElementById(
+          "resultsMenu"
+        );
+
+      const arrow =
+        document.getElementById(
+          "resultsArrow"
+        );
+
+      menu.classList.toggle(
+        "open"
+      );
+
+      if (
+        menu.classList.contains(
+          "open"
+        )
+      ) {
+
+        arrow.style.transform =
+          "rotate(90deg)";
+
+      } else {
+
+        arrow.style.transform =
+          "rotate(0deg)";
+
+      }
+
+    }
+
+
+    /* =========================================
+       年代別大会開閉
+    ========================================= */
+
+    function toggleAge(
+      id
+    ) {
+
+      const list =
+        document.getElementById(
+          id
+        );
+
+      const button =
+        list.previousElementSibling;
+
+      const isOpen =
+        list.classList.contains(
+          "open"
+        );
+
+
+      /*
+       * 同じ年代を閉じる
+       */
+
+      list.classList.toggle(
+        "open"
+      );
+
+      button.classList.toggle(
+        "active"
+      );
+
+
+      /*
+       * 他の年代は閉じる
+       */
+
+      document
+        .querySelectorAll(
+          ".tournament-list"
+        )
+        .forEach(
+          other => {
+
+            if (
+              other !== list
+            ) {
+
+              other.classList.remove(
+                "open"
+              );
+
+              if (
+                other.previousElementSibling
+              ) {
+
+                other
+                  .previousElementSibling
+                  .classList
+                  .remove(
+                    "active"
+                  );
+
+              }
+
+            }
+
+          }
+        );
+
+    }
+
+  </script>
 
 </body>
 </html>
