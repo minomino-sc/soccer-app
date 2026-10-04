@@ -722,7 +722,7 @@ async function seekTo(t) {
    スコア画像
 ========================================================= */
 
-function drawScoreCrop(x = scoreCropX) {
+function drawInitialScoreCrop(x = 125) {
 
   const vw = video.videoWidth || 910;
   const vh = video.videoHeight || 512;
@@ -732,11 +732,26 @@ function drawScoreCrop(x = scoreCropX) {
 
   const sy = 0;
 
+  /*
+   * X=125は75px幅で0-0が確認できた。
+   *
+   * X=105は75px幅だと0-0が欠けるため、
+   * X=105だけ通常の95px幅を使用する。
+   */
+  const cropWidth =
+    x === 125
+      ? 75
+      : 95;
+
   const sw =
-    Math.round(vw * (95 / 910));
+    Math.round(
+      vw * (cropWidth / 910)
+    );
 
   const sh =
-    Math.round(vh * (70 / 512));
+    Math.round(
+      vh * (70 / 512)
+    );
 
   canvas.width = 380;
   canvas.height = 280;
