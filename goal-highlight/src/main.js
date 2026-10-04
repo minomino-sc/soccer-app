@@ -778,6 +778,127 @@ async function recognizeInitialScoreAtX(x, time) {
 }
 
 /* =========================================================
+   初期スコア切り出し確認
+   ※解析処理には使用しない確認用
+========================================================= */
+
+function drawInitialScoreCrop(x = 125) {
+
+  const vw =
+    video.videoWidth || 910;
+
+  const vh =
+    video.videoHeight || 512;
+
+  const sx =
+    Math.round(
+      vw * (x / 910)
+    );
+
+  const sy = 0;
+
+  /*
+   * 初期スコア確認用は
+   * X=125で確認できた幅75を使用
+   */
+  const sw =
+    Math.round(
+      vw * (75 / 910)
+    );
+
+  const sh =
+    Math.round(
+      vh * (70 / 512)
+    );
+
+  canvas.width = 380;
+  canvas.height = 280;
+
+  ctx.fillStyle = '#ffffff';
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  ctx.drawImage(
+    video,
+    sx,
+    sy,
+    sw,
+    sh,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+}
+
+
+async function previewInitialScoreCrop(
+  x,
+  time = 3
+) {
+
+  try {
+
+    await seekTo(time);
+
+    drawInitialScoreCrop(x);
+
+    const preview =
+      document.getElementById(
+        'initialScorePreview'
+      );
+
+    if (!preview) {
+
+      console.warn(
+        'initialScorePreview が見つかりません'
+      );
+
+      return;
+    }
+
+    preview.src =
+      canvas.toDataURL(
+        'image/png'
+      );
+
+    preview.style.display =
+      'block';
+
+    preview.dataset.x =
+      String(x);
+
+    preview.dataset.time =
+      String(time);
+
+    console.log(
+      `初期スコア画像確認: X=${x} / ${fmt(time)}`
+    );
+
+  } catch (e) {
+
+    console.error(
+      '初期スコア画像確認エラー:',
+      e
+    );
+
+  }
+}
+
+
+/*
+ * main.js は module のため、
+ * index.html の onclick から呼べるようにする
+ */
+window.previewInitialScoreCrop =
+  previewInitialScoreCrop;
+
+/* =========================================================
    スコア表示画像の差分検出
    ★OCRが読めなくてもスコア変更そのものを検出する
 ========================================================= */
