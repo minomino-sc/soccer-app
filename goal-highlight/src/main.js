@@ -2188,6 +2188,7 @@ function getGoalType(from, to) {
 /* =========================================================
    初期スコア
    ★最終スコアを先に確認してから初期スコアを決定
+   ★序盤のOCR誤認識を抑制
 ========================================================= */
 
 async function readInitialScore(finalScore) {
@@ -2198,20 +2199,10 @@ async function readInitialScore(finalScore) {
       20
     );
 
-  const sampleTimes = [
-    1,
-    2,
-    3,
-    4,
-    5,
-    7,
-    9,
-    12,
-    16
-  ].filter(
-    t => t < end
-  );
-
+  /*
+   * 通常の動画では従来と同じように
+   * 横方向を探索する。
+   */
   const xCandidates = [
     145,
     125,
@@ -2223,6 +2214,34 @@ async function readInitialScore(finalScore) {
     65,
     225
   ];
+
+  /*
+   * 序盤を少し細かく確認する。
+   *
+   * 特に今回のように
+   *
+   * 実際は 0-0
+   * ↓
+   * OCRだけ 1-0
+   *
+   * となるケースを救済する。
+   */
+  const sampleTimes = [
+    0.5,
+    1,
+    1.5,
+    2,
+    2.5,
+    3,
+    4,
+    5,
+    7,
+    9,
+    12,
+    16
+  ].filter(
+    t => t < end
+  );
 
   const results = [];
 
@@ -2247,7 +2266,6 @@ async function readInitialScore(finalScore) {
       return false;
     }
 
-
     if (
       score.home < 0 ||
       score.away < 0 ||
@@ -2257,35 +2275,21 @@ async function readInitialScore(finalScore) {
       return false;
     }
 
-
-    /*
-     * 最終スコアより大きいスコアは
-     * 初期スコアとしてあり得ない。
-     *
-     * 例：
-     * 最終 1-0
-     * OCR 0-2
-     *
-     * → これは絶対におかしいので除外。
-     */
-
     if (
       score.home >
       finalScore.home ||
       score.away >
       finalScore.away
     ) {
-
       return false;
     }
-
 
     return true;
   };
 
 
   /* =======================================================
-     横方向にスコア位置を探索
+     各X位置を確認
   ======================================================= */
 
   for (
@@ -2294,29 +2298,26 @@ async function readInitialScore(finalScore) {
 
     const scores = [];
 
-
     for (
       const t of sampleTimes
     ) {
 
       try {
 
-const score =
-  await recognizeInitialScoreAtX(
-    x,
-    t
-  );
-
+        const score =
+          await recognizeInitialScoreAtX(
+            x,
+            t
+          );
 
         if (!score) {
           continue;
         }
 
 
-        /* ===============================================
-           最終スコアと矛盾するOCRは捨てる
-        =============================================== */
-
+        /*
+         * 最終スコアと矛盾するOCRは除外
+         */
         if (
           !isPossibleInitialScore(
             score
@@ -2346,7 +2347,6 @@ const score =
           `${scoreKey(score)}`
         );
 
-
       } catch (e) {
 
         log(
@@ -2368,11 +2368,10 @@ const score =
 
 
     /* =====================================================
-       同じスコアが何回読めたか集計
+       スコアごとの出現回数
     ===================================================== */
 
     const counts = {};
-
 
     for (
       const item of scores
@@ -2382,7 +2381,6 @@ const score =
         scoreKey(
           item.score
         );
-
 
       counts[key] =
         (
@@ -2406,17 +2404,14 @@ const score =
                   ) === key
               );
 
-
             const m =
               key.match(
                 /^(\d+)-(\d+)$/
               );
 
-
             if (!m) {
               return null;
             }
-
 
             return {
 
@@ -2441,39 +2436,6 @@ const score =
         )
         .filter(
           Boolean
-        )
-        .sort(
-          (a, b) => {
-
-            /*
-             * 同じスコアを
-             * より多く読めたものを優先
-             */
-
-            if (
-              b.count !==
-              a.count
-            ) {
-
-              return (
-                b.count -
-                a.count
-              );
-
-            }
-
-
-            /*
-             * 同数なら
-             * より早い時間を優先
-             */
-
-            return (
-              a.firstTime -
-              b.firstTime
-            );
-
-          }
         );
 
 
@@ -2482,6 +2444,56 @@ const score =
     ) {
       continue;
     }
+
+
+    /*
+     * =====================================================
+     * ★重要
+     *
+     * 「一番多く読めたスコア」だけでは決めない。
+     *
+     * 初期スコアは、基本的に
+     * 「最も早い時間に安定して読めたスコア」
+     * を優先する。
+     *
+     * これで今回の
+     *
+     * 0-0 → OCRが1-0と誤認
+     *
+     * のようなケースでも、
+     * 他のX位置や序盤の結果を比較できる。
+     * =====================================================
+     */
+
+    candidates.sort(
+      (a, b) => {
+
+        /*
+         * まず出現回数。
+         *
+         * ただし同程度なら
+         * 「より早く出たもの」を優先。
+         */
+
+        if (
+          b.count !==
+          a.count
+        ) {
+
+          return (
+            b.count -
+            a.count
+          );
+
+        }
+
+        return (
+          a.firstTime -
+          b.firstTime
+        );
+
+      }
+    );
 
 
     const best =
@@ -2510,7 +2522,7 @@ const score =
 
 
   /* =====================================================
-     候補が1つもなかった
+     候補がない
   ===================================================== */
 
   if (
@@ -2527,17 +2539,16 @@ const score =
 
 
   /* =====================================================
-     最終的なスコア位置を決定
+     ★最重要部分
+     X位置を決定
   ===================================================== */
 
   results.sort(
     (a, b) => {
 
       /*
-       * 同じスコアを
-       * より多く読めた位置を優先
+       * ① まず安定して読めた回数
        */
-
       if (
         b.count !==
         a.count
@@ -2552,28 +2563,25 @@ const score =
 
 
       /*
-       * 読み取れた回数も同じなら
-       * より多く読み取れた位置を優先
+       * ② 同じなら
+       * より早い時間
        */
-
       if (
-        a.total !==
-        b.total
+        a.firstTime !==
+        b.firstTime
       ) {
 
         return (
-          b.total -
-          a.total
+          a.firstTime -
+          b.firstTime
         );
 
       }
 
 
       /*
-       * 最初から想定していた
-       * X=145に近い位置を優先
+       * ③ 最後にX=145を優先
        */
-
       return (
         Math.abs(
           a.x - 145
