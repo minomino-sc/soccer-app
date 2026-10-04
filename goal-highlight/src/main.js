@@ -899,6 +899,70 @@ window.previewInitialScoreCrop =
   previewInitialScoreCrop;
 
 /* =========================================================
+   初期スコア画像をOCRで確認
+   ※本番の解析処理には使用しない
+========================================================= */
+
+async function testInitialScoreOCR(
+  x = 125,
+  time = 3
+) {
+
+  try {
+
+    await seekTo(time);
+
+    drawInitialScoreCrop(x);
+
+    const score =
+      await recognizeScore();
+
+    if (score) {
+
+      console.log(
+        `🔎 初期スコアOCR確認: ` +
+        `X=${x} / ${fmt(time)} / ` +
+        `${score.home}-${score.away} / ` +
+        `raw=${score.raw}`
+      );
+
+      status(
+        `OCR確認: X=${x} → ` +
+        `${score.home}-${score.away}`
+      );
+
+    } else {
+
+      console.log(
+        `🔎 初期スコアOCR確認: ` +
+        `X=${x} / ${fmt(time)} / ` +
+        `認識できませんでした`
+      );
+
+      status(
+        `OCR確認: X=${x} → 認識できませんでした`
+      );
+
+    }
+
+  } catch (e) {
+
+    console.error(
+      '初期スコアOCR確認エラー:',
+      e
+    );
+
+    status(
+      `OCR確認エラー: ${e.message}`
+    );
+
+  }
+}
+
+window.testInitialScoreOCR =
+  testInitialScoreOCR;
+
+/* =========================================================
    スコア表示画像の差分検出
    ★OCRが読めなくてもスコア変更そのものを検出する
 ========================================================= */
