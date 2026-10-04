@@ -763,19 +763,330 @@ function drawScoreCrop(x = scoreCropX) {
   );
 }
 
+
+
+
+
+
 // ============================================================
-// 初期スコアOCR
-// 指定したX位置・時刻でスコアを読み取る
+// 初期スコア専用OCR
+//
+// 通常の recognizeScore() は変更しない。
+// 初期スコアだけ、1-0 / 0-0 の誤認識を再確認する。
 // ============================================================
+
 async function recognizeInitialScoreAtX(x, time) {
+
   await seekTo(time);
 
   drawScoreCrop(x);
 
-  const score = await recognizeScore();
+  // ----------------------------------------------------------
+  // ① まずは現在の通常OCR
+  // ----------------------------------------------------------
 
-  return score;
+  const normalScore =
+    await recognizeScore();
+
+
+  /*
+   * OCRできなかった場合
+   *
+   * 現時点では無理に推測しない。
+   */
+  if (!normalScore) {
+
+    log(
+      `⚠️ 初期スコアOCR失敗: ${fmt(time)}`
+    );
+
+    return null;
+  }
+
+
+  log(
+    `🔎 初期スコア通常OCR: ` +
+    `${scoreKey(normalScore)}`
+  );
+
+
+  /*
+   * --------------------------------------------------------
+   * ② 1-0 / 0-1 の場合だけ再確認
+   *
+   * 今回問題になっている
+   *
+   * 0 → 1
+   *
+   * の誤認識だけを対象にする。
+   *
+   * それ以外のスコアには触れない。
+   * --------------------------------------------------------
+   */
+
+  const isPotentialZeroOne =
+    (
+      normalScore.home === 1 &&
+      normalScore.away === 0
+    ) ||
+    (
+      normalScore.home === 0 &&
+      normalScore.away === 1
+    );
+
+
+  if (!isPotentialZeroOne) {
+
+    return normalScore;
+  }
+
+
+  log(
+    `🔍 初期スコア「${scoreKey(normalScore)}」を再確認します`
+  );
+
+
+  /*
+   * --------------------------------------------------------
+   * ③ 現在の画像を保存
+   *
+   * 通常OCRと同じ画像を使う。
+   * --------------------------------------------------------
+   */
+
+  const originalImage =
+    ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+
+  /*
+   * --------------------------------------------------------
+   * ④ 少しだけ画像を拡大して再OCR
+   *
+   * 1と0の形状をTesseractが判別しやすくする。
+   *
+   * 元の画像自体は変更しない。
+   * --------------------------------------------------------
+   */
+
+  const retryCanvas =
+    document.createElement('canvas');
+
+  retryCanvas.width =
+    canvas.width * 2;
+
+  retryCanvas.height =
+    canvas.height * 2;
+
+
+  const retryCtx =
+    retryCanvas.getContext(
+      '2d',
+      {
+        willReadFrequently: true
+      }
+    );
+
+
+  retryCtx.imageSmoothingEnabled =
+    false;
+
+
+  retryCtx.drawImage(
+    canvas,
+    0,
+    0,
+    retryCanvas.width,
+    retryCanvas.height
+  );
+
+
+  /*
+   * --------------------------------------------------------
+   * ⑤ 再OCR
+   *
+   * recognizeScore()は使わない。
+   *
+   * 通常処理に影響を与えないため、
+   * ここだけ専用OCRを行う。
+   * --------------------------------------------------------
+   */
+
+  let retryScore = null;
+
+
+  try {
+
+    const worker =
+      await getOCRWorker();
+
+
+    const ret =
+      await worker.recognize(
+        retryCanvas
+      );
+
+
+    const raw =
+      (ret.data.text || '')
+        .replace(/\s/g, '');
+
+
+    const normalized =
+      raw
+        .replace(/[—–_]/g, '-')
+        .replace(/[ー―]/g, '-');
+
+
+    const m =
+      normalized.match(
+        /(\d{1,2})-(\d{1,2})/
+      );
+
+
+    if (m) {
+
+      const home =
+        Number(m[1]);
+
+      const away =
+        Number(m[2]);
+
+
+      if (
+        Number.isInteger(home) &&
+        Number.isInteger(away) &&
+        home >= 0 &&
+        away >= 0 &&
+        home <= 20 &&
+        away <= 20
+      ) {
+
+        retryScore = {
+          home,
+          away,
+          raw: normalized
+        };
+
+      }
+
+    }
+
+  } catch (e) {
+
+    log(
+      `⚠️ 初期スコア再OCR失敗: ${e.message}`
+    );
+
+  }
+
+
+  /*
+   * --------------------------------------------------------
+   * ⑥ 再OCRの結果を確認
+   * --------------------------------------------------------
+   */
+
+  if (retryScore) {
+
+    log(
+      `🔎 初期スコア再OCR: ` +
+      `${scoreKey(retryScore)}`
+    );
+
+  }
+
+
+  /*
+   * --------------------------------------------------------
+   * ⑦ 0-0を優先する判定
+   *
+   * 通常OCRが1-0 / 0-1で、
+   * 再OCRが0-0なら、
+   *
+   * 「1を0と誤認識した」
+   *
+   * 可能性が高い。
+   *
+   * 初期スコアなので0-0を採用する。
+   * --------------------------------------------------------
+   */
+
+  if (
+    retryScore &&
+    retryScore.home === 0 &&
+    retryScore.away === 0
+  ) {
+
+    log(
+      `✅ 初期スコアを0-0として採用 ` +
+      `(通常OCR=${scoreKey(normalScore)} / ` +
+      `再OCR=${scoreKey(retryScore)})`
+    );
+
+
+    /*
+     * 元画像を復元
+     *
+     * 後続処理に影響を残さない。
+     */
+    ctx.putImageData(
+      originalImage,
+      0,
+      0
+    );
+
+
+    return {
+      home: 0,
+      away: 0,
+      raw: '0-0'
+    };
+
+  }
+
+
+  /*
+   * --------------------------------------------------------
+   * ⑧ 再OCRでも0-0にならなかった場合
+   *
+   * 勝手に0-0へ変更しない。
+   *
+   * これが重要。
+   *
+   * 小野南・須磨ナイスなどで本当に1-0だった場合、
+   * 誤って0-0に変更することを防ぐ。
+   * --------------------------------------------------------
+   */
+
+  log(
+    `➡️ 初期スコアは通常OCR結果を採用: ` +
+    `${scoreKey(normalScore)}`
+  );
+
+
+  /*
+   * 元画像を復元
+   */
+  ctx.putImageData(
+    originalImage,
+    0,
+    0
+  );
+
+
+  return normalScore;
 }
+
+
+
+
+
+
 
 /* =========================================================
    スコア表示画像の差分検出
