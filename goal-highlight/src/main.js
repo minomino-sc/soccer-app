@@ -722,7 +722,7 @@ async function seekTo(t) {
    スコア画像
 ========================================================= */
 
-function drawInitialScoreCrop(x = 125) {
+function drawScoreCrop(x = scoreCropX) {
 
   const vw = video.videoWidth || 910;
   const vh = video.videoHeight || 512;
@@ -732,77 +732,8 @@ function drawInitialScoreCrop(x = 125) {
 
   const sy = 0;
 
-  /*
-   * X=125は75px幅で0-0が確認できた。
-   *
-   * X=105は75px幅だと0-0が欠けるため、
-   * X=105だけ通常の95px幅を使用する。
-   */
-  const cropWidth =
-    x === 125
-      ? 75
-      : 95;
-
   const sw =
-    Math.round(
-      vw * (cropWidth / 910)
-    );
-
-  const sh =
-    Math.round(
-      vh * (70 / 512)
-    );
-
-  canvas.width = 380;
-  canvas.height = 280;
-
-  ctx.fillStyle = '#ffffff';
-
-  ctx.fillRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  ctx.drawImage(
-    video,
-    sx,
-    sy,
-    sw,
-    sh,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-}
-
-
-/* =========================================================
-   初期スコア専用OCR用クロップ
-   ★ 通常のスコア解析には使用しない
-========================================================= */
-
-function drawInitialScoreCrop(x = 125) {
-
-  const vw = video.videoWidth || 910;
-  const vh = video.videoHeight || 512;
-
-  const sx =
-    Math.round(vw * (x / 910));
-
-  const sy = 0;
-
-  /*
-   * 通常の95px幅より狭くする。
-   *
-   * X=105 と X=125 の両方で
-   * 0-0 が目視確認できているため、
-   * 共通範囲を狙う。
-   */
-  const sw =
-    Math.round(vw * (75 / 910));
+    Math.round(vw * (95 / 910));
 
   const sh =
     Math.round(vh * (70 / 512));
@@ -832,74 +763,19 @@ function drawInitialScoreCrop(x = 125) {
   );
 }
 
-
-
 // ============================================================
 // 初期スコアOCR
 // 指定したX位置・時刻でスコアを読み取る
-//
-// ★ 初期スコア専用の補正処理
-//   通常OCRが 1-0 / 0-1 になった場合だけ、
-//   複数の画像処理で 0-0 を再確認する。
 // ============================================================
 async function recognizeInitialScoreAtX(x, time) {
-
   await seekTo(time);
 
-  /*
-   * 初期スコアだけ専用クロップを使用。
-   *
-   * 通常解析の drawScoreCrop() は変更しない。
-   */
-  drawInitialScoreCrop(x);
+  drawScoreCrop(x);
 
   const score = await recognizeScore();
 
   return score;
 }
-
-
-// ↓↓↓ この下に追加 ↓↓↓
-
-async function previewInitialScoreCrop(x, time) {
-
-  await seekTo(time);
-
-  drawInitialScoreCrop(x);
-
-  const preview =
-    document.getElementById(
-      'initialScorePreview'
-    );
-
-  if (!preview) {
-    console.warn(
-      'initialScorePreview が見つかりません'
-    );
-    return;
-  }
-
-  preview.src =
-    canvas.toDataURL(
-      'image/png'
-    );
-
-  preview.style.display =
-    'block';
-
-  preview.dataset.x =
-    String(x);
-
-  preview.dataset.time =
-    String(time);
-
-  console.log(
-    `初期スコア画像確認: X=${x} / ${fmt(time)}`
-  );
-}
-
-window.previewInitialScoreCrop =
-  previewInitialScoreCrop;
 
 /* =========================================================
    スコア表示画像の差分検出
