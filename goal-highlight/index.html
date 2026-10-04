@@ -211,6 +211,90 @@
     </section>
 
 
+
+        <!-- =====================================================
+         初期スコア切り出し確認
+         ※原因調査用。一時的に追加
+    ====================================================== -->
+
+    <section class="card">
+
+      <h2>🔎 初期スコア切り出し確認</h2>
+
+      <p class="note">
+        3秒地点のスコア表示を、横方向の位置を変えて確認します。
+      </p>
+
+      <div
+        style="
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          margin-bottom:12px;
+        "
+      >
+
+        <button
+          type="button"
+          onclick="previewInitialScoreCrop(85, 3)"
+        >
+          X=85
+        </button>
+
+        <button
+          type="button"
+          onclick="previewInitialScoreCrop(105, 3)"
+        >
+          X=105
+        </button>
+
+        <button
+          type="button"
+          onclick="previewInitialScoreCrop(125, 3)"
+        >
+          X=125
+        </button>
+
+        <button
+          type="button"
+          onclick="previewInitialScoreCrop(145, 3)"
+        >
+          X=145
+        </button>
+
+        <button
+          type="button"
+          onclick="previewInitialScoreCrop(165, 3)"
+        >
+          X=165
+        </button>
+
+        <button
+          type="button"
+          onclick="previewInitialScoreCrop(185, 3)"
+        >
+          X=185
+        </button>
+
+      </div>
+
+
+      <img
+        id="initialScorePreview"
+        alt="初期スコア切り出し画像"
+        style="
+          display:none;
+          width:380px;
+          max-width:100%;
+          height:auto;
+          border:2px solid #333;
+          background:#fff;
+        "
+      >
+
+    </section>
+
+
     <section class="card">
 
   <h2>🎬 動画作成</h2>
