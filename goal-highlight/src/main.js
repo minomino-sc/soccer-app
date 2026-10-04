@@ -763,6 +763,62 @@ function drawScoreCrop(x = scoreCropX) {
   );
 }
 
+
+/* =========================================================
+   初期スコア専用OCR用クロップ
+   ★ 通常のスコア解析には使用しない
+========================================================= */
+
+function drawInitialScoreCrop(x = 125) {
+
+  const vw = video.videoWidth || 910;
+  const vh = video.videoHeight || 512;
+
+  const sx =
+    Math.round(vw * (x / 910));
+
+  const sy = 0;
+
+  /*
+   * 通常の95px幅より狭くする。
+   *
+   * X=105 と X=125 の両方で
+   * 0-0 が目視確認できているため、
+   * 共通範囲を狙う。
+   */
+  const sw =
+    Math.round(vw * (75 / 910));
+
+  const sh =
+    Math.round(vh * (70 / 512));
+
+  canvas.width = 380;
+  canvas.height = 280;
+
+  ctx.fillStyle = '#ffffff';
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  ctx.drawImage(
+    video,
+    sx,
+    sy,
+    sw,
+    sh,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+}
+
+
+
 // ============================================================
 // 初期スコアOCR
 // 指定したX位置・時刻でスコアを読み取る
@@ -772,9 +828,15 @@ function drawScoreCrop(x = scoreCropX) {
 //   複数の画像処理で 0-0 を再確認する。
 // ============================================================
 async function recognizeInitialScoreAtX(x, time) {
+
   await seekTo(time);
 
-  drawScoreCrop(x);
+  /*
+   * 初期スコアだけ専用クロップを使用。
+   *
+   * 通常解析の drawScoreCrop() は変更しない。
+   */
+  drawInitialScoreCrop(x);
 
   const score = await recognizeScore();
 
