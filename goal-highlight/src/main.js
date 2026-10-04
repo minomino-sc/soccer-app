@@ -850,7 +850,7 @@ async function previewInitialScoreCrop(x, time) {
 
   await seekTo(time);
 
-  drawScoreCrop(x);
+  drawInitialScoreCrop(x);
 
   const preview =
     document.getElementById(
