@@ -766,15 +766,281 @@ function drawScoreCrop(x = scoreCropX) {
 // ============================================================
 // 初期スコアOCR
 // 指定したX位置・時刻でスコアを読み取る
+//
+// ★ 初期スコア専用の補正処理
+//   通常OCRが 1-0 / 0-1 になった場合だけ、
+//   複数の画像処理で 0-0 を再確認する。
 // ============================================================
 async function recognizeInitialScoreAtX(x, time) {
+
   await seekTo(time);
 
   drawScoreCrop(x);
 
-  const score = await recognizeScore();
+  /*
+   * まずは通常OCR
+   */
+  const normalScore =
+    await recognizeScore();
 
-  return score;
+
+  /*
+   * 通常OCRが 0-0 なら、そのまま採用
+   */
+  if (
+    normalScore &&
+    scoreKey(normalScore) === '0-0'
+  ) {
+
+    return normalScore;
+
+  }
+
+
+  /*
+   * 今回問題になっている
+   *
+   *   0-0 → 1-0
+   *   0-0 → 0-1
+   *
+   * の場合だけ再確認する。
+   */
+  const normalKey =
+    normalScore
+      ? scoreKey(normalScore)
+      : '';
+
+
+  if (
+    normalKey !== '1-0' &&
+    normalKey !== '0-1'
+  ) {
+
+    return normalScore;
+
+  }
+
+
+  /*
+   * 元画像を保存
+   */
+  const originalImage =
+    ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+
+  /*
+   * 0-0 再確認用の画像処理
+   *
+   * ・暗い文字 → 黒
+   * ・明るい文字 → 黒
+   *
+   * をそれぞれ別しきい値で確認する。
+   */
+  const variants = [
+    {
+      name: 'dark120',
+      type: 'dark',
+      threshold: 120
+    },
+    {
+      name: 'dark180',
+      type: 'dark',
+      threshold: 180
+    },
+    {
+      name: 'light120',
+      type: 'light',
+      threshold: 120
+    },
+    {
+      name: 'light180',
+      type: 'light',
+      threshold: 180
+    }
+  ];
+
+
+  const detected = {};
+
+
+  for (const variant of variants) {
+
+    /*
+     * 毎回、元画像からやり直す
+     */
+    ctx.putImageData(
+      originalImage,
+      0,
+      0
+    );
+
+
+    const src =
+      originalImage.data;
+
+    const image =
+      ctx.createImageData(
+        originalImage.width,
+        originalImage.height
+      );
+
+    const dst =
+      image.data;
+
+
+    /*
+     * 画像を二値化
+     */
+    for (
+      let i = 0;
+      i < src.length;
+      i += 4
+    ) {
+
+      const r = src[i];
+      const g = src[i + 1];
+      const b = src[i + 2];
+
+      /*
+       * 輝度
+       */
+      const gray =
+        Math.round(
+          0.299 * r +
+          0.587 * g +
+          0.114 * b
+        );
+
+
+      let value;
+
+
+      if (variant.type === 'dark') {
+
+        /*
+         * 暗い部分を黒
+         * 明るい部分を白
+         */
+        value =
+          gray < variant.threshold
+            ? 0
+            : 255;
+
+      } else {
+
+        /*
+         * 明るい部分を黒
+         * 暗い部分を白
+         */
+        value =
+          gray > variant.threshold
+            ? 0
+            : 255;
+
+      }
+
+
+      dst[i] =
+        value;
+
+      dst[i + 1] =
+        value;
+
+      dst[i + 2] =
+        value;
+
+      dst[i + 3] =
+        255;
+
+    }
+
+
+    /*
+     * 加工画像をCanvasへ
+     */
+    ctx.putImageData(
+      image,
+      0,
+      0
+    );
+
+
+    /*
+     * OCR
+     */
+    try {
+
+      const score =
+        await recognizeScore();
+
+
+      if (score) {
+
+        const key =
+          scoreKey(score);
+
+        detected[key] =
+          (detected[key] || 0) + 1;
+
+      }
+
+    } catch (e) {
+
+      console.warn(
+        '初期スコア再OCR失敗:',
+        variant.name,
+        e
+      );
+
+    }
+
+  }
+
+
+  /*
+   * Canvasを元画像へ戻す
+   */
+  ctx.putImageData(
+    originalImage,
+    0,
+    0
+  );
+
+
+  /*
+   * 0-0 が複数の画像処理で確認できた場合
+   */
+  const zeroZeroCount =
+    detected['0-0'] || 0;
+
+
+  if (zeroZeroCount >= 2) {
+
+    log(
+      `初期スコア再確認: X=${x} / ${fmt(time)} → 0-0 ` +
+      `（画像処理 ${zeroZeroCount}/4）`
+    );
+
+
+    return {
+      home: 0,
+      away: 0,
+      raw: '0-0'
+    };
+
+  }
+
+
+  /*
+   * 0-0 が十分確認できなかった場合は、
+   * 元の通常OCR結果をそのまま返す。
+   */
+  return normalScore;
 }
 
 /* =========================================================
