@@ -2313,334 +2313,242 @@ async function recognizeScore() {
 
   /*
    * =========================================================
-   * OCR前処理
+   * OCR用画像を作成
    *
-   * 元のスコア画像から
-   * ① グレースケール
-   * ② コントラスト強調
-   * ③ 2値化
-   * ④ 反転2値化
-   * の複数パターンを作る。
+   * スコア部分の背景の影響を減らすため、
+   * グレースケール＋コントラスト強調＋2値化を行う。
    *
-   * 背景によってOCR精度が落ちるのを防ぐ。
+   * OCRはこの画像に対して1回だけ実行する。
    * =========================================================
    */
 
   const srcCanvas = canvas;
 
-  const variants = [];
+  const ocrCanvas =
+    document.createElement('canvas');
 
-  // ---------------------------------------------------------
-  // ① 元画像
-  // ---------------------------------------------------------
+  /*
+   * 2倍拡大
+   */
+  ocrCanvas.width =
+    srcCanvas.width * 2;
 
-  variants.push({
-    name: 'original',
-    canvas: srcCanvas
-  });
+  ocrCanvas.height =
+    srcCanvas.height * 2;
 
-
-  // ---------------------------------------------------------
-  // 共通の前処理キャンバス
-  // ---------------------------------------------------------
-
-  function createProcessedCanvas(mode) {
-
-    const c = document.createElement('canvas');
-
-    c.width = srcCanvas.width * 2;
-    c.height = srcCanvas.height * 2;
-
-    const cctx = c.getContext('2d', {
-      willReadFrequently: true
-    });
-
-    /*
-     * 2倍拡大
-     */
-    cctx.imageSmoothingEnabled = false;
-
-    cctx.drawImage(
-      srcCanvas,
-      0,
-      0,
-      c.width,
-      c.height
+  const ocrCtx =
+    ocrCanvas.getContext(
+      '2d',
+      {
+        willReadFrequently: true
+      }
     );
 
-    const image = cctx.getImageData(
-      0,
-      0,
-      c.width,
-      c.height
-    );
+  /*
+   * ピクセルをそのまま拡大
+   */
+  ocrCtx.imageSmoothingEnabled = false;
 
-    const data = image.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-
-      /*
-       * 輝度
-       */
-      let gray =
-        0.299 * r +
-        0.587 * g +
-        0.114 * b;
-
-
-      /*
-       * コントラスト強調
-       */
-      if (mode === 'contrast') {
-
-        gray =
-          ((gray - 128) * 2.2) +
-          128;
-
-        gray =
-          Math.max(
-            0,
-            Math.min(
-              255,
-              gray
-            )
-          );
-      }
-
-
-      /*
-       * 2値化
-       */
-      if (
-        mode === 'threshold' ||
-        mode === 'invert'
-      ) {
-
-        gray =
-          gray > 150
-            ? 255
-            : 0;
-      }
-
-
-      /*
-       * 反転2値化
-       */
-      if (mode === 'invert') {
-        gray = 255 - gray;
-      }
-
-
-      data[i] =
-        data[i + 1] =
-        data[i + 2] =
-          gray;
-
-    }
-
-    cctx.putImageData(
-      image,
-      0,
-      0
-    );
-
-    return c;
-  }
-
-
-  variants.push({
-    name: 'contrast',
-    canvas: createProcessedCanvas(
-      'contrast'
-    )
-  });
-
-  variants.push({
-    name: 'threshold',
-    canvas: createProcessedCanvas(
-      'threshold'
-    )
-  });
-
-  variants.push({
-    name: 'invert',
-    canvas: createProcessedCanvas(
-      'invert'
-    )
-  });
+  ocrCtx.drawImage(
+    srcCanvas,
+    0,
+    0,
+    ocrCanvas.width,
+    ocrCanvas.height
+  );
 
 
   /*
    * =========================================================
-   * 各画像をOCR
+   * グレースケール＋コントラスト強調＋2値化
    * =========================================================
    */
 
-  const results = [];
+  const image =
+    ocrCtx.getImageData(
+      0,
+      0,
+      ocrCanvas.width,
+      ocrCanvas.height
+    );
 
-  for (const variant of variants) {
+  const data =
+    image.data;
 
-    try {
 
-      const ret =
-        await worker.recognize(
-          variant.canvas
-        );
+  for (
+    let i = 0;
+    i < data.length;
+    i += 4
+  ) {
 
-      const raw =
-        (ret.data.text || '')
-          .replace(/\s/g, '');
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
 
-      const confidence =
-        Number(
-          ret.data.confidence || 0
-        );
 
-      console.log(
-        `スコアOCR[${variant.name}]:`,
-        raw,
-        `confidence=${confidence.toFixed(1)}`
+    /*
+     * 輝度
+     */
+    let gray =
+      0.299 * r +
+      0.587 * g +
+      0.114 * b;
+
+
+    /*
+     * コントラスト強調
+     *
+     * 背景と数字の差を大きくする。
+     */
+    gray =
+      ((gray - 128) * 2.2) +
+      128;
+
+
+    gray =
+      Math.max(
+        0,
+        Math.min(
+          255,
+          gray
+        )
       );
 
 
-      if (!raw) {
-        continue;
-      }
+    /*
+     * 2値化
+     */
+    gray =
+      gray > 150
+        ? 255
+        : 0;
 
 
-      /*
-       * -------------------------------------------------------
-       * OCR文字を正規化
-       * -------------------------------------------------------
-       */
+    data[i] =
+      gray;
 
-      let normalized =
-        raw
-          .replace(/[—–_]/g, '-')
-          .replace(/[ー―]/g, '-');
+    data[i + 1] =
+      gray;
 
+    data[i + 2] =
+      gray;
 
-      /*
-       * -------------------------------------------------------
-       * ハイフンが消えるケース
-       *
-       * 例：
-       * 0100 → 0-0
-       * 0200 → 2-0
-       * 0300 → 3-0
-       * 0400 → 4-0
-       *
-       * OCRではスコア表示の「-」が非常に
-       * 消えやすいため、4桁数字を補正する。
-       * -------------------------------------------------------
-       */
-
-      const digits =
-        normalized.replace(
-          /[^0-9]/g,
-          ''
-        );
+  }
 
 
-      if (
-        digits.length === 4 &&
-        /^0[0-9]0[0-9]$/.test(digits)
-      ) {
-
-        const home =
-          Number(digits[1]);
-
-        const away =
-          Number(digits[3]);
-
-        if (
-          home <= 20 &&
-          away <= 20
-        ) {
-
-          results.push({
-            home,
-            away,
-            raw,
-            normalized:
-              `${home}-${away}`,
-            confidence,
-            variant:
-              variant.name
-          });
-
-          continue;
-        }
-      }
+  ocrCtx.putImageData(
+    image,
+    0,
+    0
+  );
 
 
-      /*
-       * -------------------------------------------------------
-       * 通常の「2-0」形式
-       * -------------------------------------------------------
-       */
+  /*
+   * =========================================================
+   * OCR
+   *
+   * ここは1回だけ。
+   * =========================================================
+   */
 
-      const m =
-        normalized.match(
-          /(\d{1,2})-(\d{1,2})/
-        );
-
-
-      if (!m) {
-        continue;
-      }
+  const ret =
+    await worker.recognize(
+      ocrCanvas
+    );
 
 
-      const home =
-        Number(m[1]);
-
-      const away =
-        Number(m[2]);
+  const raw =
+    (ret.data.text || '')
+      .replace(/\s/g, '');
 
 
-      if (
-        !Number.isInteger(home) ||
-        !Number.isInteger(away)
-      ) {
-        continue;
-      }
+  console.log(
+    `スコアOCR: raw=${raw}`
+  );
 
 
-      /*
-       * サッカーのスコアとして明らかに
-       * おかしい数字は除外
-       */
+  if (!raw) {
 
-      if (
-        home < 0 ||
-        away < 0 ||
-        home > 20 ||
-        away > 20
-      ) {
-        continue;
-      }
+    return null;
+
+  }
 
 
-      results.push({
+  /*
+   * =========================================================
+   * OCR文字を正規化
+   * =========================================================
+   */
+
+  const normalized =
+    raw
+      .replace(
+        /[—–_]/g,
+        '-'
+      )
+      .replace(
+        /[ー―]/g,
+        '-'
+      );
+
+
+  /*
+   * =========================================================
+   * ハイフンが認識されないケース
+   *
+   * 0100 → 0-0
+   * 0200 → 2-0
+   * 0300 → 3-0
+   * 0400 → 4-0
+   *
+   * スコア表示では「-」が背景に埋もれて
+   * OCRから消えることがあるため補正する。
+   * =========================================================
+   */
+
+  const digits =
+    normalized.replace(
+      /[^0-9]/g,
+      ''
+    );
+
+
+  if (
+    digits.length === 4 &&
+    /^0[0-9]0[0-9]$/.test(
+      digits
+    )
+  ) {
+
+    const home =
+      Number(
+        digits[1]
+      );
+
+    const away =
+      Number(
+        digits[3]
+      );
+
+
+    if (
+      home <= 20 &&
+      away <= 20
+    ) {
+
+      console.log(
+        `スコアOCR補正: ${digits} → ${home}-${away}`
+      );
+
+
+      return {
         home,
         away,
         raw,
-        normalized,
-        confidence,
-        variant:
-          variant.name
-      });
-
-    } catch (e) {
-
-      console.warn(
-        `スコアOCR[${variant.name}]失敗:`,
-        e
-      );
+        normalized:
+          `${home}-${away}`
+      };
 
     }
 
@@ -2649,136 +2557,73 @@ async function recognizeScore() {
 
   /*
    * =========================================================
-   * OCR結果がない
+   * 通常の「2-0」形式
    * =========================================================
    */
 
-  if (!results.length) {
+  const m =
+    normalized.match(
+      /(\d{1,2})-(\d{1,2})/
+    );
+
+
+  if (!m) {
 
     console.log(
-      'スコアOCR: 有効なスコアを認識できませんでした'
+      `スコアOCR: スコア形式として認識できませんでした / ${raw}`
     );
 
     return null;
+
   }
+
+
+  const home =
+    Number(
+      m[1]
+    );
+
+  const away =
+    Number(
+      m[2]
+    );
 
 
   /*
    * =========================================================
-   * 複数方式で同じスコアが出た場合は
-   * そのスコアを優先
+   * 明らかにおかしいスコアを除外
    * =========================================================
    */
 
-  const groups = new Map();
+  if (
+    !Number.isInteger(home) ||
+    !Number.isInteger(away) ||
+    home < 0 ||
+    away < 0 ||
+    home > 20 ||
+    away > 20
+  ) {
 
-  for (const result of results) {
+    console.log(
+      `スコアOCR: 不正なスコア ${home}-${away}`
+    );
 
-    const key =
-      `${result.home}-${result.away}`;
-
-    if (!groups.has(key)) {
-      groups.set(key, []);
-    }
-
-    groups.get(key).push(result);
-
-  }
-
-
-  let best = null;
-
-
-  for (const group of groups.values()) {
-
-    /*
-     * 同じスコアを認識した方式数
-     */
-    const count =
-      group.length;
-
-
-    /*
-     * OCR confidence の平均
-     */
-    const averageConfidence =
-      group.reduce(
-        (sum, item) =>
-          sum + item.confidence,
-        0
-      ) / count;
-
-
-    const candidate = {
-
-      home:
-        group[0].home,
-
-      away:
-        group[0].away,
-
-      raw:
-        group[0].raw,
-
-      normalized:
-        group[0].normalized,
-
-      count,
-
-      confidence:
-        averageConfidence,
-
-      variant:
-        group
-          .map(item => item.variant)
-          .join(',')
-
-    };
-
-
-    /*
-     * まず複数方式で一致したもの
-     * 次にconfidence
-     */
-
-    if (
-      !best ||
-      candidate.count > best.count ||
-      (
-        candidate.count === best.count &&
-        candidate.confidence >
-          best.confidence
-      )
-    ) {
-
-      best = candidate;
-
-    }
+    return null;
 
   }
 
 
   console.log(
-    `スコアOCR採用: ${best.home}-${best.away}` +
-    ` / ${best.variant}` +
-    ` / 一致${best.count}方式` +
-    ` / confidence=${best.confidence.toFixed(1)}`
+    `スコアOCR採用: ${home}-${away}`
   );
 
 
   return {
 
-    home:
-      best.home,
-
-    away:
-      best.away,
-
-    raw:
-      best.raw,
-
-    normalized:
-      best.normalized
+    home,
+    away,
+    raw,
+    normalized
 
   };
 
