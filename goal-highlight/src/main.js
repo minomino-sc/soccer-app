@@ -821,6 +821,9 @@ async function previewInitialScoreCrop(x, time) {
   );
 }
 
+window.previewInitialScoreCrop =
+  previewInitialScoreCrop;
+
 /* =========================================================
    スコア表示画像の差分検出
    ★OCRが読めなくてもスコア変更そのものを検出する
