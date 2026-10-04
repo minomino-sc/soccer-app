@@ -768,13 +768,107 @@ function drawScoreCrop(x = scoreCropX) {
 // 指定したX位置・時刻でスコアを読み取る
 // ============================================================
 async function recognizeInitialScoreAtX(x, time) {
+
   await seekTo(time);
 
-  drawScoreCrop(x);
+  /*
+   * 初期スコア確認で実際に
+   * 0-0が正しく見えた切り出しを使用
+   *
+   * 通常の drawScoreCrop() は使わない
+   */
+  drawInitialScoreCrop(x);
 
-  const score = await recognizeScore();
+  const worker =
+    await getOCRWorker();
 
-  return score;
+  const ret =
+    await worker.recognize(canvas);
+
+  const raw =
+    (ret.data.text || '')
+      .replace(/\s/g, '');
+
+  console.log(
+    `初期スコアOCR: X=${x} / ${fmt(time)} / raw=${raw}`
+  );
+
+  /*
+   * ---------------------------------------------------------
+   * OCRが「0-0」を「0100」と読んでしまうケース
+   *
+   * 灘戦で実際に確認済み：
+   * 画面表示 → 0-0
+   * OCR       → 0100
+   *
+   * 初期スコア専用の補正
+   * ---------------------------------------------------------
+   */
+
+  if (raw === '0100') {
+
+    console.log(
+      `初期スコアOCR補正: ${raw} → 0-0`
+    );
+
+    return {
+      home: 0,
+      away: 0,
+      raw: '0100'
+    };
+  }
+
+  /*
+   * 通常の「0-0」「1-0」など
+   */
+
+  const normalized =
+    raw
+      .replace(/[—–_]/g, '-')
+      .replace(/[ー―]/g, '-');
+
+  const m =
+    normalized.match(
+      /(\d{1,2})-(\d{1,2})/
+    );
+
+  if (!m) {
+
+    return null;
+
+  }
+
+  const home =
+    Number(m[1]);
+
+  const away =
+    Number(m[2]);
+
+  if (
+    !Number.isInteger(home) ||
+    !Number.isInteger(away)
+  ) {
+
+    return null;
+
+  }
+
+  if (
+    home < 0 ||
+    away < 0 ||
+    home > 20 ||
+    away > 20
+  ) {
+
+    return null;
+
+  }
+
+  return {
+    home,
+    away,
+    raw: normalized
+  };
 }
 
 /* =========================================================
