@@ -899,8 +899,8 @@ window.previewInitialScoreCrop =
   previewInitialScoreCrop;
 
 /* =========================================================
-   初期スコア画像をOCRで確認
-   ※本番の解析処理には使用しない
+   初期スコアOCR確認
+   ※原因調査用。本番解析には使用しない
 ========================================================= */
 
 async function testInitialScoreOCR(
@@ -914,36 +914,41 @@ async function testInitialScoreOCR(
 
     drawInitialScoreCrop(x);
 
-    const score =
-      await recognizeScore();
+    const worker =
+      await getOCRWorker();
 
-    if (score) {
+    const ret =
+      await worker.recognize(canvas);
 
-      console.log(
-        `🔎 初期スコアOCR確認: ` +
-        `X=${x} / ${fmt(time)} / ` +
-        `${score.home}-${score.away} / ` +
-        `raw=${score.raw}`
-      );
+    const raw =
+      ret.data.text || '';
 
-      status(
-        `OCR確認: X=${x} → ` +
-        `${score.home}-${score.away}`
-      );
+    console.log(
+      '===================================='
+    );
 
-    } else {
+    console.log(
+      `🔎 初期スコアOCR生データ`
+    );
 
-      console.log(
-        `🔎 初期スコアOCR確認: ` +
-        `X=${x} / ${fmt(time)} / ` +
-        `認識できませんでした`
-      );
+    console.log(
+      `X=${x} / ${fmt(time)}`
+    );
 
-      status(
-        `OCR確認: X=${x} → 認識できませんでした`
-      );
+    console.log(
+      'raw:',
+      JSON.stringify(raw)
+    );
 
-    }
+    console.log(
+      '===================================='
+    );
+
+    status(
+      `OCR生データ: ${
+        raw.trim() || '（空）'
+      }`
+    );
 
   } catch (e) {
 
