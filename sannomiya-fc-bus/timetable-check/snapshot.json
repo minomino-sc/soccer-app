@@ -7,7 +7,7 @@
       "route": "日の峰1丁目 → 谷上駅 158系統",
       "updates": []
     },
-    "checkedAt": "2026-10-06T06:49:59.948Z"
+    "checkedAt": "2026-10-06T22:49:14.037Z"
   },
   "subway_tanigami_sannomiya": {
     "hash": "6fadb531040bddbeff95667ee3bb5028350da5d3fbae98ccdf2a6123d29ff82c",
@@ -197,7 +197,7 @@
         "23:55"
       ]
     },
-    "checkedAt": "2026-10-06T06:50:01.625Z"
+    "checkedAt": "2026-10-06T22:49:15.423Z"
   },
   "subway_sannomiya_tanigami": {
     "hash": "c453de3427920dbf62b19a42e8d285a7c3acd53691237c5dd217f65502a3328e",
@@ -387,7 +387,7 @@
         "23:46"
       ]
     },
-    "checkedAt": "2026-10-06T06:50:02.685Z"
+    "checkedAt": "2026-10-06T22:49:15.499Z"
   },
   "portliner_sannomiya_boeki": {
     "hash": "6a38ce7443f1c7a9a117b872eb4d48ec2f2cc9fe860e29503cbdebdd43e7afbd",
@@ -702,7 +702,7 @@
       "23:45",
       "23:52"
     ],
-    "checkedAt": "2026-10-06T06:50:03.969Z"
+    "checkedAt": "2026-10-06T22:49:17.128Z"
   },
   "portliner_boeki_sannomiya": {
     "hash": "8bfc713ca0a4c4b53ab3b102aff06e74069108a07bc3b057811eba1ab6bcdb3b",
@@ -1019,7 +1019,7 @@
       "23:46",
       "23:50"
     ],
-    "checkedAt": "2026-10-06T06:50:04.885Z"
+    "checkedAt": "2026-10-06T22:49:18.376Z"
   },
   "citybus_62": {
     "hash": "75e52a61051c19e09aec31c91f924dad4d5282c7ac6662e0949580694d8a111c",
@@ -1075,7 +1075,7 @@
         "23:50"
       ]
     },
-    "checkedAt": "2026-10-06T06:50:05.922Z"
+    "checkedAt": "2026-10-06T22:49:19.506Z"
   },
   "jr_sannomiya_nada": {
     "hash": "e7b618a70a5dd75f3cce4a13019639ef915b394d63a2e5c654f8135af164a7aa",
@@ -1647,7 +1647,7 @@
         "23:52"
       ]
     },
-    "checkedAt": "2026-10-06T06:50:06.823Z"
+    "checkedAt": "2026-10-06T22:49:20.563Z"
   },
   "jr_nada_sannomiya": {
     "hash": "b9ad427116cc11cc549741111b0cd6fe2534b79619f0d3cb7faa6657dcd5822a",
@@ -1933,6 +1933,6 @@
         "23:49"
       ]
     },
-    "checkedAt": "2026-10-06T06:50:07.548Z"
+    "checkedAt": "2026-10-06T22:49:21.235Z"
   }
 }
