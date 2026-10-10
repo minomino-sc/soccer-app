@@ -186,6 +186,39 @@ const SOURCES = [
       "62系統 神戸北町方面行き"
   },
 
+/* =======================================================
+神戸市バス64系統
+桂木3丁目：三宮方面・神戸北町方面
+======================================================= */
+
+{
+id: “citybus64_katsuragi3”,
+
+name: "神戸市バス64系統",
+route:
+  "桂木3丁目（64系統）",
+type: "citybus64",
+url:
+  "https://kotsu.city.kobe.lg.jp/bus/bus-stop-list/bus-844/"
+
+},
+
+/* =======================================================
+神戸市バス64系統
+三宮駅ターミナル前：北区方面
+======================================================= */
+
+{
+id: “citybus64_sannomiya”,
+
+name: "神戸市バス64系統",
+route:
+  "三宮駅ターミナル前（64系統）",
+type: "citybus64",
+url:
+  "https://kotsu.city.kobe.lg.jp/bus/bus-stop-list/bus-266/"
+
+}, 
 
   /* =======================================================
      JR
@@ -1201,6 +1234,61 @@ function extractCityBus62(
 
 }
 
+/* =========================================================
+CITY BUS 64
+
+公式停留所ページの64系統部分を監視。
+時刻表の自動変更は行わない。
+========================================================= */
+
+function extractCityBus64(html) {
+
+const $ = cheerio.load(html);
+
+const text = normalizeText(
+$(“body”).text()
+);
+
+const start = text.indexOf(“64系統”);
+
+if (start < 0) {
+throw new Error(
+“64系統の時刻表が見つかりません”
+);
+}
+
+/*
+
+* 64系統の掲載範囲を抽出。
+* 「備考」以降のページ共通情報は除外する。
+    */
+    const end = text.indexOf(“備考”, start);
+
+const section =
+end >= 0
+? text.slice(start, end)
+: text.slice(start);
+
+if (
+!section.includes(“平日”) ||
+!section.includes(“日曜・祝日”)
+) {
+throw new Error(
+“64系統の曜日別時刻表を確認できません”
+);
+}
+
+/*
+
+* 時刻表部分の内容を保存し、
+* 次回の取得内容と比較する。
+    */
+    return {
+    officialTimetable: [
+    section
+    ]
+    };
+    }
 
 /* =========================================================
    CITY BUS TAB
@@ -2095,14 +2183,6 @@ async function checkHankyu(
   };
 
 }
-
-
-
-
-
-
-
-
 
 /* =========================================================
    EXTRACT
