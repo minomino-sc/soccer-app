@@ -7,7 +7,7 @@
       "route": "日の峰1丁目 → 谷上駅 158系統",
       "updates": []
     },
-    "checkedAt": "2026-10-10T10:51:33.049Z"
+    "checkedAt": "2026-10-10T11:18:08.873Z"
   },
   "subway_tanigami_sannomiya": {
     "hash": "6fadb531040bddbeff95667ee3bb5028350da5d3fbae98ccdf2a6123d29ff82c",
@@ -197,7 +197,7 @@
         "23:55"
       ]
     },
-    "checkedAt": "2026-10-10T10:51:34.425Z"
+    "checkedAt": "2026-10-10T11:18:10.209Z"
   },
   "subway_sannomiya_tanigami": {
     "hash": "c453de3427920dbf62b19a42e8d285a7c3acd53691237c5dd217f65502a3328e",
@@ -387,7 +387,7 @@
         "23:46"
       ]
     },
-    "checkedAt": "2026-10-10T10:51:35.591Z"
+    "checkedAt": "2026-10-10T11:18:11.328Z"
   },
   "portliner_sannomiya_boeki": {
     "hash": "6a38ce7443f1c7a9a117b872eb4d48ec2f2cc9fe860e29503cbdebdd43e7afbd",
@@ -702,7 +702,7 @@
       "23:45",
       "23:52"
     ],
-    "checkedAt": "2026-10-10T10:51:36.895Z"
+    "checkedAt": "2026-10-10T11:18:12.454Z"
   },
   "portliner_boeki_sannomiya": {
     "hash": "8bfc713ca0a4c4b53ab3b102aff06e74069108a07bc3b057811eba1ab6bcdb3b",
@@ -1019,7 +1019,7 @@
       "23:46",
       "23:50"
     ],
-    "checkedAt": "2026-10-10T10:51:37.957Z"
+    "checkedAt": "2026-10-10T11:18:13.462Z"
   },
   "citybus_62": {
     "hash": "75e52a61051c19e09aec31c91f924dad4d5282c7ac6662e0949580694d8a111c",
@@ -1075,25 +1075,25 @@
         "23:50"
       ]
     },
-    "checkedAt": "2026-10-10T10:51:39.179Z"
+    "checkedAt": "2026-10-10T11:18:14.467Z"
   },
   "citybus64_katsuragi3": {
-    "hash": "15505c2b308835cf2131e6fca6e185b48a2e9a259499e4ece0a786fc5362335b",
+    "hash": "746e29064653e9bc64427ff858d3edfc2b8124884ab301876f7e3bea0ab01882",
     "timetable": {
       "officialTimetable": [
-        "64系統 神戸北町方面行き／三宮方面行き 神戸北町方面行き 三宮方面行き PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時6時7時0727478時021732479時0217344710時0217344811時0318344812時0318344813時0318344814時0318344815時0318344816時031834455717時10203540495718時07121926323844525619時021114202634414920時000513212939475721時0919314622時0116314923時08285時6時7時1131518時1131469時0118314810時0116324811時0217324812時0217324813時0217324814時0217324815時0217334916時0318334917時031631465518時072131455519時0721314820時0118334621時031631445922時14314923時07275時6時7時19418時012136519時0621334610時0116334611時0116334612時0116314813時0318334814時0318344915時0419344916時0419344917時041934465818時082234445619時0818324520時0215304521時021530435822時15335523時12 備考 ・お問い合わせは中央営業所 334−0050まで PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時51○586時061320○27○34○41□49□57□7時05□12□19□26□33□40□47□54□8時01□08□16□24□32□4048□56○9時04○1220283644△5210時0009213345△5711時12274257△12時122742△5713時1227△425714時122742△5715時122742△5716時1227425717時1227425718時1227425719時12274420時03244721時07274722時0923時5時6時01193449○7時04○14○24△34○44○54△8時04○12○20△28364452△9時00081624324048△5610時0616263646△5611時0616263646△5612時08203244△5613時082338△5314時082338△5315時082338△5316時082338△5317時0823385318時09294919時09294920時09345921時245022時23時5時6時011734497時04193446558時03111825323946539時000714223038△465410時04142534△445411時0414243444△5412時04162740△5213時04193449△14時041934△4915時04203652△16時0924△395417時0924395418時14345419時09244420時04244921時143922時23時 備考 ・○印は箕谷駅前には止りません・□印は日の峰2丁目・箕谷駅前には止りません・△印は松が枝町2丁目まわり・お問い合わせは中央営業所 334−0050まで バス停周辺地図 経路案内 検索する 注意事項 目的地 × 現在地を入力する 該当の駅が見つかりませんでした 駅 バス停 西神・山手線、北神線 S01 谷上 S02 新神戸 S03 三宮 S04 県庁前 S05 大倉山 S06 湊川公園 S07 上沢 S08 長田 S09 新長田 S10 板宿 S11 妙法寺 S12 名谷 S13 総合運動公園 S14 学園都市 S15 伊川谷 S16 西神南 S17 西神中央 K 海岸線 K01 三宮・花時計前 K02 旧居留地・大丸前 K03 みなと元町 K04 ハーバーランド K05 中央市場前 K06 和田岬 K07 御崎公園 K08 苅藻 K09 駒ヶ林 K10 新長田 よみから探す 系統から探す (function () { const $ = (id) => document.getElementById(id); const isGeoAvailable = () => ('geolocation' in navigator); const isSecure = () => window.isSecureContext === true; // Permissions API で事前の許可状態を取得（非対応ブラウザは null） const getGeoPermissionState = async () => { try { if (!('permissions' in navigator) || !navigator.permissions?.query) return null; const status = await navigator.permissions.query({ name: 'geolocation' }); return status.state; // 'granted' | 'prompt' | 'denied' } catch (_) { return null; } }; const getTitleType = () => { const title = ($('searchMenuTitle')?.textContent || '').trim(); if (title === '出発地') return 'from'; if (title === '到着地') return 'to'; return null; }; const formatCoord = (pos) => { const lat = pos.coords.latitude.toFixed(7); const lng = pos.coords.longitude.toFixed(7); return `${lat},${lng}`; }; const setCoordToInputs = (coord, type) => { const targets = []; if (type === 'from') { if ($('fromCoord')) targets.push($('fromCoord')); if ($('commuterFromCoord')) targets.push($('commuterFromCoord')); } else if (type === 'to') { if ($('toCoord')) targets.push($('toCoord')); if ($('commuterToCoord')) targets.push($('commuterToCoord')); } targets.forEach((el) => { el.value = coord; }); }; // 利用環境・拒否理由に応じてガイドを出し分け const alertGeoGuide = (reason) => { let msg = ''; switch (reason) { case 'not-supported': msg = 'このブラウザは位置情報に対応していません。最新のブラウザでお試しください。'; break; case 'insecure': msg = '位置情報を利用するには HTTPS 接続が必要です。サイトを「https://」で開いてからお試しください。'; break; case 'denied': msg = [ '位置情報の利用が「ブロック」されています。', 'ブラウザのサイトの権限設定から位置情報を「許可」に変更して、ページを再読み込みしてください。', '例）', '- iPhone Safari: 共有ボタン > ページ設定 > 位置情報 を「許可」', '- Android Chrome: アドレスバーの鍵アイコン > 権限 > 位置情報 を「許可」', '- PC Chrome/Edge: アドレスバーの鍵(または保護された通信) > サイトの設定 > 位置情報 を「許可」' ].join('\\n'); break; case 'timeout': msg = '現在地の取得に時間がかかっています。屋外で再試行するか、通信環境をご確認ください。'; break; case 'unavailable': msg = '現在地を特定できませんでした。しばらくしてから再試行してください。'; break; default: msg = '位置情報が無効です。ブラウザの設定で位置情報を有効にしてください。'; break; } alert(msg); }; const getLocation = (options) => new Promise((resolve, reject) => { navigator.geolocation.getCurrentPosition(resolve, reject, options); }); const btn = $('currentFromCoord'); if (!btn) return; btn.addEventListener('click', async () => { btn.disabled = true; // 1) ブラウザ対応 if (!isGeoAvailable()) { alertGeoGuide('not-supported'); btn.disabled = false; return; } // 2) HTTPS 必須 if (!isSecure()) { alertGeoGuide('insecure'); btn.disabled = false; return; } // 3) 事前に Permissions API で拒否済みなら即ガイド try { const state = await getGeoPermissionState(); if (state === 'denied') { alertGeoGuide('denied'); btn.disabled = false; return; } } catch (_) { // Permissions API 非対応や取得失敗は無視して続行 } try { const pos = await getLocation({ enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }); const coord = formatCoord(pos); // data-coord へ格納 btn.setAttribute('data-coord', coord); // タイトル（出発地/到着地）に応じて反映 const type = getTitleType(); if (type) setCoordToInputs(coord, type); } catch (err) { // GeolocationPositionError の code によって分岐 // 1: PERMISSION_DENIED, 2: POSITION_UNAVAILABLE, 3: TIMEOUT const code = err?.code; if (code === 1) { alertGeoGuide('denied'); } else if (code === 3) { alertGeoGuide('timeout'); } else if (code === 2) { alertGeoGuide('unavailable'); } else { alertGeoGuide(); } } finally { btn.disabled = false; } }); })(); よくある質問 プライバシーポリシー サイトマップ お問い合わせ Copyright©️神戸市交通局 All Rights Reserved. 日本語English繁體字中文简体字中文한국어 運行情報 市バス 大幅な遅れなし 地下鉄 平常運転 遅延証明書 市バス 市バスページを見る 地下鉄 地下鉄ページを見る 神戸市 企業情報 よくある質問 お問い合わせ 入札・公募 採用情報 サイトマップ プライバシーポリシー ホーム 市バス 地下鉄 沿線NAVI メニュー どちらの遅延証明書をご希望ですか？ 市バス 地下鉄 {\"prefetch\":[{\"source\":\"document\",\"where\":{\"and\":[{\"href_matches\":\"/*\"},{\"not\":{\"href_matches\":[\"/wp-*.php\",\"/wp-admin/*\",\"/wp-content/uploads/*\",\"/wp-content/*\",\"/wp-content/plugins/*\",\"/wp-content/themes/kotsu/*\",\"/*\\\\?(.+)\"]}},{\"not\":{\"selector_matches\":\"a[rel~=\\\"nofollow\\\"]\"}},{\"not\":{\"selector_matches\":\".no-prefetch, .no-prefetch a\"}}]},\"eagerness\":\"conservative\"}]} /* <![CDATA[ */ var wp_ulike_params = {\"ajax_url\":\"https://kotsu.city.kobe.lg.jp/wp-admin/admin-ajax.php\",\"notifications\":\"1\"}; //# sourceURL=wp_ulike-js-extra /* ]]> */"
+        "64系統 神戸北町方面行き／三宮方面行き 神戸北町方面行き 三宮方面行き PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時6時7時0727478時021732479時0217344710時0217344811時0318344812時0318344813時0318344814時0318344815時0318344816時031834455717時10203540495718時07121926323844525619時021114202634414920時000513212939475721時0919314622時0116314923時08285時6時7時1131518時1131469時0118314810時0116324811時0217324812時0217324813時0217324814時0217324815時0217334916時0318334917時031631465518時072131455519時0721314820時0118334621時031631445922時14314923時07275時6時7時19418時012136519時0621334610時0116334611時0116334612時0116314813時0318334814時0318344915時0419344916時0419344917時041934465818時082234445619時0818324520時0215304521時021530435822時15335523時12 備考 ・お問い合わせは中央営業所 334−0050まで PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時51○586時061320○27○34○41□49□57□7時05□12□19□26□33□40□47□54□8時01□08□16□24□32□4048□56○9時04○1220283644△5210時0009213345△5711時12274257△12時122742△5713時1227△425714時122742△5715時122742△5716時1227425717時1227425718時1227425719時12274420時03244721時07274722時0923時5時6時01193449○7時04○14○24△34○44○54△8時04○12○20△28364452△9時00081624324048△5610時0616263646△5611時0616263646△5612時08203244△5613時082338△5314時082338△5315時082338△5316時082338△5317時0823385318時09294919時09294920時09345921時245022時23時5時6時011734497時04193446558時03111825323946539時000714223038△465410時04142534△445411時0414243444△5412時04162740△5213時04193449△14時041934△4915時04203652△16時0924△395417時0924395418時14345419時09244420時04244921時143922時23時 備考 ・○印は箕谷駅前には止りません・□印は日の峰2丁目・箕谷駅前には止りません・△印は松が枝町2丁目まわり・お問い合わせは中央営業所 334−0050まで"
       ]
     },
-    "checkedAt": "2026-10-10T10:51:40.277Z"
+    "checkedAt": "2026-10-10T11:18:15.353Z"
   },
   "citybus64_sannomiya": {
-    "hash": "7e8a2e0d975b3b4351b1cee658576ca2aa36f5e399baf34615abe3b17cc6753e",
+    "hash": "5cc05bc0964eb4e8200b78076419c64a26b96c83823a99b288085456f11fdd92",
     "timetable": {
       "officialTimetable": [
-        "64系統 箕谷駅前・神戸北町方面行き PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時6時35557時1530458時001530459時00○15304510時00○15304511時00○15304512時00○15304513時00○15304514時00○15304515時00○15304516時00○12243648▲17時00○08▲16▲24▲32○40▲47▲54▲18時00▲06▲12▲1824▲30▲36○42▲48▲54▲19時02▲10▲18▲26○34▲42▲50▲58▲20時0616▲26▲3648▲21時00▲15▲30▲45▲22時00▲20▲40▲23時00▲5時6時407時0020408時00153045○9時0015○304510時0015○304511時0015○304512時0015○304513時0015○304514時0015○304515時0015○304516時0015○3045▲17時00▲12○24▲36▲4818時00▲1224▲36▲4819時00▲1530▲4520時0015▲3045▲21時0015▲30▲45▲22時0020▲40▲23時00▲5時6時487時1030508時052035509時00○15304510時00○15304511時00○15304512時0015○304513時00○15304514時00○15304515時00○15304516時00○15304517時00122436▲4818時0012▲24▲3648▲19時0015▲3045▲20時00▲15▲3045▲21時0015▲30▲4522時05▲2545▲23時 備考 ・〇印は松が枝町2丁目まわり・▲印は箕谷駅にはまいりません・お問い合わせは中央営業所 334−0050まで 101系統 脇の浜先行ＨＡＴ神戸方面行き／若菜通先行ＨＡＴ神戸方面行き 脇の浜先行ＨＡＴ神戸方面行き 若菜通先行ＨＡＴ神戸方面行き PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時6時7時8時489時10時1611時20姫12時51姫13時14時0815時3516時42姫17時18時19時20時21時22時23時5時6時7時8時489時10時1611時2012時5113時14時0815時3516時4217時18時19時20時21時22時23時5時6時7時8時489時10時1611時2012時5113時14時0815時3516時4217時18時19時20時21時22時23時 備考 ・全車ノンステップバス・姫印は神姫バス・お問い合わせは中央営業所 334−0050まで・お問い合わせは神姫バス 神戸 335−7320まで PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時6時7時8時079時3510時39姫11時02□12時07姫13時2537姫□14時5415時16時02姫17時31姫18時19時20時21時22時23時5時6時7時8時079時3510時3911時02□12時0713時2537□14時5415時16時0217時3118時19時20時21時22時23時5時6時7時8時079時3510時3911時02□12時0713時2537□14時5415時16時0217時3118時19時20時21時22時23時 備考 ・全車ノンステップバス・□印は第五突堤ゆき・姫印は神姫バス・お問い合わせは中央営業所 334−0050まで・お問い合わせは神姫バス 神戸 335−7320まで バス停周辺地図 イラストマップ 経路案内 検索する 注意事項 目的地 × 現在地を入力する 該当の駅が見つかりませんでした 駅 バス停 西神・山手線、北神線 S01 谷上 S02 新神戸 S03 三宮 S04 県庁前 S05 大倉山 S06 湊川公園 S07 上沢 S08 長田 S09 新長田 S10 板宿 S11 妙法寺 S12 名谷 S13 総合運動公園 S14 学園都市 S15 伊川谷 S16 西神南 S17 西神中央 K 海岸線 K01 三宮・花時計前 K02 旧居留地・大丸前 K03 みなと元町 K04 ハーバーランド K05 中央市場前 K06 和田岬 K07 御崎公園 K08 苅藻 K09 駒ヶ林 K10 新長田 よみから探す 系統から探す (function () { const $ = (id) => document.getElementById(id); const isGeoAvailable = () => ('geolocation' in navigator); const isSecure = () => window.isSecureContext === true; // Permissions API で事前の許可状態を取得（非対応ブラウザは null） const getGeoPermissionState = async () => { try { if (!('permissions' in navigator) || !navigator.permissions?.query) return null; const status = await navigator.permissions.query({ name: 'geolocation' }); return status.state; // 'granted' | 'prompt' | 'denied' } catch (_) { return null; } }; const getTitleType = () => { const title = ($('searchMenuTitle')?.textContent || '').trim(); if (title === '出発地') return 'from'; if (title === '到着地') return 'to'; return null; }; const formatCoord = (pos) => { const lat = pos.coords.latitude.toFixed(7); const lng = pos.coords.longitude.toFixed(7); return `${lat},${lng}`; }; const setCoordToInputs = (coord, type) => { const targets = []; if (type === 'from') { if ($('fromCoord')) targets.push($('fromCoord')); if ($('commuterFromCoord')) targets.push($('commuterFromCoord')); } else if (type === 'to') { if ($('toCoord')) targets.push($('toCoord')); if ($('commuterToCoord')) targets.push($('commuterToCoord')); } targets.forEach((el) => { el.value = coord; }); }; // 利用環境・拒否理由に応じてガイドを出し分け const alertGeoGuide = (reason) => { let msg = ''; switch (reason) { case 'not-supported': msg = 'このブラウザは位置情報に対応していません。最新のブラウザでお試しください。'; break; case 'insecure': msg = '位置情報を利用するには HTTPS 接続が必要です。サイトを「https://」で開いてからお試しください。'; break; case 'denied': msg = [ '位置情報の利用が「ブロック」されています。', 'ブラウザのサイトの権限設定から位置情報を「許可」に変更して、ページを再読み込みしてください。', '例）', '- iPhone Safari: 共有ボタン > ページ設定 > 位置情報 を「許可」', '- Android Chrome: アドレスバーの鍵アイコン > 権限 > 位置情報 を「許可」', '- PC Chrome/Edge: アドレスバーの鍵(または保護された通信) > サイトの設定 > 位置情報 を「許可」' ].join('\\n'); break; case 'timeout': msg = '現在地の取得に時間がかかっています。屋外で再試行するか、通信環境をご確認ください。'; break; case 'unavailable': msg = '現在地を特定できませんでした。しばらくしてから再試行してください。'; break; default: msg = '位置情報が無効です。ブラウザの設定で位置情報を有効にしてください。'; break; } alert(msg); }; const getLocation = (options) => new Promise((resolve, reject) => { navigator.geolocation.getCurrentPosition(resolve, reject, options); }); const btn = $('currentFromCoord'); if (!btn) return; btn.addEventListener('click', async () => { btn.disabled = true; // 1) ブラウザ対応 if (!isGeoAvailable()) { alertGeoGuide('not-supported'); btn.disabled = false; return; } // 2) HTTPS 必須 if (!isSecure()) { alertGeoGuide('insecure'); btn.disabled = false; return; } // 3) 事前に Permissions API で拒否済みなら即ガイド try { const state = await getGeoPermissionState(); if (state === 'denied') { alertGeoGuide('denied'); btn.disabled = false; return; } } catch (_) { // Permissions API 非対応や取得失敗は無視して続行 } try { const pos = await getLocation({ enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }); const coord = formatCoord(pos); // data-coord へ格納 btn.setAttribute('data-coord', coord); // タイトル（出発地/到着地）に応じて反映 const type = getTitleType(); if (type) setCoordToInputs(coord, type); } catch (err) { // GeolocationPositionError の code によって分岐 // 1: PERMISSION_DENIED, 2: POSITION_UNAVAILABLE, 3: TIMEOUT const code = err?.code; if (code === 1) { alertGeoGuide('denied'); } else if (code === 3) { alertGeoGuide('timeout'); } else if (code === 2) { alertGeoGuide('unavailable'); } else { alertGeoGuide(); } } finally { btn.disabled = false; } }); })(); よくある質問 プライバシーポリシー サイトマップ お問い合わせ Copyright©️神戸市交通局 All Rights Reserved. 日本語English繁體字中文简体字中文한국어 運行情報 市バス 大幅な遅れなし 地下鉄 平常運転 遅延証明書 市バス 市バスページを見る 地下鉄 地下鉄ページを見る 神戸市 企業情報 よくある質問 お問い合わせ 入札・公募 採用情報 サイトマップ プライバシーポリシー ホーム 市バス 地下鉄 沿線NAVI メニュー どちらの遅延証明書をご希望ですか？ 市バス 地下鉄 {\"prefetch\":[{\"source\":\"document\",\"where\":{\"and\":[{\"href_matches\":\"/*\"},{\"not\":{\"href_matches\":[\"/wp-*.php\",\"/wp-admin/*\",\"/wp-content/uploads/*\",\"/wp-content/*\",\"/wp-content/plugins/*\",\"/wp-content/themes/kotsu/*\",\"/*\\\\?(.+)\"]}},{\"not\":{\"selector_matches\":\"a[rel~=\\\"nofollow\\\"]\"}},{\"not\":{\"selector_matches\":\".no-prefetch, .no-prefetch a\"}}]},\"eagerness\":\"conservative\"}]} /* <![CDATA[ */ var wp_ulike_params = {\"ajax_url\":\"https://kotsu.city.kobe.lg.jp/wp-admin/admin-ajax.php\",\"notifications\":\"1\"}; //# sourceURL=wp_ulike-js-extra /* ]]> */"
+        "64系統 箕谷駅前・神戸北町方面行き PDF版時刻表はこちら 平日 土曜日 日曜・祝日 5時6時35557時1530458時001530459時00○15304510時00○15304511時00○15304512時00○15304513時00○15304514時00○15304515時00○15304516時00○12243648▲17時00○08▲16▲24▲32○40▲47▲54▲18時00▲06▲12▲1824▲30▲36○42▲48▲54▲19時02▲10▲18▲26○34▲42▲50▲58▲20時0616▲26▲3648▲21時00▲15▲30▲45▲22時00▲20▲40▲23時00▲5時6時407時0020408時00153045○9時0015○304510時0015○304511時0015○304512時0015○304513時0015○304514時0015○304515時0015○304516時0015○3045▲17時00▲12○24▲36▲4818時00▲1224▲36▲4819時00▲1530▲4520時0015▲3045▲21時0015▲30▲45▲22時0020▲40▲23時00▲5時6時487時1030508時052035509時00○15304510時00○15304511時00○15304512時0015○304513時00○15304514時00○15304515時00○15304516時00○15304517時00122436▲4818時0012▲24▲3648▲19時0015▲3045▲20時00▲15▲3045▲21時0015▲30▲4522時05▲2545▲23時 備考 ・〇印は松が枝町2丁目まわり・▲印は箕谷駅にはまいりません・お問い合わせは中央営業所 334−0050まで"
       ]
     },
-    "checkedAt": "2026-10-10T10:51:41.373Z"
+    "checkedAt": "2026-10-10T11:18:15.426Z"
   },
   "jr_sannomiya_nada": {
     "hash": "e7b618a70a5dd75f3cce4a13019639ef915b394d63a2e5c654f8135af164a7aa",
@@ -1665,7 +1665,7 @@
         "23:52"
       ]
     },
-    "checkedAt": "2026-10-10T10:51:42.301Z"
+    "checkedAt": "2026-10-10T11:18:16.252Z"
   },
   "jr_nada_sannomiya": {
     "hash": "b9ad427116cc11cc549741111b0cd6fe2534b79619f0d3cb7faa6657dcd5822a",
@@ -1951,6 +1951,6 @@
         "23:49"
       ]
     },
-    "checkedAt": "2026-10-10T10:51:42.908Z"
+    "checkedAt": "2026-10-10T11:18:16.910Z"
   }
 }
