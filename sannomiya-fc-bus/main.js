@@ -1822,58 +1822,47 @@ searchButton.addEventListener(
         "click",
         () => {
 
-          if (
-            !selectedVenueKey
-          ) {
+          if (!selectedVenueKey) {
             return;
           }
-
 
           selectedDirectionKey =
             button.dataset.direction;
 
-
           directionButtons.forEach(
             item =>
-              item.classList.remove(
-                "active"
-              )
+              item.classList.remove("active")
           );
 
+          button.classList.add("active");
 
-          button.classList.add(
-            "active"
-          );
-
-
-          /*
-           * 最初は現在時刻をセット
-           */
+          // 現在の日付・時刻を設定
           setCurrentTime();
 
-
+          // 日付・時刻の入力欄を表示
           searchSection
             .classList
             .remove("hidden");
 
-
+          // ルート候補をいったん非表示
           resultSection
             .classList
             .add("hidden");
 
+          // 現在時刻で自動検索
+          searchButton.click();
 
-          searchSection
-            .scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
+          // 検索結果までスクロール
+          resultSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
 
         }
       );
 
     }
   );
-
 
   /* =======================================================
      BACK
