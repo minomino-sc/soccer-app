@@ -215,80 +215,27 @@ let searchedDate = null;
   /*
    * 指定日付のダイヤ種別
    */
-  function getDayType(
-    dateString = searchedDate
-  ) {
-
-    const date =
-      dateStringToDate(
-        dateString
-      );
-
+  function getDayType(dateString = searchedDate) {
+    const date = dateStringToDate(dateString);
 
     if (!date) {
-
-      const today =
-        new Date();
-
-      const day =
-        today.getDay();
-
-
-      if (
-        day === 0 ||
-        day === 6
-      ) {
-        return "holiday";
-      }
-
-
+      const today = new Date();
+      const day = today.getDay();
+      if (day === 6) return "saturday";
+      if (day === 0 || isJapaneseHoliday(today)) return "holiday";
       return "weekday";
-
     }
 
-
-    const day =
-      date.getDay();
-
-
-    /*
-     * 土曜日・日曜日
-     */
-    if (
-      day === 0 ||
-      day === 6
-    ) {
-      return "holiday";
-    }
-
-
-    /*
-     * 祝日
-     */
-    if (
-      isJapaneseHoliday(date)
-    ) {
-      return "holiday";
-    }
-
-
+    const day = date.getDay();
+    if (day === 6) return "saturday";
+    if (day === 0 || isJapaneseHoliday(date)) return "holiday";
     return "weekday";
-
   }
 
-
-  function getDayTypeLabel(
-    dateString = searchedDate
-  ) {
-
-    return getDayType(
-      dateString
-    ) === "holiday"
-
-      ? "土日祝ダイヤ"
-
-      : "平日ダイヤ";
-
+  function getDayTypeLabel(dateString = searchedDate) {
+    const type = getDayType(dateString);
+    if (type === "saturday") return "土曜ダイヤ";
+    return type === "holiday" ? "日曜・祝日ダイヤ" : "平日ダイヤ";
   }
 
 
@@ -427,7 +374,10 @@ dayType.textContent =
     }
 
     const table =
-      timetable[dayType];
+      timetable[dayType] ||
+      (dayType === "saturday" ? timetable.holiday : null) ||
+      timetable.holiday ||
+      timetable.weekday;
 
     if (!table) {
       return result;
@@ -518,276 +468,179 @@ dayType.textContent =
      乗車 / 徒歩時間
   ======================================================= */
 
-  function getRouteDefinition(
-    venueKey,
-    direction
-  ) {
+  function getRouteDefinitions(venueKey, direction) {
+    const venue = TIMETABLE_DATA?.venues?.[venueKey];
+    if (!venue) return [];
 
-    const venue =
-      TIMETABLE_DATA
-        ?.venues
-        ?. [venueKey];
+    const timetableLeg = (item, travel, transferBefore = 0) => ({
+      type: "timetable",
+      timetable: item.timetable,
+      operator: item.operator,
+      station: item.station,
+      travel,
+      transferBefore
+    });
+    const walkLeg = (station, travel) => ({
+      type: "walk",
+      operator: "徒歩",
+      station,
+      travel
+    });
+    const bus64Home = {
+      operator: "神戸市バス64系統",
+      station: "三宮駅ターミナル前 → 日の峰1丁目",
+      timetable: CITYBUS64_SANNOMIYA_TO_HINOMINE
+    };
+    const bus64Town = {
+      operator: "神戸市バス64系統",
+      station: "日の峰1丁目 → 三宮駅ターミナル前",
+      timetable: CITYBUS64_HINOMINE_TO_SANNOMIYA
+    };
 
-
-    if (!venue) {
-      return [];
-    }
-
-
-    /* =====================================================
-       小野浜
-    ===================================================== */
-
-    if (venueKey === "onohama") {
-
-      if (direction === "go") {
-
-        return [
-
-          {
-            type: "timetable",
-            timetable: venue.go[0].timetable,
-            operator: venue.go[0].operator,
-            station: venue.go[0].station,
-            travel: 10,
-            transferBefore: 0
-          },
-
-          {
-            type: "timetable",
-            timetable: venue.go[1].timetable,
-            operator: venue.go[1].operator,
-            station: venue.go[1].station,
-            travel: 10,
-            transferBefore: 5
-          },
-
-          {
-            type: "timetable",
-            timetable: venue.go[2].timetable,
-            operator: venue.go[2].operator,
-            station: venue.go[2].station,
-            travel: 2,
-            transferBefore: 7
-          },
-
-          {
-            type: "walk",
-            operator: "徒歩",
-            station: "貿易センター駅 → 小野浜公園球技場",
-            travel: 5
-          }
-
-        ];
-
-      }
-
-
+    if (venueKey === "onohama" && direction === "go") {
       return [
-
         {
-          type: "walk",
-          operator: "徒歩",
-          station: "小野浜公園球技場 → 貿易センター駅",
-          travel: 5
+          id: "hankyu-subway-portliner",
+          name: "阪急バス → 地下鉄 → ポートライナー",
+          legs: [
+            timetableLeg(venue.go[0], 10),
+            timetableLeg(venue.go[1], 10, 5),
+            timetableLeg(venue.go[2], 2, 7),
+            walkLeg("貿易センター駅 → 小野浜公園球技場", 5)
+          ]
         },
-
         {
-          type: "timetable",
-          timetable: venue.return[0].timetable,
-          operator: venue.return[0].operator,
-          station: venue.return[0].station,
-          travel: 2,
-          transferBefore: 0
-        },
-
-        {
-          type: "timetable",
-          timetable: venue.return[1].timetable,
-          operator: venue.return[1].operator,
-          station: venue.return[1].station,
-          travel: 10,
-          transferBefore: 7
-        },
-
-        {
-          type: "timetable",
-          timetable: venue.return[2].timetable,
-          operator: venue.return[2].operator,
-          station: venue.return[2].station,
-          travel: 10,
-          transferBefore: 5
+          id: "bus64-portliner",
+          name: "市バス64系統 → ポートライナー",
+          legs: [
+            timetableLeg(bus64Town, 35),
+            timetableLeg(venue.go[2], 2, 8),
+            walkLeg("貿易センター駅 → 小野浜公園球技場", 5)
+          ]
         }
-
       ];
-
     }
 
-
-    /* =====================================================
-       神戸朝鮮初中級学校
-    ===================================================== */
-
-    if (venueKey === "koreanch") {
-
-      if (direction === "go") {
-
-        return [
-
-          {
-            type: "timetable",
-            timetable: venue.go[0].timetable,
-            operator: venue.go[0].operator,
-            station: venue.go[0].station,
-            travel: 10,
-            transferBefore: 0
-          },
-
-          {
-            type: "timetable",
-            timetable: venue.go[1].timetable,
-            operator: venue.go[1].operator,
-            station: venue.go[1].station,
-            travel: 10,
-            transferBefore: 5
-          },
-
-          {
-            type: "timetable",
-            timetable: venue.go[2].timetable,
-            operator: venue.go[2].operator,
-            station: venue.go[2].station,
-            travel: 2,
-            transferBefore: 6
-          },
-
-          {
-            type: "walk",
-            operator: "徒歩",
-            station: "JR灘駅 → 神戸朝鮮初中級学校",
-            travel: 5
-          }
-
-        ];
-
-      }
-
-
+    if (venueKey === "onohama" && direction === "return") {
       return [
-
         {
-          type: "walk",
-          operator: "徒歩",
-          station: "神戸朝鮮初中級学校 → JR灘駅",
-          travel: 5
+          id: "portliner-subway-bus62",
+          name: "ポートライナー → 地下鉄 → 市バス62系統",
+          legs: [
+            walkLeg("小野浜公園球技場 → 貿易センター駅", 5),
+            timetableLeg(venue.return[0], 2),
+            timetableLeg(venue.return[1], 10, 7),
+            timetableLeg(venue.return[2], 10, 5)
+          ]
         },
-
         {
-          type: "timetable",
-          timetable: venue.return[0].timetable,
-          operator: venue.return[0].operator,
-          station: venue.return[0].station,
-          travel: 3,
-          transferBefore: 0
-        },
-
-        {
-          type: "timetable",
-          timetable: venue.return[1].timetable,
-          operator: venue.return[1].operator,
-          station: venue.return[1].station,
-          travel: 10,
-          transferBefore: 6
-        },
-
-        {
-          type: "timetable",
-          timetable: venue.return[2].timetable,
-          operator: venue.return[2].operator,
-          station: venue.return[2].station,
-          travel: 10,
-          transferBefore: 5
+          id: "portliner-bus64",
+          name: "ポートライナー → 市バス64系統",
+          legs: [
+            walkLeg("小野浜公園球技場 → 貿易センター駅", 5),
+            timetableLeg(venue.return[0], 2),
+            walkLeg("ポートライナー三宮駅 → 市バス三宮駅ターミナル前", 5),
+            timetableLeg(bus64Home, 35, 5)
+          ]
         }
-
       ];
-
     }
 
-
-    /* =====================================================
-       コミスタこうべ
-    ===================================================== */
-
-    if (venueKey === "comista") {
-
-      if (direction === "go") {
-
-        return [
-
-          {
-            type: "timetable",
-            timetable: venue.go[0].timetable,
-            operator: venue.go[0].operator,
-            station: venue.go[0].station,
-            travel: 10,
-            transferBefore: 0
-          },
-
-          {
-            type: "timetable",
-            timetable: venue.go[1].timetable,
-            operator: venue.go[1].operator,
-            station: venue.go[1].station,
-            travel: 10,
-            transferBefore: 5
-          },
-
-          {
-            type: "walk",
-            operator: "徒歩",
-            station: "三宮駅 → コミスタこうべ",
-            travel: 15
-          }
-
-        ];
-
-      }
-
-
+    if (venueKey === "koreanch" && direction === "go") {
       return [
-
         {
-          type: "walk",
-          operator: "徒歩",
-          station: "コミスタこうべ → 三宮駅",
-          travel: 15
+          id: "hankyu-subway-jr",
+          name: "阪急バス → 地下鉄 → JR",
+          legs: [
+            timetableLeg(venue.go[0], 10),
+            timetableLeg(venue.go[1], 10, 5),
+            timetableLeg(venue.go[2], 2, 6),
+            walkLeg("JR灘駅 → 神戸朝鮮初中級学校", 5)
+          ]
         },
-
         {
-          type: "timetable",
-          timetable: venue.return[0].timetable,
-          operator: venue.return[0].operator,
-          station: venue.return[0].station,
-          travel: 10,
-          transferBefore: 0
-        },
-
-        {
-          type: "timetable",
-          timetable: venue.return[1].timetable,
-          operator: venue.return[1].operator,
-          station: venue.return[1].station,
-          travel: 10,
-          transferBefore: 5
+          id: "bus64-jr",
+          name: "市バス64系統 → JR",
+          legs: [
+            timetableLeg(bus64Town, 35),
+            walkLeg("市バス三宮駅ターミナル前 → JR三ノ宮駅", 5),
+            timetableLeg(venue.go[2], 2, 3),
+            walkLeg("JR灘駅 → 神戸朝鮮初中級学校", 5)
+          ]
         }
-
       ];
-
     }
 
+    if (venueKey === "koreanch" && direction === "return") {
+      return [
+        {
+          id: "jr-subway-bus62",
+          name: "JR → 地下鉄 → 市バス62系統",
+          legs: [
+            walkLeg("神戸朝鮮初中級学校 → JR灘駅", 5),
+            timetableLeg(venue.return[0], 3),
+            timetableLeg(venue.return[1], 10, 6),
+            timetableLeg(venue.return[2], 10, 5)
+          ]
+        },
+        {
+          id: "jr-bus64",
+          name: "JR → 市バス64系統",
+          legs: [
+            walkLeg("神戸朝鮮初中級学校 → JR灘駅", 5),
+            timetableLeg(venue.return[0], 3),
+            walkLeg("JR三ノ宮駅 → 市バス三宮駅ターミナル前", 5),
+            timetableLeg(bus64Home, 35, 5)
+          ]
+        }
+      ];
+    }
+
+    if (venueKey === "comista" && direction === "go") {
+      return [
+        {
+          id: "hankyu-subway",
+          name: "阪急バス → 地下鉄",
+          legs: [
+            timetableLeg(venue.go[0], 10),
+            timetableLeg(venue.go[1], 10, 5),
+            walkLeg("三宮駅 → コミスタこうべ", 15)
+          ]
+        },
+        {
+          id: "bus64",
+          name: "市バス64系統",
+          legs: [
+            timetableLeg(bus64Town, 35),
+            walkLeg("市バス三宮駅ターミナル前 → コミスタこうべ", 15)
+          ]
+        }
+      ];
+    }
+
+    if (venueKey === "comista" && direction === "return") {
+      return [
+        {
+          id: "subway-bus62",
+          name: "地下鉄 → 市バス62系統",
+          legs: [
+            walkLeg("コミスタこうべ → 三宮駅", 15),
+            timetableLeg(venue.return[0], 10),
+            timetableLeg(venue.return[1], 10, 5)
+          ]
+        },
+        {
+          id: "bus64",
+          name: "市バス64系統",
+          legs: [
+            walkLeg("コミスタこうべ → 市バス三宮駅ターミナル前", 15),
+            timetableLeg(bus64Home, 35, 0)
+          ]
+        }
+      ];
+    }
 
     return [];
-
   }
 
 
@@ -1002,203 +855,43 @@ dayType.textContent =
      乗り継ぎ可能な3ルートを検索
   ======================================================= */
 
-function findRoutes(
-    venueKey,
-    direction,
-    requestedMinutes,
-    dateString
-  ) {
+function findRoutes(definition, requestedMinutes, dateString) {
+    if (!Array.isArray(definition) || !definition.length) return [];
 
-    const definition =
-      getRouteDefinition(
-        venueKey,
-        direction
-      );
+    const dayType = getDayType(dateString);
+    const firstTimetableLeg = definition.find(leg => leg.type === "timetable");
+    if (!firstTimetableLeg?.timetable) return [];
 
-
-    if (!definition.length) {
-      return [];
-    }
-
-
-const dayType =
-  getDayType(
-    dateString
-  );
-
-
-    /*
-     * 最初の交通機関
-     */
-    const firstTimetable =
-      definition.find(
-        leg =>
-          leg.type === "timetable"
-      )?.timetable;
-
-
-    if (!firstTimetable) {
-      return [];
-    }
-
-
-    const departures =
-      getAllDepartures(
-        firstTimetable,
-        dayType
-      );
-
-
-    const candidates =
-      departures.filter(
-        item =>
-          item.minutes >=
-          requestedMinutes
-      );
-
-
+    const departures = getAllDepartures(firstTimetableLeg.timetable, dayType);
     const routes = [];
+    const seen = new Set();
 
-
-    /*
-     * 最初の便を順番に試す
-     */
-    for (
-      const candidate of candidates
-    ) {
-
-      /*
-       * 最初の交通機関の出発時刻を
-       * 起点にしてルートを構築する
-       */
-      const route =
-        buildRoute(
-          definition,
-          candidate.minutes,
-          dayType
-        );
-
-
-      if (route) {
-
-        /*
-         * 同じルートの重複防止
-         */
-        const exists =
-          routes.some(
-            item =>
-              item.firstVehicleDeparture ===
-              route.firstVehicleDeparture
-          );
-
-
-        if (!exists) {
-
-          routes.push(
-            route
-          );
-
+    if (definition[0].type !== "walk") {
+      for (const candidate of departures.filter(item => item.minutes >= requestedMinutes)) {
+        const route = buildRoute(definition, candidate.minutes, dayType);
+        if (route && !seen.has(route.firstVehicleDeparture)) {
+          routes.push(route);
+          seen.add(route.firstVehicleDeparture);
         }
-
+        if (routes.length >= 3) break;
       }
-
-
-      if (routes.length >= 3) {
-        break;
-      }
-
+      return routes;
     }
 
-
-    /*
-     * 最初の交通機関が徒歩から始まる
-     * 「帰り」の場合
-     *
-     * requestedMinutes を出発時刻として、
-     * 徒歩後の最初の交通機関を検索する必要がある。
-     */
-    if (
-      definition[0].type === "walk"
-    ) {
-
-      routes.length = 0;
-
-
-      /*
-       * 最初の徒歩開始時刻を少しずつ進めて
-       * 3つの異なる交通便を探す
-       */
-      const maxSearch =
-        requestedMinutes + 240;
-
-
-      let cursor =
-        requestedMinutes;
-
-
-      while (
-        cursor <= maxSearch &&
-        routes.length < 3
-      ) {
-
-        const route =
-          buildRoute(
-            definition,
-            cursor,
-            dayType
-          );
-
-
-        if (route) {
-
-          const key =
-            route.firstVehicleDeparture;
-
-
-          const exists =
-            routes.some(
-              item =>
-                item.firstVehicleDeparture ===
-                key
-            );
-
-
-          if (!exists) {
-
-            routes.push(
-              route
-            );
-
-          }
-
-        }
-
-
-        /*
-         * 次の検索は1分ずつではなく、
-         * 今回使った交通便の次の便付近へ進める
-         */
-        if (
-          route &&
-          route.firstVehicleDeparture !== null
-        ) {
-
-          cursor =
-            route.firstVehicleDeparture + 1;
-
-        } else {
-
-          cursor += 1;
-
-        }
-
+    // 先頭が徒歩のルートは、徒歩を始める時刻を少しずつ進め、異なる交通便を3つ探す。
+    let cursor = requestedMinutes;
+    const maxSearch = requestedMinutes + 360;
+    while (cursor <= maxSearch && routes.length < 3) {
+      const route = buildRoute(definition, cursor, dayType);
+      if (route && route.firstVehicleDeparture !== null && !seen.has(route.firstVehicleDeparture)) {
+        routes.push(route);
+        seen.add(route.firstVehicleDeparture);
+        cursor = route.firstVehicleDeparture + 1;
+      } else {
+        cursor += 1;
       }
-
     }
-
-
     return routes;
-
   }
 
 
@@ -1388,6 +1081,11 @@ const dayType =
     if (
       value.includes("阪急バス")
     ) {
+      return "🚌";
+    }
+
+
+    if (value.includes("市バス")) {
       return "🚌";
     }
 
@@ -1788,91 +1486,53 @@ const countdown =
   ======================================================= */
 
   function renderRoutes() {
+    if (!selectedVenueKey || !selectedDirectionKey || searchedMinutes === null) return;
 
-    if (
-      !selectedVenueKey ||
-      !selectedDirectionKey ||
-      searchedMinutes === null
-    ) {
-      return;
-    }
+    const definitions = getRouteDefinitions(selectedVenueKey, selectedDirectionKey);
 
-
-const routes =
-  findRoutes(
-    selectedVenueKey,
-    selectedDirectionKey,
-    searchedMinutes,
-    searchedDate
-  );
-
-
-    selectedVenue.textContent =
-      getVenueName(
-        selectedVenueKey
-      );
-
-
-    selectedDirection.textContent =
-      selectedDirectionKey === "go"
-        ? "行き →"
-        : "← 帰り";
-
-
-searchSummary.innerHTML = `
-  <strong>
-    ${searchedDate}
-  </strong>
-  <strong>
-    ${minutesToTime(searchedMinutes)}
-  </strong>
-  以降で乗り継ぎ可能なルート
-  <span>
-    ・${getDayTypeLabel(searchedDate)}
-  </span>
-`;
-
-
+    selectedVenue.textContent = getVenueName(selectedVenueKey);
+    selectedDirection.textContent = selectedDirectionKey === "go" ? "行き →" : "← 帰り";
+    searchSummary.innerHTML = `
+      <strong>${escapeHtml(searchedDate || "")}</strong>
+      <strong>${minutesToTime(searchedMinutes)}</strong>
+      以降の各ルートの乗り継ぎ候補
+      <span>・${getDayTypeLabel(searchedDate)}</span>
+    `;
     routeCards.innerHTML = "";
 
-
-    if (!routes.length) {
-
-      routeCards.innerHTML = `
-
-        <div class="route-card no-route">
-
-          <div class="no-route-title">
-            接続可能なルートが見つかりません
-          </div>
-
-          <div class="no-route-text">
-            検索時刻を少し早めるか、
-            別の時刻を指定してください。
-          </div>
-
-        </div>
-
-      `;
-
+    if (!definitions.length) {
+      routeCards.innerHTML = `<div class="route-card no-route"><div class="no-route-title">ルートが登録されていません</div></div>`;
       return;
-
     }
 
+    let renderedCount = 0;
+    definitions.forEach(definition => {
+      const routes = findRoutes(definition.legs, searchedMinutes, searchedDate);
+      const heading = document.createElement("div");
+      heading.className = "route-option-heading";
+      heading.style.cssText = "width:100%;flex:0 0 100%;grid-column:1 / -1;padding:12px 14px;margin:16px 0 8px;border-left:4px solid #16865b;background:rgba(22,134,91,.09);font-weight:700;border-radius:6px;box-sizing:border-box;";
+      heading.textContent = definition.name;
+      routeCards.appendChild(heading);
 
-    routes.forEach(
-      (route, index) => {
-
-        routeCards.appendChild(
-          renderRouteCard(
-            route,
-            index
-          )
-        );
-
+      if (!routes.length) {
+        const empty = document.createElement("div");
+        empty.className = "route-card no-route";
+        empty.style.cssText = "width:100%;box-sizing:border-box;";
+        empty.innerHTML = `<div class="no-route-title">このルートの候補が見つかりません</div><div class="no-route-text">検索時刻を早めるか、別の時刻を指定してください。</div>`;
+        routeCards.appendChild(empty);
+        return;
       }
-    );
 
+      routes.forEach((route, index) => {
+        routeCards.appendChild(renderRouteCard(route, index));
+        renderedCount += 1;
+      });
+    });
+
+    if (!renderedCount) {
+      // ルートごとの「候補なし」表示は残す。
+      return;
+    }
   }
 
 
