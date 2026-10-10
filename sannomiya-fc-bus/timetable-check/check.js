@@ -1282,11 +1282,10 @@ function extractCityBus64(html) {
     }
   }
 
+  // 次の系統も停留所地図も見つからない場合はページ末尾まで
   if (end < 0) {
-    throw new Error(
-      "64系統の掲載範囲の終端を確認できません"
-    );
-  }
+    end = text.length;
+  }  
 
   const section = text.slice(start, end).trim();
 
