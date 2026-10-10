@@ -135,48 +135,70 @@ function requireAdmin() {
 function setLoggedIn(role, loginId) {
   currentRole = role;
 
-  if ($("loginPanel")) $("loginPanel").hidden = true;
-  if ($("userPanel")) $("userPanel").hidden = false;
-  if ($("contentPanel")) $("contentPanel").hidden = false;
+  if ($("loginPanel")) {
+    $("loginPanel").hidden = true;
+    $("loginPanel").classList.add("hidden");
+  }
+
+  if ($("userPanel")) {
+    $("userPanel").hidden = false;
+    $("userPanel").classList.remove("hidden");
+  }
+
+  if ($("contentPanel")) {
+    $("contentPanel").hidden = false;
+    $("contentPanel").classList.remove("hidden");
+  }
 
   if ($("adminPanel")) {
-    $("adminPanel").hidden = role !== "admin";
+    const showAdmin = role === "admin";
+    $("adminPanel").hidden = !showAdmin;
+    $("adminPanel").classList.toggle("hidden", !showAdmin);
   }
 
   if ($("loginState")) {
-    $("loginState").textContent = `${loginId} でログイン中`;
+    $("loginState").textContent = loginId;
   }
 
   if ($("roleDescription")) {
     $("roleDescription").textContent =
-      role === "admin"
-        ? "管理者：動画・試合結果の登録、編集、削除ができます。"
-        : "閲覧者：動画・試合結果を閲覧できます。";
+      role === "admin" ? "管理者" : "閲覧者";
   }
 
   loadCurrentTab();
 }
 
+
 function logout() {
-  currentRole = "";
-  currentTab = "videos";
-  editingVideoId = null;
-  editingScoreId = null;
-  videoCache = [];
-  scoreCache = [];
+  currentRole = null;
 
-  if ($("loginPanel")) $("loginPanel").hidden = false;
-  if ($("userPanel")) $("userPanel").hidden = true;
-  if ($("adminPanel")) $("adminPanel").hidden = true;
-  if ($("contentPanel")) $("contentPanel").hidden = true;
+  if ($("loginPanel")) {
+    $("loginPanel").hidden = false;
+    $("loginPanel").classList.remove("hidden");
+  }
 
-  if ($("loginForm")) $("loginForm").reset();
-  if ($("loginMessage")) $("loginMessage").textContent = "";
-  if ($("adminMessage")) $("adminMessage").textContent = "";
-  if ($("items")) $("items").innerHTML = "";
+  if ($("userPanel")) {
+    $("userPanel").hidden = true;
+    $("userPanel").classList.add("hidden");
+  }
 
-  resetVideoForm();
-  resetScoreForm();
+  if ($("adminPanel")) {
+    $("adminPanel").hidden = true;
+    $("adminPanel").classList.add("hidden");
+  }
+
+  if ($("contentPanel")) {
+    $("contentPanel").hidden = true;
+    $("contentPanel").classList.add("hidden");
+  }
+
+  if ($("loginMessage")) {
+    $("loginMessage").textContent = "";
+  }
+
+  if ($("adminMessage")) {
+    $("adminMessage").textContent = "";
+  }
 }
 
 /* =========================================================
