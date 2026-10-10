@@ -192,7 +192,7 @@ const SOURCES = [
 ======================================================= */
 
 {
-id: “citybus64_katsuragi3”,
+id: "citybus64_katsuragi3",
 
 name: "神戸市バス64系統",
 route:
@@ -209,7 +209,7 @@ url:
 ======================================================= */
 
 {
-id: “citybus64_sannomiya”,
+id: "citybus64_sannomiya",
 
 name: "神戸市バス64系統",
 route:
@@ -1235,60 +1235,44 @@ function extractCityBus62(
 }
 
 /* =========================================================
-CITY BUS 64
+   CITY BUS 64
 
-公式停留所ページの64系統部分を監視。
-時刻表の自動変更は行わない。
+   公式停留所ページの64系統部分を監視。
+   時刻表の自動変更は行わない。
 ========================================================= */
 
 function extractCityBus64(html) {
+  const $ = cheerio.load(html);
 
-const $ = cheerio.load(html);
+  const text = normalizeText(
+    $("body").text()
+  );
 
-const text = normalizeText(
-$(“body”).text()
-);
+  const start = text.indexOf("64系統");
 
-const start = text.indexOf(“64系統”);
+  if (start < 0) {
+    throw new Error(
+      "64系統の時刻表が見つかりません"
+    );
+  }
 
-if (start < 0) {
-throw new Error(
-“64系統の時刻表が見つかりません”
-);
-}
+  const section = text.slice(start);
 
-/*
+  if (
+    !section.includes("平日") ||
+    !section.includes("日曜・祝日")
+  ) {
+    throw new Error(
+      "64系統の曜日別時刻表を確認できません"
+    );
+  }
 
-* 64系統の掲載範囲を抽出。
-* 「備考」以降のページ共通情報は除外する。
-    */
-    const end = text.indexOf(“備考”, start);
-
-const section =
-end >= 0
-? text.slice(start, end)
-: text.slice(start);
-
-if (
-!section.includes(“平日”) ||
-!section.includes(“日曜・祝日”)
-) {
-throw new Error(
-“64系統の曜日別時刻表を確認できません”
-);
-}
-
-/*
-
-* 時刻表部分の内容を保存し、
-* 次回の取得内容と比較する。
-    */
-    return {
+  return {
     officialTimetable: [
-    section
+      section
     ]
-    };
-    }
+  };
+}
 
 /* =========================================================
    CITY BUS TAB
