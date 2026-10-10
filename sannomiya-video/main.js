@@ -26,12 +26,12 @@ import {
 ========================================================= */
 
 const firebaseConfig = {
-  apiKey: "ここにapiKey",
-  authDomain: "ここにauthDomain",
+  apiKey: "AIzaSyDMJfAd5BffteapT51ZUO06VP-XDReFSwY",
+  authDomain: "minotani-sc-app.firebaseapp.com",
   projectId: "minotani-sc-app",
-  storageBucket: "ここにstorageBucket",
-  messagingSenderId: "ここにmessagingSenderId",
-  appId: "ここにappId"
+  storageBucket: "minotani-sc-app.firebasestorage.app",
+  messagingSenderId: "757066295000",
+  appId: "1:757066295000:web:1c7a90f968af75d26099ad"
 };
 
 const app = initializeApp(firebaseConfig);
