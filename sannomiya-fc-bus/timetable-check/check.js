@@ -1236,34 +1236,78 @@ function extractCityBus62(
 
 /* =========================================================
    CITY BUS 64
-
-   公式停留所ページの64系統部分を監視。
-   時刻表の自動変更は行わない。
+   64系統の掲載区間だけを監視
 ========================================================= */
 
 function extractCityBus64(html) {
+
   const $ = cheerio.load(html);
 
   const text = normalizeText(
     $("body").text()
   );
 
+  // 64系統の掲載開始位置
   const start = text.indexOf("64系統");
 
   if (start < 0) {
     throw new Error(
-      "64系統の時刻表が見つかりません"
+      "64系統の掲載箇所が見つかりません"
     );
   }
 
-  const section = text.slice(start);
+  // 64系統の見出し以降を取得
+  const afterStart = start + "64系統".length;
 
+  // 次の系統の見出しを探す
+  const nextRouteMatch = /\d{1,3}系統/g;
+  nextRouteMatch.lastIndex = afterStart;
+
+  const nextRoute = nextRouteMatch.exec(text);
+
+  // 次の系統があるページでは、その直前まで
+  let end = nextRoute
+    ? nextRoute.index
+    : -1;
+
+  // 次の系統がないページでは、停留所地図の直前まで
+  if (end < 0) {
+    const mapIndex = text.indexOf(
+      "バス停周辺地図",
+      afterStart
+    );
+
+    if (mapIndex >= 0) {
+      end = mapIndex;
+    }
+  }
+
+  if (end < 0) {
+    throw new Error(
+      "64系統の掲載範囲の終端を確認できません"
+    );
+  }
+
+  const section = text.slice(start, end).trim();
+
+  // 曜日別時刻表がそろっていることを確認
   if (
     !section.includes("平日") ||
+    !section.includes("土曜日") ||
     !section.includes("日曜・祝日")
   ) {
     throw new Error(
       "64系統の曜日別時刻表を確認できません"
+    );
+  }
+
+  // 空の区間や見出しだけの取得を防止
+  if (
+    section.length < 100 ||
+    !/\d{1,2}時/.test(section)
+  ) {
+    throw new Error(
+      "64系統の時刻表データが不十分です"
     );
   }
 
