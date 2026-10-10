@@ -507,8 +507,8 @@ dayType.textContent =
     };
     const bus64Town = {
       operator: "神戸市バス64系統",
-      station: "日の峰1丁目 → 三宮駅ターミナル前",
-      timetable: CITYBUS64_HINOMINE_TO_SANNOMIYA
+      station: "桂木3丁目 → 三宮駅ターミナル前",
+      timetable: CITYBUS64_KATSURAGI3_TO_SANNOMIYA
     };
 
     if (venueKey === "onohama" && direction === "go") {
@@ -528,7 +528,7 @@ dayType.textContent =
           name: "市バス64系統 → ポートライナー",
           legs: [
             timetableLeg(bus64Town, 35),
-            timetableLeg(venue.go[2], 2, 8),
+            timetableLeg(venue.go[2], 2, 5),
             walkLeg("貿易センター駅 → 小野浜公園球技場", 5)
           ]
         }
