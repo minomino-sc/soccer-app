@@ -6,136 +6,436 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#123d2b">
   <title>神戸三宮FC 動画共有システム</title>
+
   <style>
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f3f6f4;
       color: #17251c;
     }
+
     header {
       background: #123d2b;
-      color: white;
+      color: #fff;
       text-align: center;
-      padding: 22px 12px;
+      padding: 24px 12px;
     }
-    header h1 { font-size: 21px; margin: 0 0 7px; }
-    header p { font-size: 12px; margin: 0; }
-    main { max-width: 850px; margin: 18px auto; padding: 0 12px; }
+
+    header h1 {
+      font-size: 21px;
+      margin: 0 0 8px;
+    }
+
+    header p {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      margin: 0;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 20px auto;
+      padding: 0 12px;
+    }
+
     .panel {
-      background: white;
+      background: #fff;
       border: 1px solid #dce5de;
       border-radius: 12px;
       padding: 16px;
-      margin-bottom: 14px;
+      margin-bottom: 15px;
     }
+
     h2 { font-size: 17px; margin: 0 0 14px; }
+    h3 { font-size: 15px; margin: 0 0 10px; }
+
+    .description {
+      color: #657369;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
     input, select, textarea, button {
       width: 100%;
-      padding: 11px;
-      margin: 0 0 9px;
+      padding: 12px;
+      margin: 0 0 12px;
       border-radius: 8px;
-      border: 1px solid #ccd8cf;
       font: inherit;
     }
+
+    input, select, textarea {
+      border: 1px solid #ccd8cf;
+      background: #fff;
+      color: #17251c;
+    }
+
     button {
-      background: #1e6043;
-      color: white;
       border: 0;
+      background: #1e6043;
+      color: #fff;
       font-weight: bold;
       cursor: pointer;
     }
+
     button.secondary {
       background: #e7eee9;
       color: #173c29;
     }
+
     button.danger { background: #a32e2e; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .tabs button { margin: 0; }
+    button:disabled { opacity: 0.55; }
+
     .hidden { display: none !important; }
-    .item { border-top: 1px solid #e0e7e2; padding: 14px 0; }
-    .item h3 { font-size: 16px; margin: 0 0 7px; }
-    .meta { color: #657369; font-size: 13px; margin-bottom: 9px; }
-    iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 8px; }
-    .status { font-size: 13px; white-space: pre-wrap; }
+
+    .login-heading { text-align: center; }
+
+    .login-subtitle {
+      text-align: center;
+      color: #657369;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .login-note {
+      background: #f3f7f4;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.8;
+      margin-bottom: 18px;
+    }
+
+    .status {
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
     .error { color: #b42323; }
-    .actions { display: flex; gap: 8px; margin-top: 10px; }
-    .actions button { width: auto; }
-    footer { text-align: center; color: #748078; font-size: 12px; padding: 20px; }
+    .success { color: #21663b; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tabs button {
+      flex: 1;
+      margin: 0;
+      padding: 12px 5px;
+    }
+
+    .tabs button.active {
+      background: #123d2b;
+    }
+
+    .item {
+      border-top: 1px solid #e0e7e2;
+      padding: 15px 0;
+    }
+
+    .item:first-child { border-top: 0; }
+
+    .item h3 {
+      overflow-wrap: anywhere;
+    }
+
+    .meta {
+      color: #657369;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .item p {
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      border-radius: 8px;
+      background: #000;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .actions button {
+      flex: 1;
+      margin: 0;
+      padding: 10px 5px;
+      font-size: 13px;
+    }
+
+    .form-divider {
+      border: 0;
+      border-top: 1px solid #e0e7e2;
+      margin: 22px 0;
+    }
+
+    .empty {
+      text-align: center;
+      color: #748078;
+      padding: 24px 8px;
+      font-size: 14px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-row > div {
+      flex: 1;
+      min-width: 0;
+    }
+
+    footer {
+      text-align: center;
+      color: #748078;
+      font-size: 12px;
+      padding: 20px 12px 28px;
+    }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 19px; }
+      .panel { padding: 14px; }
+      .actions { gap: 6px; }
+    }
   </style>
 </head>
+
 <body>
+
 <header>
   <h1>⚽ 神戸三宮FC 動画共有システム</h1>
   <p>KOBE SANNOMIYA FC · JUNIOR YOUTH</p>
 </header>
 
 <main>
-  <section class="panel">
-    <div id="loginState">閲覧モード</div>
-    <button id="loginOpen" class="secondary">指導者ログイン</button>
-    <button id="logout" class="secondary hidden">ログアウト</button>
 
-    <form id="loginForm" class="hidden">
-      <h2>指導者ログイン</h2>
-      <input id="password" type="password"
+  <!-- ログイン画面 -->
+  <section id="loginPanel" class="panel">
+    <h2 class="login-heading">ログイン</h2>
+
+    <p class="login-subtitle">
+      動画・試合結果の閲覧にはログインが必要です。
+    </p>
+
+    <div class="login-note">
+      選手・保護者は閲覧用アカウント、<br>
+      指導者は管理者用アカウントでログインしてください。
+    </div>
+
+    <form id="loginForm">
+      <label for="loginId">ログインID</label>
+      <input
+        id="loginId"
+        name="username"
+        type="text"
+        autocomplete="username"
+        placeholder="ログインIDを入力"
+        required
+      >
+
+      <label for="password">パスワード</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
         autocomplete="current-password"
-        placeholder="指導者共通パスワード" required>
-      <button type="submit">ログイン</button>
-      <button type="button" id="loginCancel" class="secondary">キャンセル</button>
-      <p id="loginMessage" class="status"></p>
+        placeholder="パスワードを入力"
+        required
+      >
+
+      <button type="submit" id="loginButton">ログイン</button>
+      <p id="loginMessage" class="status" role="status"></p>
     </form>
   </section>
 
+  <!-- ログイン後の情報 -->
+  <section id="userPanel" class="panel hidden">
+    <h2 id="loginState">ログイン中</h2>
+    <p id="roleDescription" class="description"></p>
+    <button type="button" id="logout" class="secondary">
+      ログアウト
+    </button>
+  </section>
+
+  <!-- 管理者専用メニュー -->
   <section id="adminPanel" class="panel hidden">
-    <h2>動画を追加</h2>
+    <h2>管理者メニュー</h2>
+    <p class="description">
+      動画・試合結果の登録、編集、削除を行います。
+    </p>
+
+    <h3>動画を追加</h3>
+
     <form id="videoForm">
-      <input id="videoTitle" placeholder="動画タイトル" required>
-      <select id="videoCategory">
+      <label for="videoTitle">動画タイトル</label>
+      <input
+        id="videoTitle"
+        type="text"
+        placeholder="例：U13 ○○戦"
+        required
+      >
+
+      <label for="videoCategory">動画の種類</label>
+      <select id="videoCategory" required>
         <option value="match">試合動画</option>
         <option value="highlight">ハイライト</option>
         <option value="other">その他</option>
       </select>
-      <input id="videoUrl" type="url"
-        placeholder="YouTube URL" required>
-      <button type="submit">動画を追加</button>
+
+      <label for="videoUrl">YouTube URL</label>
+      <input
+        id="videoUrl"
+        type="url"
+        placeholder="https://www.youtube.com/watch?v=..."
+        required
+      >
+
+      <button type="submit" id="videoSubmitButton">
+        動画を追加
+      </button>
     </form>
 
-    <hr style="border:0;border-top:1px solid #ddd;margin:20px 0">
+    <hr class="form-divider">
 
-    <h2>試合結果を追加</h2>
+    <h3>試合結果を追加</h3>
+
     <form id="matchForm">
+      <label for="matchDate">試合日</label>
       <input id="matchDate" type="date" required>
-      <input id="opponent" placeholder="対戦相手" required>
-      <input id="competition" placeholder="大会・リーグ名">
-      <div style="display:flex;gap:10px">
-        <input id="homeScore" type="number" min="0"
-          placeholder="得点" required>
-        <input id="awayScore" type="number" min="0"
-          placeholder="失点" required>
+
+      <label for="opponent">対戦相手</label>
+      <input
+        id="opponent"
+        type="text"
+        placeholder="対戦相手"
+        required
+      >
+
+      <label for="competition">大会・リーグ名</label>
+      <input
+        id="competition"
+        type="text"
+        placeholder="例：兵庫県ルーキーリーグ"
+      >
+
+      <div class="form-row">
+        <div>
+          <label for="homeScore">神戸三宮FCの得点</label>
+          <input
+            id="homeScore"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="得点"
+            required
+          >
+        </div>
+
+        <div>
+          <label for="awayScore">相手の得点</label>
+          <input
+            id="awayScore"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="失点"
+            required
+          >
+        </div>
       </div>
-      <input id="matchVideo" type="url"
-        placeholder="関連動画URL（任意）">
-      <textarea id="matchMemo" placeholder="メモ（任意）"></textarea>
-      <button type="submit">試合結果を追加</button>
+
+      <label for="matchVideo">関連動画URL（任意）</label>
+      <input
+        id="matchVideo"
+        type="url"
+        placeholder="YouTube URL"
+      >
+
+      <label for="matchMemo">メモ（任意）</label>
+      <textarea
+        id="matchMemo"
+        placeholder="試合についてのメモ"
+      ></textarea>
+
+      <button type="submit" id="matchSubmitButton">
+        試合結果を追加
+      </button>
     </form>
+
+    <p id="adminMessage" class="status" role="status"></p>
   </section>
 
-  <div class="tabs">
-    <button id="videosTab">動画一覧</button>
-    <button id="scoresTab" class="secondary">試合結果</button>
-  </div>
+  <!-- 動画・試合結果の切り替え -->
+  <section id="contentPanel" class="hidden">
 
-  <section class="panel">
-    <h2 id="listTitle">動画一覧</h2>
-    <button id="reload" class="secondary">再読み込み</button>
-    <p id="status" class="status">初期化中…</p>
-    <div id="items"></div>
+    <div class="tabs">
+      <button type="button" id="videosTab" class="active">
+        動画一覧
+      </button>
+
+      <button
+        type="button"
+        id="scoresTab"
+        class="secondary"
+      >
+        試合結果
+      </button>
+    </div>
+
+    <section class="panel">
+      <h2 id="listTitle">動画一覧</h2>
+
+      <button
+        type="button"
+        id="reload"
+        class="secondary"
+      >
+        再読み込み
+      </button>
+
+      <p id="status" class="status" role="status">
+        データを読み込んでいます…
+      </p>
+
+      <div id="items"></div>
+    </section>
+
   </section>
+
 </main>
 
-<footer>神戸三宮FC JUNIOR YOUTH</footer>
+<footer>
+  神戸三宮FC JUNIOR YOUTH
+</footer>
+
 <script type="module" src="./main.js"></script>
+
 </body>
 </html>
