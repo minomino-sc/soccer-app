@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T22:49:21.235Z",
+  "checkedAt": "2026-10-10T10:51:42.908Z",
   "hasChanges": false,
   "services": [
     {
@@ -43,6 +43,20 @@
       "route": "谷上駅 → 神戸北町 62系統",
       "status": "ok",
       "message": "変更なし"
+    },
+    {
+      "id": "citybus64_katsuragi3",
+      "name": "神戸市バス64系統",
+      "route": "桂木3丁目（64系統）",
+      "status": "ok",
+      "message": "基準登録"
+    },
+    {
+      "id": "citybus64_sannomiya",
+      "name": "神戸市バス64系統",
+      "route": "三宮駅ターミナル前（64系統）",
+      "status": "ok",
+      "message": "基準登録"
     },
     {
       "id": "jr_sannomiya_nada",
