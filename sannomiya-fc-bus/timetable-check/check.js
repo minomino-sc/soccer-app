@@ -2212,7 +2212,12 @@ async function extractTimetable(
         html
       );
 
+    case "citybus64":
 
+      return extractCityBus64(
+        html
+      );
+        
     case "portliner":
 
       return extractPortliner(
@@ -2448,25 +2453,23 @@ else {
 
 const changes =
   source.type === "hankyu"
-
     ? [
         {
-          period:
-            "公式お知らせ",
-
-          before:
-            "前回確認時",
-
-          after:
-            "公式サイトに変更情報あり"
+          period: "公式お知らせ",
+          before: "前回確認時",
+          after: "公式サイトに変更情報あり"
         }
       ]
-
+    : source.type === "citybus64"
+    ? [
+        {
+          period: "64系統公式時刻表",
+          before: "前回取得データ",
+          after: "時刻表掲載内容に変更あり"
+        }
+      ]
     : compareTimetable(
-        previous[
-          source.id
-        ]?.timetable,
-
+        previous[source.id]?.timetable,
         timetable
       );
 
