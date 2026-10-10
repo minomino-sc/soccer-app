@@ -1453,3 +1453,46 @@ footer {
   font-size: 10px;
   width: 12px;
 }
+
+/* =====================================================
+   ③ ROUTE SELECTION
+===================================================== */
+
+.route-selection-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 12px 0;
+  font-weight: 700;
+}
+
+.route-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.route-option-button {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #16865b;
+  border-radius: 12px;
+  background: #fff;
+  color: #173d30;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.route-option-button::after {
+  content: "このルートを選択 →";
+  display: block;
+  margin-top: 10px;
+  color: #16865b;
+  font-size: 13px;
+}
+
+.route-option-button:active {
+  background: #eaf7f0;
+}
