@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-10T11:18:16.910Z",
-  "hasChanges": true,
+  "checkedAt": "2026-10-10T11:22:12.841Z",
+  "hasChanges": false,
   "services": [
     {
       "id": "hankyu_158",
@@ -48,29 +48,15 @@
       "id": "citybus64_katsuragi3",
       "name": "神戸市バス64系統",
       "route": "桂木3丁目（64系統）",
-      "status": "changed",
-      "message": "時刻表変更を検出",
-      "changes": [
-        {
-          "period": "64系統公式時刻表",
-          "before": "前回取得データ",
-          "after": "時刻表掲載内容に変更あり"
-        }
-      ]
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "citybus64_sannomiya",
       "name": "神戸市バス64系統",
       "route": "三宮駅ターミナル前（64系統）",
-      "status": "changed",
-      "message": "時刻表変更を検出",
-      "changes": [
-        {
-          "period": "64系統公式時刻表",
-          "before": "前回取得データ",
-          "after": "時刻表掲載内容に変更あり"
-        }
-      ]
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "jr_sannomiya_nada",
