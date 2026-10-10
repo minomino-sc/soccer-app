@@ -29,6 +29,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const directionSection =
     document.getElementById("directionSection");
 
+  const routeSelectionSection =
+    document.getElementById("routeSelectionSection");
+
+  const routeSelectionVenue =
+    document.getElementById("routeSelectionVenue");
+
+  const routeSelectionDirection =
+    document.getElementById("routeSelectionDirection");
+
+  const routeOptions =
+    document.getElementById("routeOptions");
+   
   const searchSection =
     document.getElementById("searchSection");
 
@@ -79,6 +91,8 @@ let selectedDirectionKey = null;
 
 let searchedMinutes = null;
 
+let selectedRouteId = null;
+   
 let searchedDate = null;
 
   /* =======================================================
@@ -643,6 +657,62 @@ dayType.textContent =
     return [];
   }
 
+
+  /* =======================================================
+     ROUTE SELECTION
+  ======================================================= */
+
+  function renderRouteOptions() {
+    if (!selectedVenueKey || !selectedDirectionKey) {
+      return;
+    }
+
+    const definitions = getRouteDefinitions(
+      selectedVenueKey,
+      selectedDirectionKey
+    );
+
+    routeSelectionVenue.textContent =
+      getVenueName(selectedVenueKey);
+
+    routeSelectionDirection.textContent =
+      selectedDirectionKey === "go" ? "行き" : "帰り";
+
+    routeOptions.innerHTML = "";
+
+    if (!definitions.length) {
+      routeOptions.innerHTML =
+        '<p>この会場のルート候補がありません。</p>';
+      return;
+    }
+
+    definitions.forEach(definition => {
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "route-option-button";
+      button.dataset.routeId = definition.id;
+      button.textContent = definition.name;
+
+      button.addEventListener("click", () => {
+        selectedRouteId = definition.id;
+
+        // ③を閉じて④の日付・時刻入力へ
+        routeSelectionSection.classList.add("hidden");
+        resultSection.classList.add("hidden");
+        searchSection.classList.remove("hidden");
+
+        setCurrentTime();
+
+        searchSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      });
+
+      routeOptions.appendChild(button);
+    });
+  } 
 
   /* =======================================================
      BUILD ROUTE
@@ -1810,70 +1880,40 @@ searchButton.addEventListener(
     }
   );
 
-
   /* =======================================================
      DIRECTION
   ======================================================= */
 
-  directionButtons.forEach(
-    button => {
+  directionButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      if (!selectedVenueKey) {
+        return;
+      }
 
-      button.addEventListener(
-        "click",
-        () => {
+      selectedDirectionKey = button.dataset.direction;
+      selectedRouteId = null;
 
-          if (
-            !selectedVenueKey
-          ) {
-            return;
-          }
+      directionButtons.forEach(item => {
+        item.classList.remove("active");
+      });
 
+      button.classList.add("active");
 
-          selectedDirectionKey =
-            button.dataset.direction;
+      // ④・⑤はまだ表示しない
+      searchSection.classList.add("hidden");
+      resultSection.classList.add("hidden");
 
+      // ③ルート選択を表示
+      routeSelectionSection.classList.remove("hidden");
 
-          directionButtons.forEach(
-            item =>
-              item.classList.remove(
-                "active"
-              )
-          );
+      renderRouteOptions();
 
-
-          button.classList.add(
-            "active"
-          );
-
-
-          /*
-           * 最初は現在時刻をセット
-           */
-          setCurrentTime();
-
-
-          searchSection
-            .classList
-            .remove("hidden");
-
-
-          resultSection
-            .classList
-            .add("hidden");
-
-
-          searchSection
-            .scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
-
-        }
-      );
-
-    }
-  );
-
+      routeSelectionSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  });
 
   /* =======================================================
      BACK
