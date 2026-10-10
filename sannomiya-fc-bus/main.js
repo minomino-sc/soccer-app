@@ -1556,9 +1556,20 @@ const countdown =
   ======================================================= */
 
   function renderRoutes() {
-    if (!selectedVenueKey || !selectedDirectionKey || searchedMinutes === null) return;
 
-    const definitions = getRouteDefinitions(selectedVenueKey, selectedDirectionKey);
+if (
+  !selectedVenueKey ||
+  !selectedDirectionKey ||
+  !selectedRouteId ||
+  searchedMinutes === null
+) {
+  return;
+}     
+
+const definitions = getRouteDefinitions(
+  selectedVenueKey,
+  selectedDirectionKey
+).filter(definition => definition.id === selectedRouteId);   
 
     selectedVenue.textContent = getVenueName(selectedVenueKey);
     selectedDirection.textContent = selectedDirectionKey === "go" ? "行き →" : "← 帰り";
@@ -1822,12 +1833,14 @@ searchButton.addEventListener(
 
           selectedDirectionKey =
             null;
+           
+selectedRouteId = null;
 
+routeSelectionSection.classList.add("hidden");
 
           searchedMinutes =
             null;
-
-           
+          
            searchedDate =
   null;
 
@@ -1928,7 +1941,11 @@ searchButton.addEventListener(
 
       selectedDirectionKey =
         null;
+       
+selectedRouteId = null;
 
+routeSelectionSection.classList.add("hidden");
+       
       searchedMinutes =
         null;
 
