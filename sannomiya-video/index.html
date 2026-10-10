@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d2b">
+  <title>神戸三宮FC 動画共有システム</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f3f6f4;
+      color: #17251c;
+    }
+    header {
+      background: #123d2b;
+      color: white;
+      text-align: center;
+      padding: 22px 12px;
+    }
+    header h1 { font-size: 21px; margin: 0 0 7px; }
+    header p { font-size: 12px; margin: 0; }
+    main { max-width: 850px; margin: 18px auto; padding: 0 12px; }
+    .panel {
+      background: white;
+      border: 1px solid #dce5de;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    h2 { font-size: 17px; margin: 0 0 14px; }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 11px;
+      margin: 0 0 9px;
+      border-radius: 8px;
+      border: 1px solid #ccd8cf;
+      font: inherit;
+    }
+    button {
+      background: #1e6043;
+      color: white;
+      border: 0;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #e7eee9;
+      color: #173c29;
+    }
+    button.danger { background: #a32e2e; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .tabs button { margin: 0; }
+    .hidden { display: none !important; }
+    .item { border-top: 1px solid #e0e7e2; padding: 14px 0; }
+    .item h3 { font-size: 16px; margin: 0 0 7px; }
+    .meta { color: #657369; font-size: 13px; margin-bottom: 9px; }
+    iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 8px; }
+    .status { font-size: 13px; white-space: pre-wrap; }
+    .error { color: #b42323; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; }
+    .actions button { width: auto; }
+    footer { text-align: center; color: #748078; font-size: 12px; padding: 20px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>⚽ 神戸三宮FC 動画共有システム</h1>
+  <p>KOBE SANNOMIYA FC · JUNIOR YOUTH</p>
+</header>
+
+<main>
+  <section class="panel">
+    <div id="loginState">閲覧モード</div>
+    <button id="loginOpen" class="secondary">指導者ログイン</button>
+    <button id="logout" class="secondary hidden">ログアウト</button>
+
+    <form id="loginForm" class="hidden">
+      <h2>指導者ログイン</h2>
+      <input id="password" type="password"
+        autocomplete="current-password"
+        placeholder="指導者共通パスワード" required>
+      <button type="submit">ログイン</button>
+      <button type="button" id="loginCancel" class="secondary">キャンセル</button>
+      <p id="loginMessage" class="status"></p>
+    </form>
+  </section>
+
+  <section id="adminPanel" class="panel hidden">
+    <h2>動画を追加</h2>
+    <form id="videoForm">
+      <input id="videoTitle" placeholder="動画タイトル" required>
+      <select id="videoCategory">
+        <option value="match">試合動画</option>
+        <option value="highlight">ハイライト</option>
+        <option value="other">その他</option>
+      </select>
+      <input id="videoUrl" type="url"
+        placeholder="YouTube URL" required>
+      <button type="submit">動画を追加</button>
+    </form>
+
+    <hr style="border:0;border-top:1px solid #ddd;margin:20px 0">
+
+    <h2>試合結果を追加</h2>
+    <form id="matchForm">
+      <input id="matchDate" type="date" required>
+      <input id="opponent" placeholder="対戦相手" required>
+      <input id="competition" placeholder="大会・リーグ名">
+      <div style="display:flex;gap:10px">
+        <input id="homeScore" type="number" min="0"
+          placeholder="得点" required>
+        <input id="awayScore" type="number" min="0"
+          placeholder="失点" required>
+      </div>
+      <input id="matchVideo" type="url"
+        placeholder="関連動画URL（任意）">
+      <textarea id="matchMemo" placeholder="メモ（任意）"></textarea>
+      <button type="submit">試合結果を追加</button>
+    </form>
+  </section>
+
+  <div class="tabs">
+    <button id="videosTab">動画一覧</button>
+    <button id="scoresTab" class="secondary">試合結果</button>
+  </div>
+
+  <section class="panel">
+    <h2 id="listTitle">動画一覧</h2>
+    <button id="reload" class="secondary">再読み込み</button>
+    <p id="status" class="status">初期化中…</p>
+    <div id="items"></div>
+  </section>
+</main>
+
+<footer>神戸三宮FC JUNIOR YOUTH</footer>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
