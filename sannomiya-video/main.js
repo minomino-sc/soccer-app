@@ -223,6 +223,138 @@ function externalVideoLink(raw, label) {
   `;
 }
 
+
+/* =========================================================
+   動画再生画面を新しいタブで開く
+   ・試合動画 / ゴールハイライトに対応
+   ・YouTube動画をプレーヤーで再生
+   ・再生開始時間を指定可能
+========================================================= */
+
+function openVideoPlayer(raw, title, startSeconds = 0) {
+  const url = safeUrl(raw);
+
+  if (!url) {
+    alert("動画URLが登録されていません。");
+    return;
+  }
+
+  const embedUrl = youtubeEmbedUrl(url, startSeconds);
+
+  // YouTube以外のURLは通常の動画ページを開く
+  if (!embedUrl) {
+    window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  // ユーザーのクリック操作から新しいタブを開く
+  const playerWindow = window.open("", "_blank");
+
+  if (!playerWindow) {
+    alert("再生画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
+    return;
+  }
+
+  playerWindow.opener = null;
+
+  const safeTitle = String(title).replace(
+    /[&<>"']/g,
+    char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]
+  );
+
+  playerWindow.document.open();
+
+  playerWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>${safeTitle}</title>
+      <style>
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          padding: 16px;
+          background: #111;
+          color: #fff;
+          font-family: sans-serif;
+        }
+
+        h1 {
+          margin: 0 0 16px;
+          font-size: 20px;
+        }
+
+        .player {
+          width: 100%;
+          max-width: 1100px;
+          margin: 0 auto;
+        }
+
+        iframe {
+          display: block;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          border: 0;
+          border-radius: 8px;
+          background: #000;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="player">
+        <h1>${safeTitle}</h1>
+        <iframe
+          src="${embedUrl}"
+          title="${safeTitle}"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </body>
+    </html>
+  `);
+
+  playerWindow.document.close();
+}
+
+
+/* =========================================================
+   再生ボタン
+========================================================= */
+
+function videoPlayButton(raw, buttonText, videoTitle) {
+  if (!safeUrl(raw)) {
+    return "";
+  }
+
+  // URLをエンコードしてHTML属性内で安全に扱う
+  const encodedUrl = encodeURIComponent(raw);
+
+  return `
+    <button
+      type="button"
+      class="video-play-button"
+      onclick="openVideoPlayer(
+        decodeURIComponent('${encodedUrl}'),
+        '${videoTitle}'
+      )">
+      ${buttonText}
+    </button>
+  `;
+}
+
 function categoryLabel(category) {
   if (category === "match") return "試合動画";
   if (category === "highlight") return "ゴールハイライト";
