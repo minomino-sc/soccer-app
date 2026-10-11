@@ -1,9 +1,9 @@
-
 /* =========================================================
    神戸三宮FC 動画共有システム
    ・動画登録／編集／削除
    ・試合結果登録／編集／削除
    ・PKスコア
+   ・登録済み動画を選択して試合結果に紐付け
    ・試合動画／ゴールハイライト動画
    ・得点／失点時間の記録と該当時間再生
    ・月別表示／検索／成績集計
@@ -24,7 +24,10 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase設定 */
+/* =========================================================
+   Firebase設定
+========================================================= */
+
 const firebaseConfig = {
   apiKey: "AIzaSyDMJfAd5BffteapT51ZU06VP-XDReFSwY",
   authDomain: "minotani-sc-app.firebaseapp.com",
@@ -40,22 +43,36 @@ const db = getFirestore(app);
 const videosCollection = collection(db, "sannomiyaVideos");
 const scoresCollection = collection(db, "sannomiyaScores");
 
-/* ログイン設定 */
+/* =========================================================
+   ログイン設定
+========================================================= */
+
 const VIEWER_ID = "神戸三宮FC";
 const VIEWER_PASSWORD = "KOBE";
+
 const ADMIN_ID = "神戸三宮FC_ADMIN";
 const ADMIN_PASSWORD = "KOBE_KOBE-ADMIN";
 
-/* 状態管理 */
+/* =========================================================
+   状態管理
+========================================================= */
+
 let currentRole = "";
 let currentTab = "videos";
+
 let editingVideoId = null;
 let editingScoreId = null;
+
 let videoCache = [];
 let scoreCache = [];
+
 const collapsedMonths = new Set();
 
 const $ = id => document.getElementById(id);
+
+/* =========================================================
+   共通処理
+========================================================= */
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -142,10 +159,15 @@ $("logout").addEventListener("click", () => {
   show($("contentPanel"), false);
 
   $("loginForm").reset();
+
   resetVideoForm();
   resetMatchForm();
 
-  setMessage("loginMessage", "ログアウトしました。", "success");
+  setMessage(
+    "loginMessage",
+    "ログアウトしました。",
+    "success"
+  );
 });
 
 function requireAdmin() {
@@ -156,14 +178,17 @@ function requireAdmin() {
 }
 
 /* =========================================================
-   URL・動画関連
+   URL・YouTube関連
 ========================================================= */
 
 function safeUrl(raw) {
   try {
     const url = new URL(String(raw).trim());
 
-    if (url.protocol !== "https:" && url.protocol !== "http:") {
+    if (
+      url.protocol !== "https:" &&
+      url.protocol !== "http:"
+    ) {
       return "";
     }
 
@@ -178,18 +203,26 @@ function youtubeId(raw) {
     const url = new URL(raw);
     const host = url.hostname.toLowerCase();
 
-    if (host === "youtu.be" || host.endsWith(".youtu.be")) {
+    if (
+      host === "youtu.be" ||
+      host.endsWith(".youtu.be")
+    ) {
       return url.pathname.split("/").filter(Boolean)[0] || "";
     }
 
-    if (host === "youtube.com" || host.endsWith(".youtube.com")) {
+    if (
+      host === "youtube.com" ||
+      host.endsWith(".youtube.com")
+    ) {
       if (url.pathname === "/watch") {
         return url.searchParams.get("v") || "";
       }
 
       const parts = url.pathname.split("/").filter(Boolean);
 
-      if (["embed", "shorts", "live"].includes(parts[0])) {
+      if (
+        ["embed", "shorts", "live"].includes(parts[0])
+      ) {
         return parts[1] || "";
       }
     }
@@ -204,160 +237,60 @@ function youtubeEmbedUrl(raw, startSeconds = 0) {
   const id = youtubeId(raw);
   if (!id) return "";
 
-  const seconds = Math.max(0, Math.floor(Number(startSeconds) || 0));
+  const seconds = Math.max(
+    0,
+    Math.floor(Number(startSeconds) || 0)
+  );
 
-  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&playsinline=1&start=${seconds}`;
+  return (
+    `https://www.youtube-nocookie.com/embed/` +
+    `${encodeURIComponent(id)}?rel=0&playsinline=1&start=${seconds}`
+  );
 }
 
+/*
+ * YouTubeの通常再生ページを開くURLを作成
+ * ゴールの時間指定にも使用
+ */
+function youtubeTimestampUrl(raw, startSeconds = 0) {
+  const id = youtubeId(raw);
+  if (!id) return "";
+
+  const seconds = Math.max(
+    0,
+    Math.floor(Number(startSeconds) || 0)
+  );
+
+  return `https://youtu.be/${encodeURIComponent(id)}?t=${seconds}`;
+}
+
+/*
+ * 通常の外部リンク
+ * 試合動画・ハイライトの再生ボタンに使用
+ */
 function externalVideoLink(raw, label) {
   const url = safeUrl(raw);
   if (!url) return "";
 
   return `
-    <a class="link-button"
-       href="${escapeHtml(url)}"
-       target="_blank"
-       rel="noopener noreferrer">
+    <a
+      class="link-button"
+      href="${escapeHtml(url)}"
+      target="_blank"
+      rel="noopener noreferrer">
       ${escapeHtml(label)}
     </a>
   `;
 }
 
-
 /* =========================================================
-   動画再生画面を新しいタブで開く
-   ・試合動画 / ゴールハイライトに対応
-   ・YouTube動画をプレーヤーで再生
-   ・再生開始時間を指定可能
+   動画カテゴリー
 ========================================================= */
-
-function openVideoPlayer(raw, title, startSeconds = 0) {
-  const url = safeUrl(raw);
-
-  if (!url) {
-    alert("動画URLが登録されていません。");
-    return;
-  }
-
-  const embedUrl = youtubeEmbedUrl(url, startSeconds);
-
-  // YouTube以外のURLは通常の動画ページを開く
-  if (!embedUrl) {
-    window.open(url, "_blank", "noopener,noreferrer");
-    return;
-  }
-
-  // ユーザーのクリック操作から新しいタブを開く
-  const playerWindow = window.open("", "_blank");
-
-  if (!playerWindow) {
-    alert("再生画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
-    return;
-  }
-
-  playerWindow.opener = null;
-
-  const safeTitle = String(title).replace(
-    /[&<>"']/g,
-    char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]
-  );
-
-  playerWindow.document.open();
-
-  playerWindow.document.write(`
-    <!DOCTYPE html>
-    <html lang="ja">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>${safeTitle}</title>
-      <style>
-        * {
-          box-sizing: border-box;
-        }
-
-        body {
-          margin: 0;
-          padding: 16px;
-          background: #111;
-          color: #fff;
-          font-family: sans-serif;
-        }
-
-        h1 {
-          margin: 0 0 16px;
-          font-size: 20px;
-        }
-
-        .player {
-          width: 100%;
-          max-width: 1100px;
-          margin: 0 auto;
-        }
-
-        iframe {
-          display: block;
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          border: 0;
-          border-radius: 8px;
-          background: #000;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="player">
-        <h1>${safeTitle}</h1>
-        <iframe
-          src="${embedUrl}"
-          title="${safeTitle}"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allowfullscreen>
-        </iframe>
-      </div>
-    </body>
-    </html>
-  `);
-
-  playerWindow.document.close();
-}
-
-
-/* =========================================================
-   再生ボタン
-========================================================= */
-
-function videoPlayButton(raw, buttonText, videoTitle) {
-  if (!safeUrl(raw)) {
-    return "";
-  }
-
-  // URLをエンコードしてHTML属性内で安全に扱う
-  const encodedUrl = encodeURIComponent(raw);
-
-  return `
-    <button
-      type="button"
-      class="video-play-button"
-      onclick="openVideoPlayer(
-        decodeURIComponent('${encodedUrl}'),
-        '${videoTitle}'
-      )">
-      ${buttonText}
-    </button>
-  `;
-}
 
 function categoryLabel(category) {
   if (category === "match") return "試合動画";
   if (category === "highlight") return "ゴールハイライト";
+
   return "その他";
 }
 
@@ -365,14 +298,175 @@ function getVideoCategory(video) {
   return video.category || video.videoType || "other";
 }
 
-/* 以前のデータ形式も読み込めるようにする */
+/* =========================================================
+   登録済み動画の選択リスト
+   index.html の #matchVideo と
+   #highlightVideoUrl は select 要素にする
+========================================================= */
+
+function populateVideoSelect(
+  selectId,
+  category,
+  placeholder,
+  selectedId = "",
+  legacyUrl = ""
+) {
+  const select = $(selectId);
+  if (!select) return;
+
+  /*
+   * URL形式で保存された過去データも扱えるようにする
+   */
+  const normalizedLegacyUrl = safeUrl(legacyUrl);
+
+  select.replaceChildren();
+
+  const firstOption = document.createElement("option");
+  firstOption.value = "";
+  firstOption.textContent = placeholder;
+
+  select.appendChild(firstOption);
+
+  /*
+   * 指定カテゴリーの動画だけを表示
+   * 新しく登録された動画を上に表示
+   */
+  const videos = videoCache
+    .filter(video => getVideoCategory(video) === category)
+    .sort((a, b) => {
+      const dateA = a.createdAt?.seconds || 0;
+      const dateB = b.createdAt?.seconds || 0;
+
+      return dateB - dateA;
+    });
+
+  for (const video of videos) {
+    const option = document.createElement("option");
+
+    option.value = video.id;
+    option.textContent = video.title || "タイトル未設定";
+
+    select.appendChild(option);
+  }
+
+  /*
+   * 過去の試合結果にURLしか保存されていない場合、
+   * 既存の動画URLを選択肢に追加する
+   */
+  if (
+    normalizedLegacyUrl &&
+    !videos.some(video =>
+      safeUrl(video.url || video.videoUrl || "") === normalizedLegacyUrl
+    )
+  ) {
+    const option = document.createElement("option");
+
+    option.value = `legacy:${normalizedLegacyUrl}`;
+    option.textContent = "以前の登録動画（既存データ）";
+
+    select.appendChild(option);
+  }
+
+  /*
+   * 動画IDが一致する場合はIDで選択
+   */
+  if (
+    selectedId &&
+    videos.some(video => video.id === selectedId)
+  ) {
+    select.value = selectedId;
+    return;
+  }
+
+  /*
+   * 古いデータのURLに一致する登録動画があれば、
+   * その動画を選択
+   */
+  if (normalizedLegacyUrl) {
+    const matchingVideo = videos.find(video =>
+      safeUrl(video.url || video.videoUrl || "") === normalizedLegacyUrl
+    );
+
+    if (matchingVideo) {
+      select.value = matchingVideo.id;
+      return;
+    }
+
+    /*
+     * 既存URLの選択肢がある場合
+     */
+    const legacyValue = `legacy:${normalizedLegacyUrl}`;
+
+    if (
+      [...select.options].some(option =>
+        option.value === legacyValue
+      )
+    ) {
+      select.value = legacyValue;
+    }
+  }
+}
+
+function populateVideoSelects(
+  matchVideoId = "",
+  highlightVideoId = "",
+  matchUrl = "",
+  highlightUrl = ""
+) {
+  populateVideoSelect(
+    "matchVideo",
+    "match",
+    "試合動画を選択してください",
+    matchVideoId,
+    matchUrl
+  );
+
+  populateVideoSelect(
+    "highlightVideoUrl",
+    "highlight",
+    "ゴールハイライトを選択してください",
+    highlightVideoId,
+    highlightUrl
+  );
+}
+
+/* =========================================================
+   試合結果に紐付いた動画URLを取得
+   新形式：videoId / highlightVideoId
+   旧形式：matchVideoUrl / highlightVideoUrl
+========================================================= */
+
 function getMatchVideo(score) {
-  return score.matchVideoUrl || score.videoUrl || "";
+  const video = videoCache.find(
+    item => item.id === score.videoId
+  );
+
+  return (
+    video?.url ||
+    video?.videoUrl ||
+    score.matchVideoUrl ||
+    score.videoUrl ||
+    ""
+  );
 }
 
 function getHighlightVideo(score) {
-  return score.highlightVideoUrl || score.highlightUrl || "";
+  const video = videoCache.find(
+    item => item.id === score.highlightVideoId
+  );
+
+  return (
+    video?.url ||
+    video?.videoUrl ||
+    score.highlightVideoUrl ||
+    score.highlightUrl ||
+    ""
+  );
 }
+
+/* =========================================================
+   PKスコア・試合結果の互換処理
+========================================================= */
 
 function getPkHome(score) {
   return score.pkHomeScore ?? score.pkScoreA ?? null;
@@ -405,7 +499,10 @@ function dateLabel(date) {
 function timeToSeconds(value) {
   const parts = String(value).trim().split(":");
 
-  if (parts.length === 1 && /^\d+$/.test(parts[0])) {
+  if (
+    parts.length === 1 &&
+    /^\d+$/.test(parts[0])
+  ) {
     return Number(parts[0]);
   }
 
@@ -444,19 +541,24 @@ function parseTimeline(raw) {
     const parts = line.split(",").map(part => part.trim());
 
     if (parts.length !== 2) {
-      return { error: `入力形式を確認してください：${line}` };
+      return {
+        error: `入力形式を確認してください：${line}`
+      };
     }
 
     const time = timeToSeconds(parts[0]);
     const team = parts[1];
 
     if (!Number.isFinite(time) || time < 0) {
-      return { error: `時間が正しくありません：${line}` };
+      return {
+        error: `時間が正しくありません：${line}`
+      };
     }
 
     if (team !== "my" && team !== "opponent") {
       return {
-        error: `種類は my または opponent で入力してください：${line}`
+        error:
+          `種類は my または opponent で入力してください：${line}`
       };
     }
 
@@ -503,6 +605,12 @@ async function loadAll() {
       getMatchDate(b).localeCompare(getMatchDate(a))
     );
 
+    /*
+     * 動画一覧を取得した後に、
+     * 試合動画・ハイライトの選択リストを更新
+     */
+    populateVideoSelects();
+
     renderCurrentTab();
 
     setMessage(
@@ -522,8 +630,15 @@ async function loadAll() {
 }
 
 $("reload").addEventListener("click", loadAll);
-$("videosTab").addEventListener("click", () => switchTab("videos"));
-$("scoresTab").addEventListener("click", () => switchTab("scores"));
+
+$("videosTab").addEventListener("click", () => {
+  switchTab("videos");
+});
+
+$("scoresTab").addEventListener("click", () => {
+  switchTab("scores");
+});
+
 $("searchInput").addEventListener("input", renderCurrentTab);
 
 function switchTab(tab) {
@@ -570,6 +685,7 @@ function renderVideos() {
     .sort((a, b) => {
       const dateA = a.createdAt?.seconds || 0;
       const dateB = b.createdAt?.seconds || 0;
+
       return dateB - dateA;
     });
 
@@ -592,7 +708,10 @@ function renderVideos() {
     return `
       <article class="item">
         <h3>${escapeHtml(video.title || "動画")}</h3>
-        <div class="meta">${escapeHtml(label)}</div>
+
+        <div class="meta">
+          ${escapeHtml(label)}
+        </div>
 
         ${embed ? `
           <iframe
@@ -604,16 +723,23 @@ function renderVideos() {
           </iframe>
         ` : ""}
 
-        ${externalVideoLink(url, "YouTubeで開く")}
+        ${externalVideoLink(url, "動画を再生")}
 
         ${currentRole === "admin" ? `
           <div class="actions">
-            <button type="button" class="secondary"
-              data-action="edit-video" data-id="${escapeHtml(video.id)}">
+            <button
+              type="button"
+              class="secondary"
+              data-action="edit-video"
+              data-id="${escapeHtml(video.id)}">
               編集
             </button>
-            <button type="button" class="danger"
-              data-action="delete-video" data-id="${escapeHtml(video.id)}">
+
+            <button
+              type="button"
+              class="danger"
+              data-action="delete-video"
+              data-id="${escapeHtml(video.id)}">
               削除
             </button>
           </div>
@@ -633,16 +759,32 @@ function scoreOutcome(score) {
 
   if (home > away) return "勝";
   if (home < away) return "敗";
+
   return "分";
 }
 
 function makeStats(list) {
-  const wins = list.filter(score => scoreOutcome(score) === "勝").length;
-  const draws = list.filter(score => scoreOutcome(score) === "分").length;
-  const losses = list.filter(score => scoreOutcome(score) === "敗").length;
+  const wins = list.filter(
+    score => scoreOutcome(score) === "勝"
+  ).length;
 
-  const goals = list.reduce((sum, score) => sum + getHomeScore(score), 0);
-  const conceded = list.reduce((sum, score) => sum + getAwayScore(score), 0);
+  const draws = list.filter(
+    score => scoreOutcome(score) === "分"
+  ).length;
+
+  const losses = list.filter(
+    score => scoreOutcome(score) === "敗"
+  ).length;
+
+  const goals = list.reduce(
+    (sum, score) => sum + getHomeScore(score),
+    0
+  );
+
+  const conceded = list.reduce(
+    (sum, score) => sum + getAwayScore(score),
+    0
+  );
 
   const rate = list.length
     ? Math.round(wins / list.length * 100)
@@ -659,7 +801,9 @@ function renderScores() {
   const query = $("searchInput").value.trim();
 
   const filtered = [...scoreCache]
-    .sort((a, b) => getMatchDate(b).localeCompare(getMatchDate(a)))
+    .sort((a, b) =>
+      getMatchDate(b).localeCompare(getMatchDate(a))
+    )
     .filter(score => matchesSearch(score, query));
 
   if (!filtered.length) {
@@ -679,7 +823,10 @@ function renderScores() {
     const date = getMatchDate(score);
     const month = date ? date.slice(0, 7) : "日付未設定";
 
-    if (!groups.has(month)) groups.set(month, []);
+    if (!groups.has(month)) {
+      groups.set(month, []);
+    }
+
     groups.get(month).push(score);
   }
 
@@ -695,9 +842,13 @@ function renderScores() {
 
     html += `
       <div class="month-heading">
-        <button type="button" class="secondary month-toggle"
-          data-action="toggle-month" data-month="${escapeHtml(month)}">
-          ${isExpanded ? "▼" : "▶"} ${escapeHtml(month)}（${list.length}試合）
+        <button
+          type="button"
+          class="secondary month-toggle"
+          data-action="toggle-month"
+          data-month="${escapeHtml(month)}">
+          ${isExpanded ? "▼" : "▶"}
+          ${escapeHtml(month)}（${list.length}試合）
         </button>
       </div>
     `;
@@ -707,12 +858,17 @@ function renderScores() {
     html += list.map(score => {
       const home = getHomeScore(score);
       const away = getAwayScore(score);
+
       const pkHome = getPkHome(score);
       const pkAway = getPkAway(score);
 
       const hasPk =
-        pkHome !== null && pkHome !== undefined && pkHome !== "" &&
-        pkAway !== null && pkAway !== undefined && pkAway !== "";
+        pkHome !== null &&
+        pkHome !== undefined &&
+        pkHome !== "" &&
+        pkAway !== null &&
+        pkAway !== undefined &&
+        pkAway !== "";
 
       const pkText = hasPk
         ? `（PK ${escapeHtml(pkHome)} - ${escapeHtml(pkAway)}）`
@@ -720,19 +876,27 @@ function renderScores() {
 
       const matchUrl = getMatchVideo(score);
       const highlightUrl = getHighlightVideo(score);
-      const timeline = Array.isArray(score.highlights) ? score.highlights : [];
+
+      const timeline = Array.isArray(score.highlights)
+        ? score.highlights
+        : [];
 
       const timelineHtml = timeline.length ? `
         <div class="meta">
           <strong>得点・失点シーン</strong>
+
           <div class="goal-buttons">
             ${timeline.map((item, index) => `
-              <button type="button" class="secondary"
+              <button
+                type="button"
+                class="secondary"
                 data-action="play-goal"
                 data-id="${escapeHtml(score.id)}"
                 data-index="${index}">
                 ${escapeHtml(secondsToTime(item.time))}
-                ${item.team === "opponent" ? "相手得点" : "神戸三宮FC得点"}
+                ${item.team === "opponent"
+                  ? "相手得点"
+                  : "神戸三宮FC得点"}
               </button>
             `).join("")}
           </div>
@@ -762,18 +926,15 @@ function renderScores() {
             <p>${escapeHtml(score.memo).replace(/\n/g, "<br>")}</p>
           ` : ""}
 
-
           <div class="video-actions">
-            ${videoPlayButton(
+            ${externalVideoLink(
               matchUrl,
-              "▶ 試合動画を再生",
-              "試合動画"
+              "▶ 試合動画を再生"
             )}
 
-            ${videoPlayButton(
+            ${externalVideoLink(
               highlightUrl,
-              "▶ ゴールハイライトを再生",
-              "ゴールハイライト"
+              "▶ ゴールハイライトを再生"
             )}
           </div>
 
@@ -781,12 +942,19 @@ function renderScores() {
 
           ${currentRole === "admin" ? `
             <div class="actions">
-              <button type="button" class="secondary"
-                data-action="edit-score" data-id="${escapeHtml(score.id)}">
+              <button
+                type="button"
+                class="secondary"
+                data-action="edit-score"
+                data-id="${escapeHtml(score.id)}">
                 編集
               </button>
-              <button type="button" class="danger"
-                data-action="delete-score" data-id="${escapeHtml(score.id)}">
+
+              <button
+                type="button"
+                class="danger"
+                data-action="delete-score"
+                data-id="${escapeHtml(score.id)}">
                 削除
               </button>
             </div>
@@ -820,6 +988,9 @@ $("items").addEventListener("click", async event => {
     return;
   }
 
+  /*
+   * ゴールシーンをYouTubeの該当時間から再生
+   */
   if (action === "play-goal") {
     const score = scoreCache.find(item => item.id === id);
     if (!score) return;
@@ -829,50 +1000,69 @@ $("items").addEventListener("click", async event => {
       : [];
 
     const marker = timeline[Number(index)];
+    if (!marker) return;
+
     const url = getMatchVideo(score);
-    const embed = youtubeEmbedUrl(url, marker?.time || 0);
 
-    if (!embed) {
-      alert("この試合には再生可能なYouTube試合動画が登録されていません。");
+    const watchUrl = youtubeTimestampUrl(
+      url,
+      marker.time || 0
+    );
+
+    if (watchUrl) {
+      window.open(
+        watchUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
       return;
     }
 
-    const popup = window.open("", "_blank");
+    /*
+     * YouTube以外の動画では開始時間指定ができないため、
+     * 登録URLを通常のタブで開く
+     */
+    const externalUrl = safeUrl(url);
 
-    if (!popup) {
-      alert("ポップアップがブロックされました。ブラウザの設定をご確認ください。");
+    if (externalUrl) {
+      window.open(
+        externalUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      alert(
+        "この動画はYouTubeではないため、指定時間から再生できない場合があります。"
+      );
+
       return;
     }
 
-    popup.document.write(`
-      <!doctype html>
-      <html lang="ja">
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>ゴールシーン</title>
-      </head>
-      <body style="margin:0;background:#000">
-        <iframe
-          src="${embed}"
-          style="width:100vw;height:100vh;border:0"
-          allow="autoplay; encrypted-media; picture-in-picture"
-          allowfullscreen>
-        </iframe>
-      </body>
-      </html>
-    `);
+    alert(
+      "この試合には再生可能な試合動画が登録されていません。"
+    );
 
-    popup.document.close();
     return;
   }
 
   if (!requireAdmin()) return;
 
-  if (action === "edit-video") editVideo(id);
-  if (action === "delete-video") await deleteVideo(id);
-  if (action === "edit-score") editScore(id);
-  if (action === "delete-score") await deleteScore(id);
+  if (action === "edit-video") {
+    editVideo(id);
+  }
+
+  if (action === "delete-video") {
+    await deleteVideo(id);
+  }
+
+  if (action === "edit-score") {
+    editScore(id);
+  }
+
+  if (action === "delete-score") {
+    await deleteScore(id);
+  }
 });
 
 /* =========================================================
@@ -881,22 +1071,33 @@ $("items").addEventListener("click", async event => {
 
 function resetVideoForm() {
   $("videoForm").reset();
+
   editingVideoId = null;
 
   $("videoSubmitButton").textContent = "動画を追加";
+
   show($("videoCancelButton"), false);
 }
 
-$("videoCancelButton").addEventListener("click", resetVideoForm);
+$("videoCancelButton").addEventListener(
+  "click",
+  resetVideoForm
+);
 
 $("videoForm").addEventListener("submit", async event => {
   event.preventDefault();
+
   if (!requireAdmin()) return;
 
   const url = safeUrl($("videoUrl").value.trim());
 
   if (!url) {
-    setMessage("adminMessage", "有効な動画URLを入力してください。", "error");
+    setMessage(
+      "adminMessage",
+      "有効な動画URLを入力してください。",
+      "error"
+    );
+
     return;
   }
 
@@ -914,15 +1115,25 @@ $("videoForm").addEventListener("submit", async event => {
         payload
       );
 
-      setMessage("adminMessage", "動画を更新しました。", "success");
+      setMessage(
+        "adminMessage",
+        "動画を更新しました。",
+        "success"
+      );
     } else {
       payload.createdAt = serverTimestamp();
+
       await addDoc(videosCollection, payload);
 
-      setMessage("adminMessage", "動画を登録しました。", "success");
+      setMessage(
+        "adminMessage",
+        "動画を登録しました。",
+        "success"
+      );
     }
 
     resetVideoForm();
+
     await loadAll();
   } catch (error) {
     console.error(error);
@@ -944,7 +1155,9 @@ function editVideo(id) {
   $("videoUrl").value = video.url || video.videoUrl || "";
 
   editingVideoId = id;
+
   $("videoSubmitButton").textContent = "動画を更新";
+
   show($("videoCancelButton"), true);
 
   $("adminPanel").scrollIntoView({
@@ -957,9 +1170,16 @@ async function deleteVideo(id) {
   if (!confirm("この動画を削除しますか？")) return;
 
   try {
-    await deleteDoc(doc(db, "sannomiyaVideos", id));
+    await deleteDoc(
+      doc(db, "sannomiyaVideos", id)
+    );
 
-    setMessage("adminMessage", "動画を削除しました。", "success");
+    setMessage(
+      "adminMessage",
+      "動画を削除しました。",
+      "success"
+    );
+
     await loadAll();
   } catch (error) {
     console.error(error);
@@ -978,31 +1198,79 @@ async function deleteVideo(id) {
 
 function resetMatchForm() {
   $("matchForm").reset();
+
   editingScoreId = null;
 
   $("matchSubmitButton").textContent = "試合結果を追加";
+
   show($("matchCancelButton"), false);
 }
 
-$("matchCancelButton").addEventListener("click", resetMatchForm);
+$("matchCancelButton").addEventListener(
+  "click",
+  resetMatchForm
+);
 
 $("matchForm").addEventListener("submit", async event => {
   event.preventDefault();
+
   if (!requireAdmin()) return;
 
-  const matchUrlRaw = $("matchVideo").value.trim();
-  const highlightUrlRaw = $("highlightVideoUrl").value.trim();
+  /*
+   * 選択リストから選ばれた動画IDを取得
+   */
+  const matchSelection = $("matchVideo").value;
+  const highlightSelection = $("highlightVideoUrl").value;
 
-  const matchUrl = matchUrlRaw ? safeUrl(matchUrlRaw) : "";
-  const highlightUrl = highlightUrlRaw ? safeUrl(highlightUrlRaw) : "";
+  const selectedMatchVideo = videoCache.find(
+    video => video.id === matchSelection
+  );
 
-  if (matchUrlRaw && !matchUrl) {
-    setMessage("adminMessage", "試合動画URLが正しくありません。", "error");
+  const selectedHighlightVideo = videoCache.find(
+    video => video.id === highlightSelection
+  );
+
+  /*
+   * 選択された動画のURLを取得
+   * 過去データは legacy:URL 形式でも扱う
+   */
+  const matchUrl = safeUrl(
+    selectedMatchVideo?.url ||
+    selectedMatchVideo?.videoUrl ||
+    (
+      matchSelection.startsWith("legacy:")
+        ? matchSelection.slice(7)
+        : ""
+    )
+  );
+
+  const highlightUrl = safeUrl(
+    selectedHighlightVideo?.url ||
+    selectedHighlightVideo?.videoUrl ||
+    (
+      highlightSelection.startsWith("legacy:")
+        ? highlightSelection.slice(7)
+        : ""
+    )
+  );
+
+  if (matchSelection && !matchUrl) {
+    setMessage(
+      "adminMessage",
+      "選択した試合動画のURLを確認してください。",
+      "error"
+    );
+
     return;
   }
 
-  if (highlightUrlRaw && !highlightUrl) {
-    setMessage("adminMessage", "ゴールハイライトURLが正しくありません。", "error");
+  if (highlightSelection && !highlightUrl) {
+    setMessage(
+      "adminMessage",
+      "選択したゴールハイライトのURLを確認してください。",
+      "error"
+    );
+
     return;
   }
 
@@ -1015,13 +1283,21 @@ $("matchForm").addEventListener("submit", async event => {
       "PKスコアは神戸三宮FC・相手の両方を入力してください。",
       "error"
     );
+
     return;
   }
 
-  const timelineResult = parseTimeline($("goalTimeline").value);
+  const timelineResult = parseTimeline(
+    $("goalTimeline").value
+  );
 
   if (timelineResult.error) {
-    setMessage("adminMessage", timelineResult.error, "error");
+    setMessage(
+      "adminMessage",
+      timelineResult.error,
+      "error"
+    );
+
     return;
   }
 
@@ -1029,17 +1305,32 @@ $("matchForm").addEventListener("submit", async event => {
     matchDate: $("matchDate").value,
     opponent: $("opponent").value.trim(),
     competition: $("competition").value.trim(),
+
     homeScore: Number($("homeScore").value),
     awayScore: Number($("awayScore").value),
 
-    /* 新形式に保存。読み込み時は旧形式も対応 */
-    pkHomeScore: pkHomeRaw === "" ? null : Number(pkHomeRaw),
-    pkAwayScore: pkAwayRaw === "" ? null : Number(pkAwayRaw),
+    /* PKスコア */
+    pkHomeScore:
+      pkHomeRaw === "" ? null : Number(pkHomeRaw),
+
+    pkAwayScore:
+      pkAwayRaw === "" ? null : Number(pkAwayRaw),
+
+    /*
+     * 新形式：登録済み動画のID
+     * 旧形式との互換性のためURLも保存
+     */
+    videoId: selectedMatchVideo?.id || "",
+    highlightVideoId: selectedHighlightVideo?.id || "",
 
     matchVideoUrl: matchUrl,
     highlightVideoUrl: highlightUrl,
+
+    /* 得点・失点時間 */
     highlights: timelineResult.highlights,
+
     memo: $("matchMemo").value.trim(),
+
     updatedAt: serverTimestamp()
   };
 
@@ -1050,15 +1341,28 @@ $("matchForm").addEventListener("submit", async event => {
         payload
       );
 
-      setMessage("adminMessage", "試合結果を更新しました。", "success");
+      setMessage(
+        "adminMessage",
+        "試合結果を更新しました。",
+        "success"
+      );
     } else {
       payload.createdAt = serverTimestamp();
-      await addDoc(scoresCollection, payload);
 
-      setMessage("adminMessage", "試合結果を登録しました。", "success");
+      await addDoc(
+        scoresCollection,
+        payload
+      );
+
+      setMessage(
+        "adminMessage",
+        "試合結果を登録しました。",
+        "success"
+      );
     }
 
     resetMatchForm();
+
     await loadAll();
   } catch (error) {
     console.error(error);
@@ -1076,8 +1380,11 @@ function editScore(id) {
   if (!score) return;
 
   $("matchDate").value = getMatchDate(score);
+
   $("opponent").value = score.opponent || "";
-  $("competition").value = score.competition || score.matchType || "";
+
+  $("competition").value =
+    score.competition || score.matchType || "";
 
   $("homeScore").value = getHomeScore(score);
   $("awayScore").value = getAwayScore(score);
@@ -1085,13 +1392,27 @@ function editScore(id) {
   $("pkHomeScore").value = getPkHome(score) ?? "";
   $("pkAwayScore").value = getPkAway(score) ?? "";
 
-  $("matchVideo").value = getMatchVideo(score);
-  $("highlightVideoUrl").value = getHighlightVideo(score);
-  $("goalTimeline").value = timelineToText(score.highlights || []);
+  /*
+   * 登録済み動画の選択リストを再構築し、
+   * 編集対象の動画を選択状態にする
+   */
+  populateVideoSelects(
+    score.videoId || "",
+    score.highlightVideoId || "",
+    getMatchVideo(score),
+    getHighlightVideo(score)
+  );
+
+  $("goalTimeline").value = timelineToText(
+    score.highlights || []
+  );
+
   $("matchMemo").value = score.memo || "";
 
   editingScoreId = id;
+
   $("matchSubmitButton").textContent = "試合結果を更新";
+
   show($("matchCancelButton"), true);
 
   $("adminPanel").scrollIntoView({
@@ -1104,9 +1425,16 @@ async function deleteScore(id) {
   if (!confirm("この試合結果を削除しますか？")) return;
 
   try {
-    await deleteDoc(doc(db, "sannomiyaScores", id));
+    await deleteDoc(
+      doc(db, "sannomiyaScores", id)
+    );
 
-    setMessage("adminMessage", "試合結果を削除しました。", "success");
+    setMessage(
+      "adminMessage",
+      "試合結果を削除しました。",
+      "success"
+    );
+
     await loadAll();
   } catch (error) {
     console.error(error);
@@ -1167,16 +1495,24 @@ $("backupButton").addEventListener("click", async () => {
     const link = document.createElement("a");
 
     link.href = objectUrl;
+
     link.download =
       `sannomiya-video-backup-${new Date().toISOString().slice(0, 10)}.json`;
 
     document.body.appendChild(link);
+
     link.click();
     link.remove();
 
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+    }, 1000);
 
-    setMessage("adminMessage", "バックアップをダウンロードしました。", "success");
+    setMessage(
+      "adminMessage",
+      "バックアップをダウンロードしました。",
+      "success"
+    );
   } catch (error) {
     console.error(error);
 
@@ -1199,7 +1535,12 @@ $("restoreButton").addEventListener("click", async () => {
   const file = $("restoreFile").files?.[0];
 
   if (!file) {
-    setMessage("adminMessage", "復元するJSONファイルを選択してください。", "error");
+    setMessage(
+      "adminMessage",
+      "復元するJSONファイルを選択してください。",
+      "error"
+    );
+
     return;
   }
 
@@ -1216,7 +1557,9 @@ $("restoreButton").addEventListener("click", async () => {
       !Array.isArray(backup.videos) ||
       !Array.isArray(backup.scores)
     ) {
-      throw new Error("バックアップ形式が正しくありません。");
+      throw new Error(
+        "バックアップ形式が正しくありません。"
+      );
     }
 
     for (const item of backup.videos) {
