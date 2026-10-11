@@ -762,9 +762,19 @@ function renderScores() {
             <p>${escapeHtml(score.memo).replace(/\n/g, "<br>")}</p>
           ` : ""}
 
-          <div>
-            ${externalVideoLink(matchUrl, "試合動画を再生")}
-            ${externalVideoLink(highlightUrl, "ゴールハイライト")}
+
+          <div class="video-actions">
+            ${videoPlayButton(
+              matchUrl,
+              "▶ 試合動画を再生",
+              "試合動画"
+            )}
+
+            ${videoPlayButton(
+              highlightUrl,
+              "▶ ゴールハイライトを再生",
+              "ゴールハイライト"
+            )}
           </div>
 
           ${timelineHtml}
