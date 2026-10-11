@@ -460,6 +460,59 @@ textarea:focus {
 }
 
 
+/* =====================================================
+   月別折りたたみ：状態ごとの色分け
+===================================================== */
+
+/* 展開中：従来の薄いグリーン */
+.month-heading:has(.month-toggle[data-expanded="true"]) {
+  background: #edf3ee;
+}
+
+/* 折りたたみ中：グリーン */
+.month-heading:has(.month-toggle[data-expanded="false"]) {
+  background: #b2e672;
+}
+
+/* ボタン自体は見出しの背景色を透過 */
+.month-toggle {
+  background: transparent !important;
+  color: #123d2b !important;
+}
+
+/* 総合成績 */
+.stats {
+  background: linear-gradient(135deg, #fff, #f0fff4);
+  border: 1px solid #d5e5d8;
+  border-left: 5px solid #123d2b;
+  border-radius: 12px;
+  color: #17251c;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.9;
+  margin-bottom: 12px;
+}
+
+/* 勝敗ラベル */
+.result-badge {
+  display: inline-block;
+  min-width: 36px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  margin-right: 6px;
+}
+
+.result-win { background: #1e88e5; }
+.result-draw { background: #757575; }
+.result-loss { background: #c62828; }
+
+
+    
+
     
   </style>
 </head>
