@@ -1,4 +1,3 @@
-
 /* =========================================================
    神戸三宮FC 動画共有システム
    ・管理者のみ動画一覧を表示
@@ -9,6 +8,8 @@
    ・PKスコア
    ・得点／失点時間の指定再生
    ・月別表示／検索／成績集計
+   ・全体／月別／試合種別ごとの成績
+   ・勝率による色分け
    ・バックアップ／復元
    保存先：sannomiyaVideos / sannomiyaScores
 ========================================================= */
@@ -56,6 +57,16 @@ const VIEWER_PASSWORD = "KOBE";
 
 const ADMIN_ID = "神戸三宮FC_ADMIN";
 const ADMIN_PASSWORD = "KOBE_KOBE-ADMIN";
+
+/* =========================================================
+   試合種別
+========================================================= */
+
+const MATCH_TYPES = [
+  "公式戦",
+  "カップ戦",
+  "交流戦"
+];
 
 /* =========================================================
    状態管理
@@ -374,7 +385,12 @@ function videosForCategory(category) {
    年・月セレクト共通処理
 ========================================================= */
 
-function setSelectOptions(select, values, placeholder, selectedValue = "") {
+function setSelectOptions(
+  select,
+  values,
+  placeholder,
+  selectedValue = ""
+) {
   if (!select) return;
 
   select.replaceChildren();
@@ -529,7 +545,11 @@ $("videoMonthFilter")?.addEventListener("change", renderVideos);
    試合動画・ハイライトの選択欄
 ========================================================= */
 
-function findRegisteredVideo(category, selectedId = "", legacyUrl = "") {
+function findRegisteredVideo(
+  category,
+  selectedId = "",
+  legacyUrl = ""
+) {
   if (selectedId) {
     const byId = videoCache.find(video =>
       video.id === selectedId &&
@@ -834,6 +854,38 @@ function dateLabel(date) {
 }
 
 /* =========================================================
+   試合種別・大会名の互換処理
+========================================================= */
+
+function getMatchType(score) {
+  const type = score.matchType || score.type || "";
+
+  if (MATCH_TYPES.includes(type)) {
+    return type;
+  }
+
+  /*
+   * 旧データに試合種別がない場合は公式戦として集計。
+   * 必要に応じて編集画面から正しい種別に変更できます。
+   */
+  return "公式戦";
+}
+
+function getCompetition(score) {
+  const competition = String(score.competition || "").trim();
+
+  /*
+   * 旧データでは competition に試合種別が入っている場合があるため、
+   * 大会名と試合種別を区別する。
+   */
+  if (MATCH_TYPES.includes(competition)) {
+    return "";
+  }
+
+  return competition;
+}
+
+/* =========================================================
    得点・失点時間
 ========================================================= */
 
@@ -1105,7 +1157,7 @@ function renderVideos() {
 }
 
 /* =========================================================
-   試合結果・成績集計
+   成績集計
 ========================================================= */
 
 function scoreOutcome(score) {
@@ -1118,7 +1170,7 @@ function scoreOutcome(score) {
   return "分";
 }
 
-function makeStats(list) {
+function calculateStats(list) {
   const wins = list.filter(
     score => scoreOutcome(score) === "勝"
   ).length;
@@ -1141,16 +1193,188 @@ function makeStats(list) {
     0
   );
 
-  const rate = list.length
-    ? Math.round(wins / list.length * 100)
+  const matches = list.length;
+
+  const rate = matches
+    ? Math.round(wins / matches * 100)
     : 0;
 
+  return {
+    matches,
+    wins,
+    draws,
+    losses,
+    goals,
+    conceded,
+    goalDifference: goals - conceded,
+    rate
+  };
+}
+
+function winRateClass(rate) {
+  if (rate >= 70) return "win-high";
+  if (rate >= 50) return "win-medium";
+  return "win-low";
+}
+
+function makeStats(list) {
+  const stats = calculateStats(list);
+  const colorClass = winRateClass(stats.rate);
+
   return `
-    試合 ${list.length}試合　${wins}勝 ${draws}分 ${losses}敗<br>
-    得点 ${goals}　失点 ${conceded}　得失点差 ${goals - conceded}<br>
-    勝率 ${rate}%
+    <div class="stats-summary">
+      <div class="stats-numbers">
+        <span>試合 <strong>${stats.matches}</strong></span>
+        <span class="stat-win">勝 <strong>${stats.wins}</strong></span>
+        <span class="stat-draw">分 <strong>${stats.draws}</strong></span>
+        <span class="stat-loss">敗 <strong>${stats.losses}</strong></span>
+      </div>
+
+      <div class="stats-numbers">
+        <span>得点 <strong>${stats.goals}</strong></span>
+        <span>失点 <strong>${stats.conceded}</strong></span>
+        <span>
+          得失点差
+          <strong>${stats.goalDifference > 0 ? "+" : ""}${stats.goalDifference}</strong>
+        </span>
+      </div>
+
+      <div class="win-rate ${colorClass}">
+        勝率 ${stats.rate}%
+      </div>
+
+      <div class="win-bar" aria-label="勝率 ${stats.rate}%">
+        <div
+          class="win-bar-inner ${colorClass}"
+          style="width:${stats.rate}%">
+        </div>
+      </div>
+    </div>
   `;
 }
+
+/* =========================================================
+   試合種別ごとの成績
+========================================================= */
+
+function makeTypeStats(list) {
+  return `
+    <div class="type-stats">
+      ${MATCH_TYPES.map(type => {
+        const typeList = list.filter(
+          score => getMatchType(score) === type
+        );
+
+        const stats = calculateStats(typeList);
+        const colorClass = winRateClass(stats.rate);
+
+        return `
+          <div class="type-stats-row">
+            <div class="type-stats-title">
+              <strong>${escapeHtml(type)}</strong>
+              <span>${stats.matches}試合</span>
+            </div>
+
+            <div class="type-stats-result">
+              ${stats.wins}勝 ${stats.draws}分 ${stats.losses}敗
+            </div>
+
+            <div class="type-stats-result">
+              得点 ${stats.goals} ／ 失点 ${stats.conceded}
+              ／ 得失点差
+              ${stats.goalDifference > 0 ? "+" : ""}${stats.goalDifference}
+            </div>
+
+            <div class="win-rate ${colorClass}">
+              勝率 ${stats.rate}%
+            </div>
+
+            <div class="win-bar" aria-label="勝率 ${stats.rate}%">
+              <div
+                class="win-bar-inner ${colorClass}"
+                style="width:${stats.rate}%">
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+/* =========================================================
+   月別成績
+========================================================= */
+
+function makeMonthlyStats(list) {
+  const groups = new Map();
+
+  for (const score of list) {
+    const date = getMatchDate(score);
+    const month = date ? date.slice(0, 7) : "日付未設定";
+
+    if (!groups.has(month)) {
+      groups.set(month, []);
+    }
+
+    groups.get(month).push(score);
+  }
+
+  const sortedMonths = [...groups.keys()].sort((a, b) => {
+    if (a === "日付未設定") return 1;
+    if (b === "日付未設定") return -1;
+    return b.localeCompare(a);
+  });
+
+  if (!sortedMonths.length) {
+    return `<div class="empty">月別成績はありません。</div>`;
+  }
+
+  return `
+    <div class="monthly-stats">
+      ${sortedMonths.map(month => {
+        const monthList = groups.get(month);
+        const stats = calculateStats(monthList);
+        const colorClass = winRateClass(stats.rate);
+
+        return `
+          <div class="monthly-stats-row">
+            <strong class="monthly-stats-month">
+              ${escapeHtml(month)}
+            </strong>
+
+            <div class="monthly-stats-detail">
+              ${stats.matches}試合
+              ／ ${stats.wins}勝 ${stats.draws}分 ${stats.losses}敗
+            </div>
+
+            <div class="monthly-stats-detail">
+              得点 ${stats.goals}
+              ／ 失点 ${stats.conceded}
+              ／ 得失点差
+              ${stats.goalDifference > 0 ? "+" : ""}${stats.goalDifference}
+            </div>
+
+            <div class="win-rate ${colorClass}">
+              勝率 ${stats.rate}%
+            </div>
+
+            <div class="win-bar" aria-label="勝率 ${stats.rate}%">
+              <div
+                class="win-bar-inner ${colorClass}"
+                style="width:${stats.rate}%">
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+/* =========================================================
+   試合結果一覧
+========================================================= */
 
 function renderScores() {
   const query = $("searchInput").value.trim();
@@ -1186,18 +1410,21 @@ function renderScores() {
   }
 
   let html = `
-    <div class="stats">
-      <strong>表示中の試合集計</strong><br>
+    <section class="stats">
+      <h3>全体成績</h3>
       ${makeStats(filtered)}
-    </div>
+
+      <h3>試合種別ごとの成績</h3>
+      ${makeTypeStats(filtered)}
+
+      <h3>月別成績</h3>
+      ${makeMonthlyStats(filtered)}
+    </section>
   `;
 
   for (const [month, list] of groups) {
     const isExpanded = !collapsedMonths.has(month);
 
-    /*
-     * 展開中と折りたたみ中を見出しのクラスで識別
-     */
     const monthStateClass = isExpanded
       ? "expanded"
       : "collapsed";
@@ -1223,10 +1450,6 @@ function renderScores() {
 
       const outcome = scoreOutcome(score);
 
-      /*
-       * 勝利＝青、引き分け＝灰色、敗北＝赤
-       * 試合結果カード左側の縦線に適用
-       */
       const resultClass = outcome === "勝"
         ? "score-win"
         : outcome === "分"
@@ -1254,6 +1477,9 @@ function renderScores() {
       const timeline = Array.isArray(score.highlights)
         ? score.highlights
         : [];
+
+      const matchType = getMatchType(score);
+      const competition = getCompetition(score);
 
       const timelineHtml = timeline.length ? `
         <div class="meta">
@@ -1301,10 +1527,14 @@ function renderScores() {
         <article class="item ${resultClass}">
           <h3>
             ${escapeHtml(dateLabel(getMatchDate(score)))}
-            ${escapeHtml(score.competition || score.matchType || "試合")}
+            ${escapeHtml(competition || "試合")}
           </h3>
 
           <div class="meta">
+            <span class="match-type-label">
+              ${escapeHtml(matchType)}
+            </span>
+            <br>
             対戦相手：${escapeHtml(score.opponent || "未設定")}
           </div>
 
@@ -1611,6 +1841,8 @@ $("matchForm").addEventListener("submit", async event => {
   const payload = {
     matchDate: $("matchDate").value,
     opponent: $("opponent").value.trim(),
+
+    matchType: $("matchType")?.value || "公式戦",
     competition: $("competition").value.trim(),
 
     homeScore: Number($("homeScore").value),
@@ -1668,7 +1900,11 @@ function editScore(id) {
 
   $("matchDate").value = getMatchDate(score);
   $("opponent").value = score.opponent || "";
-  $("competition").value = score.competition || score.matchType || "";
+  $("competition").value = getCompetition(score);
+
+  if ($("matchType")) {
+    $("matchType").value = getMatchType(score);
+  }
 
   $("homeScore").value = getHomeScore(score);
   $("awayScore").value = getAwayScore(score);
