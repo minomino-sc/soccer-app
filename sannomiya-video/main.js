@@ -1,17 +1,21 @@
+
 /* =========================================================
    神戸三宮FC 動画共有システム
+   ・管理者のみ動画一覧を表示
+   ・動画一覧を登録年／月で管理
+   ・試合動画／ハイライトを年→月→動画で選択
    ・動画登録／編集／削除
    ・試合結果登録／編集／削除
    ・PKスコア
-   ・登録済み動画を選択して試合結果に紐付け
-   ・試合動画／ゴールハイライト動画
-   ・得点／失点時間の記録と該当時間再生
+   ・得点／失点時間の指定再生
    ・月別表示／検索／成績集計
    ・バックアップ／復元
    保存先：sannomiyaVideos / sannomiyaScores
 ========================================================= */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
 import {
   getFirestore,
@@ -58,7 +62,7 @@ const ADMIN_PASSWORD = "KOBE_KOBE-ADMIN";
 ========================================================= */
 
 let currentRole = "";
-let currentTab = "videos";
+let currentTab = "scores";
 
 let editingVideoId = null;
 let editingScoreId = null;
@@ -99,6 +103,13 @@ function show(element, visible) {
   element.classList.toggle("hidden", !visible);
 }
 
+function requireAdmin() {
+  if (currentRole === "admin") return true;
+
+  alert("管理者アカウントでログインしてください。");
+  return false;
+}
+
 /* =========================================================
    ログイン
 ========================================================= */
@@ -134,6 +145,11 @@ function setLoggedIn(role) {
   show($("adminPanel"), role === "admin");
   show($("contentPanel"), true);
 
+  /*
+   * 動画一覧タブは管理者だけに表示
+   */
+  show($("videosTab"), role === "admin");
+
   $("loginState").textContent =
     role === "admin"
       ? "管理者としてログイン中"
@@ -142,7 +158,13 @@ function setLoggedIn(role) {
   $("roleDescription").textContent =
     role === "admin"
       ? "動画・試合結果の登録、編集、削除ができます。"
-      : "動画・試合結果を閲覧できます。";
+      : "試合結果・試合動画・ゴールハイライトを閲覧できます。";
+
+  /*
+   * 一般利用者は試合結果から開始
+   * 管理者は動画一覧から開始
+   */
+  switchTab(role === "admin" ? "videos" : "scores");
 
   setMessage("loginMessage", "");
   loadAll();
@@ -169,13 +191,6 @@ $("logout").addEventListener("click", () => {
     "success"
   );
 });
-
-function requireAdmin() {
-  if (currentRole === "admin") return true;
-
-  alert("管理者アカウントでログインしてください。");
-  return false;
-}
 
 /* =========================================================
    URL・YouTube関連
@@ -248,10 +263,6 @@ function youtubeEmbedUrl(raw, startSeconds = 0) {
   );
 }
 
-/*
- * YouTubeの通常再生ページを開くURLを作成
- * ゴールの時間指定にも使用
- */
 function youtubeTimestampUrl(raw, startSeconds = 0) {
   const id = youtubeId(raw);
   if (!id) return "";
@@ -264,10 +275,6 @@ function youtubeTimestampUrl(raw, startSeconds = 0) {
   return `https://youtu.be/${encodeURIComponent(id)}?t=${seconds}`;
 }
 
-/*
- * 通常の外部リンク
- * 試合動画・ハイライトの再生ボタンに使用
- */
 function externalVideoLink(raw, label) {
   const url = safeUrl(raw);
   if (!url) return "";
@@ -299,48 +306,363 @@ function getVideoCategory(video) {
 }
 
 /* =========================================================
-   登録済み動画の選択リスト
-   index.html の #matchVideo と
-   #highlightVideoUrl は select 要素にする
+   動画の登録日時を年月に変換
+   createdAtを優先し、なければupdatedAtを使用
 ========================================================= */
 
-function populateVideoSelect(
-  selectId,
-  category,
-  placeholder,
-  selectedId = "",
-  legacyUrl = ""
-) {
-  const select = $(selectId);
-  if (!select) return;
+function timestampMillis(value) {
+  if (!value) return 0;
 
-  /*
-   * URL形式で保存された過去データも扱えるようにする
-   */
-  const normalizedLegacyUrl = safeUrl(legacyUrl);
+  if (typeof value.toDate === "function") {
+    return value.toDate().getTime();
+  }
+
+  if (typeof value.seconds === "number") {
+    return value.seconds * 1000;
+  }
+
+  if (typeof value === "string") {
+    const time = Date.parse(value);
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  return 0;
+}
+
+function videoDateMillis(video) {
+  return (
+    timestampMillis(video.createdAt) ||
+    timestampMillis(video.updatedAt) ||
+    0
+  );
+}
+
+function videoYearMonth(video) {
+  const millis = videoDateMillis(video);
+
+  if (!millis) {
+    return {
+      year: "未設定",
+      month: "未設定",
+      key: "未設定"
+    };
+  }
+
+  const date = new Date(millis);
+
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  return {
+    year,
+    month,
+    key: `${year}-${month}`
+  };
+}
+
+function sortVideosNewestFirst(list) {
+  return [...list].sort(
+    (a, b) => videoDateMillis(b) - videoDateMillis(a)
+  );
+}
+
+function videosForCategory(category) {
+  return sortVideosNewestFirst(
+    videoCache.filter(video =>
+      getVideoCategory(video) === category
+    )
+  );
+}
+
+/* =========================================================
+   年・月セレクト共通処理
+========================================================= */
+
+function setSelectOptions(select, values, placeholder, selectedValue = "") {
+  if (!select) return;
 
   select.replaceChildren();
 
-  const firstOption = document.createElement("option");
-  firstOption.value = "";
-  firstOption.textContent = placeholder;
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = placeholder;
+  select.appendChild(first);
 
-  select.appendChild(firstOption);
+  for (const item of values) {
+    const option = document.createElement("option");
 
-  /*
-   * 指定カテゴリーの動画だけを表示
-   * 新しく登録された動画を上に表示
-   */
-  const videos = videoCache
-    .filter(video => getVideoCategory(video) === category)
-    .sort((a, b) => {
-      const dateA = a.createdAt?.seconds || 0;
-      const dateB = b.createdAt?.seconds || 0;
+    if (typeof item === "string") {
+      option.value = item;
+      option.textContent = item === "未設定"
+        ? "登録年月未設定"
+        : item;
+    } else {
+      option.value = item.value;
+      option.textContent = item.label;
+    }
 
-      return dateB - dateA;
-    });
+    select.appendChild(option);
+  }
+
+  if (
+    selectedValue &&
+    [...select.options].some(option => option.value === selectedValue)
+  ) {
+    select.value = selectedValue;
+  }
+}
+
+function yearsForVideos(videos) {
+  const years = new Set();
 
   for (const video of videos) {
+    years.add(videoYearMonth(video).year);
+  }
+
+  return [...years].sort((a, b) => {
+    if (a === "未設定") return 1;
+    if (b === "未設定") return -1;
+    return Number(b) - Number(a);
+  });
+}
+
+function monthsForVideos(videos, year) {
+  const months = new Set();
+
+  for (const video of videos) {
+    const date = videoYearMonth(video);
+
+    if (date.year === year) {
+      months.add(date.month);
+    }
+  }
+
+  return [...months].sort((a, b) => {
+    if (a === "未設定") return 1;
+    if (b === "未設定") return -1;
+    return Number(a) - Number(b);
+  });
+}
+
+function latestYearMonth(videos) {
+  const sorted = sortVideosNewestFirst(videos);
+
+  if (!sorted.length) {
+    return { year: "", month: "" };
+  }
+
+  const date = videoYearMonth(sorted[0]);
+
+  return {
+    year: date.year,
+    month: date.month
+  };
+}
+
+/* =========================================================
+   動画一覧の年・月フィルター
+========================================================= */
+
+function populateVideoListFilters() {
+  const yearSelect = $("videoYearFilter");
+  const monthSelect = $("videoMonthFilter");
+
+  if (!yearSelect || !monthSelect) return;
+
+  const oldYear = yearSelect.value;
+  const oldMonth = monthSelect.value;
+
+  const years = yearsForVideos(videoCache);
+
+  let selectedYear = years.includes(oldYear)
+    ? oldYear
+    : latestYearMonth(videoCache).year;
+
+  if (!selectedYear && years.length) {
+    selectedYear = years[0];
+  }
+
+  setSelectOptions(
+    yearSelect,
+    years,
+    "年を選択",
+    selectedYear
+  );
+
+  const months = selectedYear
+    ? monthsForVideos(videoCache, selectedYear)
+    : [];
+
+  let selectedMonth = months.includes(oldMonth)
+    ? oldMonth
+    : latestYearMonth(
+        videoCache.filter(video =>
+          videoYearMonth(video).year === selectedYear
+        )
+      ).month;
+
+  if (!selectedMonth && months.length) {
+    selectedMonth = months[0];
+  }
+
+  setSelectOptions(
+    monthSelect,
+    months,
+    "月を選択",
+    selectedMonth
+  );
+}
+
+$("videoYearFilter")?.addEventListener("change", () => {
+  const year = $("videoYearFilter").value;
+  const months = monthsForVideos(videoCache, year);
+
+  setSelectOptions(
+    $("videoMonthFilter"),
+    months,
+    "月を選択",
+    months[0] || ""
+  );
+
+  renderVideos();
+});
+
+$("videoMonthFilter")?.addEventListener("change", renderVideos);
+
+/* =========================================================
+   試合動画・ハイライトの選択欄
+========================================================= */
+
+function findRegisteredVideo(category, selectedId = "", legacyUrl = "") {
+  if (selectedId) {
+    const byId = videoCache.find(video =>
+      video.id === selectedId &&
+      getVideoCategory(video) === category
+    );
+
+    if (byId) return byId;
+  }
+
+  const normalizedUrl = safeUrl(legacyUrl);
+
+  if (normalizedUrl) {
+    return videoCache.find(video =>
+      getVideoCategory(video) === category &&
+      safeUrl(video.url || video.videoUrl || "") === normalizedUrl
+    ) || null;
+  }
+
+  return null;
+}
+
+function populateVideoChoice(
+  prefix,
+  category,
+  selectedId = "",
+  legacyUrl = ""
+) {
+  const yearSelect = $(`${prefix}Year`);
+  const monthSelect = $(`${prefix}Month`);
+  const videoSelect = $(
+    prefix === "matchVideo" ? "matchVideo" : "highlightVideoUrl"
+  );
+
+  if (!yearSelect || !monthSelect || !videoSelect) return;
+
+  const categoryVideos = videosForCategory(category);
+  const selectedVideo = findRegisteredVideo(
+    category,
+    selectedId,
+    legacyUrl
+  );
+
+  const oldYear = yearSelect.value;
+  const oldMonth = monthSelect.value;
+
+  const selectedDate = selectedVideo
+    ? videoYearMonth(selectedVideo)
+    : null;
+
+  const years = yearsForVideos(categoryVideos);
+
+  let selectedYear =
+    selectedDate?.year ||
+    (years.includes(oldYear) ? oldYear : "") ||
+    latestYearMonth(categoryVideos).year;
+
+  if (!selectedYear && years.length) {
+    selectedYear = years[0];
+  }
+
+  setSelectOptions(
+    yearSelect,
+    years,
+    "年を選択",
+    selectedYear
+  );
+
+  const months = selectedYear
+    ? monthsForVideos(categoryVideos, selectedYear)
+    : [];
+
+  let selectedMonth =
+    selectedDate?.month ||
+    (months.includes(oldMonth) ? oldMonth : "") ||
+    latestYearMonth(
+      categoryVideos.filter(video =>
+        videoYearMonth(video).year === selectedYear
+      )
+    ).month;
+
+  if (!selectedMonth && months.length) {
+    selectedMonth = months[0];
+  }
+
+  setSelectOptions(
+    monthSelect,
+    months,
+    "月を選択",
+    selectedMonth
+  );
+
+  populateVideoOptions(
+    videoSelect,
+    categoryVideos,
+    selectedYear,
+    selectedMonth,
+    selectedVideo,
+    legacyUrl
+  );
+}
+
+function populateVideoOptions(
+  select,
+  videos,
+  year,
+  month,
+  selectedVideo = null,
+  legacyUrl = ""
+) {
+  if (!select) return;
+
+  select.replaceChildren();
+
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = "動画を選択してください";
+  select.appendChild(first);
+
+  const filtered = videos.filter(video => {
+    const date = videoYearMonth(video);
+
+    return date.year === year && date.month === month;
+  });
+
+  for (const video of filtered) {
     const option = document.createElement("option");
 
     option.value = video.id;
@@ -350,59 +672,36 @@ function populateVideoSelect(
   }
 
   /*
-   * 過去の試合結果にURLしか保存されていない場合、
-   * 既存の動画URLを選択肢に追加する
+   * 既存データにURLだけ保存されている場合も、
+   * 編集時にそのURLを失わないようにする
    */
+  const normalizedUrl = safeUrl(legacyUrl);
+
   if (
-    normalizedLegacyUrl &&
+    normalizedUrl &&
     !videos.some(video =>
-      safeUrl(video.url || video.videoUrl || "") === normalizedLegacyUrl
+      safeUrl(video.url || video.videoUrl || "") === normalizedUrl
     )
   ) {
     const option = document.createElement("option");
 
-    option.value = `legacy:${normalizedLegacyUrl}`;
+    option.value = `legacy:${normalizedUrl}`;
     option.textContent = "以前の登録動画（既存データ）";
 
     select.appendChild(option);
   }
 
-  /*
-   * 動画IDが一致する場合はIDで選択
-   */
-  if (
-    selectedId &&
-    videos.some(video => video.id === selectedId)
-  ) {
-    select.value = selectedId;
-    return;
-  }
-
-  /*
-   * 古いデータのURLに一致する登録動画があれば、
-   * その動画を選択
-   */
-  if (normalizedLegacyUrl) {
+  if (selectedVideo) {
+    select.value = selectedVideo.id;
+  } else if (normalizedUrl) {
     const matchingVideo = videos.find(video =>
-      safeUrl(video.url || video.videoUrl || "") === normalizedLegacyUrl
+      safeUrl(video.url || video.videoUrl || "") === normalizedUrl
     );
 
     if (matchingVideo) {
       select.value = matchingVideo.id;
-      return;
-    }
-
-    /*
-     * 既存URLの選択肢がある場合
-     */
-    const legacyValue = `legacy:${normalizedLegacyUrl}`;
-
-    if (
-      [...select.options].some(option =>
-        option.value === legacyValue
-      )
-    ) {
-      select.value = legacyValue;
+    } else {
+      select.value = `legacy:${normalizedUrl}`;
     }
   }
 }
@@ -413,27 +712,82 @@ function populateVideoSelects(
   matchUrl = "",
   highlightUrl = ""
 ) {
-  populateVideoSelect(
+  populateVideoChoice(
     "matchVideo",
     "match",
-    "試合動画を選択してください",
     matchVideoId,
     matchUrl
   );
 
-  populateVideoSelect(
-    "highlightVideoUrl",
+  populateVideoChoice(
+    "highlightVideo",
     "highlight",
-    "ゴールハイライトを選択してください",
     highlightVideoId,
     highlightUrl
   );
 }
 
+/* 年・月が変更されたら、その年月の動画だけを表示 */
+$("matchVideoYear")?.addEventListener("change", () => {
+  const videos = videosForCategory("match");
+  const year = $("matchVideoYear").value;
+  const months = monthsForVideos(videos, year);
+
+  setSelectOptions(
+    $("matchVideoMonth"),
+    months,
+    "月を選択",
+    months[0] || ""
+  );
+
+  populateVideoOptions(
+    $("matchVideo"),
+    videos,
+    year,
+    $("matchVideoMonth").value
+  );
+});
+
+$("matchVideoMonth")?.addEventListener("change", () => {
+  populateVideoOptions(
+    $("matchVideo"),
+    videosForCategory("match"),
+    $("matchVideoYear").value,
+    $("matchVideoMonth").value
+  );
+});
+
+$("highlightVideoYear")?.addEventListener("change", () => {
+  const videos = videosForCategory("highlight");
+  const year = $("highlightVideoYear").value;
+  const months = monthsForVideos(videos, year);
+
+  setSelectOptions(
+    $("highlightVideoMonth"),
+    months,
+    "月を選択",
+    months[0] || ""
+  );
+
+  populateVideoOptions(
+    $("highlightVideoUrl"),
+    videos,
+    year,
+    $("highlightVideoMonth").value
+  );
+});
+
+$("highlightVideoMonth")?.addEventListener("change", () => {
+  populateVideoOptions(
+    $("highlightVideoUrl"),
+    videosForCategory("highlight"),
+    $("highlightVideoYear").value,
+    $("highlightVideoMonth").value
+  );
+});
+
 /* =========================================================
-   試合結果に紐付いた動画URLを取得
-   新形式：videoId / highlightVideoId
-   旧形式：matchVideoUrl / highlightVideoUrl
+   試合結果に紐付いた動画URL
 ========================================================= */
 
 function getMatchVideo(score) {
@@ -465,7 +819,7 @@ function getHighlightVideo(score) {
 }
 
 /* =========================================================
-   PKスコア・試合結果の互換処理
+   PK・試合結果の互換処理
 ========================================================= */
 
 function getPkHome(score) {
@@ -541,24 +895,19 @@ function parseTimeline(raw) {
     const parts = line.split(",").map(part => part.trim());
 
     if (parts.length !== 2) {
-      return {
-        error: `入力形式を確認してください：${line}`
-      };
+      return { error: `入力形式を確認してください：${line}` };
     }
 
     const time = timeToSeconds(parts[0]);
     const team = parts[1];
 
     if (!Number.isFinite(time) || time < 0) {
-      return {
-        error: `時間が正しくありません：${line}`
-      };
+      return { error: `時間が正しくありません：${line}` };
     }
 
     if (team !== "my" && team !== "opponent") {
       return {
-        error:
-          `種類は my または opponent で入力してください：${line}`
+        error: `種類は my または opponent で入力してください：${line}`
       };
     }
 
@@ -605,10 +954,7 @@ async function loadAll() {
       getMatchDate(b).localeCompare(getMatchDate(a))
     );
 
-    /*
-     * 動画一覧を取得した後に、
-     * 試合動画・ハイライトの選択リストを更新
-     */
+    populateVideoListFilters();
     populateVideoSelects();
 
     renderCurrentTab();
@@ -642,6 +988,13 @@ $("scoresTab").addEventListener("click", () => {
 $("searchInput").addEventListener("input", renderCurrentTab);
 
 function switchTab(tab) {
+  /*
+   * 一般利用者が動画一覧を開くことはできない
+   */
+  if (tab === "videos" && currentRole !== "admin") {
+    tab = "scores";
+  }
+
   currentTab = tab;
 
   $("videosTab").classList.toggle("active", tab === "videos");
@@ -653,11 +1006,13 @@ function switchTab(tab) {
   $("listTitle").textContent =
     tab === "videos" ? "動画一覧" : "試合結果";
 
+  show($("videoMonthFilters"), tab === "videos");
+
   renderCurrentTab();
 }
 
 function renderCurrentTab() {
-  if (currentTab === "videos") {
+  if (currentTab === "videos" && currentRole === "admin") {
     renderVideos();
   } else {
     renderScores();
@@ -678,22 +1033,34 @@ function matchesSearch(item, query) {
 ========================================================= */
 
 function renderVideos() {
+  if (currentRole !== "admin") {
+    $("items").innerHTML = "";
+    return;
+  }
+
   const query = $("searchInput").value.trim();
+  const year = $("videoYearFilter")?.value || "";
+  const month = $("videoMonthFilter")?.value || "";
 
-  const filtered = [...videoCache]
-    .filter(video => matchesSearch(video, query))
-    .sort((a, b) => {
-      const dateA = a.createdAt?.seconds || 0;
-      const dateB = b.createdAt?.seconds || 0;
+  const filtered = sortVideosNewestFirst(videoCache)
+    .filter(video => {
+      const date = videoYearMonth(video);
 
-      return dateB - dateA;
+      const yearMatches = !year || date.year === year;
+      const monthMatches = !month || date.month === month;
+
+      return (
+        yearMatches &&
+        monthMatches &&
+        matchesSearch(video, query)
+      );
     });
 
   if (!filtered.length) {
     $("items").innerHTML = `
       <div class="empty">
         ${videoCache.length
-          ? "検索条件に一致する動画はありません。"
+          ? "選択した年月に動画がないか、検索条件に一致する動画がありません。"
           : "動画はまだ登録されていません。"}
       </div>
     `;
@@ -704,18 +1071,24 @@ function renderVideos() {
     const url = safeUrl(video.url || video.videoUrl || "");
     const embed = youtubeEmbedUrl(url);
     const label = categoryLabel(getVideoCategory(video));
+    const date = videoYearMonth(video);
+
+    const registeredMonth = date.year === "未設定"
+      ? "登録年月未設定"
+      : `${date.year}年${Number(date.month)}月`;
 
     return `
       <article class="item">
         <h3>${escapeHtml(video.title || "動画")}</h3>
 
         <div class="meta">
+          ${escapeHtml(registeredMonth)}<br>
           ${escapeHtml(label)}
         </div>
 
         ${embed ? `
           <iframe
-            src="${embed}"
+            src="${escapeHtml(embed)}"
             title="${escapeHtml(video.title || "動画")}"
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -725,25 +1098,23 @@ function renderVideos() {
 
         ${externalVideoLink(url, "動画を再生")}
 
-        ${currentRole === "admin" ? `
-          <div class="actions">
-            <button
-              type="button"
-              class="secondary"
-              data-action="edit-video"
-              data-id="${escapeHtml(video.id)}">
-              編集
-            </button>
+        <div class="actions">
+          <button
+            type="button"
+            class="secondary"
+            data-action="edit-video"
+            data-id="${escapeHtml(video.id)}">
+            編集
+          </button>
 
-            <button
-              type="button"
-              class="danger"
-              data-action="delete-video"
-              data-id="${escapeHtml(video.id)}">
-              削除
-            </button>
-          </div>
-        ` : ""}
+          <button
+            type="button"
+            class="danger"
+            data-action="delete-video"
+            data-id="${escapeHtml(video.id)}">
+            削除
+          </button>
+        </div>
       </article>
     `;
   }).join("");
@@ -903,6 +1274,26 @@ function renderScores() {
         </div>
       ` : "";
 
+      const adminActions = currentRole === "admin" ? `
+        <div class="actions">
+          <button
+            type="button"
+            class="secondary"
+            data-action="edit-score"
+            data-id="${escapeHtml(score.id)}">
+            編集
+          </button>
+
+          <button
+            type="button"
+            class="danger"
+            data-action="delete-score"
+            data-id="${escapeHtml(score.id)}">
+            削除
+          </button>
+        </div>
+      ` : "";
+
       return `
         <article class="item">
           <h3>
@@ -927,38 +1318,12 @@ function renderScores() {
           ` : ""}
 
           <div class="video-actions">
-            ${externalVideoLink(
-              matchUrl,
-              "▶ 試合動画を再生"
-            )}
-
-            ${externalVideoLink(
-              highlightUrl,
-              "▶ ゴールハイライトを再生"
-            )}
+            ${externalVideoLink(matchUrl, "▶ 試合動画を再生")}
+            ${externalVideoLink(highlightUrl, "▶ ゴールハイライトを再生")}
           </div>
 
           ${timelineHtml}
-
-          ${currentRole === "admin" ? `
-            <div class="actions">
-              <button
-                type="button"
-                class="secondary"
-                data-action="edit-score"
-                data-id="${escapeHtml(score.id)}">
-                編集
-              </button>
-
-              <button
-                type="button"
-                class="danger"
-                data-action="delete-score"
-                data-id="${escapeHtml(score.id)}">
-                削除
-              </button>
-            </div>
-          ` : ""}
+          ${adminActions}
         </article>
       `;
     }).join("");
@@ -988,9 +1353,6 @@ $("items").addEventListener("click", async event => {
     return;
   }
 
-  /*
-   * ゴールシーンをYouTubeの該当時間から再生
-   */
   if (action === "play-goal") {
     const score = scoreCache.find(item => item.id === id);
     if (!score) return;
@@ -1003,46 +1365,25 @@ $("items").addEventListener("click", async event => {
     if (!marker) return;
 
     const url = getMatchVideo(score);
-
-    const watchUrl = youtubeTimestampUrl(
-      url,
-      marker.time || 0
-    );
+    const watchUrl = youtubeTimestampUrl(url, marker.time || 0);
 
     if (watchUrl) {
-      window.open(
-        watchUrl,
-        "_blank",
-        "noopener,noreferrer"
-      );
-
+      window.open(watchUrl, "_blank", "noopener,noreferrer");
       return;
     }
 
-    /*
-     * YouTube以外の動画では開始時間指定ができないため、
-     * 登録URLを通常のタブで開く
-     */
     const externalUrl = safeUrl(url);
 
     if (externalUrl) {
-      window.open(
-        externalUrl,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      window.open(externalUrl, "_blank", "noopener,noreferrer");
 
       alert(
         "この動画はYouTubeではないため、指定時間から再生できない場合があります。"
       );
-
       return;
     }
 
-    alert(
-      "この試合には再生可能な試合動画が登録されていません。"
-    );
-
+    alert("この試合には再生可能な試合動画が登録されていません。");
     return;
   }
 
@@ -1079,10 +1420,7 @@ function resetVideoForm() {
   show($("videoCancelButton"), false);
 }
 
-$("videoCancelButton").addEventListener(
-  "click",
-  resetVideoForm
-);
+$("videoCancelButton").addEventListener("click", resetVideoForm);
 
 $("videoForm").addEventListener("submit", async event => {
   event.preventDefault();
@@ -1092,12 +1430,7 @@ $("videoForm").addEventListener("submit", async event => {
   const url = safeUrl($("videoUrl").value.trim());
 
   if (!url) {
-    setMessage(
-      "adminMessage",
-      "有効な動画URLを入力してください。",
-      "error"
-    );
-
+    setMessage("adminMessage", "有効な動画URLを入力してください。", "error");
     return;
   }
 
@@ -1115,25 +1448,16 @@ $("videoForm").addEventListener("submit", async event => {
         payload
       );
 
-      setMessage(
-        "adminMessage",
-        "動画を更新しました。",
-        "success"
-      );
+      setMessage("adminMessage", "動画を更新しました。", "success");
     } else {
       payload.createdAt = serverTimestamp();
 
       await addDoc(videosCollection, payload);
 
-      setMessage(
-        "adminMessage",
-        "動画を登録しました。",
-        "success"
-      );
+      setMessage("adminMessage", "動画を登録しました。", "success");
     }
 
     resetVideoForm();
-
     await loadAll();
   } catch (error) {
     console.error(error);
@@ -1147,6 +1471,8 @@ $("videoForm").addEventListener("submit", async event => {
 });
 
 function editVideo(id) {
+  if (!requireAdmin()) return;
+
   const video = videoCache.find(item => item.id === id);
   if (!video) return;
 
@@ -1167,18 +1493,14 @@ function editVideo(id) {
 }
 
 async function deleteVideo(id) {
+  if (!requireAdmin()) return;
+
   if (!confirm("この動画を削除しますか？")) return;
 
   try {
-    await deleteDoc(
-      doc(db, "sannomiyaVideos", id)
-    );
+    await deleteDoc(doc(db, "sannomiyaVideos", id));
 
-    setMessage(
-      "adminMessage",
-      "動画を削除しました。",
-      "success"
-    );
+    setMessage("adminMessage", "動画を削除しました。", "success");
 
     await loadAll();
   } catch (error) {
@@ -1204,21 +1526,17 @@ function resetMatchForm() {
   $("matchSubmitButton").textContent = "試合結果を追加";
 
   show($("matchCancelButton"), false);
+
+  populateVideoSelects();
 }
 
-$("matchCancelButton").addEventListener(
-  "click",
-  resetMatchForm
-);
+$("matchCancelButton").addEventListener("click", resetMatchForm);
 
 $("matchForm").addEventListener("submit", async event => {
   event.preventDefault();
 
   if (!requireAdmin()) return;
 
-  /*
-   * 選択リストから選ばれた動画IDを取得
-   */
   const matchSelection = $("matchVideo").value;
   const highlightSelection = $("highlightVideoUrl").value;
 
@@ -1230,10 +1548,6 @@ $("matchForm").addEventListener("submit", async event => {
     video => video.id === highlightSelection
   );
 
-  /*
-   * 選択された動画のURLを取得
-   * 過去データは legacy:URL 形式でも扱う
-   */
   const matchUrl = safeUrl(
     selectedMatchVideo?.url ||
     selectedMatchVideo?.videoUrl ||
@@ -1260,7 +1574,6 @@ $("matchForm").addEventListener("submit", async event => {
       "選択した試合動画のURLを確認してください。",
       "error"
     );
-
     return;
   }
 
@@ -1270,7 +1583,6 @@ $("matchForm").addEventListener("submit", async event => {
       "選択したゴールハイライトのURLを確認してください。",
       "error"
     );
-
     return;
   }
 
@@ -1283,21 +1595,13 @@ $("matchForm").addEventListener("submit", async event => {
       "PKスコアは神戸三宮FC・相手の両方を入力してください。",
       "error"
     );
-
     return;
   }
 
-  const timelineResult = parseTimeline(
-    $("goalTimeline").value
-  );
+  const timelineResult = parseTimeline($("goalTimeline").value);
 
   if (timelineResult.error) {
-    setMessage(
-      "adminMessage",
-      timelineResult.error,
-      "error"
-    );
-
+    setMessage("adminMessage", timelineResult.error, "error");
     return;
   }
 
@@ -1309,26 +1613,16 @@ $("matchForm").addEventListener("submit", async event => {
     homeScore: Number($("homeScore").value),
     awayScore: Number($("awayScore").value),
 
-    /* PKスコア */
-    pkHomeScore:
-      pkHomeRaw === "" ? null : Number(pkHomeRaw),
+    pkHomeScore: pkHomeRaw === "" ? null : Number(pkHomeRaw),
+    pkAwayScore: pkAwayRaw === "" ? null : Number(pkAwayRaw),
 
-    pkAwayScore:
-      pkAwayRaw === "" ? null : Number(pkAwayRaw),
-
-    /*
-     * 新形式：登録済み動画のID
-     * 旧形式との互換性のためURLも保存
-     */
     videoId: selectedMatchVideo?.id || "",
     highlightVideoId: selectedHighlightVideo?.id || "",
 
     matchVideoUrl: matchUrl,
     highlightVideoUrl: highlightUrl,
 
-    /* 得点・失点時間 */
     highlights: timelineResult.highlights,
-
     memo: $("matchMemo").value.trim(),
 
     updatedAt: serverTimestamp()
@@ -1341,28 +1635,16 @@ $("matchForm").addEventListener("submit", async event => {
         payload
       );
 
-      setMessage(
-        "adminMessage",
-        "試合結果を更新しました。",
-        "success"
-      );
+      setMessage("adminMessage", "試合結果を更新しました。", "success");
     } else {
       payload.createdAt = serverTimestamp();
 
-      await addDoc(
-        scoresCollection,
-        payload
-      );
+      await addDoc(scoresCollection, payload);
 
-      setMessage(
-        "adminMessage",
-        "試合結果を登録しました。",
-        "success"
-      );
+      setMessage("adminMessage", "試合結果を登録しました。", "success");
     }
 
     resetMatchForm();
-
     await loadAll();
   } catch (error) {
     console.error(error);
@@ -1376,15 +1658,14 @@ $("matchForm").addEventListener("submit", async event => {
 });
 
 function editScore(id) {
+  if (!requireAdmin()) return;
+
   const score = scoreCache.find(item => item.id === id);
   if (!score) return;
 
   $("matchDate").value = getMatchDate(score);
-
   $("opponent").value = score.opponent || "";
-
-  $("competition").value =
-    score.competition || score.matchType || "";
+  $("competition").value = score.competition || score.matchType || "";
 
   $("homeScore").value = getHomeScore(score);
   $("awayScore").value = getAwayScore(score);
@@ -1392,10 +1673,6 @@ function editScore(id) {
   $("pkHomeScore").value = getPkHome(score) ?? "";
   $("pkAwayScore").value = getPkAway(score) ?? "";
 
-  /*
-   * 登録済み動画の選択リストを再構築し、
-   * 編集対象の動画を選択状態にする
-   */
   populateVideoSelects(
     score.videoId || "",
     score.highlightVideoId || "",
@@ -1403,10 +1680,7 @@ function editScore(id) {
     getHighlightVideo(score)
   );
 
-  $("goalTimeline").value = timelineToText(
-    score.highlights || []
-  );
-
+  $("goalTimeline").value = timelineToText(score.highlights || []);
   $("matchMemo").value = score.memo || "";
 
   editingScoreId = id;
@@ -1422,18 +1696,14 @@ function editScore(id) {
 }
 
 async function deleteScore(id) {
+  if (!requireAdmin()) return;
+
   if (!confirm("この試合結果を削除しますか？")) return;
 
   try {
-    await deleteDoc(
-      doc(db, "sannomiyaScores", id)
-    );
+    await deleteDoc(doc(db, "sannomiyaScores", id));
 
-    setMessage(
-      "adminMessage",
-      "試合結果を削除しました。",
-      "success"
-    );
+    setMessage("adminMessage", "試合結果を削除しました。", "success");
 
     await loadAll();
   } catch (error) {
@@ -1451,15 +1721,6 @@ async function deleteScore(id) {
    バックアップ
 ========================================================= */
 
-function makeBackupData(items) {
-  return items.map(({ id, ...data }) => ({
-    id,
-    ...data,
-    createdAt: serializableTimestamp(data.createdAt),
-    updatedAt: serializableTimestamp(data.updatedAt)
-  }));
-}
-
 function serializableTimestamp(value) {
   if (value && typeof value.toDate === "function") {
     return value.toDate().toISOString();
@@ -1470,6 +1731,15 @@ function serializableTimestamp(value) {
   }
 
   return value ?? null;
+}
+
+function makeBackupData(items) {
+  return items.map(({ id, ...data }) => ({
+    id,
+    ...data,
+    createdAt: serializableTimestamp(data.createdAt),
+    updatedAt: serializableTimestamp(data.updatedAt)
+  }));
 }
 
 $("backupButton").addEventListener("click", async () => {
@@ -1495,18 +1765,14 @@ $("backupButton").addEventListener("click", async () => {
     const link = document.createElement("a");
 
     link.href = objectUrl;
-
     link.download =
       `sannomiya-video-backup-${new Date().toISOString().slice(0, 10)}.json`;
 
     document.body.appendChild(link);
-
     link.click();
     link.remove();
 
-    setTimeout(() => {
-      URL.revokeObjectURL(objectUrl);
-    }, 1000);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 
     setMessage(
       "adminMessage",
@@ -1540,7 +1806,6 @@ $("restoreButton").addEventListener("click", async () => {
       "復元するJSONファイルを選択してください。",
       "error"
     );
-
     return;
   }
 
@@ -1557,9 +1822,7 @@ $("restoreButton").addEventListener("click", async () => {
       !Array.isArray(backup.videos) ||
       !Array.isArray(backup.scores)
     ) {
-      throw new Error(
-        "バックアップ形式が正しくありません。"
-      );
+      throw new Error("バックアップ形式が正しくありません。");
     }
 
     for (const item of backup.videos) {
@@ -1604,9 +1867,10 @@ $("restoreButton").addEventListener("click", async () => {
    初期表示
 ========================================================= */
 
-switchTab("videos");
-
 show($("loginPanel"), true);
 show($("userPanel"), false);
 show($("adminPanel"), false);
 show($("contentPanel"), false);
+show($("videoMonthFilters"), false);
+
+switchTab("scores");
