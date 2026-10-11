@@ -145,9 +145,6 @@ function setLoggedIn(role) {
   show($("adminPanel"), role === "admin");
   show($("contentPanel"), true);
 
-  /*
-   * 動画一覧タブは管理者だけに表示
-   */
   show($("videosTab"), role === "admin");
 
   $("loginState").textContent =
@@ -160,10 +157,6 @@ function setLoggedIn(role) {
       ? "動画・試合結果の登録、編集、削除ができます。"
       : "試合結果・試合動画・ゴールハイライトを閲覧できます。";
 
-  /*
-   * 一般利用者は試合結果から開始
-   * 管理者は動画一覧から開始
-   */
   switchTab(role === "admin" ? "videos" : "scores");
 
   setMessage("loginMessage", "");
@@ -307,7 +300,6 @@ function getVideoCategory(video) {
 
 /* =========================================================
    動画の登録日時を年月に変換
-   createdAtを優先し、なければupdatedAtを使用
 ========================================================= */
 
 function timestampMillis(value) {
@@ -671,10 +663,6 @@ function populateVideoOptions(
     select.appendChild(option);
   }
 
-  /*
-   * 既存データにURLだけ保存されている場合も、
-   * 編集時にそのURLを失わないようにする
-   */
   const normalizedUrl = safeUrl(legacyUrl);
 
   if (
@@ -727,7 +715,6 @@ function populateVideoSelects(
   );
 }
 
-/* 年・月が変更されたら、その年月の動画だけを表示 */
 $("matchVideoYear")?.addEventListener("change", () => {
   const videos = videosForCategory("match");
   const year = $("matchVideoYear").value;
@@ -988,9 +975,6 @@ $("scoresTab").addEventListener("click", () => {
 $("searchInput").addEventListener("input", renderCurrentTab);
 
 function switchTab(tab) {
-  /*
-   * 一般利用者が動画一覧を開くことはできない
-   */
   if (tab === "videos" && currentRole !== "admin") {
     tab = "scores";
   }
@@ -1211,8 +1195,15 @@ function renderScores() {
   for (const [month, list] of groups) {
     const isExpanded = !collapsedMonths.has(month);
 
+    /*
+     * 展開中と折りたたみ中を見出しのクラスで識別
+     */
+    const monthStateClass = isExpanded
+      ? "expanded"
+      : "collapsed";
+
     html += `
-      <div class="month-heading">
+      <div class="month-heading ${monthStateClass}">
         <button
           type="button"
           class="secondary month-toggle"
@@ -1229,6 +1220,18 @@ function renderScores() {
     html += list.map(score => {
       const home = getHomeScore(score);
       const away = getAwayScore(score);
+
+      const outcome = scoreOutcome(score);
+
+      /*
+       * 勝利＝青、引き分け＝灰色、敗北＝赤
+       * 試合結果カード左側の縦線に適用
+       */
+      const resultClass = outcome === "勝"
+        ? "score-win"
+        : outcome === "分"
+          ? "score-draw"
+          : "score-loss";
 
       const pkHome = getPkHome(score);
       const pkAway = getPkAway(score);
@@ -1295,7 +1298,7 @@ function renderScores() {
       ` : "";
 
       return `
-        <article class="item">
+        <article class="item ${resultClass}">
           <h3>
             ${escapeHtml(dateLabel(getMatchDate(score)))}
             ${escapeHtml(score.competition || score.matchType || "試合")}
