@@ -10,15 +10,28 @@
   <style>
     * { box-sizing: border-box; }
 
+    :root {
+      --club-green: #123d2b;
+      --club-green-light: #1e6043;
+      --club-green-soft: #e7eee9;
+      --page-green: #e6f7d9;
+      --accent-blue: #1e88e5;
+      --text-main: #17251c;
+      --text-muted: #657369;
+      --win-blue: #1e88e5;
+      --draw-gray: #757575;
+      --loss-red: #c62828;
+    }
+
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f3f6f4;
-      color: #17251c;
+      background: var(--page-green);
+      color: var(--text-main);
     }
 
     header {
-      background: #123d2b;
+      background: var(--club-green);
       color: #fff;
       text-align: center;
       padding: 24px 12px;
@@ -31,17 +44,18 @@
 
     .panel {
       background: #fff;
-      border: 1px solid #dce5de;
+      border: 1px solid #d5e5d8;
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 15px;
+      box-shadow: 0 5px 16px rgba(18, 61, 43, 0.07);
     }
 
     h2 { font-size: 17px; margin: 0 0 14px; }
     h3 { font-size: 15px; margin: 0 0 10px; }
 
     .description {
-      color: #657369;
+      color: var(--text-muted);
       font-size: 13px;
       line-height: 1.7;
     }
@@ -67,7 +81,7 @@
     input, select, textarea {
       border: 1px solid #ccd8cf;
       background: #fff;
-      color: #17251c;
+      color: var(--text-main);
     }
 
     input[type="date"] {
@@ -79,14 +93,26 @@
 
     button {
       border: 0;
-      background: #1e6043;
+      background: var(--club-green-light);
       color: #fff;
       font-weight: bold;
       cursor: pointer;
     }
 
-    button.secondary { background: #e7eee9; color: #173c29; }
-    button.danger { background: #a32e2e; }
+    button:hover:not(:disabled) {
+      filter: brightness(1.06);
+    }
+
+    button.secondary {
+      background: var(--club-green-soft);
+      color: var(--club-green);
+    }
+
+    button.danger {
+      background: var(--loss-red);
+      color: #fff;
+    }
+
     button:disabled { opacity: .55; }
 
     .hidden { display: none !important; }
@@ -94,7 +120,7 @@
     .login-heading, .login-subtitle { text-align: center; }
 
     .login-subtitle {
-      color: #657369;
+      color: var(--text-muted);
       font-size: 13px;
       line-height: 1.7;
       margin-bottom: 20px;
@@ -129,21 +155,55 @@
       flex: 1;
       margin: 0;
       padding: 12px 5px;
+      border-radius: 10px;
+      transition: background-color .2s ease;
     }
 
-    .tabs button.active { background: #123d2b; color: #fff; }
+    .tabs button.active {
+      background: var(--club-green);
+      color: #fff;
+    }
 
+    .tabs button.secondary {
+      background: #fff;
+      color: var(--club-green);
+      border: 1px solid #cbdccf;
+    }
+
+    /* 動画・試合結果カード */
     .item {
-      border-top: 1px solid #e0e7e2;
-      padding: 15px 0;
+      background: #fff;
+      border: 1px solid #e0e9e1;
+      border-left: 4px solid var(--club-green);
+      border-radius: 12px;
+      padding: 15px;
+      margin: 12px 0;
+      box-shadow: 0 3px 10px rgba(18, 61, 43, 0.05);
     }
 
-    .item:first-child { border-top: 0; }
+    .item:first-child { border-top: 1px solid #e0e9e1; }
 
-    .item h3 { overflow-wrap: anywhere; }
+    .item h3 {
+      color: var(--club-green);
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    /* 勝敗ごとにカード左側の色を変更 */
+    .item.score-win {
+      border-left-color: var(--win-blue);
+    }
+
+    .item.score-draw {
+      border-left-color: var(--draw-gray);
+    }
+
+    .item.score-loss {
+      border-left-color: var(--loss-red);
+    }
 
     .meta {
-      color: #657369;
+      color: var(--text-muted);
       font-size: 13px;
       line-height: 1.7;
       margin-bottom: 10px;
@@ -182,7 +242,7 @@
 
     .form-divider {
       border: 0;
-      border-top: 1px solid #e0e7e2;
+      border-top: 1px solid #dce7de;
       margin: 22px 0;
     }
 
@@ -203,21 +263,38 @@
       min-width: 0;
     }
 
+    /* 月別見出し：展開状態に応じて背景色を変更 */
     .month-heading {
+      background: #b2e672;
+      border-radius: 10px;
+      padding: 6px;
+      margin-top: 14px;
+      transition: background-color .2s ease;
+    }
+
+    .month-heading.expanded {
       background: #edf3ee;
-      border-radius: 8px;
-      padding: 8px;
-      margin-top: 12px;
+    }
+
+    .month-heading.collapsed {
+      background: #b2e672;
     }
 
     .month-toggle {
+      background: transparent !important;
+      color: var(--club-green) !important;
+      font-weight: bold;
       margin: 0 !important;
       text-align: left;
     }
 
+    /* 総合成績：元のデザインを維持 */
     .stats {
-      background: #f3f7f4;
-      border-radius: 8px;
+      background: linear-gradient(135deg, #fff, #f0fff4);
+      border: 1px solid #d5e5d8;
+      border-left: 5px solid var(--club-green);
+      border-radius: 12px;
+      color: var(--text-main);
       padding: 12px;
       font-size: 13px;
       line-height: 1.9;
@@ -227,14 +304,16 @@
     .link-button {
       display: inline-block;
       text-decoration: none;
-      background: #1e6043;
-      color: white;
+      background: var(--accent-blue);
+      color: #fff;
       padding: 10px 12px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: bold;
       margin: 4px 6px 4px 0;
     }
+
+    .link-button:hover { background: #005fcc; }
 
     .goal-buttons {
       display: flex;
@@ -247,6 +326,9 @@
       margin: 0;
       padding: 8px 10px;
       font-size: 12px;
+      background: var(--club-green-soft);
+      color: var(--club-green);
+      border: 1px solid #cbdccf;
     }
 
     .video-actions {
@@ -263,18 +345,16 @@
       padding: 10px 12px;
       border: 0;
       border-radius: 8px;
-      background: #1e6043;
+      background: var(--accent-blue);
       color: #fff;
       font-size: 13px;
       font-weight: bold;
       cursor: pointer;
     }
 
-    .video-play-button:hover { background: #21864c; }
+    .video-play-button:hover { background: #005fcc; }
 
-    #videoMonthFilters {
-      margin-bottom: 6px;
-    }
+    #videoMonthFilters { margin-bottom: 6px; }
 
     #videoMonthFilters label,
     #matchVideoYear,
@@ -282,6 +362,13 @@
     #highlightVideoYear,
     #highlightVideoMonth {
       margin-bottom: 8px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid rgba(30, 136, 229, 0.3);
+      border-color: var(--accent-blue);
     }
 
     footer {
@@ -293,227 +380,22 @@
 
     @media (max-width: 480px) {
       header h1 { font-size: 19px; }
+
       .panel { padding: 14px; }
+
       .actions { gap: 6px; }
+
       .form-row { gap: 7px; }
+
+      .item {
+        padding: 12px;
+        border-radius: 10px;
+      }
+
+      .link-button {
+        margin: 4px 4px 4px 0;
+      }
     }
-
-
-
-/* =====================================================
-   神戸三宮FC デザイン統一
-   箕谷SCの見やすさ × 神戸三宮FCのグリーン
-   ===================================================== */
-
-:root {
-  --club-green: #123d2b;
-  --club-green-light: #1e6043;
-  --club-green-soft: #e7eee9;
-  --page-green: #e6f7d9;
-  --accent-blue: #1e88e5;
-  --cup-green: #2e7d32;
-  --friendly-orange: #fb8c00;
-  --text-main: #17251c;
-  --text-muted: #657369;
-}
-
-/* 全体の背景 */
-body {
-  background: var(--page-green);
-  color: var(--text-main);
-}
-
-/* ヘッダー */
-header {
-  background: var(--club-green);
-  color: #fff;
-}
-
-/* パネル */
-.panel {
-  background: #fff;
-  border-color: #d5e5d8;
-  box-shadow: 0 5px 16px rgba(18, 61, 43, 0.07);
-}
-
-/* タブ */
-.tabs button {
-  border-radius: 10px;
-  transition: background-color .2s ease;
-}
-
-.tabs button.active {
-  background: var(--club-green);
-  color: #fff;
-}
-
-.tabs button.secondary {
-  background: #fff;
-  color: var(--club-green);
-  border: 1px solid #cbdccf;
-}
-
-/* 基本ボタン */
-button {
-  background: var(--club-green-light);
-}
-
-button:hover:not(:disabled) {
-  filter: brightness(1.06);
-}
-
-button.secondary {
-  background: var(--club-green-soft);
-  color: var(--club-green);
-}
-
-button.danger {
-  background: #c62828;
-  color: #fff;
-}
-
-/* 動画・試合結果のカード */
-.item {
-  background: #fff;
-  border: 1px solid #e0e9e1;
-  border-left: 4px solid var(--club-green);
-  border-radius: 12px;
-  padding: 15px;
-  margin: 12px 0;
-  box-shadow: 0 3px 10px rgba(18, 61, 43, 0.05);
-}
-
-.item h3 {
-  color: var(--club-green);
-  line-height: 1.5;
-}
-
-.meta {
-  color: var(--text-muted);
-}
-
-/* 月別見出し */
-.month-heading {
-  background: #b2e672;
-  border-radius: 10px;
-  padding: 6px;
-  margin-top: 14px;
-}
-
-.month-toggle {
-  background: transparent !important;
-  color: var(--club-green) !important;
-  font-weight: bold;
-}
-
-/* 成績集計 */
-.stats {
-  background: linear-gradient(135deg, #fff, #f0fff4);
-  border: 1px solid #d5e5d8;
-  border-left: 5px solid var(--club-green);
-  border-radius: 12px;
-  color: var(--text-main);
-}
-
-/* 動画再生ボタン */
-.link-button,
-.video-play-button {
-  background: var(--accent-blue);
-  color: #fff;
-}
-
-.link-button:hover,
-.video-play-button:hover {
-  background: #005fcc;
-}
-
-/* 得点・失点シーン */
-.goal-buttons button {
-  background: var(--club-green-soft);
-  color: var(--club-green);
-  border: 1px solid #cbdccf;
-}
-
-/* フォームの区切り */
-.form-divider {
-  border-top-color: #dce7de;
-}
-
-/* 入力欄 */
-input:focus,
-select:focus,
-textarea:focus {
-  outline: 2px solid rgba(30, 136, 229, 0.3);
-  border-color: var(--accent-blue);
-}
-
-/* スマートフォンでもカードを見やすく */
-@media (max-width: 480px) {
-  .item {
-    padding: 12px;
-    border-radius: 10px;
-  }
-
-  .link-button {
-    margin: 4px 4px 4px 0;
-  }
-}
-
-
-/* =====================================================
-   月別折りたたみ：状態ごとの色分け
-===================================================== */
-
-/* 展開中：従来の薄いグリーン */
-.month-heading:has(.month-toggle[data-expanded="true"]) {
-  background: #edf3ee;
-}
-
-/* 折りたたみ中：グリーン */
-.month-heading:has(.month-toggle[data-expanded="false"]) {
-  background: #b2e672;
-}
-
-/* ボタン自体は見出しの背景色を透過 */
-.month-toggle {
-  background: transparent !important;
-  color: #123d2b !important;
-}
-
-/* 総合成績 */
-.stats {
-  background: linear-gradient(135deg, #fff, #f0fff4);
-  border: 1px solid #d5e5d8;
-  border-left: 5px solid #123d2b;
-  border-radius: 12px;
-  color: #17251c;
-  padding: 12px;
-  font-size: 13px;
-  line-height: 1.9;
-  margin-bottom: 12px;
-}
-
-/* 勝敗ラベル */
-.result-badge {
-  display: inline-block;
-  min-width: 36px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 12px;
-  font-weight: bold;
-  text-align: center;
-  margin-right: 6px;
-}
-
-.result-win { background: #1e88e5; }
-.result-draw { background: #757575; }
-.result-loss { background: #c62828; }
-
-
-    
-
-    
   </style>
 </head>
 
@@ -625,7 +507,6 @@ textarea:focus {
         </div>
       </div>
 
-      <!-- 試合動画：年 → 月 → 動画 -->
       <hr class="form-divider">
       <h3>試合動画の選択（任意）</h3>
 
@@ -649,7 +530,6 @@ textarea:focus {
         <option value="">試合動画を選択してください</option>
       </select>
 
-      <!-- ゴールハイライト：年 → 月 → 動画 -->
       <hr class="form-divider">
       <h3>ゴールハイライトの選択（任意）</h3>
 
@@ -723,7 +603,6 @@ textarea:focus {
     <section class="panel">
       <h2 id="listTitle">動画一覧</h2>
 
-      <!-- 動画一覧の年・月フィルター -->
       <div id="videoMonthFilters">
         <div class="form-row">
           <div>
