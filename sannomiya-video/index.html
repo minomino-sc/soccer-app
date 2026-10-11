@@ -6,89 +6,249 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#123d2b">
   <title>神戸三宮FC 動画共有システム</title>
+
   <style>
     * { box-sizing: border-box; }
-    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#f3f6f4; color:#17251c; }
-    header { background:#123d2b; color:#fff; text-align:center; padding:24px 12px; }
-    header h1 { font-size:21px; margin:0 0 8px; }
-    header p { font-size:12px; letter-spacing:.1em; margin:0; }
-    main { max-width:900px; margin:20px auto; padding:0 12px; }
-    .panel { background:#fff; border:1px solid #dce5de; border-radius:12px; padding:16px; margin-bottom:15px; }
-    h2 { font-size:17px; margin:0 0 14px; }
-    h3 { font-size:15px; margin:0 0 10px; }
-    .description { color:#657369; font-size:13px; line-height:1.7; }
-    label { display:block; font-size:13px; font-weight:bold; margin-bottom:6px; }
-input, select, textarea, button {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  padding: 12px;
-  margin: 0 0 12px;
-  border-radius: 8px;
-  font: inherit;
-}
 
-input[type="date"] {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  height: 46px;
-  box-sizing: border-box;
-  padding: 12px;
-  margin: 0 0 12px;
-  border: 1px solid #ccd8cf;
-  border-radius: 8px;
-  background: #fff;
-  color: #17251c;
-  font: inherit;
-  -webkit-appearance: none;
-  appearance: none;
-}   
-    input,select,textarea { border:1px solid #ccd8cf; background:#fff; color:#17251c; }
-    button { border:0; background:#1e6043; color:#fff; font-weight:bold; cursor:pointer; }
-    button.secondary { background:#e7eee9; color:#173c29; }
-    button.danger { background:#a32e2e; }
-    button:disabled { opacity:.55; }
-    .hidden { display:none!important; }
-    .login-heading,.login-subtitle { text-align:center; }
-    .login-subtitle { color:#657369; font-size:13px; line-height:1.7; margin-bottom:20px; }
-    .login-note { background:#f3f7f4; border-radius:8px; padding:12px; font-size:12px; line-height:1.8; margin-bottom:18px; }
-    .status { font-size:13px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; }
-    .error { color:#b42323; }
-    .success { color:#21663b; }
-    .tabs { display:flex; gap:8px; margin-bottom:14px; }
-    .tabs button { flex:1; margin:0; padding:12px 5px; }
-    .tabs button.active { background:#123d2b; color:#fff; }
-    .item { border-top:1px solid #e0e7e2; padding:15px 0; }
-    .item:first-child { border-top:0; }
-    .item h3 { overflow-wrap:anywhere; }
-    .meta { color:#657369; font-size:13px; line-height:1.7; margin-bottom:10px; overflow-wrap:anywhere; }
-    .item p { font-size:14px; line-height:1.7; overflow-wrap:anywhere; }
-    iframe { display:block; width:100%; aspect-ratio:16/9; border:0; border-radius:8px; background:#000; }
-    .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-    .actions button { flex:1; min-width:100px; margin:0; padding:10px 5px; font-size:13px; }
-    .form-divider { border:0; border-top:1px solid #e0e7e2; margin:22px 0; }
-    .empty { text-align:center; color:#748078; padding:24px 8px; font-size:14px; }
-    .form-row { display:flex; gap:10px; }
-    .form-row>div { flex:1; min-width:0; }
-    .month-heading { background:#edf3ee; border-radius:8px; padding:8px; margin-top:12px; }
-    .month-toggle { margin:0!important; text-align:left; }
-    .stats { background:#f3f7f4; border-radius:8px; padding:12px; font-size:13px; line-height:1.9; margin-bottom:12px; }
-    .link-button { display:inline-block; text-decoration:none; background:#1e6043; color:white; padding:10px 12px; border-radius:8px; font-size:13px; font-weight:bold; margin:4px 6px 4px 0; }
-    .goal-buttons { display:flex; flex-wrap:wrap; gap:6px; }
-    .goal-buttons button { width:auto; margin:0; padding:8px 10px; font-size:12px; }
-    footer { text-align:center; color:#748078; font-size:12px; padding:20px 12px 28px; }
-    @media(max-width:480px) {
-      header h1 { font-size:19px; }
-      .panel { padding:14px; }
-      .actions { gap:6px; }
-      .form-row { gap:7px; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f3f6f4;
+      color: #17251c;
     }
 
+    header {
+      background: #123d2b;
+      color: #fff;
+      text-align: center;
+      padding: 24px 12px;
+    }
 
-    /* 試合動画・ゴールハイライトの再生ボタン */
+    header h1 { font-size: 21px; margin: 0 0 8px; }
+    header p { font-size: 12px; letter-spacing: .1em; margin: 0; }
+
+    main { max-width: 900px; margin: 20px auto; padding: 0 12px; }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #dce5de;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+    }
+
+    h2 { font-size: 17px; margin: 0 0 14px; }
+    h3 { font-size: 15px; margin: 0 0 10px; }
+
+    .description {
+      color: #657369;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea, button {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 12px;
+      margin: 0 0 12px;
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    input, select, textarea {
+      border: 1px solid #ccd8cf;
+      background: #fff;
+      color: #17251c;
+    }
+
+    input[type="date"] {
+      height: 46px;
+      padding: 12px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    button {
+      border: 0;
+      background: #1e6043;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button.secondary { background: #e7eee9; color: #173c29; }
+    button.danger { background: #a32e2e; }
+    button:disabled { opacity: .55; }
+
+    .hidden { display: none !important; }
+
+    .login-heading, .login-subtitle { text-align: center; }
+
+    .login-subtitle {
+      color: #657369;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .login-note {
+      background: #f3f7f4;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.8;
+      margin-bottom: 18px;
+    }
+
+    .status {
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .error { color: #b42323; }
+    .success { color: #21663b; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tabs button {
+      flex: 1;
+      margin: 0;
+      padding: 12px 5px;
+    }
+
+    .tabs button.active { background: #123d2b; color: #fff; }
+
+    .item {
+      border-top: 1px solid #e0e7e2;
+      padding: 15px 0;
+    }
+
+    .item:first-child { border-top: 0; }
+
+    .item h3 { overflow-wrap: anywhere; }
+
+    .meta {
+      color: #657369;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .item p {
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      border-radius: 8px;
+      background: #000;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .actions button {
+      flex: 1;
+      min-width: 100px;
+      margin: 0;
+      padding: 10px 5px;
+      font-size: 13px;
+    }
+
+    .form-divider {
+      border: 0;
+      border-top: 1px solid #e0e7e2;
+      margin: 22px 0;
+    }
+
+    .empty {
+      text-align: center;
+      color: #748078;
+      padding: 24px 8px;
+      font-size: 14px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-row > div {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .month-heading {
+      background: #edf3ee;
+      border-radius: 8px;
+      padding: 8px;
+      margin-top: 12px;
+    }
+
+    .month-toggle {
+      margin: 0 !important;
+      text-align: left;
+    }
+
+    .stats {
+      background: #f3f7f4;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.9;
+      margin-bottom: 12px;
+    }
+
+    .link-button {
+      display: inline-block;
+      text-decoration: none;
+      background: #1e6043;
+      color: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 4px 6px 4px 0;
+    }
+
+    .goal-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .goal-buttons button {
+      width: auto;
+      margin: 0;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
     .video-actions {
       display: flex;
       flex-wrap: wrap;
@@ -110,12 +270,36 @@ input[type="date"] {
       cursor: pointer;
     }
 
-    .video-play-button:hover {
-      background: #21864c;
+    .video-play-button:hover { background: #21864c; }
+
+    #videoMonthFilters {
+      margin-bottom: 6px;
     }
 
+    #videoMonthFilters label,
+    #matchVideoYear,
+    #matchVideoMonth,
+    #highlightVideoYear,
+    #highlightVideoMonth {
+      margin-bottom: 8px;
+    }
+
+    footer {
+      text-align: center;
+      color: #748078;
+      font-size: 12px;
+      padding: 20px 12px 28px;
+    }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 19px; }
+      .panel { padding: 14px; }
+      .actions { gap: 6px; }
+      .form-row { gap: 7px; }
+    }
   </style>
 </head>
+
 <body>
 <header>
   <h1>⚽ 神戸三宮FC 動画共有システム</h1>
@@ -123,126 +307,237 @@ input[type="date"] {
 </header>
 
 <main>
+  <!-- ログイン -->
   <section id="loginPanel" class="panel">
     <h2 class="login-heading">ログイン</h2>
     <p class="login-subtitle">動画・試合結果の閲覧にはログインが必要です。</p>
-    <div class="login-note">選手・保護者は閲覧用アカウント、<br>指導者は管理者用アカウントでログインしてください。</div>
+
+    <div class="login-note">
+      選手・保護者は閲覧用アカウント、<br>
+      指導者は管理者用アカウントでログインしてください。
+    </div>
+
     <form id="loginForm">
       <label for="loginId">ログインID</label>
-      <input id="loginId" name="username" type="text" autocomplete="username" placeholder="ログインIDを入力" required>
+      <input id="loginId" name="username" type="text"
+        autocomplete="username" placeholder="ログインIDを入力" required>
+
       <label for="password">パスワード</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" placeholder="パスワードを入力" required>
+      <input id="password" name="password" type="password"
+        autocomplete="current-password" placeholder="パスワードを入力" required>
+
       <button type="submit" id="loginButton">ログイン</button>
       <p id="loginMessage" class="status" role="status"></p>
     </form>
   </section>
 
+  <!-- ログイン状態 -->
   <section id="userPanel" class="panel hidden">
     <h2 id="loginState">ログイン中</h2>
     <p id="roleDescription" class="description"></p>
     <button type="button" id="logout" class="secondary">ログアウト</button>
   </section>
 
+  <!-- 管理者メニュー -->
   <section id="adminPanel" class="panel hidden">
     <h2>管理者メニュー</h2>
     <p class="description">動画・試合結果の登録、編集、削除を行います。</p>
 
     <h3>動画を登録</h3>
+
     <form id="videoForm">
       <label for="videoTitle">動画タイトル</label>
       <input id="videoTitle" type="text" placeholder="例：U13 ○○戦" required>
+
       <label for="videoCategory">動画の種類</label>
       <select id="videoCategory" required>
         <option value="match">試合動画</option>
         <option value="highlight">ゴールハイライト</option>
         <option value="other">その他</option>
       </select>
+
       <label for="videoUrl">YouTube URL</label>
-      <input id="videoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." required>
+      <input id="videoUrl" type="url"
+        placeholder="https://www.youtube.com/watch?v=..." required>
+
       <button type="submit" id="videoSubmitButton">動画を追加</button>
-      <button type="button" id="videoCancelButton" class="secondary hidden">編集をキャンセル</button>
+      <button type="button" id="videoCancelButton" class="secondary hidden">
+        編集をキャンセル
+      </button>
     </form>
 
     <hr class="form-divider">
+
     <h3>試合結果を登録</h3>
+
     <form id="matchForm">
       <label for="matchDate">試合日</label>
       <input id="matchDate" type="date" required>
+
       <label for="opponent">対戦相手</label>
       <input id="opponent" type="text" placeholder="対戦相手" required>
+
       <label for="competition">大会・リーグ名</label>
       <input id="competition" type="text" placeholder="例：兵庫県ルーキーリーグ">
 
       <div class="form-row">
         <div>
           <label for="homeScore">神戸三宮FCの得点</label>
-          <input id="homeScore" type="number" min="0" step="1" placeholder="得点" required>
+          <input id="homeScore" type="number" min="0" step="1"
+            placeholder="得点" required>
         </div>
         <div>
           <label for="awayScore">相手の得点</label>
-          <input id="awayScore" type="number" min="0" step="1" placeholder="失点" required>
+          <input id="awayScore" type="number" min="0" step="1"
+            placeholder="失点" required>
         </div>
       </div>
 
       <h3>PK戦（PK戦があった場合のみ）</h3>
+
       <div class="form-row">
         <div>
           <label for="pkHomeScore">神戸三宮FCのPK得点</label>
-          <input id="pkHomeScore" type="number" min="0" step="1" placeholder="PK得点">
+          <input id="pkHomeScore" type="number" min="0" step="1"
+            placeholder="PK得点">
         </div>
         <div>
           <label for="pkAwayScore">相手のPK得点</label>
-          <input id="pkAwayScore" type="number" min="0" step="1" placeholder="PK得点">
+          <input id="pkAwayScore" type="number" min="0" step="1"
+            placeholder="PK得点">
         </div>
       </div>
 
+      <!-- 試合動画：年 → 月 → 動画 -->
+      <hr class="form-divider">
+      <h3>試合動画の選択（任意）</h3>
 
-<label for="matchVideo">試合動画（任意）</label>
-<select id="matchVideo">
-  <option value="">試合動画を選択してください</option>
-</select>
+      <div class="form-row">
+        <div>
+          <label for="matchVideoYear">年</label>
+          <select id="matchVideoYear">
+            <option value="">年を選択</option>
+          </select>
+        </div>
+        <div>
+          <label for="matchVideoMonth">月</label>
+          <select id="matchVideoMonth">
+            <option value="">月を選択</option>
+          </select>
+        </div>
+      </div>
 
-<label for="highlightVideoUrl">ゴールハイライト（任意）</label>
-<select id="highlightVideoUrl">
-  <option value="">ゴールハイライトを選択してください</option>
-</select>
+      <label for="matchVideo">動画</label>
+      <select id="matchVideo">
+        <option value="">試合動画を選択してください</option>
+      </select>
+
+      <!-- ゴールハイライト：年 → 月 → 動画 -->
+      <hr class="form-divider">
+      <h3>ゴールハイライトの選択（任意）</h3>
+
+      <div class="form-row">
+        <div>
+          <label for="highlightVideoYear">年</label>
+          <select id="highlightVideoYear">
+            <option value="">年を選択</option>
+          </select>
+        </div>
+        <div>
+          <label for="highlightVideoMonth">月</label>
+          <select id="highlightVideoMonth">
+            <option value="">月を選択</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="highlightVideoUrl">動画</label>
+      <select id="highlightVideoUrl">
+        <option value="">ゴールハイライトを選択してください</option>
+      </select>
 
       <label for="goalTimeline">得点・失点の時間（任意）</label>
-      <textarea id="goalTimeline" rows="3" placeholder="12:34,my&#10;25:10,opponent"></textarea>
-      <p class="description">1行に1件。「分:秒,my」は神戸三宮FCの得点、「分:秒,opponent」は相手の得点です。例：12:34,my</p>
+      <textarea id="goalTimeline" rows="3"
+        placeholder="12:34,my&#10;25:10,opponent"></textarea>
+
+      <p class="description">
+        1行に1件。「分:秒,my」は神戸三宮FCの得点、
+        「分:秒,opponent」は相手の得点です。例：12:34,my
+      </p>
 
       <label for="matchMemo">メモ（任意）</label>
       <textarea id="matchMemo" placeholder="試合についてのメモ"></textarea>
+
       <button type="submit" id="matchSubmitButton">試合結果を追加</button>
-      <button type="button" id="matchCancelButton" class="secondary hidden">編集をキャンセル</button>
+      <button type="button" id="matchCancelButton" class="secondary hidden">
+        編集をキャンセル
+      </button>
     </form>
 
     <hr class="form-divider">
+
     <h3>バックアップ・復元</h3>
-    <p class="description">神戸三宮FCの動画・試合結果をJSONファイルに保存、または既存データを残したまま追加復元します。</p>
-    <button type="button" id="backupButton" class="secondary">バックアップをダウンロード</button>
+    <p class="description">
+      神戸三宮FCの動画・試合結果をJSONファイルに保存、
+      または既存データを残したまま追加復元します。
+    </p>
+
+    <button type="button" id="backupButton" class="secondary">
+      バックアップをダウンロード
+    </button>
+
     <label for="restoreFile">復元するJSONファイル</label>
     <input type="file" id="restoreFile" accept=".json,application/json">
-    <button type="button" id="restoreButton" class="secondary">選択したファイルを復元</button>
+
+    <button type="button" id="restoreButton" class="secondary">
+      選択したファイルを復元
+    </button>
+
     <p id="adminMessage" class="status" role="status"></p>
   </section>
 
+  <!-- 一覧 -->
   <section id="contentPanel" class="hidden">
     <div class="tabs">
       <button type="button" id="videosTab" class="active">動画一覧</button>
       <button type="button" id="scoresTab" class="secondary">試合結果</button>
     </div>
+
     <section class="panel">
       <h2 id="listTitle">動画一覧</h2>
+
+      <!-- 動画一覧の年・月フィルター -->
+      <div id="videoMonthFilters">
+        <div class="form-row">
+          <div>
+            <label for="videoYearFilter">年</label>
+            <select id="videoYearFilter">
+              <option value="">すべての年</option>
+            </select>
+          </div>
+          <div>
+            <label for="videoMonthFilter">月</label>
+            <select id="videoMonthFilter">
+              <option value="">すべての月</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <label for="searchInput">検索</label>
-      <input id="searchInput" type="search" placeholder="大会名・対戦相手・日付・スコアなど">
+      <input id="searchInput" type="search"
+        placeholder="大会名・対戦相手・日付・スコアなど">
+
       <button type="button" id="reload" class="secondary">再読み込み</button>
+
       <p id="status" class="status" role="status">データを読み込んでいます…</p>
       <div id="items"></div>
     </section>
   </section>
 </main>
+
 <footer>神戸三宮FC JUNIOR YOUTH</footer>
+
 <script type="module" src="./main.js"></script>
 </body>
 </html>
