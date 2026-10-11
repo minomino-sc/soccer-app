@@ -297,6 +297,170 @@
       .actions { gap: 6px; }
       .form-row { gap: 7px; }
     }
+
+
+
+/* =====================================================
+   神戸三宮FC デザイン統一
+   箕谷SCの見やすさ × 神戸三宮FCのグリーン
+   ===================================================== */
+
+:root {
+  --club-green: #123d2b;
+  --club-green-light: #1e6043;
+  --club-green-soft: #e7eee9;
+  --page-green: #e6f7d9;
+  --accent-blue: #1e88e5;
+  --cup-green: #2e7d32;
+  --friendly-orange: #fb8c00;
+  --text-main: #17251c;
+  --text-muted: #657369;
+}
+
+/* 全体の背景 */
+body {
+  background: var(--page-green);
+  color: var(--text-main);
+}
+
+/* ヘッダー */
+header {
+  background: var(--club-green);
+  color: #fff;
+}
+
+/* パネル */
+.panel {
+  background: #fff;
+  border-color: #d5e5d8;
+  box-shadow: 0 5px 16px rgba(18, 61, 43, 0.07);
+}
+
+/* タブ */
+.tabs button {
+  border-radius: 10px;
+  transition: background-color .2s ease;
+}
+
+.tabs button.active {
+  background: var(--club-green);
+  color: #fff;
+}
+
+.tabs button.secondary {
+  background: #fff;
+  color: var(--club-green);
+  border: 1px solid #cbdccf;
+}
+
+/* 基本ボタン */
+button {
+  background: var(--club-green-light);
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+button.secondary {
+  background: var(--club-green-soft);
+  color: var(--club-green);
+}
+
+button.danger {
+  background: #c62828;
+  color: #fff;
+}
+
+/* 動画・試合結果のカード */
+.item {
+  background: #fff;
+  border: 1px solid #e0e9e1;
+  border-left: 4px solid var(--club-green);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 12px 0;
+  box-shadow: 0 3px 10px rgba(18, 61, 43, 0.05);
+}
+
+.item h3 {
+  color: var(--club-green);
+  line-height: 1.5;
+}
+
+.meta {
+  color: var(--text-muted);
+}
+
+/* 月別見出し */
+.month-heading {
+  background: #b2e672;
+  border-radius: 10px;
+  padding: 6px;
+  margin-top: 14px;
+}
+
+.month-toggle {
+  background: transparent !important;
+  color: var(--club-green) !important;
+  font-weight: bold;
+}
+
+/* 成績集計 */
+.stats {
+  background: linear-gradient(135deg, #fff, #f0fff4);
+  border: 1px solid #d5e5d8;
+  border-left: 5px solid var(--club-green);
+  border-radius: 12px;
+  color: var(--text-main);
+}
+
+/* 動画再生ボタン */
+.link-button,
+.video-play-button {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.link-button:hover,
+.video-play-button:hover {
+  background: #005fcc;
+}
+
+/* 得点・失点シーン */
+.goal-buttons button {
+  background: var(--club-green-soft);
+  color: var(--club-green);
+  border: 1px solid #cbdccf;
+}
+
+/* フォームの区切り */
+.form-divider {
+  border-top-color: #dce7de;
+}
+
+/* 入力欄 */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid rgba(30, 136, 229, 0.3);
+  border-color: var(--accent-blue);
+}
+
+/* スマートフォンでもカードを見やすく */
+@media (max-width: 480px) {
+  .item {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .link-button {
+    margin: 4px 4px 4px 0;
+  }
+}
+
+
+    
   </style>
 </head>
 
