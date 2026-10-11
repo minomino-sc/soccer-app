@@ -458,6 +458,160 @@
         margin: 4px 4px 4px 0;
       }
     }
+
+
+/* ========================================
+   試合結果・統計表示
+======================================== */
+
+.stats {
+  margin: 14px 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #222;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stats-summary {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.stats-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.stat-win,
+.stat-draw,
+.stat-loss {
+  flex: 1 1 70px;
+  padding: 8px 5px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: #f3f5f4;
+}
+
+.stat-win {
+  color: #18864b;
+}
+
+.stat-draw {
+  color: #777;
+}
+
+.stat-loss {
+  color: #d63b3b;
+}
+
+.stats .win-rate {
+  font-weight: 800;
+}
+
+.stats .win-rate.win-high {
+  color: #168447;
+}
+
+.stats .win-rate.win-mid {
+  color: #d18a00;
+}
+
+.stats .win-rate.win-low {
+  color: #d63b3b;
+}
+
+.stats .win-bar-inner.win-high {
+  background: #168447;
+}
+
+.stats .win-bar-inner.win-mid {
+  background: #e0a020;
+}
+
+.stats .win-bar-inner.win-low {
+  background: #d63b3b;
+}
+
+.type-stats,
+.monthly-stats {
+  margin-top: 12px;
+}
+
+.type-stats-title {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.type-stats-row,
+.monthly-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 4px;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 12px;
+}
+
+.type-stats-result,
+.monthly-stats-detail {
+  text-align: right;
+  font-weight: 600;
+}
+
+.monthly-stats-month {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.month-heading {
+  cursor: pointer;
+  user-select: none;
+}
+
+.item.score-win {
+  border-left: 5px solid #168447;
+}
+
+.item.score-draw {
+  border-left: 5px solid #d6a126;
+}
+
+.item.score-loss {
+  border-left: 5px solid #d63b3b;
+}
+
+@media (max-width: 480px) {
+  .stats {
+    padding: 10px;
+  }
+
+  .stats-numbers {
+    gap: 5px;
+  }
+
+  .stat-win,
+  .stat-draw,
+  .stat-loss {
+    flex-basis: 65px;
+    font-size: 12px;
+  }
+
+  .type-stats-row,
+  .monthly-stats-row {
+    font-size: 11px;
+  }
+}
+
+
+    
   </style>
 </head>
 
