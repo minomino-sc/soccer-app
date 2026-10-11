@@ -196,10 +196,16 @@ input[type="date"] {
         </div>
       </div>
 
-      <label for="matchVideo">試合動画URL（任意）</label>
-      <input id="matchVideo" type="url" placeholder="試合全体のYouTube URL">
-      <label for="highlightVideoUrl">ゴールハイライト動画URL（任意）</label>
-      <input id="highlightVideoUrl" type="url" placeholder="ゴールハイライトのYouTube URL">
+
+<label for="matchVideo">試合動画（任意）</label>
+<select id="matchVideo">
+  <option value="">試合動画を選択してください</option>
+</select>
+
+<label for="highlightVideoUrl">ゴールハイライト（任意）</label>
+<select id="highlightVideoUrl">
+  <option value="">ゴールハイライトを選択してください</option>
+</select>
 
       <label for="goalTimeline">得点・失点の時間（任意）</label>
       <textarea id="goalTimeline" rows="3" placeholder="12:34,my&#10;25:10,opponent"></textarea>
