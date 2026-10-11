@@ -301,6 +301,68 @@
       margin-bottom: 12px;
     }
 
+/* 勝率の色分け：箕谷SCと同じ基準 */
+.stats .win-rate {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.stats .win-rate.win-high {
+  color: #1565c0;
+}
+
+.stats .win-rate.win-mid {
+  color: #558b2f;
+}
+
+.stats .win-rate.win-low {
+  color: #c62828;
+}
+
+.stats .win-bar {
+  width: 100%;
+  height: 9px;
+  margin: 5px 0 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5ebe6;
+}
+
+.stats .win-bar-inner {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  transition: width 1s ease;
+}
+
+.stats .win-bar-inner.win-high {
+  background: #1e88e5;
+}
+
+.stats .win-bar-inner.win-mid {
+  background: #7cb342;
+}
+
+.stats .win-bar-inner.win-low {
+  background: #e53935;
+}
+
+.stats .type-stats {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #d5e5d8;
+}
+
+.stats .type-stats-row {
+  padding: 5px 0;
+  border-bottom: 1px solid #edf2ee;
+  line-height: 1.7;
+}
+
+.stats .type-stats-row:last-child {
+  border-bottom: 0;
+}
+    
     .link-button {
       display: inline-block;
       text-decoration: none;
@@ -479,6 +541,13 @@
       <label for="competition">大会・リーグ名</label>
       <input id="competition" type="text" placeholder="例：兵庫県ルーキーリーグ">
 
+<label for="matchType">試合種別</label>
+<select id="matchType" required>
+  <option value="公式戦">公式戦</option>
+  <option value="カップ戦">カップ戦</option>
+  <option value="交流戦">交流戦</option>
+</select>
+      
       <div class="form-row">
         <div>
           <label for="homeScore">神戸三宮FCの得点</label>
