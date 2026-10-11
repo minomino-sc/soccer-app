@@ -1211,11 +1211,19 @@ function calculateStats(list) {
   };
 }
 
+
 function winRateClass(rate) {
-  if (rate >= 70) return "win-high";
-  if (rate >= 50) return "win-medium";
+  if (rate >= 70) {
+    return "win-high";
+  }
+
+  if (rate >= 50) {
+    return "win-mid";
+  }
+
   return "win-low";
 }
+
 
 function makeStats(list) {
   const stats = calculateStats(list);
