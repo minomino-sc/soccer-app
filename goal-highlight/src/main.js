@@ -767,9 +767,9 @@ function drawScoreCrop(x = scoreCropX) {
 // 初期スコアOCR
 // 指定したX位置・時刻でスコアを読み取る
 // ============================================================
-async function recognizeInitialScoreAtX(x, time) {
+async function recognizeInitialScoreAtX(x, time, finalScore = null) {
 
-  await seekTo(time);
+await seekTo(time);
 
   /*
    * 初期スコア確認で実際に
