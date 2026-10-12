@@ -2820,7 +2820,8 @@ async function readInitialScore(finalScore) {
 const score =
   await recognizeInitialScoreAtX(
     x,
-    t
+    t,
+    finalScore
   );
 
 
