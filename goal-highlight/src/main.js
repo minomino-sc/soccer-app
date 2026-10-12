@@ -793,83 +793,62 @@ async function recognizeInitialScoreAtX(x, time) {
     `初期スコアOCR: X=${x} / ${fmt(time)} / raw=${raw}`
   );
 
+
   /*
    * ---------------------------------------------------------
-   * OCRが「0-0」を「0100」と読んでしまうケース
-   *
-   * 灘戦で実際に確認済み：
-   * 画面表示 → 0-0
-   * OCR       → 0100
-   *
-   * 初期スコア専用の補正
+   * 初期スコアOCR補正
    * ---------------------------------------------------------
    */
 
-  if (raw === '0100') {
+  const compactRaw = raw
+    .replace(/\s/g, '')
+    .replace(/[—–_ー―]/g, '-');
 
+  // 0-0 のハイフンが消えたケース
+  if (compactRaw === '00') {
     console.log(
-      `初期スコアOCR補正: ${raw} → 0-0`
+      `初期スコアOCR補正: ${compactRaw} → 0-0`
     );
 
     return {
       home: 0,
       away: 0,
-      raw: '0100'
+      raw: compactRaw
+    };
+  }
+
+  // 0-0 が 0100 と読まれたケース
+  if (compactRaw === '0100') {
+    console.log(
+      `初期スコアOCR補正: ${compactRaw} → 0-0`
+    );
+
+    return {
+      home: 0,
+      away: 0,
+      raw: compactRaw
     };
   }
 
   /*
-   * 通常の「0-0」「1-0」など
+   * 左側の数字が欠けて -0 になったケース。
+   * 最終スコアのホーム側が0の場合だけ補正する。
    */
-
-  const normalized =
-    raw
-      .replace(/[—–_]/g, '-')
-      .replace(/[ー―]/g, '-');
-
-  const m =
-    normalized.match(
-      /(\d{1,2})-(\d{1,2})/
+  if (
+    compactRaw === '-0' &&
+    finalScore &&
+    finalScore.home === 0
+  ) {
+    console.log(
+      `初期スコアOCR補正: ${compactRaw} → 0-0`
     );
 
-  if (!m) {
-
-    return null;
-
+    return {
+      home: 0,
+      away: 0,
+      raw: compactRaw
+    };
   }
-
-  const home =
-    Number(m[1]);
-
-  const away =
-    Number(m[2]);
-
-  if (
-    !Number.isInteger(home) ||
-    !Number.isInteger(away)
-  ) {
-
-    return null;
-
-  }
-
-  if (
-    home < 0 ||
-    away < 0 ||
-    home > 20 ||
-    away > 20
-  ) {
-
-    return null;
-
-  }
-
-  return {
-    home,
-    away,
-    raw: normalized
-  };
-}
 
 /* =========================================================
    初期スコア切り出し確認
