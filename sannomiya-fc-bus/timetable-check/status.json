@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-18T06:48:22.686Z",
-  "hasChanges": false,
+  "checkedAt": "2026-10-18T07:22:21.671Z",
+  "hasChanges": true,
   "services": [
     {
       "id": "hankyu_158",
@@ -41,8 +41,370 @@
       "id": "citybus_62",
       "name": "神戸市バス",
       "route": "谷上駅 → 神戸北町 62系統",
-      "status": "error",
-      "message": "確認エラー（62系統の時刻データが不足しています (平日:0件、土曜:0件、休日:66件)）"
+      "status": "changed",
+      "message": "時刻表変更を検出",
+      "changes": [
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "07:45"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "11:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "12:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "13:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "14:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "15:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "15:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "16:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "16:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "17:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "17:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "18:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "18:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "19:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "19:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "20:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "20:30"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "21:00"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "21:25"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "21:37"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "21:55"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "22:12"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "22:26"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "22:53"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "23:12"
+        },
+        {
+          "period": "weekday",
+          "before": "なし",
+          "after": "23:27"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "07:40"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "11:25"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "12:55"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "13:30"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "14:40"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "15:40"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "16:09"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "16:30"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "17:10"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "17:38"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "18:08"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "18:40"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "19:10"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "19:39"
+        },
+        {
+          "period": "saturday",
+          "before": "なし",
+          "after": "20:36"
+        },
+        {
+          "period": "holiday",
+          "before": "07:45",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "11:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "12:30",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "14:30",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "15:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "15:30",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "16:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "17:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "17:30",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "18:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "18:30",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "19:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "19:30",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "20:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "20:30",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "21:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "21:25",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "21:37",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "21:55",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "22:12",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "22:26",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "22:53",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:00",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:01",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:02",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:03",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:04",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:12",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:27",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:33",
+          "after": "なし"
+        },
+        {
+          "period": "holiday",
+          "before": "23:50",
+          "after": "なし"
+        }
+      ]
     },
     {
       "id": "citybus64_katsuragi3",
