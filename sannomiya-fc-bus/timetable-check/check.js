@@ -1449,6 +1449,105 @@ function extractPortliner(html, direction) {
 
 
 
+function comparePortlinerWithReference(source, actual) {
+  const vm = require("vm");
+
+  const timetablePath = path.join(
+    __dirname,
+    "..",
+    "timetable.js"
+  );
+
+  const sourceCode = fs.readFileSync(timetablePath, "utf8");
+
+  const data = vm.runInNewContext(
+    `${sourceCode}\nTIMETABLE_DATA`,
+    {}
+  );
+
+  function findRoute(node) {
+    if (!node || typeof node !== "object") return null;
+
+    if (
+      node.operator === "神戸新交通 ポートライナー" &&
+      node.station === source.route &&
+      node.timetable
+    ) {
+      return node.timetable;
+    }
+
+    for (const value of Object.values(node)) {
+      const found = findRoute(value);
+      if (found) return found;
+    }
+
+    return null;
+  }
+
+  function flatten(table) {
+    return uniqueSorted(
+      Object.entries(table).flatMap(([hour, minutes]) =>
+        minutes.map(minute =>
+          `${String(Number(hour) % 24).padStart(2, "0")}:` +
+          `${String(minute).padStart(2, "0")}`
+        )
+      )
+    );
+  }
+
+  function comparePeriod(label, actualTimes, expectedTimes) {
+    const actualSet = new Set(actualTimes);
+    const expectedSet = new Set(expectedTimes);
+
+    const missing = expectedTimes.filter(
+      time => !actualSet.has(time)
+    );
+
+    const extra = actualTimes.filter(
+      time => !expectedSet.has(time)
+    );
+
+    console.log(`  ===== timetable.js照合：${label} =====`);
+    console.log(`  timetable.js: ${expectedTimes.length}件`);
+    console.log(`  今回の抽出:   ${actualTimes.length}件`);
+    console.log(
+      "  抽出漏れ（timetable.jsにはある）:",
+      missing.length ? missing.join(", ") : "なし"
+    );
+    console.log(
+      "  余計な時刻（timetable.jsにはない）:",
+      extra.length ? extra.join(", ") : "なし"
+    );
+    console.log(
+      missing.length === 0 && extra.length === 0
+        ? "  判定：完全一致"
+        : "  判定：不一致"
+    );
+  }
+
+  const expected = findRoute(data);
+
+  if (!expected) {
+    throw new Error(
+      `timetable.jsからポートライナー「${source.route}」を取得できません`
+    );
+  }
+
+  comparePeriod(
+    "平日",
+    actual.weekday,
+    flatten(expected.weekday)
+  );
+
+  comparePeriod(
+    "土日祝",
+    actual.holiday,
+    flatten(expected.holiday)
+  );
+}
+
+
+
 /* =========================================================
    JR
 ========================================================= */
@@ -2186,6 +2285,14 @@ if (
 
       }
 
+
+
+       
+if (source.type === "portliner") {
+  comparePortlinerWithReference(source, timetable);
+}
+
+       
 
       const timetableText =
         JSON.stringify(
