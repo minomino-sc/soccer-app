@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: |
@@ -29,6 +29,8 @@ jobs:
 
       - name: Run timetable check
         run: node sannomiya-fc-bus/timetable-check/check.js
+        env:
+          NODE_USE_SYSTEM_CA: "1"
 
       - name: Upload debug file
         if: always()
