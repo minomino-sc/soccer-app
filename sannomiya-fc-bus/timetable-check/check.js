@@ -258,43 +258,52 @@ url:
 
 /* =========================================================
    FETCH
+   通信エラーの原因を詳しく記録する
 ========================================================= */
 
 async function fetchPage(url) {
+  let response;
 
-  const response =
-    await fetch(
-      url,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-            "AppleWebKit/537.36 " +
-            "Chrome/140.0 Safari/537.36",
+  try {
+    response = await fetch(url, {
+      signal: AbortSignal.timeout(20000),
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+          "AppleWebKit/537.36 (KHTML, like Gecko) " +
+          "Chrome/140.0.0.0 Safari/537.36",
 
-          "Accept":
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept":
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 
-          "Accept-Language":
-            "ja-JP,ja;q=0.9"
-        }
+        "Accept-Language":
+          "ja-JP,ja;q=0.9",
+
+        "Cache-Control":
+          "no-cache"
       }
-    );
-
-
-  if (!response.ok) {
+    });
+  } catch (error) {
+    const causeCode = error.cause?.code || "なし";
+    const causeMessage = error.cause?.message || "なし";
 
     throw new Error(
-      `HTTP ${response.status}`
+      `通信失敗 URL=${url} / ` +
+      `種類=${error.name} / ` +
+      `内容=${error.message} / ` +
+      `原因コード=${causeCode} / ` +
+      `原因詳細=${causeMessage}`
     );
-
   }
 
+  if (!response.ok) {
+    throw new Error(
+      `HTTP ${response.status} ${response.statusText} URL=${url}`
+    );
+  }
 
   return await response.text();
-
 }
-
 
 /* =========================================================
    HASH
