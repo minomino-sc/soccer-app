@@ -1646,49 +1646,121 @@ function getNextSunday() {
    JR FETCH
 ========================================================= */
 
-async function fetchJR(
-  source
-) {
 
-  const weekdayDate =
-    formatDate(
-      getNextMonday()
+async function fetchJR(source) {
+  const weekdayDate = formatDate(getNextMonday());
+  const weekendDate = formatDate(getNextSunday());
+
+  const weekdayHtml = await fetchPage(
+    `${source.url}?date=${weekdayDate}`
+  );
+  const weekendHtml = await fetchPage(
+    `${source.url}?date=${weekendDate}`
+  );
+
+  const weekday = extractJRTimes(weekdayHtml);
+  const weekend = extractJRTimes(weekendHtml);
+
+  // 三ノ宮駅 → 灘駅だけ、timetable.jsと直接照合
+  if (source.id === "jr_sannomiya_nada") {
+    const vm = require("vm");
+    const timetablePath = path.join(
+      __dirname,
+      "..",
+      "timetable.js"
     );
 
-
-  const weekendDate =
-    formatDate(
-      getNextSunday()
+    const sourceCode = fs.readFileSync(
+      timetablePath,
+      "utf8"
     );
 
-
-  const weekdayHtml =
-    await fetchPage(
-      `${source.url}?date=${weekdayDate}`
+    const data = vm.runInNewContext(
+      `${sourceCode}\nTIMETABLE_DATA`,
+      {}
     );
 
+    function findRoute(node) {
+      if (!node || typeof node !== "object") return null;
 
-  const weekendHtml =
-    await fetchPage(
-      `${source.url}?date=${weekendDate}`
+      if (
+        node.operator === "JR西日本" &&
+        node.station === "三ノ宮駅 → 灘駅" &&
+        node.timetable
+      ) {
+        return node.timetable;
+      }
+
+      for (const value of Object.values(node)) {
+        const found = findRoute(value);
+        if (found) return found;
+      }
+
+      return null;
+    }
+
+    function flattenTimetable(table) {
+      return Object.entries(table).flatMap(([hour, minutes]) =>
+        minutes.map(minute =>
+          `${String(Number(hour) % 24).padStart(2, "0")}:` +
+          `${String(minute).padStart(2, "0")}`
+        )
+      ).sort();
+    }
+
+    function compareWithReference(label, actual, expected) {
+      const actualSet = new Set(actual);
+      const expectedSet = new Set(expected);
+
+      const missing = expected.filter(time => !actualSet.has(time));
+      const extra = actual.filter(time => !expectedSet.has(time));
+
+      console.log(`  ===== timetable.js照合：${label} =====`);
+      console.log(`  timetable.js: ${expected.length}件`);
+      console.log(`  今回の抽出:   ${actual.length}件`);
+
+      console.log(
+        "  抽出漏れ（timetable.jsにはある）:",
+        missing.length ? missing.join(", ") : "なし"
+      );
+
+      console.log(
+        "  余計な時刻（timetable.jsにはない）:",
+        extra.length ? extra.join(", ") : "なし"
+      );
+
+      console.log(
+        missing.length === 0 && extra.length === 0
+          ? "  判定：完全一致"
+          : "  判定：不一致"
+      );
+    }
+
+    const expected = findRoute(data);
+
+    if (!expected) {
+      throw new Error(
+        "timetable.jsから三ノ宮駅→灘駅の時刻表を取得できません"
+      );
+    }
+
+    compareWithReference(
+      "平日",
+      weekday,
+      flattenTimetable(expected.weekday)
     );
 
+    compareWithReference(
+      "土日祝",
+      weekend,
+      flattenTimetable(expected.holiday)
+    );
+  }
 
-  return {
-
-    weekday:
-      extractJRTimes(
-        weekdayHtml
-      ),
-
-    weekend:
-      extractJRTimes(
-        weekendHtml
-      )
-
-  };
-
+  // 従来どおり、前回の保存データとの比較に使う
+  return { weekday, weekend };
 }
+
 
 
 /* =========================================================
