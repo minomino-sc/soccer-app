@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-17T23:09:04.683Z",
+  "checkedAt": "2026-10-18T01:41:24.229Z",
   "hasChanges": false,
   "services": [
     {
@@ -28,14 +28,14 @@
       "name": "ポートライナー",
       "route": "三宮駅 → 貿易センター駅",
       "status": "error",
-      "message": "確認エラー（fetch failed）"
+      "message": "確認エラー（fetch・curlともに失敗: Command failed: curl -L --fail --silent --show-error --max-time 30 -A Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36 https://www.knt-liner.co.jp/stationp01/\ncurl: (60) SSL certificate problem: unable to get local issuer certificate\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimacy of the server and therefore could not\nestablish a secure connection to it. To learn more about this situation and\nhow to fix it, please visit the web page mentioned above.\n）"
     },
     {
       "id": "portliner_boeki_sannomiya",
       "name": "ポートライナー",
       "route": "貿易センター駅 → 三宮駅",
       "status": "error",
-      "message": "確認エラー（fetch failed）"
+      "message": "確認エラー（fetch・curlともに失敗: Command failed: curl -L --fail --silent --show-error --max-time 30 -A Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36 https://www.knt-liner.co.jp/stationp02/\ncurl: (60) SSL certificate problem: unable to get local issuer certificate\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimacy of the server and therefore could not\nestablish a secure connection to it. To learn more about this situation and\nhow to fix it, please visit the web page mentioned above.\n）"
     },
     {
       "id": "citybus_62",
