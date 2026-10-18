@@ -28,21 +28,23 @@ jobs:
           sudo apt-get install -y poppler-utils imagemagick tesseract-ocr tesseract-ocr-jpn
 
 
-      - name: Diagnose Port Liner certificate
+      - name: Download GlobalSign intermediate certificate
         run: |
-          echo "=== Node.js ==="
-          node --version
-          echo "=== Certificate chain ==="
-          openssl s_client \
-            -connect www.knt-liner.co.jp:443 \
-            -servername www.knt-liner.co.jp \
-            -showcerts </dev/null 2>&1 | tail -n 60
+          curl --fail --silent --show-error \
+            https://secure.globalsign.com/cacert/gsgccr46dvtlsca2025.crt \
+            -o "$RUNNER_TEMP/globalsign-r46-dv.crt"
+
+          openssl x509 \
+            -inform DER \
+            -in "$RUNNER_TEMP/globalsign-r46-dv.crt" \
+            -out "$RUNNER_TEMP/globalsign-r46-dv.pem"
 
 
       - name: Run timetable check
         run: node sannomiya-fc-bus/timetable-check/check.js
         env:
           NODE_USE_SYSTEM_CA: "1"
+          NODE_EXTRA_CA_CERTS: ${{ runner.temp }}/globalsign-r46-dv.pem
 
       - name: Upload debug file
         if: always()
