@@ -303,7 +303,7 @@ const PORTLINER_SANNOMIYA_TO_BOEKI = {
 
   weekday: {
 
-    5: [40],
+    5: [40, 50],
 
     6: [0, 10, 12, 20, 25, 30, 33, 40, 46, 50, 52, 56],
 
@@ -359,7 +359,7 @@ const PORTLINER_SANNOMIYA_TO_BOEKI = {
 
   holiday: {
 
-    5: [40],
+    5: [40, 50],
 
     6: [0, 10, 20, 30, 40, 45, 50, 55],
 
