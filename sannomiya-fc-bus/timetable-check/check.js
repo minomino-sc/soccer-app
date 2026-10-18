@@ -993,236 +993,79 @@ function normalizeSubwayTable(
 
 }
 
-
 /* =========================================================
    CITY BUS 62
-   ---------------------------------------------------------
-   62系統のHTMLブロックだけを取得。
-
-   111系統が後ろに続いていても、
-   62系統のブロック外は一切解析しない。
+   62系統「神戸北町方面行き」のみを解析
+   曜日別のHTML要素から時刻を直接取得する
 ========================================================= */
 
-function extractCityBus62(
-  html
-) {
+function extractCityBus62(html) {
 
-  const $ =
-    cheerio.load(
-      html
-    );
+  const $ = cheerio.load(html);
 
-/* =========================================================
-   解析ログ（後で削除）START
-========================================================= */
-console.log(
-  "=== 市バス62系統 HTML診断 ==="
-);
-
-console.log(
-  "曜日見出し:",
-  $("body").text().match(
-    /平日|土曜日|日曜・祝日/g
-  )
-);
-
-console.log(
-  "時刻表関連要素:",
-  $("[class*='timetable'], [class*='route'], [class*='tab']")
-    .map((_, el) => ({
-      tag: el.tagName,
-      class: $(el).attr("class") || "",
-      text: $(el).text().trim().slice(0, 180)
-    }))
-    .get()
-    .slice(0, 30)
-);
-
-/* =========================================================
-   解析ログ（後で削除）END
-========================================================= */
-
-  /*
-   * まず「62系統 神戸北町方面行き」を含む
-   * 最も適切なrouteブロックを探す。
-   */
-  let routeElement =
-    null;
-
-
-  $("details, .route-acc, .accordion-simple__item")
-    .each(
-      (_, element) => {
-
-        if (
-          routeElement
-        ) {
-
-          return;
-
-        }
-
-
-        const text =
-          normalizeText(
-            $(element)
-              .text()
-          );
-
-
-        if (
-          text.includes(
-            "62系統 神戸北町方面行き"
-          )
-        ) {
-
-          routeElement =
-            element;
-
-        }
-
-      }
-    );
-
-
-  /*
-   * details等が見つからない場合は、
-   * 「62系統」文字列を含む要素を上位方向へ探す。
-   */
-  if (
-    !routeElement
-  ) {
-
-    $("*")
-      .each(
-        (_, element) => {
-
-          if (
-            routeElement
-          ) {
-
-            return;
-
-          }
-
-
-          const text =
-            normalizeText(
-              $(element)
-                .text()
-            );
-
-
-          if (
-            text.includes(
-              "62系統 神戸北町方面行き"
-            ) &&
-            text.length < 30000
-          ) {
-
-            routeElement =
-              element;
-
-          }
-
-        }
+  // 62系統「神戸北町方面行き」のブロックを特定
+  const routeElement = $("details.route-accordion__item")
+    .filter((_, element) => {
+      const title = normalizeText(
+        $(element).find("summary").first().text()
       );
 
+      return title.includes("62系統") &&
+             title.includes("神戸北町方面行き");
+    })
+    .first();
+
+  if (!routeElement.length) {
+    throw new Error(
+      "62系統「神戸北町方面行き」のブロックが見つかりません"
+    );
   }
 
+  const $route = $(routeElement);
+
+  // 曜日別の時刻表を、色別のHTML要素から取得
+  const weekdayColumn = $route.find(
+    ".route-timetable__col--green"
+  ).first();
+
+  const saturdayColumn = $route.find(
+    ".route-timetable__col--blue"
+  ).first();
+
+  const holidayColumn = $route.find(
+    ".route-timetable__col--red"
+  ).first();
 
   if (
-    !routeElement
+    !weekdayColumn.length ||
+    !saturdayColumn.length ||
+    !holidayColumn.length
   ) {
-
     throw new Error(
-      "62系統 神戸北町方面行き が見つかりません"
+      "62系統の曜日別HTML要素が不足しています " +
+      `(平日:${weekdayColumn.length}, ` +
+      `土曜:${saturdayColumn.length}, ` +
+      `休日:${holidayColumn.length})`
     );
-
   }
 
+  // 各曜日の時刻表の中だけを解析
+  const weekday = extractJapaneseClockRows(
+    normalizeText(weekdayColumn.text())
+  );
 
-  const $route =
-    $(routeElement);
+  const saturday = extractJapaneseClockRows(
+    normalizeText(saturdayColumn.text())
+  );
 
+  const holiday = extractJapaneseClockRows(
+    normalizeText(holidayColumn.text())
+  );
 
-  const routeText =
-    normalizeText(
-      $route.text()
-    );
-
-
-  /*
-   * 念のため、routeElement内に111系統が混入していた場合は
-   * 62系統見出しから111系統見出しまでを切り出す。
-   */
-  const start =
-    routeText.indexOf(
-      "62系統 神戸北町方面行き"
-    );
-
-
-  if (
-    start < 0
-  ) {
-
-    throw new Error(
-      "62系統の対象ブロックを取得できません"
-    );
-
-  }
-
-
-  const end =
-    routeText.indexOf(
-      "111系統",
-      start + 10
-    );
-
-
-  const sectionText =
-    end >= 0
-      ? routeText.slice(
-          start,
-          end
-        )
-      : routeText.slice(
-          start
-        );
-
-
-  /*
-   * 平日
-   */
-  const weekday =
-    extractCityBusTab(
-      sectionText,
-      "平日",
-      "土曜日"
-    );
-
-
-  /*
-   * 土曜日
-   */
-  const saturday =
-    extractCityBusTab(
-      sectionText,
-      "土曜日",
-      "日曜・祝日"
-    );
-
-
-  /*
-   * 日曜・祝日
-   */
-  const holiday =
-    extractCityBusTab(
-      sectionText,
-      "日曜・祝日",
-      null
-    );
-
+  console.log(
+    `  62系統抽出件数: 平日${weekday.length}件、` +
+    `土曜${saturday.length}件、休日${holiday.length}件`
+  );
 
   if (
     !weekday.length ||
@@ -1230,40 +1073,20 @@ console.log(
     !holiday.length
   ) {
     throw new Error(
-      `62系統の時刻データが不足しています ` +
+      "62系統の曜日別時刻データが不足しています " +
       `(平日:${weekday.length}件、` +
       `土曜:${saturday.length}件、` +
       `休日:${holiday.length}件)`
     );
   }
 
-
-
-  /*
-   * 実際の公式ページでは
-   * 土曜日と日曜・祝日が同じ場合もあるが、
-   * 変更検知では別々に保持する。
-   */
   return {
-
-    weekday:
-      uniqueSorted(
-        weekday
-      ),
-
-    saturday:
-      uniqueSorted(
-        saturday
-      ),
-
-    holiday:
-      uniqueSorted(
-        holiday
-      )
-
+    weekday: uniqueSorted(weekday),
+    saturday: uniqueSorted(saturday),
+    holiday: uniqueSorted(holiday)
   };
-
 }
+
 
 /* =========================================================
    CITY BUS 64
