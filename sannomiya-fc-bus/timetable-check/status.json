@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-18T12:42:39.629Z",
-  "hasChanges": false,
+  "checkedAt": "2026-10-18T12:52:14.160Z",
+  "hasChanges": true,
   "services": [
     {
       "id": "hankyu_158",
@@ -62,8 +62,1455 @@
       "id": "jr_sannomiya_nada",
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
-      "status": "ok",
-      "message": "変更なし"
+      "status": "changed",
+      "message": "時刻表変更を検出",
+      "changes": [
+        {
+          "period": "weekday",
+          "before": "00:11",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "06:02",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "06:23",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "06:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "06:43",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "06:45",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "06:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "06:56",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:04",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:05",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:17",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:20",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:29",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:32",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:42",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "07:47",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:11",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:20",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:27",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:30",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:44",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:51",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "08:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:00",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:21",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:36",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:53",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "09:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "10:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:01",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "11:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "12:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:01",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "13:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:30",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "14:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "15:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:30",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:47",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "16:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:31",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "17:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "18:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:11",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:47",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "19:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:46",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "20:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "21:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "21:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "21:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "21:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "21:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "21:41",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "21:57",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "22:01",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "22:17",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "22:21",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "22:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "22:42",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "22:57",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "23:04",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "23:16",
+          "after": "なし"
+        },
+        {
+          "period": "weekday",
+          "before": "23:36",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "00:11",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "06:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "06:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "06:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "06:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:05",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:20",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:35",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:50",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "07:58",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:04",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:08",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:20",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:28",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:35",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:50",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "08:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:00",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:06",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:08",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:21",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:36",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "09:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "10:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:01",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "11:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "12:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:01",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "13:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:30",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:40",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "14:55",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:10",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:25",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "15:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:30",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:47",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "16:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:31",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "17:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "18:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:11",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:39",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:47",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:52",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "19:54",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:07",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:09",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:24",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:42",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:46",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "20:57",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "21:02",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "21:17",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "21:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "21:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "21:42",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "21:57",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "22:02",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "22:17",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "22:22",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "22:37",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "22:42",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "23:05",
+          "after": "なし"
+        },
+        {
+          "period": "weekend",
+          "before": "23:36",
+          "after": "なし"
+        }
+      ]
     },
     {
       "id": "jr_nada_sannomiya",
