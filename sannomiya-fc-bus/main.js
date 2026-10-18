@@ -502,7 +502,7 @@ dayType.textContent =
     });
     const bus64Home = {
       operator: "神戸市バス64系統",
-      station: "三宮駅ターミナル前 → 日の峰1丁目",
+      station: "三宮駅ターミナル前 → 日の峰1丁目/桂木3丁目",
       timetable: CITYBUS64_SANNOMIYA_TO_HINOMINE
     };
     const bus64Town = {
