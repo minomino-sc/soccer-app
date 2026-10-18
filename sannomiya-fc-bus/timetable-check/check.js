@@ -1694,51 +1694,52 @@ async function fetchJR(
 /* =========================================================
    JR TIMES
 ========================================================= */
-
-
+/* =========================================================
+   JR TIMES
+   普通列車の発車時刻を抽出
+========================================================= */
 function extractJRTimes(html) {
   const $ = cheerio.load(html);
-  const elements = $(".departure-time");
+  const results = [];
 
-  console.log("========== JR DOM調査 ==========");
-  console.log("departure-time件数:", elements.length);
-
-  elements.slice(0, 5).each((i, el) => {
+  $(".departure-time").each((_, el) => {
     const item = $(el);
 
-    console.log(
-      `[JR DOM ${i + 1}]`,
-      JSON.stringify({
-        text: item.text().trim(),
-        html: $.html(el)?.slice(0, 500),
-        parentHtml: item.parent().html()?.slice(0, 1200),
-        grandparentHtml: item.parent().parent().html()?.slice(0, 1800),
-        href: item.attr("href"),
-        title: item.attr("title"),
-        ariaLabel: item.attr("aria-label"),
-        className: item.attr("class")
-      })
+    const value = normalizeText(item.text());
+    const match = value.match(/^(\d{1,2}):(\d{2})$/);
+
+    if (!match) return;
+
+    // 同じ列車リンク内から列車種別を取得
+    const trainLink = item.closest("a");
+    const trainType = normalizeText(
+      trainLink.find(".train-name").text()
+    );
+
+    // 普通列車以外は除外
+    if (!trainType.includes("普通")) return;
+
+    addTime(
+      results,
+      Number(match[1]),
+      Number(match[2])
     );
   });
 
-  console.log("========== JR DOM調査終了 ==========");
+  const times = uniqueSorted(results);
 
-  // 調査中は、従来と同じ抽出結果を返す
-  const times = [];
+  if (!times.length) {
+    throw new Error(
+      "JR普通列車の発車時刻を取得できません"
+    );
+  }
 
-  elements.each((_, el) => {
-    const text = $(el).text().trim();
-    const match = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+  console.log(`  JR普通列車の抽出件数: ${times.length}件`);
 
-    if (match) {
-      times.push(
-        `${match[1].padStart(2, "0")}:${match[2]}`
-      );
-    }
-  });
-
-  return [...new Set(times)].sort();
+  return times;
 }
+
+
 
 
 
