@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-18T07:40:20.556Z",
+  "checkedAt": "2026-10-18T07:51:00.199Z",
   "hasChanges": false,
   "services": [
     {
@@ -7,70 +7,70 @@
       "name": "阪急バス",
       "route": "日の峰1丁目 → 谷上駅 158系統",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "subway_tanigami_sannomiya",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 → 三宮駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "subway_sannomiya_tanigami",
       "name": "神戸市営地下鉄",
       "route": "三宮駅 → 谷上駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "portliner_sannomiya_boeki",
       "name": "ポートライナー",
       "route": "三宮駅 → 貿易センター駅",
       "status": "error",
-      "message": "確認エラー（fetch failed）"
+      "message": "確認エラー（通信失敗 URL=https://www.knt-liner.co.jp/stationp01/ / 種類=TypeError / 内容=fetch failed / 原因コード=UNABLE_TO_VERIFY_LEAF_SIGNATURE / 原因詳細=unable to verify the first certificate）"
     },
     {
       "id": "portliner_boeki_sannomiya",
       "name": "ポートライナー",
       "route": "貿易センター駅 → 三宮駅",
       "status": "error",
-      "message": "確認エラー（fetch failed）"
+      "message": "確認エラー（通信失敗 URL=https://www.knt-liner.co.jp/stationp02/ / 種類=TypeError / 内容=fetch failed / 原因コード=UNABLE_TO_VERIFY_LEAF_SIGNATURE / 原因詳細=unable to verify the first certificate）"
     },
     {
       "id": "citybus_62",
       "name": "神戸市バス",
       "route": "谷上駅 → 神戸北町 62系統",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "citybus64_katsuragi3",
       "name": "神戸市バス64系統",
       "route": "桂木3丁目（64系統）",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "citybus64_sannomiya",
       "name": "神戸市バス64系統",
       "route": "三宮駅ターミナル前（64系統）",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "jr_sannomiya_nada",
       "name": "JR西日本",
       "route": "三ノ宮駅 → 灘駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     },
     {
       "id": "jr_nada_sannomiya",
       "name": "JR西日本",
       "route": "灘駅 → 三ノ宮駅",
       "status": "ok",
-      "message": "基準登録"
+      "message": "変更なし"
     }
   ]
 }
