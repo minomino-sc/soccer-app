@@ -31,7 +31,12 @@ jobs:
       - name: Diagnose Port Liner connection
         run: |
           node --version
+          echo "=== 公式サイト stationp01 ==="
           curl -Iv --max-time 20 https://www.knt-liner.co.jp/stationp01/ 2>&1 || true
+          echo "=== 公式サイト別ホスト候補 ==="
+          curl -Iv --max-time 20 https://ftp.knt-liner.co.jp/stationp01/ 2>&1 || true
+          echo "=== 公式英語ページ ==="
+          curl -Iv --max-time 20 https://www.knt-liner.co.jp/en/station/ 2>&1 || true
 
 
 
