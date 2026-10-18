@@ -1375,174 +1375,78 @@ function extractJapaneseClockRows(
    PORTLINER
 ========================================================= */
 
-function extractPortliner(
-  html,
-  direction
-) {
 
-  const $ =
-    cheerio.load(
-      html
-    );
+function extractPortliner(html, direction) {
+  const $ = cheerio.load(html);
+  const matchingTables = [];
 
+  $("table").each((_, table) => {
+    const tableText = normalizeText($(table).text());
 
-  const tables =
-    $("table");
-
-
-  const results =
-    [];
-
-
-  let matched =
-    false;
-
-
-  tables.each(
-    (_, table) => {
-
-      const tableText =
-        normalizeText(
-          $(table).text()
-        );
-
-
-      if (
-        !tableText.includes(
-          normalizeText(
-            direction
-          )
-        )
-      ) {
-
-        return;
-
-      }
-
-
-      if (
-        matched
-      ) {
-
-        return;
-
-      }
-
-
-      matched =
-        true;
-
-
-      $(table)
-        .find("tr")
-        .each(
-          (_, tr) => {
-
-            const cells =
-              $(tr)
-                .find(
-                  "th,td"
-                )
-                .map(
-                  (_, cell) =>
-                    normalizeText(
-                      $(cell).text()
-                    )
-                )
-                .get();
-
-
-            if (
-              cells.length < 2
-            ) {
-
-              return;
-
-            }
-
-
-            const hour =
-              Number(
-                cells[0]
-              );
-
-
-            if (
-              !Number.isInteger(
-                hour
-              ) ||
-              hour < 0 ||
-              hour > 23
-            ) {
-
-              return;
-
-            }
-
-
-            const minutes =
-              $(tr)
-                .find(
-                  ".info02"
-                )
-                .map(
-                  (_, el) =>
-                    normalizeText(
-                      $(el).text()
-                    )
-                )
-                .get();
-
-
-            for (
-              const raw of minutes
-            ) {
-
-              const minute =
-                Number(
-                  raw
-                );
-
-
-              if (
-                minute >= 0 &&
-                minute <= 59
-              ) {
-
-                addTime(
-                  results,
-                  hour,
-                  minute
-                );
-
-              }
-
-            }
-
-          }
-        );
-
+    if (tableText.includes(normalizeText(direction))) {
+      matchingTables.push(table);
     }
-  );
+  });
 
-
-  if (
-    !matched ||
-    !results.length
-  ) {
-
+  if (matchingTables.length < 2) {
     throw new Error(
-      "対象方向のポートライナー時刻表を取得できません"
+      `ポートライナーの平日・土日祝の2つの表を取得できません。` +
+      `方向=${direction}、検出数=${matchingTables.length}`
     );
-
   }
 
+  function readTable(table, label) {
+    const result = [];
 
-  return uniqueSorted(
-    results
-  );
+    $(table).find("tr").each((_, tr) => {
+      const cells = $(tr).find("th,td");
 
+      if (cells.length < 2) return;
+
+      const hourText = normalizeText(cells.eq(0).text());
+
+      if (!/^\d{1,2}$/.test(hourText)) return;
+
+      const hour = Number(hourText);
+
+      if (hour < 0 || hour > 23) return;
+
+      $(tr).find(".info02").each((_, element) => {
+        const raw = normalizeText($(element).text());
+        const match = raw.match(/\d{1,2}/);
+
+        if (!match) return;
+
+        const minute = Number(match[0]);
+
+        if (minute >= 0 && minute <= 59) {
+          addTime(result, hour, minute);
+        }
+      });
+    });
+
+    const times = uniqueSorted(result);
+
+    if (!times.length) {
+      throw new Error(
+        `ポートライナー ${label} の時刻を取得できません`
+      );
+    }
+
+    console.log(
+      `  ポートライナー ${label}抽出件数: ${times.length}件`
+    );
+
+    return times;
+  }
+
+  // 公式ページの掲載順：平日 → 土日祝
+  return {
+    weekday: readTable(matchingTables[0], "平日"),
+    holiday: readTable(matchingTables[1], "土日祝")
+  };
 }
+
 
 
 /* =========================================================
