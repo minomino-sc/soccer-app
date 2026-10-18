@@ -1695,73 +1695,51 @@ async function fetchJR(
    JR TIMES
 ========================================================= */
 
-function extractJRTimes(
-  html
-) {
 
-  const $ =
-    cheerio.load(
-      html
+function extractJRTimes(html) {
+  const $ = cheerio.load(html);
+  const elements = $(".departure-time");
+
+  console.log("========== JR DOM調査 ==========");
+  console.log("departure-time件数:", elements.length);
+
+  elements.slice(0, 5).each((i, el) => {
+    const item = $(el);
+
+    console.log(
+      `[JR DOM ${i + 1}]`,
+      JSON.stringify({
+        text: item.text().trim(),
+        html: $.html(el)?.slice(0, 500),
+        parentHtml: item.parent().html()?.slice(0, 1200),
+        grandparentHtml: item.parent().parent().html()?.slice(0, 1800),
+        href: item.attr("href"),
+        title: item.attr("title"),
+        ariaLabel: item.attr("aria-label"),
+        className: item.attr("class")
+      })
     );
+  });
 
+  console.log("========== JR DOM調査終了 ==========");
 
-  const results =
-    [];
+  // 調査中は、従来と同じ抽出結果を返す
+  const times = [];
 
+  elements.each((_, el) => {
+    const text = $(el).text().trim();
+    const match = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
 
-  $(
-    ".departure-time"
-  )
-    .each(
-      (_, el) => {
+    if (match) {
+      times.push(
+        `${match[1].padStart(2, "0")}:${match[2]}`
+      );
+    }
+  });
 
-        const value =
-          normalizeText(
-            $(el).text()
-          );
-
-
-        const match =
-          value.match(
-            /^(\d{1,2}):(\d{2})$/
-          );
-
-
-        if (!match) {
-          return;
-        }
-
-
-        addTime(
-          results,
-          Number(
-            match[1]
-          ),
-          Number(
-            match[2]
-          )
-        );
-
-      }
-    );
-
-
-  if (
-    !results.length
-  ) {
-
-    throw new Error(
-      "JR時刻表を取得できません"
-    );
-
-  }
-
-
-  return uniqueSorted(
-    results
-  );
-
+  return [...new Set(times)].sort();
 }
+
 
 
 
