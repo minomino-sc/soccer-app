@@ -1409,7 +1409,9 @@ function extractPortliner(html, direction) {
 
       const hour = Number(hourText);
 
-      if (hour < 0 || hour > 23) return;
+      if (hour < 0 || hour > 24) return;
+
+      const normalizedHour = hour % 24;
 
       $(tr).find(".info02").each((_, element) => {
         const raw = normalizeText($(element).text());
@@ -1420,8 +1422,9 @@ function extractPortliner(html, direction) {
         const minute = Number(match[0]);
 
         if (minute >= 0 && minute <= 59) {
-          addTime(result, hour, minute);
+          addTime(result, normalizedHour, minute);
         }
+
       });
     });
 
