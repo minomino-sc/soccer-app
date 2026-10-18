@@ -28,16 +28,15 @@ jobs:
           sudo apt-get install -y poppler-utils imagemagick tesseract-ocr tesseract-ocr-jpn
 
 
-      - name: Diagnose Port Liner connection
+      - name: Diagnose Port Liner certificate
         run: |
+          echo "=== Node.js ==="
           node --version
-          echo "=== 公式サイト stationp01 ==="
-          curl -Iv --max-time 20 https://www.knt-liner.co.jp/stationp01/ 2>&1 || true
-          echo "=== 公式サイト別ホスト候補 ==="
-          curl -Iv --max-time 20 https://ftp.knt-liner.co.jp/stationp01/ 2>&1 || true
-          echo "=== 公式英語ページ ==="
-          curl -Iv --max-time 20 https://www.knt-liner.co.jp/en/station/ 2>&1 || true
-
+          echo "=== Certificate chain ==="
+          openssl s_client \
+            -connect www.knt-liner.co.jp:443 \
+            -servername www.knt-liner.co.jp \
+            -showcerts </dev/null 2>&1 | tail -n 60
 
 
       - name: Run timetable check
