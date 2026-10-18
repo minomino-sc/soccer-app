@@ -1196,16 +1196,18 @@ function extractCityBus62(
 
 
   if (
-    !weekday.length &&
-    !saturday.length &&
+    !weekday.length ||
+    !saturday.length ||
     !holiday.length
   ) {
-
     throw new Error(
-      "62系統の時刻データを取得できません"
+      `62系統の時刻データが不足しています ` +
+      `(平日:${weekday.length}件、` +
+      `土曜:${saturday.length}件、` +
+      `休日:${holiday.length}件)`
     );
-
   }
+
 
 
   /*
