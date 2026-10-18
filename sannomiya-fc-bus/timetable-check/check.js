@@ -48,7 +48,7 @@ const SNAPSHOT_FILE =
    旧形式のsnapshotとは比較しない。
 ========================================================= */
 
-const SNAPSHOT_VERSION = 5;
+const SNAPSHOT_VERSION = 6;
 
 
 /* =========================================================
@@ -993,17 +993,16 @@ function normalizeSubwayTable(
 
 }
 
+
 /* =========================================================
    CITY BUS 62
    62系統「神戸北町方面行き」のみを解析
-   曜日別のHTML要素から時刻を直接取得する
+   HTMLの時刻・分の要素から直接取得する
 ========================================================= */
 
 function extractCityBus62(html) {
-
   const $ = cheerio.load(html);
 
-  // 62系統「神戸北町方面行き」のブロックを特定
   const routeElement = $("details.route-accordion__item")
     .filter((_, element) => {
       const title = normalizeText(
@@ -1023,43 +1022,67 @@ function extractCityBus62(html) {
 
   const $route = $(routeElement);
 
-  // 曜日別の時刻表を、色別のHTML要素から取得
-  const weekdayColumn = $route.find(
-    ".route-timetable__col--green"
-  ).first();
+  function readColumn(selector, label) {
+    const column = $route.find(selector).first();
 
-  const saturdayColumn = $route.find(
-    ".route-timetable__col--blue"
-  ).first();
+    if (!column.length) {
+      throw new Error(`${label}の時刻表が見つかりません`);
+    }
 
-  const holidayColumn = $route.find(
-    ".route-timetable__col--red"
-  ).first();
+    const result = [];
 
-  if (
-    !weekdayColumn.length ||
-    !saturdayColumn.length ||
-    !holidayColumn.length
-  ) {
-    throw new Error(
-      "62系統の曜日別HTML要素が不足しています " +
-      `(平日:${weekdayColumn.length}, ` +
-      `土曜:${saturdayColumn.length}, ` +
-      `休日:${holidayColumn.length})`
-    );
+    column.find(".route-timetable-time").each((_, element) => {
+      const time = $(element);
+
+      const hourText = normalizeText(
+        time.find(".route-timetable-time__hour").first().text()
+      );
+
+      const hourMatch = hourText.match(/(\d{1,2})時/);
+
+      if (!hourMatch) return;
+
+      const hour = Number(hourMatch[1]);
+
+      if (hour < 0 || hour > 23) return;
+
+      const minutesText = normalizeText(
+        time.find(".route-timetable-time__minutes").text()
+      );
+
+      const minuteMatches = minutesText.match(/\d{1,2}/g) || [];
+
+      for (const raw of minuteMatches) {
+        const minute = Number(raw);
+
+        if (minute >= 0 && minute <= 59) {
+          addTime(result, hour, minute);
+        }
+      }
+    });
+
+    const times = uniqueSorted(result);
+
+    if (!times.length) {
+      throw new Error(`${label}の時刻を読み取れませんでした`);
+    }
+
+    return times;
   }
 
-  // 各曜日の時刻表の中だけを解析
-  const weekday = extractJapaneseClockRows(
-    normalizeText(weekdayColumn.text())
+  const weekday = readColumn(
+    ".route-timetable__col--green",
+    "平日"
   );
 
-  const saturday = extractJapaneseClockRows(
-    normalizeText(saturdayColumn.text())
+  const saturday = readColumn(
+    ".route-timetable__col--blue",
+    "土曜"
   );
 
-  const holiday = extractJapaneseClockRows(
-    normalizeText(holidayColumn.text())
+  const holiday = readColumn(
+    ".route-timetable__col--red",
+    "日曜・祝日"
   );
 
   console.log(
@@ -1067,26 +1090,12 @@ function extractCityBus62(html) {
     `土曜${saturday.length}件、休日${holiday.length}件`
   );
 
-  if (
-    !weekday.length ||
-    !saturday.length ||
-    !holiday.length
-  ) {
-    throw new Error(
-      "62系統の曜日別時刻データが不足しています " +
-      `(平日:${weekday.length}件、` +
-      `土曜:${saturday.length}件、` +
-      `休日:${holiday.length}件)`
-    );
-  }
-
   return {
-    weekday: uniqueSorted(weekday),
-    saturday: uniqueSorted(saturday),
-    holiday: uniqueSorted(holiday)
+    weekday,
+    saturday,
+    holiday
   };
 }
-
 
 /* =========================================================
    CITY BUS 64
