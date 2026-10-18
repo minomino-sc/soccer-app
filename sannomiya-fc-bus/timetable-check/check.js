@@ -295,6 +295,69 @@ async function fetchPage(url) {
 
 }
 
+/* =========================================================
+   PORTLINER専用 FETCH
+   通常のfetchが失敗した場合はcurlで再取得
+========================================================= */
+
+async function fetchPortlinerPage(url) {
+  let lastError;
+
+  // まず通常のfetchを2回試す
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      return await fetchPage(url);
+    } catch (error) {
+      lastError = error;
+      console.log(
+        `  ポートライナー取得再試行 ${attempt}/2: ${error.message}`
+      );
+
+      if (attempt < 2) {
+        await new Promise(resolve =>
+          setTimeout(resolve, 1500)
+        );
+      }
+    }
+  }
+
+  // fetchが失敗した場合のみcurlで取得
+  try {
+    console.log("  curlによる再取得を試行");
+
+    const html = execFileSync(
+      "curl",
+      [
+        "-L",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--max-time",
+        "30",
+        "-A",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
+        url
+      ],
+      {
+        encoding: "utf8",
+        timeout: 35000,
+        maxBuffer: 10 * 1024 * 1024
+      }
+    );
+
+    if (!html || html.length < 500) {
+      throw new Error("取得したHTMLが短すぎます");
+    }
+
+    return html;
+  } catch (error) {
+    throw new Error(
+      `fetch・curlともに失敗: ${
+        error.message || lastError.message
+      }`
+    );
+  }
+}
 
 /* =========================================================
    HASH
@@ -2343,21 +2406,20 @@ if (
          その他
       --------------------------------------------------- */
 
-      else {
+ else {
 
-        const html =
-          await fetchPage(
-            source.url
-          );
+  const html =
+    source.type === "portliner"
+      ? await fetchPortlinerPage(source.url)
+      : await fetchPage(source.url);
 
+  timetable =
+    await extractTimetable(
+      source,
+      html
+    );
 
-        timetable =
-          await extractTimetable(
-            source,
-            html
-          );
-
-      }
+}
 
 
       const timetableText =
