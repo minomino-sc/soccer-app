@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-19T22:53:40.934Z",
-  "hasChanges": true,
+  "checkedAt": "2026-10-19T22:55:51.045Z",
+  "hasChanges": false,
   "services": [
     {
       "id": "hankyu_158",
@@ -13,9 +13,8 @@
       "id": "subway_tanigami_sannomiya",
       "name": "神戸市営地下鉄",
       "route": "谷上駅 → 三宮駅",
-      "status": "changed",
-      "message": "時刻表変更を検出",
-      "changes": []
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "subway_sannomiya_tanigami",
@@ -42,23 +41,15 @@
       "id": "citybus_62",
       "name": "神戸市バス",
       "route": "谷上駅 → 神戸北町 62系統",
-      "status": "changed",
-      "message": "時刻表変更を検出",
-      "changes": []
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "citybus64_katsuragi3",
       "name": "神戸市バス64系統",
       "route": "桂木3丁目（64系統）",
-      "status": "changed",
-      "message": "時刻表変更を検出",
-      "changes": [
-        {
-          "period": "64系統公式時刻表",
-          "before": "前回取得データ",
-          "after": "時刻表掲載内容に変更あり"
-        }
-      ]
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "citybus64_sannomiya",
