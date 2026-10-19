@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-19T02:22:35.986Z",
-  "hasChanges": true,
+  "checkedAt": "2026-10-19T02:25:29.165Z",
+  "hasChanges": false,
   "services": [
     {
       "id": "hankyu_158",
@@ -27,69 +27,15 @@
       "id": "portliner_sannomiya_boeki",
       "name": "ポートライナー",
       "route": "三宮駅 → 貿易センター駅",
-      "status": "changed",
-      "message": "時刻表変更を検出",
-      "changes": [
-        {
-          "period": "weekday",
-          "before": "なし",
-          "after": "00:00"
-        },
-        {
-          "period": "weekday",
-          "before": "なし",
-          "after": "00:07"
-        },
-        {
-          "period": "weekday",
-          "before": "なし",
-          "after": "00:15"
-        },
-        {
-          "period": "holiday",
-          "before": "なし",
-          "after": "00:00"
-        },
-        {
-          "period": "holiday",
-          "before": "なし",
-          "after": "00:07"
-        },
-        {
-          "period": "holiday",
-          "before": "なし",
-          "after": "00:15"
-        }
-      ]
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "portliner_boeki_sannomiya",
       "name": "ポートライナー",
       "route": "貿易センター駅 → 三宮駅",
-      "status": "changed",
-      "message": "時刻表変更を検出",
-      "changes": [
-        {
-          "period": "weekday",
-          "before": "なし",
-          "after": "00:01"
-        },
-        {
-          "period": "weekday",
-          "before": "なし",
-          "after": "00:09"
-        },
-        {
-          "period": "holiday",
-          "before": "なし",
-          "after": "00:01"
-        },
-        {
-          "period": "holiday",
-          "before": "なし",
-          "after": "00:09"
-        }
-      ]
+      "status": "ok",
+      "message": "変更なし"
     },
     {
       "id": "citybus_62",
