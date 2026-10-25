@@ -1372,6 +1372,10 @@ function makeMonthlyStats(list) {
 
 /* =========================================================
    試合結果一覧
+   ・全体成績は表示しない
+   ・月ごとに折りたたみ表示
+   ・月別成績と試合種別ごとの成績を表示
+   ・公式戦／カップ戦／交流戦には勝率・バーを表示しない
 ========================================================= */
 
 function renderScores() {
@@ -1407,178 +1411,180 @@ function renderScores() {
     groups.get(month).push(score);
   }
 
-  let html = `
-    <section class="stats">
-      <h3>全体成績</h3>
-      ${makeStats(filtered)}
-
-      <h3>試合種別ごとの成績</h3>
-      ${makeTypeStats(filtered)}
-    </section>
-  `;
+  let html = "";
 
   for (const [month, list] of groups) {
     const isExpanded = !collapsedMonths.has(month);
-
-    const monthStateClass = isExpanded
-      ? "expanded"
-      : "collapsed";
+    const monthStateClass = isExpanded ? "open" : "closed";
 
     html += `
-      <div class="month-heading ${monthStateClass}">
-        <button
-          type="button"
-          class="secondary month-toggle"
-          data-action="toggle-month"
-          data-month="${escapeHtml(month)}">
-          ${isExpanded ? "▼" : "▶"}
-          ${escapeHtml(month)}（${list.length}試合）
-        </button>
-      </div>
-    `;
-
-
-    if (!isExpanded) continue;
-
-    // 開いた月の中に、その月の成績を表示
-    html += `
-      <section class="monthly-result-summary">
-        <h3>${escapeHtml(month)}の成績</h3>
-        ${makeStats(list)}
-      </section>
-    `;
-
-    html += list.map(score => {
-
-      const home = getHomeScore(score);
-      const away = getAwayScore(score);
-
-      const outcome = scoreOutcome(score);
-
-      const resultClass = outcome === "勝"
-        ? "score-win"
-        : outcome === "分"
-          ? "score-draw"
-          : "score-loss";
-
-      const pkHome = getPkHome(score);
-      const pkAway = getPkAway(score);
-
-      const hasPk =
-        pkHome !== null &&
-        pkHome !== undefined &&
-        pkHome !== "" &&
-        pkAway !== null &&
-        pkAway !== undefined &&
-        pkAway !== "";
-
-      const pkText = hasPk
-        ? `（PK ${escapeHtml(pkHome)} - ${escapeHtml(pkAway)}）`
-        : "";
-
-      const matchUrl = getMatchVideo(score);
-      const highlightUrl = getHighlightVideo(score);
-
-      const timeline = Array.isArray(score.highlights)
-        ? score.highlights
-        : [];
-
-      const matchType = getMatchType(score);
-      const competition = getCompetition(score);
-
-      const timelineHtml = timeline.length ? `
-        <div class="meta">
-          <strong>得点・失点シーン</strong>
-
-          <div class="goal-buttons">
-            ${timeline.map((item, index) => `
-              <button
-                type="button"
-                class="secondary"
-                data-action="play-goal"
-                data-id="${escapeHtml(score.id)}"
-                data-index="${index}">
-                ${escapeHtml(secondsToTime(item.time))}
-                ${item.team === "opponent"
-                  ? "相手得点"
-                  : "神戸三宮FC得点"}
-              </button>
-            `).join("")}
-          </div>
-        </div>
-      ` : "";
-
-      const adminActions = currentRole === "admin" ? `
-        <div class="actions">
+      <section class="month-group">
+        <div class="month-header ${monthStateClass}">
           <button
             type="button"
-            class="secondary"
-            data-action="edit-score"
-            data-id="${escapeHtml(score.id)}">
-            編集
-          </button>
-
-          <button
-            type="button"
-            class="danger"
-            data-action="delete-score"
-            data-id="${escapeHtml(score.id)}">
-            削除
+            class="month-toggle"
+            data-action="toggle-month"
+            data-month="${escapeHtml(month)}"
+            aria-expanded="${isExpanded}">
+            <span class="month-toggle-icon">
+              ${isExpanded ? "▼" : "▶"}
+            </span>
+            <span>${escapeHtml(month)}</span>
+            <span class="month-match-count">
+              ${list.length}試合
+            </span>
           </button>
         </div>
-      ` : "";
+    `;
 
-      return `
-        <article class="item ${resultClass}">
-          <div class="match-card-header">
-            <span class="match-date">
-              ${escapeHtml(dateLabel(getMatchDate(score)))}
-            </span>
+    if (isExpanded) {
+      html += `
+        <div class="month-content">
 
-            <span class="match-type-label">
-              ${escapeHtml(matchType)}
-            </span>
+          <section class="month-summary-card">
+            <h3>${escapeHtml(month)}の成績</h3>
+
+            ${makeStats(list)}
+
+            <h4>試合種別ごとの成績</h4>
+            ${makeTypeStats(list)}
+          </section>
+
+          <div class="month-matches">
+            ${list.map(score => {
+              const home = getHomeScore(score);
+              const away = getAwayScore(score);
+              const outcome = scoreOutcome(score);
+
+              const resultClass = outcome === "勝"
+                ? "score-win"
+                : outcome === "分"
+                  ? "score-draw"
+                  : "score-loss";
+
+              const pkHome = getPkHome(score);
+              const pkAway = getPkAway(score);
+
+              const hasPk =
+                pkHome !== null &&
+                pkHome !== undefined &&
+                pkHome !== "" &&
+                pkAway !== null &&
+                pkAway !== undefined &&
+                pkAway !== "";
+
+              const pkText = hasPk
+                ? `（PK ${escapeHtml(pkHome)} - ${escapeHtml(pkAway)}）`
+                : "";
+
+              const matchUrl = getMatchVideo(score);
+              const highlightUrl = getHighlightVideo(score);
+
+              const timeline = Array.isArray(score.highlights)
+                ? score.highlights
+                : [];
+
+              const matchType = getMatchType(score);
+              const competition = getCompetition(score);
+
+              const timelineHtml = timeline.length ? `
+                <div class="meta">
+                  <strong>得点・失点シーン</strong>
+                  <div class="goal-buttons">
+                    ${timeline.map((item, index) => `
+                      <button
+                        type="button"
+                        class="secondary"
+                        data-action="play-goal"
+                        data-id="${escapeHtml(score.id)}"
+                        data-index="${index}">
+                        ${escapeHtml(secondsToTime(item.time))}
+                        ${item.team === "opponent"
+                          ? "相手得点"
+                          : "神戸三宮FC得点"}
+                      </button>
+                    `).join("")}
+                  </div>
+                </div>
+              ` : "";
+
+              const adminActions = currentRole === "admin" ? `
+                <div class="actions">
+                  <button
+                    type="button"
+                    class="secondary"
+                    data-action="edit-score"
+                    data-id="${escapeHtml(score.id)}">
+                    編集
+                  </button>
+
+                  <button
+                    type="button"
+                    class="danger"
+                    data-action="delete-score"
+                    data-id="${escapeHtml(score.id)}">
+                    削除
+                  </button>
+                </div>
+              ` : "";
+
+              return `
+                <article class="item ${resultClass}">
+                  <div class="match-card-header">
+                    <span class="match-date">
+                      ${escapeHtml(dateLabel(getMatchDate(score)))}
+                    </span>
+
+                    <span class="match-type-label">
+                      ${escapeHtml(matchType)}
+                    </span>
+                  </div>
+
+                  <h3 class="match-competition">
+                    ${escapeHtml(competition || "試合")}
+                  </h3>
+
+                  <div class="match-scoreboard">
+                    <div class="match-team home-team">
+                      <strong>神戸三宮FC</strong>
+                    </div>
+
+                    <div class="match-score">
+                      <strong>${home} - ${away}</strong>
+                      ${hasPk
+                        ? `<span class="match-pk">${pkText}</span>`
+                        : ""}
+                    </div>
+
+                    <div class="match-team away-team">
+                      <strong>${escapeHtml(score.opponent || "相手")}</strong>
+                    </div>
+                  </div>
+
+                  ${score.memo ? `
+                    <div class="match-memo">
+                      ${escapeHtml(score.memo).replace(/\n/g, "<br>")}
+                    </div>
+                  ` : ""}
+
+                  ${(matchUrl || highlightUrl) ? `
+                    <div class="video-actions">
+                      ${externalVideoLink(matchUrl, "▶ 試合動画")}
+                      ${externalVideoLink(highlightUrl, "▶ ゴールハイライト")}
+                    </div>
+                  ` : ""}
+
+                  ${timelineHtml}
+                  ${adminActions}
+                </article>
+              `;
+            }).join("")}
           </div>
-
-          <h3 class="match-competition">
-            ${escapeHtml(competition || "試合")}
-          </h3>
-
-          <div class="match-scoreboard">
-            <div class="match-team home-team">
-              <strong>神戸三宮FC</strong>
-            </div>
-
-            <div class="match-score">
-              <strong>${home} - ${away}</strong>
-              ${hasPk ? `<span class="match-pk">${pkText}</span>` : ""}
-            </div>
-
-            <div class="match-team away-team">
-              <strong>${escapeHtml(score.opponent || "相手")}</strong>
-            </div>
-          </div>
-
-          ${score.memo ? `
-            <div class="match-memo">
-              ${escapeHtml(score.memo).replace(/\n/g, "<br>")}
-            </div>
-          ` : ""}
-
-          ${(matchUrl || highlightUrl) ? `
-            <div class="video-actions">
-              ${externalVideoLink(matchUrl, "▶ 試合動画")}
-              ${externalVideoLink(highlightUrl, "▶ ゴールハイライト")}
-            </div>
-          ` : ""}
-
-          ${timelineHtml}
-
-          ${adminActions}
-        </article>
+        </div>
       `;
-    }).join("");
-     
+    }
+
+    html += `</section>`;
   }
 
   $("items").innerHTML = html;
