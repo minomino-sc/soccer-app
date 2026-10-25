@@ -7,612 +7,596 @@
   <meta name="theme-color" content="#123d2b">
   <title>神戸三宮FC 動画共有システム</title>
 
-  <style>
-    * { box-sizing: border-box; }
-
-    :root {
-      --club-green: #123d2b;
-      --club-green-light: #1e6043;
-      --club-green-soft: #e7eee9;
-      --page-green: #e6f7d9;
-      --accent-blue: #1e88e5;
-      --text-main: #17251c;
-      --text-muted: #657369;
-      --win-blue: #1e88e5;
-      --draw-gray: #757575;
-      --loss-red: #c62828;
-    }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--page-green);
-      color: var(--text-main);
-    }
-
-    header {
-      background: var(--club-green);
-      color: #fff;
-      text-align: center;
-      padding: 24px 12px;
-    }
-
-    header h1 { font-size: 21px; margin: 0 0 8px; }
-    header p { font-size: 12px; letter-spacing: .1em; margin: 0; }
-
-    main { max-width: 900px; margin: 20px auto; padding: 0 12px; }
-
-    .panel {
-      background: #fff;
-      border: 1px solid #d5e5d8;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 15px;
-      box-shadow: 0 5px 16px rgba(18, 61, 43, 0.07);
-    }
-
-    h2 { font-size: 17px; margin: 0 0 14px; }
-    h3 { font-size: 15px; margin: 0 0 10px; }
-
-    .description {
-      color: var(--text-muted);
-      font-size: 13px;
-      line-height: 1.7;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    input, select, textarea, button {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      padding: 12px;
-      margin: 0 0 12px;
-      border-radius: 8px;
-      font: inherit;
-    }
-
-    input, select, textarea {
-      border: 1px solid #ccd8cf;
-      background: #fff;
-      color: var(--text-main);
-    }
-
-    input[type="date"] {
-      height: 46px;
-      padding: 12px;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    button {
-      border: 0;
-      background: var(--club-green-light);
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover:not(:disabled) {
-      filter: brightness(1.06);
-    }
-
-    button.secondary {
-      background: var(--club-green-soft);
-      color: var(--club-green);
-    }
-
-    button.danger {
-      background: var(--loss-red);
-      color: #fff;
-    }
-
-    button:disabled { opacity: .55; }
-
-    .hidden { display: none !important; }
-
-    .login-heading, .login-subtitle { text-align: center; }
-
-    .login-subtitle {
-      color: var(--text-muted);
-      font-size: 13px;
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-
-    .login-note {
-      background: #f3f7f4;
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 12px;
-      line-height: 1.8;
-      margin-bottom: 18px;
-    }
-
-    .status {
-      font-size: 13px;
-      line-height: 1.7;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .error { color: #b42323; }
-    .success { color: #21663b; }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .tabs button {
-      flex: 1;
-      margin: 0;
-      padding: 12px 5px;
-      border-radius: 10px;
-      transition: background-color .2s ease;
-    }
-
-    .tabs button.active {
-      background: var(--club-green);
-      color: #fff;
-    }
-
-    .tabs button.secondary {
-      background: #fff;
-      color: var(--club-green);
-      border: 1px solid #cbdccf;
-    }
-
-    /* 動画・試合結果カード */
-    .item {
-      background: #fff;
-      border: 1px solid #e0e9e1;
-      border-left: 4px solid var(--club-green);
-      border-radius: 12px;
-      padding: 15px;
-      margin: 12px 0;
-      box-shadow: 0 3px 10px rgba(18, 61, 43, 0.05);
-    }
-
-    .item:first-child { border-top: 1px solid #e0e9e1; }
-
-    .item h3 {
-      color: var(--club-green);
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-
-    /* 勝敗ごとにカード左側の色を変更 */
-    .item.score-win {
-      border-left-color: var(--win-blue);
-    }
-
-    .item.score-draw {
-      border-left-color: var(--draw-gray);
-    }
-
-    .item.score-loss {
-      border-left-color: var(--loss-red);
-    }
-
-    .meta {
-      color: var(--text-muted);
-      font-size: 13px;
-      line-height: 1.7;
-      margin-bottom: 10px;
-      overflow-wrap: anywhere;
-    }
-
-    .item p {
-      font-size: 14px;
-      line-height: 1.7;
-      overflow-wrap: anywhere;
-    }
-
-    iframe {
-      display: block;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border: 0;
-      border-radius: 8px;
-      background: #000;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .actions button {
-      flex: 1;
-      min-width: 100px;
-      margin: 0;
-      padding: 10px 5px;
-      font-size: 13px;
-    }
-
-    .form-divider {
-      border: 0;
-      border-top: 1px solid #dce7de;
-      margin: 22px 0;
-    }
-
-    .empty {
-      text-align: center;
-      color: #748078;
-      padding: 24px 8px;
-      font-size: 14px;
-    }
-
-    .form-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .form-row > div {
-      flex: 1;
-      min-width: 0;
-    }
-
-    /* 月別見出し：展開状態に応じて背景色を変更 */
-    .month-heading {
-      background: #b2e672;
-      border-radius: 10px;
-      padding: 6px;
-      margin-top: 14px;
-      transition: background-color .2s ease;
-    }
-
-    .month-heading.expanded {
-      background: #edf3ee;
-    }
-
-    .month-heading.collapsed {
-      background: #b2e672;
-    }
-
-    .month-toggle {
-      background: transparent !important;
-      color: var(--club-green) !important;
-      font-weight: bold;
-      margin: 0 !important;
-      text-align: left;
-    }
-
-    /* 総合成績：元のデザインを維持 */
-    .stats {
-      background: linear-gradient(135deg, #fff, #f0fff4);
-      border: 1px solid #d5e5d8;
-      border-left: 5px solid var(--club-green);
-      border-radius: 12px;
-      color: var(--text-main);
-      padding: 12px;
-      font-size: 13px;
-      line-height: 1.9;
-      margin-bottom: 12px;
-    }
-
-/* 勝率の色分け：箕谷SCと同じ基準 */
-.stats .win-rate {
-  font-weight: bold;
-  font-size: 15px;
-}
-
-.stats .win-rate.win-high {
-  color: #1565c0;
-}
-
-.stats .win-rate.win-mid {
-  color: #558b2f;
-}
-
-.stats .win-rate.win-low {
-  color: #c62828;
-}
-
-.stats .win-bar {
-  width: 100%;
-  height: 9px;
-  margin: 5px 0 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e5ebe6;
-}
-
-.stats .win-bar-inner {
-  height: 100%;
-  width: 0;
-  border-radius: 999px;
-  transition: width 1s ease;
-}
-
-.stats .win-bar-inner.win-high {
-  background: #1e88e5;
-}
-
-.stats .win-bar-inner.win-mid {
-  background: #7cb342;
-}
-
-.stats .win-bar-inner.win-low {
-  background: #e53935;
-}
-
-.stats .type-stats {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid #d5e5d8;
-}
-
-.stats .type-stats-row {
-  padding: 5px 0;
-  border-bottom: 1px solid #edf2ee;
-  line-height: 1.7;
-}
-
-.stats .type-stats-row:last-child {
-  border-bottom: 0;
-}
-    
-    .link-button {
-      display: inline-block;
-      text-decoration: none;
-      background: var(--accent-blue);
-      color: #fff;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: bold;
-      margin: 4px 6px 4px 0;
-    }
-
-    .link-button:hover { background: #005fcc; }
-
-    .goal-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .goal-buttons button {
-      width: auto;
-      margin: 0;
-      padding: 8px 10px;
-      font-size: 12px;
-      background: var(--club-green-soft);
-      color: var(--club-green);
-      border: 1px solid #cbdccf;
-    }
-
-    .video-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .video-play-button {
-      width: auto;
-      max-width: 100%;
-      margin: 4px 6px 4px 0;
-      padding: 10px 12px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--accent-blue);
-      color: #fff;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .video-play-button:hover { background: #005fcc; }
-
-    #videoMonthFilters { margin-bottom: 6px; }
-
-    #videoMonthFilters label,
-    #matchVideoYear,
-    #matchVideoMonth,
-    #highlightVideoYear,
-    #highlightVideoMonth {
-      margin-bottom: 8px;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: 2px solid rgba(30, 136, 229, 0.3);
-      border-color: var(--accent-blue);
-    }
-
-    footer {
-      text-align: center;
-      color: #748078;
-      font-size: 12px;
-      padding: 20px 12px 28px;
-    }
-
-    @media (max-width: 480px) {
-      header h1 { font-size: 19px; }
-
-      .panel { padding: 14px; }
-
-      .actions { gap: 6px; }
-
-      .form-row { gap: 7px; }
-
-      .item {
-        padding: 12px;
-        border-radius: 10px;
-      }
-
-      .link-button {
-        margin: 4px 4px 4px 0;
-      }
-    }
-
-
-/* ========================================
-   試合結果・統計表示
-======================================== */
-
-.stats {
-  margin: 14px 0;
-  padding: 12px;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #222;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.stats-summary {
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.stats-numbers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0 12px;
-}
-
-.stat-win,
-.stat-draw,
-.stat-loss {
-  flex: 1 1 70px;
-  padding: 8px 5px;
-  border-radius: 8px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  background: #f3f5f4;
-}
-
-.stat-win {
-  color: #18864b;
-}
-
-.stat-draw {
-  color: #777;
-}
-
-.stat-loss {
-  color: #d63b3b;
-}
-
-.stats .win-rate {
-  font-weight: 800;
-}
-
-.stats .win-rate.win-high {
-  color: #168447;
-}
-
-.stats .win-rate.win-mid {
-  color: #d18a00;
-}
-
-.stats .win-rate.win-low {
-  color: #d63b3b;
-}
-
-.stats .win-bar-inner.win-high {
-  background: #168447;
-}
-
-.stats .win-bar-inner.win-mid {
-  background: #e0a020;
-}
-
-.stats .win-bar-inner.win-low {
-  background: #d63b3b;
-}
-
-.type-stats,
-.monthly-stats {
-  margin-top: 12px;
-}
-
-.type-stats-title {
-  margin-bottom: 6px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.type-stats-row,
-.monthly-stats-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 4px;
-  border-bottom: 1px solid #e8e8e8;
-  font-size: 12px;
-}
-
-.type-stats-result,
-.monthly-stats-detail {
-  text-align: right;
-  font-weight: 600;
-}
-
-.monthly-stats-month {
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.month-heading {
-  cursor: pointer;
-  user-select: none;
-}
-
-.item.score-win {
-  border-left: 5px solid #168447;
-}
-
-.item.score-draw {
-  border-left: 5px solid #d6a126;
-}
-
-.item.score-loss {
-  border-left: 5px solid #d63b3b;
-}
-
-@media (max-width: 480px) {
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  :root {
+    --club-green: #123d2b;
+    --club-green-light: #1e6043;
+    --club-green-soft: #e7eee9;
+    --page-green: #e6f7d9;
+    --accent-blue: #1e88e5;
+    --text-main: #17251c;
+    --text-muted: #657369;
+    --win-blue: #1e88e5;
+    --draw-gray: #757575;
+    --loss-red: #c62828;
+  }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--page-green);
+    color: var(--text-main);
+  }
+
+  header {
+    background: var(--club-green);
+    color: #fff;
+    text-align: center;
+    padding: 24px 12px;
+  }
+
+  header h1 {
+    font-size: 21px;
+    margin: 0 0 8px;
+  }
+
+  header p {
+    font-size: 12px;
+    letter-spacing: .1em;
+    margin: 0;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 12px;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid #d5e5d8;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 15px;
+    box-shadow: 0 5px 16px rgba(18, 61, 43, .07);
+  }
+
+  h2 {
+    font-size: 17px;
+    margin: 0 0 14px;
+  }
+
+  h3 {
+    font-size: 15px;
+    margin: 0 0 10px;
+  }
+
+  .description {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 12px;
+    margin: 0 0 12px;
+    border-radius: 8px;
+    font: inherit;
+  }
+
+  input,
+  select,
+  textarea {
+    border: 1px solid #ccd8cf;
+    background: #fff;
+    color: var(--text-main);
+  }
+
+  input[type="date"] {
+    height: 46px;
+    padding: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  button {
+    border: 0;
+    background: var(--club-green-light);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  button:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+
+  button.secondary {
+    background: var(--club-green-soft);
+    color: var(--club-green);
+  }
+
+  button.danger {
+    background: var(--loss-red);
+    color: #fff;
+  }
+
+  button:disabled {
+    opacity: .55;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .login-heading,
+  .login-subtitle {
+    text-align: center;
+  }
+
+  .login-subtitle {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .login-note {
+    background: #f3f7f4;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.8;
+    margin-bottom: 18px;
+  }
+
+  .status {
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .error {
+    color: #b42323;
+  }
+
+  .success {
+    color: #21663b;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .tabs button {
+    flex: 1;
+    margin: 0;
+    padding: 12px 5px;
+    border-radius: 10px;
+    transition: background-color .2s ease;
+  }
+
+  .tabs button.active {
+    background: var(--club-green);
+    color: #fff;
+  }
+
+  .tabs button.secondary {
+    background: #fff;
+    color: var(--club-green);
+    border: 1px solid #cbdccf;
+  }
+
+  /* 動画・試合結果カード */
+  .item {
+    background: #fff;
+    border: 1px solid #e0e9e1;
+    border-left: 5px solid var(--club-green);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 12px 0;
+    box-shadow: 0 3px 10px rgba(18, 61, 43, .05);
+  }
+
+  .item:first-child {
+    border-top: 1px solid #e0e9e1;
+  }
+
+  .item h3 {
+    color: var(--club-green);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  /* 勝ち＝青、引き分け＝グレー、負け＝赤 */
+  .item.score-win {
+    border-left-color: var(--win-blue);
+  }
+
+  .item.score-draw {
+    border-left-color: var(--draw-gray);
+  }
+
+  .item.score-loss {
+    border-left-color: var(--loss-red);
+  }
+
+  .meta {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .item p {
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+
+  iframe {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+    border-radius: 8px;
+    background: #000;
+  }
+
+  .actions,
+  .video-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .actions button {
+    flex: 1;
+    min-width: 100px;
+    margin: 0;
+    padding: 10px 5px;
+    font-size: 13px;
+  }
+
+  .form-divider {
+    border: 0;
+    border-top: 1px solid #dce7de;
+    margin: 22px 0;
+  }
+
+  .empty {
+    text-align: center;
+    color: #748078;
+    padding: 24px 8px;
+    font-size: 14px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .form-row > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* 月別見出し */
+  .month-heading {
+    cursor: pointer;
+    user-select: none;
+    border-radius: 10px;
+    padding: 6px;
+    margin-top: 14px;
+    transition: background-color .2s ease;
+  }
+
+  /* 展開中は白系 */
+  .month-heading.expanded {
+    background: #fff;
+    border: 1px solid #d5e5d8;
+  }
+
+  /* 折りたたみ中は緑 */
+  .month-heading.collapsed {
+    background: #b2e672;
+    border: 1px solid #9acb5c;
+  }
+
+  .month-toggle {
+    background: transparent !important;
+    color: var(--club-green) !important;
+    font-weight: bold;
+    margin: 0 !important;
+    text-align: left;
+  }
+
+  /* 成績表示 */
   .stats {
-    padding: 10px;
+    background: linear-gradient(135deg, #fff, #f0fff4);
+    border: 1px solid #d5e5d8;
+    border-left: 5px solid var(--club-green);
+    border-radius: 12px;
+    color: var(--text-main);
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.9;
+    margin: 14px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+  }
+
+  .stats-summary {
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 700;
   }
 
   .stats-numbers {
-    gap: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0 12px;
   }
 
   .stat-win,
   .stat-draw,
   .stat-loss {
-    flex-basis: 65px;
+    flex: 1 1 70px;
+    padding: 8px 5px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    background: #f3f5f4;
+  }
+
+  .stat-win {
+    color: var(--win-blue);
+  }
+
+  .stat-draw {
+    color: var(--draw-gray);
+  }
+
+  .stat-loss {
+    color: var(--loss-red);
+  }
+
+  .stats .win-rate {
+    font-weight: 800;
+    font-size: 15px;
+  }
+
+  .stats .win-rate.win-high {
+    color: #1565c0;
+  }
+
+  .stats .win-rate.win-mid {
+    color: #558b2f;
+  }
+
+  .stats .win-rate.win-low {
+    color: var(--loss-red);
+  }
+
+  .stats .win-bar {
+    width: 100%;
+    height: 9px;
+    margin: 5px 0 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e5ebe6;
+  }
+
+  .stats .win-bar-inner {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    transition: width 1s ease;
+  }
+
+  .stats .win-bar-inner.win-high {
+    background: var(--accent-blue);
+  }
+
+  .stats .win-bar-inner.win-mid {
+    background: #7cb342;
+  }
+
+  .stats .win-bar-inner.win-low {
+    background: #e53935;
+  }
+
+  .stats .type-stats,
+  .stats .monthly-stats {
+    margin-top: 12px;
+  }
+
+  .stats .type-stats-title {
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .stats .type-stats-row,
+  .stats .monthly-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 4px;
+    border-bottom: 1px solid #e8e8e8;
     font-size: 12px;
   }
 
-  .type-stats-row,
-  .monthly-stats-row {
-    font-size: 11px;
+  .stats .type-stats-row:last-child {
+    border-bottom: 0;
   }
-}
 
+  .stats .type-stats-result,
+  .stats .monthly-stats-detail {
+    text-align: right;
+    font-weight: 600;
+  }
 
-    
-  </style>
+  .stats .monthly-stats-month {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .stats .type-stats {
+    padding-top: 8px;
+    border-top: 1px solid #d5e5d8;
+  }
+
+  .link-button {
+    display: inline-block;
+    text-decoration: none;
+    background: var(--accent-blue);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 4px 6px 4px 0;
+  }
+
+  .link-button:hover {
+    background: #005fcc;
+  }
+
+  .goal-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .goal-buttons button {
+    width: auto;
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 12px;
+    background: var(--club-green-soft);
+    color: var(--club-green);
+    border: 1px solid #cbdccf;
+  }
+
+  .video-play-button {
+    width: auto;
+    max-width: 100%;
+    margin: 4px 6px 4px 0;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent-blue);
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .video-play-button:hover {
+    background: #005fcc;
+  }
+
+  #videoMonthFilters {
+    margin-bottom: 6px;
+  }
+
+  #videoMonthFilters label,
+  #matchVideoYear,
+  #matchVideoMonth,
+  #highlightVideoYear,
+  #highlightVideoMonth {
+    margin-bottom: 8px;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid rgba(30, 136, 229, .3);
+    border-color: var(--accent-blue);
+  }
+
+  footer {
+    text-align: center;
+    color: #748078;
+    font-size: 12px;
+    padding: 20px 12px 28px;
+  }
+
+  @media (max-width: 480px) {
+    header h1 {
+      font-size: 19px;
+    }
+
+    .panel {
+      padding: 14px;
+    }
+
+    .actions {
+      gap: 6px;
+    }
+
+    .form-row {
+      gap: 7px;
+    }
+
+    .item {
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    .link-button {
+      margin: 4px 4px 4px 0;
+    }
+
+    .stats {
+      padding: 10px;
+    }
+
+    .stats-numbers {
+      gap: 5px;
+    }
+
+    .stat-win,
+    .stat-draw,
+    .stat-loss {
+      flex-basis: 65px;
+      font-size: 12px;
+    }
+
+    .stats .type-stats-row,
+    .stats .monthly-stats-row {
+      font-size: 11px;
+    }
+  }
+</style>
+  
 </head>
 
 <body>
