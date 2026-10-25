@@ -595,7 +595,67 @@
       font-size: 11px;
     }
   }
- 
+
+
+
+/* =========================================================
+   月別試合結果：折りたたみ表示
+========================================================= */
+
+.month-header {
+  overflow: hidden;
+  border-radius: 10px;
+  margin-top: 14px;
+  margin-bottom: 8px;
+  transition: background-color 0.2s ease;
+}
+
+/* 折りたたみ時：黄緑色 */
+.month-header.closed {
+  background: #b2e672;
+  border: 1px solid #9acb5c;
+}
+
+/* 展開時：白色 */
+.month-header.open {
+  background: #ffffff;
+  border: 1px solid #d5e5d8;
+}
+
+/* 月別の開閉ボタン */
+.month-header .month-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  margin: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent !important;
+  color: var(--club-green) !important;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+/* 試合数を右端に表示 */
+.month-header .month-match-count {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* 開閉アイコン */
+.month-header .month-toggle-icon {
+  flex-shrink: 0;
+}
+
+
+
+  
 </style>
   
 </head>
