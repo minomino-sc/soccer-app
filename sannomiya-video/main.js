@@ -1414,9 +1414,6 @@ function renderScores() {
 
       <h3>試合種別ごとの成績</h3>
       ${makeTypeStats(filtered)}
-
-      <h3>月別成績</h3>
-      ${makeMonthlyStats(filtered)}
     </section>
   `;
 
@@ -1440,9 +1437,19 @@ function renderScores() {
       </div>
     `;
 
+
     if (!isExpanded) continue;
 
+    // 開いた月の中に、その月の成績を表示
+    html += `
+      <section class="monthly-result-summary">
+        <h3>${escapeHtml(month)}の成績</h3>
+        ${makeStats(list)}
+      </section>
+    `;
+
     html += list.map(score => {
+
       const home = getHomeScore(score);
       const away = getAwayScore(score);
 
@@ -1523,41 +1530,55 @@ function renderScores() {
 
       return `
         <article class="item ${resultClass}">
-          <h3>
-            ${escapeHtml(dateLabel(getMatchDate(score)))}
-            ${escapeHtml(competition || "試合")}
-          </h3>
+          <div class="match-card-header">
+            <span class="match-date">
+              ${escapeHtml(dateLabel(getMatchDate(score)))}
+            </span>
 
-          <div class="meta">
             <span class="match-type-label">
               ${escapeHtml(matchType)}
             </span>
-            <br>
-            対戦相手：${escapeHtml(score.opponent || "未設定")}
           </div>
 
-          <p>
-            <strong>
-              神戸三宮FC ${home} - ${away}
-              ${escapeHtml(score.opponent || "相手")}
-            </strong>
-            ${pkText}
-          </p>
+          <h3 class="match-competition">
+            ${escapeHtml(competition || "試合")}
+          </h3>
+
+          <div class="match-scoreboard">
+            <div class="match-team home-team">
+              <strong>神戸三宮FC</strong>
+            </div>
+
+            <div class="match-score">
+              <strong>${home} - ${away}</strong>
+              ${hasPk ? `<span class="match-pk">${pkText}</span>` : ""}
+            </div>
+
+            <div class="match-team away-team">
+              <strong>${escapeHtml(score.opponent || "相手")}</strong>
+            </div>
+          </div>
 
           ${score.memo ? `
-            <p>${escapeHtml(score.memo).replace(/\n/g, "<br>")}</p>
+            <div class="match-memo">
+              ${escapeHtml(score.memo).replace(/\n/g, "<br>")}
+            </div>
           ` : ""}
 
-          <div class="video-actions">
-            ${externalVideoLink(matchUrl, "▶ 試合動画を再生")}
-            ${externalVideoLink(highlightUrl, "▶ ゴールハイライトを再生")}
-          </div>
+          ${(matchUrl || highlightUrl) ? `
+            <div class="video-actions">
+              ${externalVideoLink(matchUrl, "▶ 試合動画")}
+              ${externalVideoLink(highlightUrl, "▶ ゴールハイライト")}
+            </div>
+          ` : ""}
 
           ${timelineHtml}
+
           ${adminActions}
         </article>
       `;
     }).join("");
+     
   }
 
   $("items").innerHTML = html;
