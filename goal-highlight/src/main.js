@@ -767,8 +767,8 @@ function drawScoreCrop(x = scoreCropX) {
 // 初期スコアOCR
 // 指定したX位置・時刻でスコアを読み取る
 // ============================================================
-async function recognizeInitialScoreAtX(x, time) {
-
+async function recognizeInitialScoreAtX(x, time, finalScore = null) {
+  
   await seekTo(time);
 
   /*
@@ -805,18 +805,41 @@ async function recognizeInitialScoreAtX(x, time) {
    * ---------------------------------------------------------
    */
 
-  if (raw === '0100') {
+const compactRaw = raw
+  .replace(/\s/g, '')
+  .replace(/[—–_ー―]/g, '-');
 
-    console.log(
-      `初期スコアOCR補正: ${raw} → 0-0`
-    );
+if (
+  compactRaw === '00' ||
+  compactRaw === '0100' ||
+  compactRaw === '0-0'
+) {
+  console.log(
+    `初期スコアOCR補正: ${compactRaw} → 0-0`
+  );
 
-    return {
-      home: 0,
-      away: 0,
-      raw: '0100'
-    };
-  }
+  return {
+    home: 0,
+    away: 0,
+    raw: compactRaw
+  };
+}
+
+if (
+  compactRaw === '-0' &&
+  finalScore &&
+  finalScore.home === 0
+) {
+  console.log(
+    `初期スコアOCR補正: ${compactRaw} → 0-0`
+  );
+
+  return {
+    home: 0,
+    away: 0,
+    raw: compactRaw
+  };
+}
 
   /*
    * 通常の「0-0」「1-0」など
@@ -2841,7 +2864,8 @@ async function readInitialScore(finalScore) {
 const score =
   await recognizeInitialScoreAtX(
     x,
-    t
+    t,
+    finalScore
   );
 
 
