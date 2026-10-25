@@ -1265,6 +1265,7 @@ function makeStats(list) {
    試合種別ごとの成績
 ========================================================= */
 
+
 function makeTypeStats(list) {
   return `
     <div class="type-stats">
@@ -1274,7 +1275,6 @@ function makeTypeStats(list) {
         );
 
         const stats = calculateStats(typeList);
-        const colorClass = winRateClass(stats.rate);
 
         return `
           <div class="type-stats-row">
@@ -1288,20 +1288,10 @@ function makeTypeStats(list) {
             </div>
 
             <div class="type-stats-result">
-              得点 ${stats.goals} ／ 失点 ${stats.conceded}
+              得点 ${stats.goals}
+              ／ 失点 ${stats.conceded}
               ／ 得失点差
               ${stats.goalDifference > 0 ? "+" : ""}${stats.goalDifference}
-            </div>
-
-            <div class="win-rate ${colorClass}">
-              勝率 ${stats.rate}%
-            </div>
-
-            <div class="win-bar" aria-label="勝率 ${stats.rate}%">
-              <div
-                class="win-bar-inner ${colorClass}"
-                style="width:${stats.rate}%">
-              </div>
             </div>
           </div>
         `;
