@@ -1265,10 +1265,9 @@ function makeStats(list) {
    試合種別ごとの成績
 ========================================================= */
 
-
 function makeTypeStats(list) {
   return `
-    <div class="type-stats">
+    <div class="type-list">
       ${MATCH_TYPES.map(type => {
         const typeList = list.filter(
           score => getMatchType(score) === type
@@ -1277,17 +1276,17 @@ function makeTypeStats(list) {
         const stats = calculateStats(typeList);
 
         return `
-          <div class="type-stats-row">
-            <div class="type-stats-title">
+          <div class="type-row">
+            <div class="type-title">
               <strong>${escapeHtml(type)}</strong>
               <span>${stats.matches}試合</span>
             </div>
 
-            <div class="type-stats-result">
+            <div class="type-result">
               ${stats.wins}勝 ${stats.draws}分 ${stats.losses}敗
             </div>
 
-            <div class="type-stats-result">
+            <div class="type-goals">
               得点 ${stats.goals}
               ／ 失点 ${stats.conceded}
               ／ 得失点差
@@ -1370,12 +1369,15 @@ function makeMonthlyStats(list) {
   `;
 }
 
+
 /* =========================================================
    試合結果一覧
    ・全体成績は表示しない
-   ・月ごとに折りたたみ表示
-   ・月別成績と試合種別ごとの成績を表示
-   ・公式戦／カップ戦／交流戦には勝率・バーを表示しない
+   ・月別見出し：open / closed
+   ・月別本体：month-body / hidden
+   ・月別成績カード
+   ・試合種別：type-list / type-row
+   ・勝敗別の試合カード
 ========================================================= */
 
 function renderScores() {
@@ -1404,10 +1406,7 @@ function renderScores() {
     const date = getMatchDate(score);
     const month = date ? date.slice(0, 7) : "日付未設定";
 
-    if (!groups.has(month)) {
-      groups.set(month, []);
-    }
-
+    if (!groups.has(month)) groups.set(month, []);
     groups.get(month).push(score);
   }
 
@@ -1415,11 +1414,11 @@ function renderScores() {
 
   for (const [month, list] of groups) {
     const isExpanded = !collapsedMonths.has(month);
-    const monthStateClass = isExpanded ? "open" : "closed";
 
     html += `
       <section class="month-group">
-        <div class="month-header ${monthStateClass}">
+
+        <div class="month-header ${isExpanded ? "open" : "closed"}">
           <button
             type="button"
             class="month-toggle"
@@ -1430,16 +1429,11 @@ function renderScores() {
               ${isExpanded ? "▼" : "▶"}
             </span>
             <span>${escapeHtml(month)}</span>
-            <span class="month-match-count">
-              ${list.length}試合
-            </span>
+            <span class="month-match-count">${list.length}試合</span>
           </button>
         </div>
-    `;
 
-    if (isExpanded) {
-      html += `
-        <div class="month-content">
+        <div class="month-body ${isExpanded ? "" : "hidden"}">
 
           <section class="month-summary-card">
             <h3>${escapeHtml(month)}の成績</h3>
@@ -1473,13 +1467,8 @@ function renderScores() {
                 pkAway !== undefined &&
                 pkAway !== "";
 
-              const pkText = hasPk
-                ? `（PK ${escapeHtml(pkHome)} - ${escapeHtml(pkAway)}）`
-                : "";
-
               const matchUrl = getMatchVideo(score);
               const highlightUrl = getHighlightVideo(score);
-
               const timeline = Array.isArray(score.highlights)
                 ? score.highlights
                 : [];
@@ -1517,7 +1506,6 @@ function renderScores() {
                     data-id="${escapeHtml(score.id)}">
                     編集
                   </button>
-
                   <button
                     type="button"
                     class="danger"
@@ -1534,7 +1522,6 @@ function renderScores() {
                     <span class="match-date">
                       ${escapeHtml(dateLabel(getMatchDate(score)))}
                     </span>
-
                     <span class="match-type-label">
                       ${escapeHtml(matchType)}
                     </span>
@@ -1551,9 +1538,11 @@ function renderScores() {
 
                     <div class="match-score">
                       <strong>${home} - ${away}</strong>
-                      ${hasPk
-                        ? `<span class="match-pk">${pkText}</span>`
-                        : ""}
+                      ${hasPk ? `
+                        <span class="match-pk">
+                          （PK ${escapeHtml(pkHome)} - ${escapeHtml(pkAway)}）
+                        </span>
+                      ` : ""}
                     </div>
 
                     <div class="match-team away-team">
@@ -1581,14 +1570,15 @@ function renderScores() {
             }).join("")}
           </div>
         </div>
-      `;
-    }
-
-    html += `</section>`;
+      </section>
+    `;
   }
 
   $("items").innerHTML = html;
 }
+
+
+
 
 /* =========================================================
    一覧の操作
