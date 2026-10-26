@@ -1588,7 +1588,224 @@ footer {
   box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
 }
 
-  
+
+
+/* =========================================
+   PREMIUM MATCH CARD — LAYOUT REFINEMENT
+========================================= */
+
+/* 試合カード全体を整理 */
+.month-matches {
+  gap: 22px;
+}
+
+.month-matches .item {
+  padding: 20px;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(30, 78, 119, .22), transparent 65%),
+    linear-gradient(155deg, #102138 0%, #091524 100%) !important;
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+/* 日付と試合種別 */
+.match-card-header {
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.match-date {
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: .035em;
+}
+
+.match-type-label {
+  padding: 5px 11px;
+  border-radius: 7px;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+
+/* 大会名 */
+.match-competition {
+  margin-bottom: 17px;
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: .015em;
+}
+
+/* スコアボード：中央のスコアを主役に */
+.match-scoreboard {
+  grid-template-columns: minmax(0, 1fr) minmax(88px, auto) minmax(0, 1fr);
+  gap: 8px;
+  min-height: 112px;
+  padding: 22px 12px;
+  border: 1px solid #344c67 !important;
+  border-radius: 15px !important;
+  background:
+    linear-gradient(135deg, rgba(28, 51, 75, .72), rgba(10, 23, 39, .96)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .04),
+    0 5px 16px rgba(0, 0, 0, .12);
+}
+
+.match-team {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.match-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.match-score > strong {
+  color: #f4d47e;
+  font-size: clamp(32px, 8vw, 43px);
+  font-weight: 950;
+  letter-spacing: -1.5px;
+  line-height: 1.15;
+  text-shadow: 0 0 22px rgba(244, 212, 126, .12);
+}
+
+.match-pk {
+  margin-top: 7px;
+  font-size: 11px;
+}
+
+/* 動画ボタン：高さと余白を統一 */
+.month-matches .video-actions {
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.month-matches .video-actions .link-button {
+  min-height: 48px;
+  padding: 11px 8px;
+  border-radius: 11px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* 得点シーンの見出し */
+.month-matches .item h3 {
+  margin-top: 15px;
+  margin-bottom: 9px;
+}
+
+/* 得点シーン：ボタン間隔と押しやすさ */
+.goal-buttons {
+  gap: 9px;
+  margin-top: 8px;
+}
+
+.goal-buttons button {
+  min-height: 43px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* 編集・削除ボタン */
+.month-matches .actions {
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.month-matches .actions button {
+  min-height: 47px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+/* メモ欄 */
+.match-memo {
+  margin-top: 15px;
+  padding: 13px 14px;
+  border-radius: 11px;
+  line-height: 1.8;
+}
+
+/* iPhone向けの微調整 */
+@media (max-width: 480px) {
+  .month-matches {
+    gap: 17px;
+  }
+
+  .month-matches .item {
+    padding: 14px;
+  }
+
+  .match-card-header {
+    gap: 8px;
+  }
+
+  .match-competition {
+    margin-bottom: 14px;
+    font-size: 16px;
+  }
+
+  .match-scoreboard {
+    grid-template-columns: minmax(0, 1fr) minmax(76px, auto) minmax(0, 1fr);
+    min-height: 100px;
+    gap: 5px;
+    padding: 17px 5px;
+  }
+
+  .match-team {
+    font-size: 11px;
+  }
+
+  .match-score > strong {
+    font-size: 30px;
+  }
+
+  .month-matches .video-actions {
+    gap: 7px;
+    margin-top: 13px;
+  }
+
+  .month-matches .video-actions .link-button {
+    min-height: 45px;
+    padding: 9px 5px;
+    font-size: 11px;
+  }
+
+  .goal-buttons {
+    gap: 7px;
+  }
+
+  .goal-buttons button {
+    min-height: 41px;
+    padding: 9px 10px;
+    font-size: 11px;
+  }
+
+  .month-matches .actions {
+    gap: 8px;
+    margin-top: 15px;
+  }
+
+  .month-matches .actions button {
+    min-height: 45px;
+    font-size: 12px;
+  }
+}
+
+
+
+
+  　
   
 </style>
   
