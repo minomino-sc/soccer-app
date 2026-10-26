@@ -1381,27 +1381,25 @@ function makeMonthlyStats(list) {
    ・勝敗別の試合カード
 ========================================================= */
 
-function renderScores() {
+  // 初回のデータ読み込み後、当月以外を折りたたむ
+  // scoreCache が空の間は初期化を完了させない
+  if (!initializedScoreMonths && scoreCache.length > 0) {
+    const now = new Date();
+    const currentMonth =
+      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-// 初回表示時、当月以外を折りたたむ
-if (!initializedScoreMonths) {
-  const now = new Date();
-  const currentMonth =
-    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    for (const score of scoreCache) {
+      const date = getMatchDate(score);
+      const month = date ? date.slice(0, 7) : "日付未設定";
 
-  for (const score of scoreCache) {
-    const date = getMatchDate(score);
-    const month = date ? date.slice(0, 7) : "日付未設定";
-
-    if (month !== currentMonth) {
-      collapsedMonths.add(month);
+      if (month !== currentMonth) {
+        collapsedMonths.add(month);
+      }
     }
+
+    initializedScoreMonths = true;
   }
-
-  initializedScoreMonths = true;
-}
-
-   
+ 
   const query = $("searchInput").value.trim();
 
   const filtered = [...scoreCache]
