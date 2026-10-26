@@ -1066,6 +1066,80 @@
   color: #ffffff !important;
 }
 
+
+/* =========================================================
+   MATCH RESULTS - BLACK & WHITE DESIGN
+   黒背景 × 白文字 × 勝敗アクセントカラー
+========================================================= */
+
+/* 試合結果カード */
+.item.score-win,
+.item.score-draw,
+.item.score-loss {
+  background: #080b10;
+  color: #ffffff;
+  border: 1px solid #303744;
+  border-radius: 12px;
+}
+
+/* カード内の文字 */
+.item.score-win,
+.item.score-draw,
+.item.score-loss {
+  color: #ffffff;
+}
+
+.item.score-win h1,
+.item.score-win h2,
+.item.score-win h3,
+.item.score-draw h1,
+.item.score-draw h2,
+.item.score-draw h3,
+.item.score-loss h1,
+.item.score-loss h2,
+.item.score-loss h3 {
+  color: #ffffff;
+}
+
+/* スコア表示 */
+.match-score {
+  color: #ffffff;
+}
+
+.match-score strong {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* チーム名 */
+.match-scoreboard {
+  color: #ffffff;
+}
+
+/* 勝敗ごとのアクセントカラー */
+.item.score-win {
+  border-left: 4px solid #22c55e;
+}
+
+.item.score-draw {
+  border-left: 4px solid #3b82f6;
+}
+
+.item.score-loss {
+  border-left: 4px solid #ef4444;
+}
+
+/* カード内の通常テキスト */
+.item.score-win p,
+.item.score-draw p,
+.item.score-loss p {
+  color: #e5e7eb;
+}
+
+/* 試合動画・ハイライトのボタンは既存デザインを維持 */
+  
 </style>
   
 </head>
