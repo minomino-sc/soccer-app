@@ -1065,6 +1065,468 @@
   border-color: #d93636 !important;
   color: #ffffff !important;
 }
+
+
+
+/* =========================================
+   KOBE SANNOMIYA FC
+   PREMIUM MATCH CENTER
+   デザイン改修・CSSのみ
+========================================= */
+
+:root {
+  --club-green: #071629;
+  --club-green-light: #123b65;
+  --club-green-soft: #132941;
+  --page-green: #050d19;
+  --accent-blue: #159dff;
+  --text-main: #edf3fc;
+  --text-muted: #9aacc3;
+  --win-blue: #168bff;
+  --draw-gray: #71829a;
+  --loss-red: #e24b55;
+  --border-color: #243b55;
+  --card-shadow: 0 12px 32px rgba(0, 0, 0, .24);
+}
+
+/* ページ全体 */
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, #142b47 0%, transparent 55%),
+    linear-gradient(180deg, #081525 0%, #040a13 100%);
+  color: var(--text-main);
+}
+
+/* ヘッダー */
+header {
+  position: relative;
+  overflow: hidden;
+  padding: 30px 14px 27px;
+  border-bottom: 1px solid #334a66;
+  background:
+    radial-gradient(ellipse at 80% 100%, rgba(25, 91, 147, .38), transparent 55%),
+    linear-gradient(115deg, #07111f, #102744 60%, #07111f);
+  text-align: left;
+}
+
+header::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin: 17px auto 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #b88b31, #ffe49a);
+}
+
+header h1 {
+  color: #fff;
+  font-size: clamp(20px, 5vw, 27px);
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .4);
+}
+
+header p {
+  color: #d5b76d;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .17em;
+}
+
+/* メインの幅と余白 */
+main {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 14px;
+}
+
+.panel {
+  padding: 20px;
+  border: 1px solid #263e59;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #101f32, #0a1524);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .2);
+}
+
+h2 {
+  color: #f1d58b;
+  font-size: 20px;
+  letter-spacing: .025em;
+}
+
+h3 {
+  color: #e8c875;
+}
+
+.description,
+.meta {
+  color: #a3b3c8;
+}
+
+label {
+  color: #c5d3e5;
+}
+
+/* 入力欄 */
+input,
+select,
+textarea {
+  border: 1px solid #354c68;
+  border-radius: 10px;
+  background: #0a1626;
+  color: #f3f6fc;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #73869e;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid rgba(21, 157, 255, .24);
+  border-color: #159dff;
+}
+
+/* ボタン共通 */
+button {
+  border: 1px solid #315477;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #174c7d, #103457);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+  transition: filter .18s ease, transform .18s ease;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.2);
+}
+
+button.secondary {
+  border-color: #536a84;
+  background: #15283e;
+  color: #dce8f7;
+}
+
+button.danger {
+  border-color: #ed5b63;
+  background: linear-gradient(135deg, #e34b55, #a92537);
+  color: #fff;
+}
+
+/* ログイン画面 */
+.login-note {
+  border-color: #344960;
+  background: #0b1a2b;
+  color: #bdcce0;
+}
+
+.login-subtitle {
+  color: #9bacc2;
+}
+
+/* タブ */
+.tabs {
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid #304c6c;
+  border-radius: 15px;
+  background: #091524;
+}
+
+.tabs button,
+.tabs button.secondary {
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #bdcce0;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.tabs button.active {
+  background: linear-gradient(110deg, #b88b31, #f1d27c);
+  color: #101b2b;
+  box-shadow: 0 3px 14px rgba(205, 164, 71, .18);
+}
+
+/* 検索・再読み込み */
+#searchInput {
+  min-height: 48px;
+  border-color: #385775;
+  background: #102239;
+}
+
+#reload {
+  border-color: #365474;
+}
+
+/* 月ごとの見出し */
+.month-header,
+.month-header.open,
+.month-header.closed {
+  border-color: #2b4663;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #12263d, #0a1728);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, .17);
+}
+
+.month-header .month-toggle {
+  color: #f0d38a !important;
+}
+
+.month-toggle-icon,
+.month-match-count {
+  color: #aebfd4;
+}
+
+/* 月別成績カード */
+.month-summary-card {
+  border-color: #2b4561;
+  background: linear-gradient(145deg, #13243a, #0a1524);
+}
+
+.month-summary-card::before {
+  background: linear-gradient(90deg, #159dff, #caa24a, #159dff);
+}
+
+.month-summary-card > h3,
+.month-summary-card > h4 {
+  color: #e8ca7c;
+}
+
+.stats,
+.type-row {
+  border-color: #2c435b;
+  background: #0c1929;
+  color: #e4ebf5;
+}
+
+.stats-numbers > span {
+  color: #e4ebf5;
+}
+
+.stats-numbers > span.stat-win,
+.stats-numbers .stat-win {
+  background: #102c47 !important;
+}
+
+.stats-numbers > span.stat-draw,
+.stats-numbers .stat-draw {
+  background: #202b3a !important;
+}
+
+.stats-numbers > span.stat-loss,
+.stats-numbers .stat-loss {
+  background: #3a202c !important;
+}
+
+.type-title strong,
+.type-result {
+  color: #dce8f7;
+}
+
+.type-title span,
+.type-goals {
+  color: #9bacc2;
+}
+
+/* 試合カード */
+.month-matches {
+  gap: 17px;
+}
+
+.month-matches .item {
+  position: relative;
+  padding: 17px;
+  border: 1px solid #29435e;
+  border-left: 5px solid #159dff;
+  border-radius: 15px;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(21, 85, 132, .19), transparent 60%),
+    linear-gradient(145deg, #102138, #091524);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .23);
+}
+
+.month-matches .item.score-win {
+  border-left-color: #20b87a;
+}
+
+.month-matches .item.score-draw {
+  border-left-color: #8495ad;
+}
+
+.month-matches .item.score-loss {
+  border-left-color: #e24b55;
+}
+
+.match-date {
+  color: #bdcce0;
+  font-size: 13px;
+}
+
+.match-type-label {
+  border: 1px solid #2d765b;
+  border-radius: 7px;
+  background: #103b31;
+  color: #7ce0b4;
+}
+
+.match-competition {
+  color: #f1d58b;
+  font-size: 17px;
+  font-weight: 850;
+}
+
+/* スコアボード */
+.match-scoreboard {
+  gap: 8px;
+  padding: 20px 8px;
+  border: 1px solid #293f56;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #101d2c, #17283a);
+}
+
+.match-team {
+  color: #edf3fc;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.match-score {
+  color: #f4d16f;
+}
+
+.match-score > strong {
+  font-size: clamp(30px, 7vw, 42px);
+  font-weight: 950;
+  letter-spacing: -1.5px;
+  text-shadow: 0 2px 18px rgba(231, 187, 83, .12);
+}
+
+.match-pk {
+  color: #9bacc2;
+}
+
+/* 動画・ハイライトボタン */
+.month-matches .video-actions .link-button {
+  min-height: 45px;
+  border: 1px solid #267bc0 !important;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #123e6e, #102c4c) !important;
+  color: #d7edff !important;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.month-matches .video-actions .link-button:last-child {
+  border-color: #98723a !important;
+  background: linear-gradient(135deg, #49391f, #2b251c) !important;
+  color: #f5dba0 !important;
+}
+
+/* 得点・失点シーン */
+.goal-buttons {
+  gap: 8px;
+}
+
+.goal-buttons button {
+  min-height: 40px;
+  border: 1px solid #275987 !important;
+  border-radius: 9px;
+  background: #102b49 !important;
+  color: #a8d9ff !important;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* 編集・削除 */
+.month-matches .actions button {
+  min-height: 45px;
+  border-radius: 10px;
+}
+
+.month-matches .actions button.secondary,
+.item .actions button.secondary {
+  border: 1px solid #398b68;
+  background: #10392f;
+  color: #a1e5c2;
+}
+
+.month-matches .actions button.danger,
+.item .actions button.danger {
+  border: 1px solid #a83b49;
+  background: linear-gradient(135deg, #c83b4b, #8d2635);
+  color: #fff;
+}
+
+/* メモ・空表示・区切り線 */
+.match-memo {
+  border: 1px solid #2a4058;
+  background: #0b1929;
+  color: #bdcce0;
+}
+
+.empty {
+  color: #9bacc2;
+}
+
+.form-divider {
+  border-top-color: #2a4058;
+}
+
+/* 動画プレイヤー */
+iframe {
+  border: 1px solid #2c435b;
+  border-radius: 12px;
+}
+
+/* フッター */
+footer {
+  color: #7589a2;
+  letter-spacing: .1em;
+}
+
+/* スマートフォン */
+@media (max-width: 480px) {
+  header {
+    padding: 23px 12px 20px;
+  }
+
+  main {
+    padding: 0 10px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .month-matches .item {
+    padding: 13px;
+  }
+
+  .match-scoreboard {
+    padding: 16px 4px;
+  }
+
+  .match-team {
+    font-size: 11px;
+  }
+
+  .match-score > strong {
+    font-size: 27px;
+  }
+
+  .month-matches .video-actions .link-button,
+  .goal-buttons button {
+    font-size: 11px;
+  }
+}
+
+
+  
   
 </style>
   
