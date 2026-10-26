@@ -1537,57 +1537,85 @@ function renderScores() {
                 </div>
               ` : "";
 
-              return `
-                <article class="item ${resultClass}">
-                  <div class="match-card-header">
-                    <span class="match-date">
-                      ${escapeHtml(dateLabel(getMatchDate(score)))}
-                    </span>
-                    <span class="match-type-label">
-                      ${escapeHtml(matchType)}
-                    </span>
-                  </div>
 
-                  <h3 class="match-competition">
-                    ${escapeHtml(competition || "試合")}
-                  </h3>
 
-                  <div class="match-scoreboard">
-                    <div class="match-team home-team">
-                      <strong>神戸三宮FC</strong>
-                    </div>
 
-                    <div class="match-score">
-                      <strong>${home} - ${away}</strong>
-                      ${hasPk ? `
-                        <span class="match-pk">
-                          （PK ${escapeHtml(pkHome)} - ${escapeHtml(pkAway)}）
-                        </span>
-                      ` : ""}
-                    </div>
 
-                    <div class="match-team away-team">
-                      <strong>${escapeHtml(score.opponent || "相手")}</strong>
-                    </div>
-                  </div>
+return `
+  <article class="item match-card ${resultClass}">
+    <div class="match-card-header">
+      <span class="match-date">
+        ${escapeHtml(dateLabel(getMatchDate(score)))}
+      </span>
+      <span class="match-type-label">
+        ${escapeHtml(matchType)}
+      </span>
+    </div>
 
-                  ${score.memo ? `
-                    <div class="match-memo">
-                      ${escapeHtml(score.memo).replace(/\n/g, "<br>")}
-                    </div>
-                  ` : ""}
+    <div class="match-competition">
+      ${escapeHtml(competition || "試合")}
+    </div>
 
-                  ${(matchUrl || highlightUrl) ? `
-                    <div class="video-actions">
-                      ${externalVideoLink(matchUrl, "▶ 試合動画")}
-                      ${externalVideoLink(highlightUrl, "▶ ゴールハイライト")}
-                    </div>
-                  ` : ""}
+    <div class="match-scoreboard">
+      <div class="match-team home-team">
+        <img
+          class="match-team-emblem"
+          src="emblem.png"
+          alt="神戸三宮FC"
+          onerror="this.style.display='none'">
+        <strong>神戸三宮FC</strong>
+      </div>
 
-                  ${timelineHtml}
-                  ${adminActions}
-                </article>
-              `;
+      <div class="match-score">
+        <div class="match-score-numbers">
+          <span>${home}</span>
+          <span class="match-score-separator">-</span>
+          <span>${away}</span>
+        </div>
+        <span class="match-outcome">
+          ${outcome === "勝" ? "WIN" : outcome === "分" ? "DRAW" : "LOSS"}
+        </span>
+        ${hasPk ? `
+          <span class="match-pk">
+            PK ${escapeHtml(pkHome)} - ${escapeHtml(pkAway)}
+          </span>
+        ` : ""}
+      </div>
+
+      <div class="match-team away-team">
+        <div class="match-opponent-mark">VS</div>
+        <strong>${escapeHtml(score.opponent || "相手")}</strong>
+      </div>
+    </div>
+
+    ${score.memo ? `
+      <div class="match-memo">
+        ${escapeHtml(score.memo).replace(/\n/g, "<br>")}
+      </div>
+    ` : ""}
+
+    ${(matchUrl || highlightUrl) ? `
+      <div class="video-actions">
+        ${externalVideoLink(matchUrl, "▶ 試合動画")}
+        ${externalVideoLink(highlightUrl, "▶ ゴールハイライト")}
+      </div>
+    ` : ""}
+
+    ${timelineHtml}
+    ${adminActions}
+  </article>
+`;
+
+
+
+               
+
+
+
+
+
+
+               
             }).join("")}
           </div>
         </div>
