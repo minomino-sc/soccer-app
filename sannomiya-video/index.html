@@ -9,1505 +9,1075 @@
 
 
 <style>
-  * {
-    box-sizing: border-box;
-  }
 
-  :root {
-    --club-green: #123d2b;
-    --club-green-light: #1e6043;
-    --club-green-soft: #e7eee9;
-    --page-green: #f1f5f1;
-    --accent-blue: #2a8cff;
-    --text-main: #26332b;
-    --text-muted: #6b776e;
-    --win-blue: #3186d8;
-    --draw-gray: #7b8580;
-    --loss-red: #d34444;
-    --border-color: #e0e7e1;
-    --card-shadow: 0 4px 14px rgba(30, 55, 38, .06);
-  }
-
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-      "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
-    background: var(--page-green);
-    color: var(--text-main);
-    line-height: 1.6;
-  }
-
-  header {
-    background: var(--club-green);
-    color: #fff;
-    text-align: center;
-    padding: 25px 14px;
-  }
-
-  header h1 {
-    font-size: 21px;
-    font-weight: 800;
-    letter-spacing: .02em;
-    margin: 0 0 7px;
-  }
-
-  header p {
-    font-size: 11px;
-    letter-spacing: .12em;
-    margin: 0;
-    opacity: .85;
-  }
-
-  main {
-    width: 100%;
-    max-width: 900px;
-    margin: 22px auto;
-    padding: 0 14px;
-  }
-
-  .panel {
-    min-width: 0;
-    padding: 20px;
-    margin-bottom: 18px;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    background: #fff;
-    box-shadow: var(--card-shadow);
-  }
-
-  h2 {
-    margin: 0 0 15px;
-    color: var(--club-green);
-    font-size: 19px;
-    font-weight: 800;
-  }
-
-  h3 {
-    margin: 0 0 11px;
-    color: var(--club-green);
-    font-size: 16px;
-    font-weight: 750;
-  }
-
-  .description {
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.8;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 6px;
-    color: #34463a;
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  input,
-  select,
-  textarea,
-  button {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    margin: 0 0 13px;
-    padding: 12px;
-    border-radius: 9px;
-    font: inherit;
-  }
-
-  input,
-  select,
-  textarea {
-    border: 1px solid #d5ded7;
-    background: #fff;
-    color: var(--text-main);
-  }
-
-  input,
-  select {
-    min-height: 44px;
-  }
-
-  input[type="date"] {
-    height: 46px;
-    padding: 10px 12px;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  textarea {
-    resize: vertical;
-    line-height: 1.7;
-  }
-
-  input:focus,
-  select:focus,
-  textarea:focus {
-    outline: 2px solid rgba(42, 140, 255, .18);
-    border-color: var(--accent-blue);
-  }
-
-  button {
-    min-height: 44px;
-    border: 0;
-    background: var(--club-green-light);
-    color: #fff;
-    font-weight: 750;
-    cursor: pointer;
-    transition: filter .15s ease, transform .15s ease;
-  }
-
-  button:hover:not(:disabled) {
-    filter: brightness(1.08);
-  }
-
-  button:active:not(:disabled) {
-    transform: scale(.99);
-  }
-
-  button.secondary {
-    border: 1px solid #d7e3d9;
-    background: #edf3ee;
-    color: var(--club-green);
-  }
-
-  button.danger {
-    background: var(--loss-red);
-    color: #fff;
-  }
-
-  button:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-  }
-
-  .hidden {
-    display: none !important;
-  }
-
-  /* ログイン */
-  .login-heading,
-  .login-subtitle {
-    text-align: center;
-  }
-
-  .login-subtitle {
-    margin-bottom: 20px;
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.8;
-  }
-
-  .login-note {
-    margin-bottom: 18px;
-    padding: 14px;
-    border: 1px solid #e3ebe4;
-    border-radius: 10px;
-    background: #f5f8f5;
-    font-size: 12px;
-    line-height: 1.9;
-  }
-
-  .status {
-    font-size: 13px;
-    line-height: 1.8;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-  }
-
-  .error {
-    color: #b42323;
-  }
-
-  .success {
-    color: #21663b;
-  }
-
-  /* 動画・試合結果のタブ */
-  .tabs {
-    display: flex;
-    gap: 9px;
-    margin-bottom: 16px;
-  }
-
-  .tabs button {
-    flex: 1;
-    min-width: 0;
-    margin: 0;
-    padding: 12px 6px;
-    border: 1px solid #d7e3d9;
-    border-radius: 11px;
-    background: #fff;
-    color: var(--club-green);
-    font-size: 14px;
-    font-weight: 800;
-  }
-
-  .tabs button.active {
-    border-color: var(--club-green);
-    background: var(--club-green);
-    color: #fff;
-  }
-
-  .tabs button.secondary {
-    background: #fff;
-    color: var(--club-green);
-  }
-
-  /* 動画・試合結果の基本カード */
-  .item {
-    min-width: 0;
-    margin: 13px 0;
-    padding: 16px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    border-left: 5px solid #a6b4a9;
-    border-radius: 13px;
-    background: #fff;
-    box-shadow: var(--card-shadow);
-  }
-
-  .item:first-child {
-    border-top: 1px solid var(--border-color);
-  }
-
-  .item h3 {
-    line-height: 1.55;
-    overflow-wrap: anywhere;
-  }
-
-  .item.score-win {
-    border-left-color: var(--win-blue);
-  }
-
-  .item.score-draw {
-    border-left-color: var(--draw-gray);
-  }
-
-  .item.score-loss {
-    border-left-color: var(--loss-red);
-  }
-
-  .meta {
-    margin-bottom: 10px;
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.8;
-    overflow-wrap: anywhere;
-  }
-
-  .item p {
-    font-size: 14px;
-    line-height: 1.8;
-    overflow-wrap: anywhere;
-  }
-
-  iframe {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border: 0;
-    border-radius: 10px;
-    background: #000;
-  }
-
-  .actions,
-  .video-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .actions button {
-    flex: 1;
-    min-width: 100px;
-    margin: 0;
-    padding: 10px 7px;
-    font-size: 13px;
-  }
-
-  .form-divider {
-    height: 0;
-    margin: 24px 0;
-    border: 0;
-    border-top: 1px solid #e3e9e4;
-  }
-
-  .empty {
-    padding: 28px 10px;
-    color: var(--text-muted);
-    font-size: 14px;
-    text-align: center;
-  }
-
-  .form-row {
-    display: flex;
-    gap: 12px;
-  }
-
-  .form-row > div {
-    flex: 1;
-    min-width: 0;
-  }
-
-  /* リンクボタン */
-  .link-button {
-    display: inline-block;
-    margin: 4px 6px 4px 0;
-    padding: 10px 13px;
-    border-radius: 9px;
-    background: var(--accent-blue);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 750;
-    text-decoration: none;
-  }
-
-  .link-button:hover {
-    background: #005fcc;
-  }
-
-  .video-play-button {
-    display: inline-block;
-    width: auto;
-    max-width: 100%;
-    margin: 4px 6px 4px 0;
-    padding: 10px 13px;
-    border: 0;
-    border-radius: 9px;
-    background: var(--accent-blue);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 750;
-    cursor: pointer;
-  }
-
-  .video-play-button:hover {
-    background: #005fcc;
-  }
-
-  /* ゴールシーンのボタン */
-  .goal-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-  }
-
-  .goal-buttons button {
-    width: auto;
-    min-height: 38px;
-    margin: 0;
-    padding: 8px 11px;
-    border: 1px solid #d7e3d9;
-    border-radius: 8px;
-    background: #edf3ee;
-    color: var(--club-green);
-    font-size: 12px;
-  }
-
-  #videoMonthFilters {
-    margin-bottom: 6px;
-  }
-
-  #videoMonthFilters label,
-  #matchVideoYear,
-  #matchVideoMonth,
-  #highlightVideoYear,
-  #highlightVideoMonth {
-    margin-bottom: 8px;
-  }
-
-  /* 月別グループ */
-  .month-group {
-    margin: 0 0 25px;
-  }
-
-  .month-header {
-    overflow: hidden;
-    margin: 18px 0 14px;
-    border: 1px solid #d5e2d7;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 3px 12px rgba(24, 65, 43, .06);
-  }
-
-  .month-header.open {
-    background: #fff;
-    border-color: #d5e2d7;
-  }
-
-  .month-header.closed {
-    background: #e8f3e9;
-    border-color: #c7dfcc;
-  }
-
-  .month-header .month-toggle {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    width: 100%;
-    min-height: 62px;
-    margin: 0;
-    padding: 15px 17px;
-    border: 0;
-    border-radius: 0;
-    background: transparent !important;
-    color: var(--club-green) !important;
-    font-size: 18px;
-    font-weight: 800;
-    text-align: left;
-    box-shadow: none;
-  }
-
-  .month-toggle-icon {
-    flex-shrink: 0;
-    color: #28734b;
-    font-size: 16px;
-  }
-
-  .month-match-count {
-    margin-left: auto;
-    color: #526458;
-    font-size: 13px;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .month-body {
-    min-width: 0;
-  }
-
-  /* 月別成績カード */
-  .month-summary-card {
-    position: relative;
-    min-width: 0;
-    margin: 0 0 18px;
-    padding: 19px;
-    overflow: hidden;
-    border: 1px solid #e0e8e1;
-    border-radius: 16px;
-    background: linear-gradient(145deg, #fff 0%, #f8fbf8 100%);
-    box-shadow: var(--card-shadow);
-  }
-
-  .month-summary-card::before {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, #2a8cff, #4eaa78);
-    content: "";
-  }
-
-  .month-summary-card > h3 {
-    margin: 3px 0 17px;
-    color: var(--club-green);
-    font-size: 20px;
-    font-weight: 800;
-  }
-
-  .month-summary-card > h4 {
-    margin: 24px 0 12px;
-    color: #28543a;
-    font-size: 16px;
-    font-weight: 800;
-  }
-
-  /* 成績サマリー */
-  .stats,
-  .stats-summary {
-    color: var(--text-main);
-    font-size: 13px;
-    line-height: 1.8;
-  }
-
-  .stats {
-    margin: 14px 0;
-    padding: 14px;
-    border: 1px solid #e0e8e1;
-    border-radius: 12px;
-    background: #f8faf8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .035);
-  }
-
-  .stats-summary {
-    margin-bottom: 10px;
-    font-weight: 750;
-  }
-
-  .stats-numbers {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: 8px;
-    margin: 9px 0 13px;
-  }
-
-  .stats-numbers > span {
-    color: #34483b;
-    font-size: 13px;
-  }
-
-  .stats-numbers > span.stat-win,
-  .stats-numbers > span.stat-draw,
-  .stats-numbers > span.stat-loss {
-    flex: 1 1 65px;
-    padding: 10px 6px;
-    border-radius: 10px;
-    background: #f0f3f0;
-    text-align: center;
-    font-weight: 750;
-  }
-
-  .stat-win {
-    color: var(--win-blue) !important;
-  }
-
-  .stat-draw {
-    color: var(--draw-gray) !important;
-  }
-
-  .stat-loss {
-    color: var(--loss-red) !important;
-  }
-
-  .stats-numbers .stat-win {
-    background: #edf5ff !important;
-  }
-
-  .stats-numbers .stat-draw {
-    background: #f0f2f1 !important;
-  }
-
-  .stats-numbers .stat-loss {
-    background: #fff0f0 !important;
-  }
-
-  .stats .win-rate,
-  .month-summary-card .win-rate {
-    margin-top: 3px;
-    font-size: 16px;
-    font-weight: 850;
-  }
-
-  .stats .win-rate.win-high,
-  .win-rate.win-high {
-    color: #258052;
-  }
-
-  .stats .win-rate.win-mid,
-  .win-rate.win-mid {
-    color: #b17b20;
-  }
-
-  .stats .win-rate.win-low,
-  .win-rate.win-low {
-    color: #c43a3a;
-  }
-
-  .win-bar {
-    width: 100%;
-    height: 8px;
-    margin: 7px 0 12px;
-    overflow: hidden;
-    border-radius: 99px;
-    background: #e8eee9;
-  }
-
-  .win-bar-inner {
-    height: 100%;
-    width: 0;
-    border-radius: inherit;
-    transition: width .3s ease;
-  }
-
-  .win-bar-inner.win-high {
-    background: #2f9865;
-  }
-
-  .win-bar-inner.win-mid {
-    background: #d6a13b;
-  }
-
-  .win-bar-inner.win-low {
-    background: #d44c4c;
-  }
-
-  /* 旧形式の統計表示も維持 */
-  .stats .type-stats,
-  .stats .monthly-stats {
-    margin-top: 12px;
-  }
-
-  .stats .type-stats-title {
-    margin-bottom: 6px;
-    font-size: 13px;
-    font-weight: 750;
-  }
-
-  .stats .type-stats-row,
-  .stats .monthly-stats-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 4px;
-    border-bottom: 1px solid #e5eae6;
-    font-size: 12px;
-  }
-
-  .stats .type-stats-row:last-child {
-    border-bottom: 0;
-  }
-
-  .stats .type-stats-result,
-  .stats .monthly-stats-detail {
-    font-weight: 650;
-    text-align: right;
-  }
-
-  .stats .monthly-stats-month {
-    font-weight: 750;
-    white-space: nowrap;
-  }
-
-  .stats .type-stats {
-    padding-top: 9px;
-    border-top: 1px solid #dce6de;
-  }
-
-  /* 試合種別ごとの成績 */
-  .type-list {
-    display: grid;
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .type-row {
-    padding: 13px 14px;
-    border: 1px solid #e0e8e1;
-    border-radius: 11px;
-    background: #f8faf8;
-  }
-
-  .type-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .type-title strong {
-    color: #28543a;
-    font-size: 14px;
-  }
-
-  .type-title span {
-    color: #68756c;
-    font-size: 12px;
-  }
-
-  .type-result {
-    margin-bottom: 5px;
-    color: #34483b;
-    font-size: 13px;
-    font-weight: 750;
-  }
-
-  .type-goals {
-    color: #66736a;
-    font-size: 12px;
-    line-height: 1.7;
-  }
-
-  /* 試合結果一覧 */
-  .month-matches {
-    display: grid;
-    gap: 13px;
-  }
-
-  .month-matches .item {
-    min-width: 0;
-    margin: 0;
-    padding: 17px;
-    overflow: hidden;
-    border: 1px solid #dfe7e0;
-    border-left: 5px solid #9aa79d;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: var(--card-shadow);
-  }
-
-  .month-matches .item.score-win {
-    border-left-color: var(--win-blue);
-  }
-
-  .month-matches .item.score-draw {
-    border-left-color: var(--draw-gray);
-  }
-
-  .month-matches .item.score-loss {
-    border-left-color: var(--loss-red);
-  }
-
-  .match-card-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .match-date {
-    color: var(--text-muted);
-    font-size: 12px;
-    font-weight: 650;
-  }
-
-  .match-type-label {
-    display: inline-block;
-    padding: 4px 9px;
-    border-radius: 6px;
-    background: #eaf3ec;
-    color: #286342;
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  .match-competition {
-    margin: 0 0 14px;
-    color: #24583c;
-    font-size: 16px;
-    font-weight: 800;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
-  }
-
-  /* スコアボード */
-  .match-scoreboard {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: center;
-    gap: 9px;
-    padding: 17px 9px;
-    border: 1px solid #edf0ed;
-    border-radius: 11px;
-    background: #f6f8f6;
-  }
-
-  .match-team {
-    min-width: 0;
-    color: #293a2f;
-    font-size: 13px;
-    font-weight: 650;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
-    text-align: center;
-  }
-
-  .home-team,
-  .away-team {
-    text-align: center;
-  }
-
-  .match-score {
-    color: #193e2b;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .match-score > strong {
-    font-size: clamp(25px, 6vw, 32px);
-    font-weight: 900;
-    letter-spacing: -1px;
-  }
-
-  .match-pk {
-    display: block;
-    margin-top: 5px;
-    color: #68756c;
-    font-size: 11px;
-    line-height: 1.5;
-    white-space: normal;
-  }
-
-  .match-memo {
-    margin-top: 12px;
-    padding: 11px 12px;
-    border-radius: 9px;
-    background: #f6f8f6;
-    color: #4d5d52;
-    font-size: 13px;
-    line-height: 1.8;
-    overflow-wrap: anywhere;
-  }
-
-  /* 試合動画・ハイライトへのリンク */
-  .month-matches .video-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 13px;
-  }
-
-  .month-matches .video-actions .link-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    min-height: 42px;
-    margin: 0;
-    padding: 9px 7px;
-    border: 1px solid #d8e7dc;
-    border-radius: 9px;
-    background: #edf5ef;
-    color: #205b3b;
-    font-size: 12px;
-    font-weight: 800;
-    text-align: center;
-    text-decoration: none;
-    overflow-wrap: anywhere;
-  }
-
-  .month-matches .video-actions .link-button:hover {
-    background: #e0eee3;
-  }
-
-  .month-matches .actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 14px;
-  }
-
-  .month-matches .actions button {
-    min-width: 0;
-    min-height: 43px;
-    margin: 0;
-    padding: 9px 6px;
-    border-radius: 9px;
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  /* フッター */
-  footer {
-    padding: 22px 12px 30px;
-    color: #748078;
-    font-size: 11px;
-    letter-spacing: .05em;
-    text-align: center;
-  }
-
-  /* スマートフォン */
-  @media (max-width: 480px) {
-    header {
-      padding: 22px 10px;
-    }
-
-    header h1 {
-      font-size: 18px;
-    }
-
-    main {
-      margin: 15px auto;
-      padding: 0 10px;
-    }
-
-    .panel {
-      padding: 15px;
-      border-radius: 13px;
-    }
-
-    h2 {
-      font-size: 18px;
-    }
-
-    .tabs {
-      gap: 7px;
-    }
-
-    .tabs button {
-      padding: 11px 4px;
-      font-size: 13px;
-    }
-
-    .form-row {
-      gap: 8px;
-    }
-
-    .actions {
-      gap: 6px;
-    }
-
-    .item {
-      padding: 13px;
-      border-radius: 11px;
-    }
-
-    .link-button {
-      margin: 4px 4px 4px 0;
-    }
-
-    .month-header .month-toggle {
-      min-height: 57px;
-      gap: 8px;
-      padding: 13px;
-      font-size: 16px;
-    }
-
-    .month-match-count {
-      font-size: 11px;
-    }
-
-    .month-summary-card {
-      padding: 15px;
-      border-radius: 13px;
-    }
-
-    .month-summary-card > h3 {
-      font-size: 18px;
-    }
-
-    .stats {
-      padding: 11px;
-    }
-
-    .stats-numbers {
-      gap: 5px;
-    }
-
-    .stats-numbers > span.stat-win,
-    .stats-numbers > span.stat-draw,
-    .stats-numbers > span.stat-loss {
-      flex-basis: 58px;
-      padding: 9px 4px;
-      font-size: 12px;
-    }
-
-    .stats .type-stats-row,
-    .stats .monthly-stats-row {
-      font-size: 11px;
-    }
-
-    .month-matches .item {
-      padding: 13px;
-    }
-
-    .match-scoreboard {
-      gap: 4px;
-      padding: 14px 4px;
-    }
-
-    .match-team {
-      font-size: 11px;
-    }
-
-    .match-score > strong {
-      font-size: 24px;
-    }
-
-    .match-competition {
-      font-size: 15px;
-    }
-
-    .month-matches .video-actions .link-button {
-      font-size: 11px;
-    }
-
-    .type-row {
-      padding: 11px;
-    }
-  }
-
-
-/* =========================================
-   動画共有システム：ボタンカラー調整
-========================================= */
-
-/* 試合動画：水色 */
-.month-matches .video-actions a.link-button:first-child {
-  background-color: #b9e6f7 !important;
-  border-color: #8fd2ed !important;
-  color: #164b63 !important;
-}
-
-/* ゴールハイライト：薄い肌色 */
-.month-matches .video-actions a.link-button:last-child {
-  background-color: #f8e3cf !important;
-  border-color: #edc9a8 !important;
-  color: #70482d !important;
-}
-
-/* 得点・失点シーン：薄いピンク色 */
-.goal-buttons button {
-  background-color: #f9dce5 !important;
-  border-color: #efb8ca !important;
-  color: #873c58 !important;
-}
-
-/* 編集：従来の緑色系を維持 */
-.month-matches .actions button.secondary,
-.item .actions button.secondary {
-  background-color: #e8f5e9;
-  border-color: #a5d6a7;
-  color: #256029;
-}
-
-/* 削除：赤色 */
-.item .actions button.danger {
-  background-color: #d93636 !important;
-  border-color: #d93636 !important;
-  color: #ffffff !important;
-}
-
-
-
-/* =========================================
+/* =====================================================
    KOBE SANNOMIYA FC
    PREMIUM MATCH CENTER
-   デザイン改修・CSSのみ
-========================================= */
+   Clean stylesheet / Mobile first
+===================================================== */
+
+* {
+  box-sizing: border-box;
+}
 
 :root {
-  --club-green: #071629;
-  --club-green-light: #123b65;
-  --club-green-soft: #132941;
-  --page-green: #050d19;
-  --accent-blue: #159dff;
-  --text-main: #edf3fc;
-  --text-muted: #9aacc3;
-  --win-blue: #168bff;
-  --draw-gray: #71829a;
-  --loss-red: #e24b55;
-  --border-color: #243b55;
-  --card-shadow: 0 12px 32px rgba(0, 0, 0, .24);
+  --navy-950: #050c16;
+  --navy-900: #081423;
+  --navy-850: #0c1a2b;
+  --navy-800: #102238;
+  --navy-700: #1b3450;
+  --line: #2a4059;
+  --gold: #f0cf79;
+  --gold-light: #ffe6a0;
+  --blue: #49baff;
+  --green: #48c69a;
+  --red: #ef5262;
+  --text: #f3f6fc;
+  --muted: #a5b5c9;
+  --panel: #0d1a2a;
+  --shadow: 0 14px 35px rgba(0, 0, 0, .24);
 }
 
-/* ページ全体 */
+html {
+  min-height: 100%;
+  background: var(--navy-950);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
+  margin: 0;
+  color: var(--text);
   background:
-    radial-gradient(ellipse at 50% 0%, #142b47 0%, transparent 55%),
-    linear-gradient(180deg, #081525 0%, #040a13 100%);
-  color: var(--text-main);
+    radial-gradient(ellipse at 50% -10%, #1a3655 0%, transparent 48%),
+    linear-gradient(180deg, var(--navy-900), var(--navy-950));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  line-height: 1.6;
 }
 
-/* ヘッダー */
 header {
   position: relative;
   overflow: hidden;
-  padding: 30px 14px 27px;
-  border-bottom: 1px solid #334a66;
+  padding: 28px 16px 25px;
+  text-align: center;
+  color: white;
   background:
-    radial-gradient(ellipse at 80% 100%, rgba(25, 91, 147, .38), transparent 55%),
-    linear-gradient(115deg, #07111f, #102744 60%, #07111f);
-  text-align: left;
+    radial-gradient(ellipse at 50% 120%, rgba(58, 126, 181, .24), transparent 65%),
+    linear-gradient(135deg, #07111e, #132b45 55%, #081321);
+  border-bottom: 1px solid #344a61;
 }
 
 header::after {
   content: "";
   display: block;
-  width: 64px;
+  width: 56px;
   height: 3px;
-  margin: 17px auto 0;
+  margin: 16px auto 0;
   border-radius: 99px;
-  background: linear-gradient(90deg, #b88b31, #ffe49a);
+  background: linear-gradient(90deg, #a67c2b, var(--gold-light));
 }
 
 header h1 {
+  margin: 0 0 5px;
   color: #fff;
-  font-size: clamp(20px, 5vw, 27px);
+  font-size: clamp(19px, 4.8vw, 27px);
   font-weight: 900;
-  letter-spacing: .04em;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, .4);
+  letter-spacing: .035em;
 }
 
 header p {
-  color: #d5b76d;
+  margin: 0;
+  color: var(--gold);
   font-size: 10px;
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: .17em;
 }
 
-/* メインの幅と余白 */
 main {
-  max-width: 1000px;
+  width: 100%;
+  max-width: 940px;
   margin: 24px auto;
   padding: 0 14px;
 }
 
 .panel {
+  min-width: 0;
+  margin-bottom: 18px;
   padding: 20px;
-  border: 1px solid #263e59;
-  border-radius: 18px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
   background: linear-gradient(145deg, #101f32, #0a1524);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .2);
+  box-shadow: var(--shadow);
 }
 
 h2 {
-  color: #f1d58b;
+  margin: 0 0 15px;
+  color: var(--gold);
   font-size: 20px;
-  letter-spacing: .025em;
+  font-weight: 850;
 }
 
 h3 {
-  color: #e8c875;
+  margin: 0 0 11px;
+  color: #e8ca83;
+  font-size: 16px;
+  font-weight: 800;
 }
 
-.description,
-.meta {
-  color: #a3b3c8;
+.description {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 label {
-  color: #c5d3e5;
+  display: block;
+  margin-bottom: 6px;
+  color: #cfdaea;
+  font-size: 13px;
+  font-weight: 750;
 }
 
-/* 入力欄 */
+input,
+select,
+textarea,
+button {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 13px;
+  padding: 12px;
+  border-radius: 10px;
+  font: inherit;
+}
+
 input,
 select,
 textarea {
-  border: 1px solid #354c68;
-  border-radius: 10px;
-  background: #0a1626;
-  color: #f3f6fc;
+  border: 1px solid #354d68;
+  background: #091626;
+  color: var(--text);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #73869e;
+  color: #8092a9;
+  opacity: 1;
+}
+
+input,
+select {
+  min-height: 45px;
+}
+
+input[type="date"] {
+  height: 46px;
+  padding: 10px 12px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.7;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid rgba(21, 157, 255, .24);
-  border-color: #159dff;
+  outline: 2px solid rgba(73, 186, 255, .22);
+  border-color: var(--blue);
 }
 
-/* ボタン共通 */
 button {
-  border: 1px solid #315477;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #174c7d, #103457);
+  min-height: 45px;
+  border: 1px solid #31577b;
+  background: linear-gradient(135deg, #194d79, #103253);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
-  transition: filter .18s ease, transform .18s ease;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter .16s ease, transform .16s ease;
 }
 
 button:hover:not(:disabled) {
-  filter: brightness(1.2);
+  filter: brightness(1.13);
+}
+
+button:active:not(:disabled) {
+  transform: scale(.99);
 }
 
 button.secondary {
-  border-color: #536a84;
-  background: #15283e;
-  color: #dce8f7;
+  border: 1px solid #4a627e;
+  background: #172b41;
+  color: #e3edf9;
 }
 
 button.danger {
-  border-color: #ed5b63;
-  background: linear-gradient(135deg, #e34b55, #a92537);
-  color: #fff;
+  border: 1px solid #f16b78;
+  background: linear-gradient(135deg, #e44c5c, #a92338);
+  color: white;
 }
 
-/* ログイン画面 */
-.login-note {
-  border-color: #344960;
-  background: #0b1a2b;
-  color: #bdcce0;
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.login-heading,
+.login-subtitle {
+  text-align: center;
 }
 
 .login-subtitle {
-  color: #9bacc2;
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.login-note {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid #30465d;
+  border-radius: 11px;
+  background: #0a1828;
+  color: #c0cede;
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.status {
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  color: #ff8992;
+}
+
+.success {
+  color: #75e0b6;
 }
 
 /* タブ */
+
 .tabs {
-  gap: 8px;
+  display: flex;
+  gap: 7px;
+  margin-bottom: 16px;
   padding: 5px;
-  border: 1px solid #304c6c;
-  border-radius: 15px;
-  background: #091524;
+  border: 1px solid #293f57;
+  border-radius: 14px;
+  background: #071321;
 }
 
 .tabs button,
 .tabs button.secondary {
-  border: 0;
-  border-radius: 11px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 5px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   background: transparent;
-  color: #bdcce0;
+  color: #b6c5d8;
   font-size: 14px;
   font-weight: 850;
 }
 
 .tabs button.active {
-  background: linear-gradient(110deg, #b88b31, #f1d27c);
-  color: #101b2b;
-  box-shadow: 0 3px 14px rgba(205, 164, 71, .18);
+  border-color: #e3bf64;
+  background: linear-gradient(110deg, #b98d37, #f0d486);
+  color: #101b29;
+  box-shadow: 0 4px 14px rgba(213, 174, 84, .13);
 }
 
-/* 検索・再読み込み */
-#searchInput {
-  min-height: 48px;
-  border-color: #385775;
-  background: #102239;
+/* 一般カード */
+
+.item {
+  min-width: 0;
+  margin: 13px 0;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-left: 4px solid #7d91a7;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #11243a, #0a1625);
+  box-shadow: var(--shadow);
 }
 
-#reload {
-  border-color: #365474;
+.item h3 {
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
-/* 月ごとの見出し */
-.month-header,
-.month-header.open,
-.month-header.closed {
-  border-color: #2b4663;
-  border-radius: 13px;
-  background: linear-gradient(110deg, #12263d, #0a1728);
-  box-shadow: 0 5px 18px rgba(0, 0, 0, .17);
+.item.score-win {
+  border-left-color: var(--green);
 }
 
-.month-header .month-toggle {
-  color: #f0d38a !important;
+.item.score-draw {
+  border-left-color: #8393a7;
 }
 
-.month-toggle-icon,
-.month-match-count {
-  color: #aebfd4;
+.item.score-loss {
+  border-left-color: var(--red);
 }
 
-/* 月別成績カード */
-.month-summary-card {
-  border-color: #2b4561;
-  background: linear-gradient(145deg, #13243a, #0a1524);
+.meta {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 
-.month-summary-card::before {
-  background: linear-gradient(90deg, #159dff, #caa24a, #159dff);
+.item p {
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 
-.month-summary-card > h3,
-.month-summary-card > h4 {
-  color: #e8ca7c;
+iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #000;
 }
 
-.stats,
-.type-row {
-  border-color: #2c435b;
-  background: #0c1929;
-  color: #e4ebf5;
+.actions,
+.video-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
-.stats-numbers > span {
-  color: #e4ebf5;
-}
-
-.stats-numbers > span.stat-win,
-.stats-numbers .stat-win {
-  background: #102c47 !important;
-}
-
-.stats-numbers > span.stat-draw,
-.stats-numbers .stat-draw {
-  background: #202b3a !important;
-}
-
-.stats-numbers > span.stat-loss,
-.stats-numbers .stat-loss {
-  background: #3a202c !important;
-}
-
-.type-title strong,
-.type-result {
-  color: #dce8f7;
-}
-
-.type-title span,
-.type-goals {
-  color: #9bacc2;
-}
-
-/* 試合カード */
-.month-matches {
-  gap: 17px;
-}
-
-.month-matches .item {
-  position: relative;
-  padding: 17px;
-  border: 1px solid #29435e;
-  border-left: 5px solid #159dff;
-  border-radius: 15px;
-  background:
-    radial-gradient(ellipse at 100% 0%, rgba(21, 85, 132, .19), transparent 60%),
-    linear-gradient(145deg, #102138, #091524);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .23);
-}
-
-.month-matches .item.score-win {
-  border-left-color: #20b87a;
-}
-
-.month-matches .item.score-draw {
-  border-left-color: #8495ad;
-}
-
-.month-matches .item.score-loss {
-  border-left-color: #e24b55;
-}
-
-.match-date {
-  color: #bdcce0;
+.actions button {
+  flex: 1;
+  min-width: 100px;
+  margin: 0;
+  padding: 10px 7px;
   font-size: 13px;
 }
 
-.match-type-label {
-  border: 1px solid #2d765b;
-  border-radius: 7px;
-  background: #103b31;
-  color: #7ce0b4;
+.form-divider {
+  height: 0;
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid #293e54;
 }
 
-.match-competition {
-  color: #f1d58b;
-  font-size: 17px;
-  font-weight: 850;
+.empty {
+  padding: 28px 10px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
 }
 
-/* スコアボード */
-.match-scoreboard {
-  gap: 8px;
-  padding: 20px 8px;
-  border: 1px solid #293f56;
-  border-radius: 13px;
-  background: linear-gradient(135deg, #101d2c, #17283a);
+.form-row {
+  display: flex;
+  gap: 12px;
 }
 
-.match-team {
-  color: #edf3fc;
+.form-row > div {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 動画リンク */
+
+.link-button,
+.video-play-button {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+  margin: 4px 6px 4px 0;
+  padding: 10px 13px;
+  border: 1px solid #3e91c9;
+  border-radius: 9px;
+  background: #123a5c;
+  color: #e5f5ff;
   font-size: 13px;
   font-weight: 800;
+  text-decoration: none;
 }
 
-.match-score {
-  color: #f4d16f;
+.video-play-button {
+  cursor: pointer;
 }
 
-.match-score > strong {
-  font-size: clamp(30px, 7vw, 42px);
-  font-weight: 950;
-  letter-spacing: -1.5px;
-  text-shadow: 0 2px 18px rgba(231, 187, 83, .12);
+.link-button:hover,
+.video-play-button:hover {
+  filter: brightness(1.15);
 }
 
-.match-pk {
-  color: #9bacc2;
-}
+/* 得点シーン */
 
-/* 動画・ハイライトボタン */
-.month-matches .video-actions .link-button {
-  min-height: 45px;
-  border: 1px solid #267bc0 !important;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #123e6e, #102c4c) !important;
-  color: #d7edff !important;
-  font-size: 12px;
-  font-weight: 850;
-}
-
-.month-matches .video-actions .link-button:last-child {
-  border-color: #98723a !important;
-  background: linear-gradient(135deg, #49391f, #2b251c) !important;
-  color: #f5dba0 !important;
-}
-
-/* 得点・失点シーン */
 .goal-buttons {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .goal-buttons button {
-  min-height: 40px;
-  border: 1px solid #275987 !important;
+  width: auto;
+  min-height: 41px;
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid #448fc2;
   border-radius: 9px;
-  background: #102b49 !important;
-  color: #a8d9ff !important;
+  background: #123452;
+  color: #e6f5ff;
   font-size: 12px;
   font-weight: 800;
 }
 
-/* 編集・削除 */
-.month-matches .actions button {
-  min-height: 45px;
+#videoMonthFilters {
+  margin-bottom: 6px;
+}
+
+#videoMonthFilters label,
+#matchVideoYear,
+#matchVideoMonth,
+#highlightVideoYear,
+#highlightVideoMonth {
+  margin-bottom: 8px;
+}
+
+/* 月別グループ */
+
+.month-group {
+  margin: 0 0 24px;
+}
+
+.month-header {
+  overflow: hidden;
+  margin: 18px 0 14px;
+  border: 1px solid #2b435c;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #122740, #0a1727);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .16);
+}
+
+.month-header.open {
+  border-color: #354d67;
+  background: #101f32;
+}
+
+.month-header.closed {
+  border-color: #4a5260;
+  background: #142235;
+}
+
+.month-header .month-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 59px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--gold);
+  font-size: 17px;
+  font-weight: 850;
+  text-align: left;
+  box-shadow: none;
+}
+
+.month-toggle-icon {
+  flex-shrink: 0;
+  color: var(--gold);
+  font-size: 16px;
+}
+
+.month-match-count {
+  margin-left: auto;
+  color: #aebed1;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.month-body {
+  min-width: 0;
+}
+
+/* 月別成績 */
+
+.month-summary-card {
+  position: relative;
+  min-width: 0;
+  margin: 0 0 18px;
+  padding: 19px;
+  overflow: hidden;
+  border: 1px solid #2b435c;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #11243a, #0a1625);
+  box-shadow: var(--shadow);
+}
+
+.month-summary-card::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #329ee5, #e4bf63);
+  content: "";
+}
+
+.month-summary-card > h3 {
+  margin: 3px 0 17px;
+  color: var(--gold);
+  font-size: 20px;
+}
+
+.month-summary-card > h4 {
+  margin: 24px 0 12px;
+  color: #e5ca8a;
+  font-size: 16px;
+}
+
+.stats,
+.stats-summary {
+  color: #dce6f3;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.stats {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #2b4158;
+  border-radius: 11px;
+  background: #0a1828;
+}
+
+.stats-summary {
+  margin-bottom: 10px;
+  font-weight: 750;
+}
+
+.stats-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  margin: 9px 0 13px;
+}
+
+.stats-numbers > span {
+  color: #dce6f3;
+  font-size: 13px;
+}
+
+.stats-numbers > span.stat-win,
+.stats-numbers > span.stat-draw,
+.stats-numbers > span.stat-loss {
+  flex: 1 1 65px;
+  padding: 10px 6px;
+  border-radius: 9px;
+  background: #14263a;
+  text-align: center;
+  font-weight: 800;
+}
+
+.stat-win {
+  color: #62c9ff !important;
+}
+
+.stat-draw {
+  color: #b1bdcc !important;
+}
+
+.stat-loss {
+  color: #ff828b !important;
+}
+
+.stats-numbers .stat-win {
+  background: #102d46 !important;
+}
+
+.stats-numbers .stat-draw {
+  background: #202b3a !important;
+}
+
+.stats-numbers .stat-loss {
+  background: #39202b !important;
+}
+
+.stats .win-rate,
+.month-summary-card .win-rate {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.win-rate.win-high {
+  color: #57d5a3;
+}
+
+.win-rate.win-mid {
+  color: #e9c36b;
+}
+
+.win-rate.win-low {
+  color: #ff7d87;
+}
+
+.win-bar {
+  width: 100%;
+  height: 7px;
+  margin: 7px 0 12px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #25374b;
+}
+
+.win-bar-inner {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  transition: width .3s ease;
+}
+
+.win-bar-inner.win-high {
+  background: #3bbf8c;
+}
+
+.win-bar-inner.win-mid {
+  background: #d8ad4f;
+}
+
+.win-bar-inner.win-low {
+  background: #dc4e5c;
+}
+
+.stats .type-stats,
+.stats .monthly-stats {
+  margin-top: 12px;
+}
+
+.stats .type-stats-title {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.stats .type-stats-row,
+.stats .monthly-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 4px;
+  border-bottom: 1px solid #293e53;
+  font-size: 12px;
+}
+
+.stats .type-stats-row:last-child {
+  border-bottom: 0;
+}
+
+.stats .type-stats-result,
+.stats .monthly-stats-detail {
+  font-weight: 650;
+  text-align: right;
+}
+
+.stats .monthly-stats-month {
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.stats .type-stats {
+  padding-top: 9px;
+  border-top: 1px solid #293e53;
+}
+
+/* 試合種別ごとの成績 */
+
+.type-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.type-row {
+  padding: 13px 14px;
+  border: 1px solid #2b425a;
+  border-radius: 11px;
+  background: #0b1929;
+}
+
+.type-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.type-title strong {
+  color: #e5cb8a;
+  font-size: 14px;
+}
+
+.type-title span {
+  color: #a5b5c9;
+  font-size: 12px;
+}
+
+.type-result {
+  margin-bottom: 5px;
+  color: #e0e9f5;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.type-goals {
+  color: #a5b5c9;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* 試合結果一覧 */
+
+.month-matches {
+  display: grid;
+  gap: 17px;
+}
+
+.month-matches .item {
+  min-width: 0;
+  margin: 0;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid #2a435d;
+  border-left: 4px solid #71879f;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(30, 82, 126, .18), transparent 65%),
+    linear-gradient(150deg, #11243a, #091625);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .22);
+}
+
+.month-matches .item.score-win {
+  border-left-color: var(--green);
+}
+
+.month-matches .item.score-draw {
+  border-left-color: #8495a9;
+}
+
+.month-matches .item.score-loss {
+  border-left-color: var(--red);
+}
+
+.match-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.match-date {
+  color: #b8c8dc;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.match-type-label {
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid #34785e;
+  border-radius: 7px;
+  background: #10372e;
+  color: #8ee3bd;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.match-competition {
+  margin: 0 0 16px;
+  color: var(--gold);
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* スコアボード */
+
+.match-scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(76px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 112px;
+  padding: 20px 10px;
+  border: 1px solid #334c67;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #162a40, #0b1828);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+}
+
+.match-team {
+  min-width: 0;
+  color: #edf3fc;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.home-team,
+.away-team {
+  text-align: center;
+}
+
+.match-score {
+  color: var(--gold);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.match-score > strong {
+  font-size: clamp(31px, 7vw, 43px);
+  font-weight: 950;
+  letter-spacing: -1.5px;
+  line-height: 1.15;
+  text-shadow: 0 0 20px rgba(240, 207, 121, .12);
+}
+
+.match-pk {
+  display: block;
+  margin-top: 6px;
+  color: #a8b8cc;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+.match-memo {
+  margin-top: 13px;
+  padding: 12px 13px;
+  border: 1px solid #293f56;
   border-radius: 10px;
+  background: #0a1828;
+  color: #c2d0e0;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+/* 試合動画・ハイライト */
+
+.month-matches .video-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 15px;
+}
+
+.month-matches .video-actions .link-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 47px;
+  margin: 0;
+  padding: 10px 7px;
+  border: 1px solid #56bfff;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #164c76, #103452);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.45;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.month-matches .video-actions .link-button:last-child {
+  border-color: #d7b45e;
+  background: linear-gradient(135deg, #51401f, #302719);
+  color: #ffe7a4;
+}
+
+.month-matches .video-actions .link-button:hover {
+  filter: brightness(1.15);
+}
+
+/* 管理操作 */
+
+.month-matches .actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.month-matches .actions button {
+  min-width: 0;
+  min-height: 46px;
+  margin: 0;
+  padding: 10px 6px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 850;
 }
 
 .month-matches .actions button.secondary,
 .item .actions button.secondary {
-  border: 1px solid #398b68;
-  background: #10392f;
-  color: #a1e5c2;
+  border-color: #4db58d;
+  background: linear-gradient(135deg, #14503e, #10372e);
+  color: #c1f6df;
 }
 
 .month-matches .actions button.danger,
 .item .actions button.danger {
-  border: 1px solid #a83b49;
-  background: linear-gradient(135deg, #c83b4b, #8d2635);
+  border-color: #f06b79;
+  background: linear-gradient(135deg, #dc4657, #a82438);
   color: #fff;
 }
 
-/* メモ・空表示・区切り線 */
-.match-memo {
-  border: 1px solid #2a4058;
-  background: #0b1929;
-  color: #bdcce0;
-}
-
-.empty {
-  color: #9bacc2;
-}
-
-.form-divider {
-  border-top-color: #2a4058;
-}
-
-/* 動画プレイヤー */
-iframe {
-  border: 1px solid #2c435b;
-  border-radius: 12px;
-}
-
 /* フッター */
+
 footer {
-  color: #7589a2;
-  letter-spacing: .1em;
+  padding: 24px 12px 32px;
+  color: #7e90a7;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-align: center;
 }
 
 /* スマートフォン */
+
 @media (max-width: 480px) {
   header {
-    padding: 23px 12px 20px;
+    padding: 23px 10px 20px;
+  }
+
+  header h1 {
+    font-size: 18px;
   }
 
   main {
+    margin: 16px auto;
     padding: 0 10px;
   }
 
   .panel {
     padding: 14px;
+    border-radius: 14px;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+  .tabs {
+    gap: 5px;
+  }
+
+  .tabs button,
+  .tabs button.secondary {
+    padding: 11px 4px;
+    font-size: 12px;
+  }
+
+  .form-row {
+    gap: 8px;
+  }
+
+  .item {
+    padding: 13px;
+  }
+
+  .month-header .month-toggle {
+    min-height: 55px;
+    gap: 8px;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .month-match-count {
+    font-size: 11px;
+  }
+
+  .month-summary-card {
+    padding: 14px;
+  }
+
+  .month-summary-card > h3 {
+    font-size: 18px;
+  }
+
+  .stats {
+    padding: 11px;
+  }
+
+  .stats-numbers {
+    gap: 5px;
+  }
+
+  .stats-numbers > span.stat-win,
+  .stats-numbers > span.stat-draw,
+  .stats-numbers > span.stat-loss {
+    flex-basis: 58px;
+    padding: 9px 4px;
+    font-size: 12px;
+  }
+
+  .stats .type-stats-row,
+  .stats .monthly-stats-row {
+    font-size: 11px;
+  }
+
+  .month-matches {
+    gap: 15px;
   }
 
   .month-matches .item {
     padding: 13px;
+    border-radius: 14px;
+  }
+
+  .match-card-header {
+    gap: 7px;
+  }
+
+  .match-date {
+    font-size: 12px;
+  }
+
+  .match-competition {
+    margin-bottom: 13px;
+    font-size: 15px;
   }
 
   .match-scoreboard {
+    grid-template-columns: minmax(0, 1fr) minmax(68px, auto) minmax(0, 1fr);
+    min-height: 98px;
+    gap: 4px;
     padding: 16px 4px;
   }
 
@@ -1516,268 +1086,17 @@ footer {
   }
 
   .match-score > strong {
-    font-size: 27px;
-  }
-
-  .month-matches .video-actions .link-button,
-  .goal-buttons button {
-    font-size: 11px;
-  }
-}
-
-
-/* =========================================
-   PREMIUM MATCH CENTER - CONTRAST FIX
-========================================= */
-
-/* 試合動画：明るいブルーで文字を読みやすく */
-.month-matches .video-actions a.link-button:first-child,
-.month-matches .video-actions a.link-button:first-child:hover {
-  background: linear-gradient(135deg, #164f7e, #103758) !important;
-  border: 1px solid #65c4ff !important;
-  color: #ffffff !important;
-  text-shadow: none !important;
-}
-
-/* ゴールハイライト：ゴールド */
-.month-matches .video-actions a.link-button:last-child,
-.month-matches .video-actions a.link-button:last-child:hover {
-  background: linear-gradient(135deg, #59451f, #332819) !important;
-  border: 1px solid #e5c16d !important;
-  color: #ffe5a0 !important;
-  text-shadow: none !important;
-}
-
-/* 得点シーン：文字と背景のコントラストを強化 */
-.goal-buttons button,
-.goal-buttons button:hover {
-  background: linear-gradient(135deg, #153b5d, #102943) !important;
-  border: 1px solid #4b9bd7 !important;
-  color: #ffffff !important;
-}
-
-/* 編集ボタン */
-.month-matches .actions button.secondary,
-.item .actions button.secondary {
-  background: linear-gradient(135deg, #15513f, #10382e) !important;
-  border: 1px solid #56c49a !important;
-  color: #c2ffe4 !important;
-}
-
-/* 削除ボタン */
-.month-matches .actions button.danger,
-.item .actions button.danger {
-  background: linear-gradient(135deg, #d83f50, #a92337) !important;
-  border: 1px solid #ff7d88 !important;
-  color: #ffffff !important;
-}
-
-/* スコアボードを少し上質に */
-.match-scoreboard {
-  background: linear-gradient(135deg, #14263a, #0c1929) !important;
-  border: 1px solid #354e69 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
-}
-
-/* カードの輪郭と余白を統一 */
-.month-matches .item {
-  border-top-color: #304963 !important;
-  border-right-color: #304963 !important;
-  border-bottom-color: #304963 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
-}
-
-
-
-/* =========================================
-   PREMIUM MATCH CARD — LAYOUT REFINEMENT
-========================================= */
-
-/* 試合カード全体を整理 */
-.month-matches {
-  gap: 22px;
-}
-
-.month-matches .item {
-  padding: 20px;
-  border-radius: 18px !important;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(30, 78, 119, .22), transparent 65%),
-    linear-gradient(155deg, #102138 0%, #091524 100%) !important;
-  box-shadow:
-    0 14px 32px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .035) !important;
-}
-
-/* 日付と試合種別 */
-.match-card-header {
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.match-date {
-  font-size: 13px;
-  font-weight: 750;
-  letter-spacing: .035em;
-}
-
-.match-type-label {
-  padding: 5px 11px;
-  border-radius: 7px;
-  font-size: 11px;
-  letter-spacing: .04em;
-}
-
-/* 大会名 */
-.match-competition {
-  margin-bottom: 17px;
-  font-size: 17px;
-  line-height: 1.5;
-  letter-spacing: .015em;
-}
-
-/* スコアボード：中央のスコアを主役に */
-.match-scoreboard {
-  grid-template-columns: minmax(0, 1fr) minmax(88px, auto) minmax(0, 1fr);
-  gap: 8px;
-  min-height: 112px;
-  padding: 22px 12px;
-  border: 1px solid #344c67 !important;
-  border-radius: 15px !important;
-  background:
-    linear-gradient(135deg, rgba(28, 51, 75, .72), rgba(10, 23, 39, .96)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .04),
-    0 5px 16px rgba(0, 0, 0, .12);
-}
-
-.match-team {
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1.55;
-  overflow-wrap: anywhere;
-}
-
-.match-score {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-}
-
-.match-score > strong {
-  color: #f4d47e;
-  font-size: clamp(32px, 8vw, 43px);
-  font-weight: 950;
-  letter-spacing: -1.5px;
-  line-height: 1.15;
-  text-shadow: 0 0 22px rgba(244, 212, 126, .12);
-}
-
-.match-pk {
-  margin-top: 7px;
-  font-size: 11px;
-}
-
-/* 動画ボタン：高さと余白を統一 */
-.month-matches .video-actions {
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.month-matches .video-actions .link-button {
-  min-height: 48px;
-  padding: 11px 8px;
-  border-radius: 11px;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-/* 得点シーンの見出し */
-.month-matches .item h3 {
-  margin-top: 15px;
-  margin-bottom: 9px;
-}
-
-/* 得点シーン：ボタン間隔と押しやすさ */
-.goal-buttons {
-  gap: 9px;
-  margin-top: 8px;
-}
-
-.goal-buttons button {
-  min-height: 43px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-/* 編集・削除ボタン */
-.month-matches .actions {
-  gap: 10px;
-  margin-top: 17px;
-}
-
-.month-matches .actions button {
-  min-height: 47px;
-  border-radius: 11px;
-  font-size: 13px;
-  font-weight: 850;
-}
-
-/* メモ欄 */
-.match-memo {
-  margin-top: 15px;
-  padding: 13px 14px;
-  border-radius: 11px;
-  line-height: 1.8;
-}
-
-/* iPhone向けの微調整 */
-@media (max-width: 480px) {
-  .month-matches {
-    gap: 17px;
-  }
-
-  .month-matches .item {
-    padding: 14px;
-  }
-
-  .match-card-header {
-    gap: 8px;
-  }
-
-  .match-competition {
-    margin-bottom: 14px;
-    font-size: 16px;
-  }
-
-  .match-scoreboard {
-    grid-template-columns: minmax(0, 1fr) minmax(76px, auto) minmax(0, 1fr);
-    min-height: 100px;
-    gap: 5px;
-    padding: 17px 5px;
-  }
-
-  .match-team {
-    font-size: 11px;
-  }
-
-  .match-score > strong {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   .month-matches .video-actions {
     gap: 7px;
-    margin-top: 13px;
+    margin-top: 12px;
   }
 
   .month-matches .video-actions .link-button {
-    min-height: 45px;
-    padding: 9px 5px;
+    min-height: 44px;
+    padding: 8px 4px;
     font-size: 11px;
   }
 
@@ -1786,27 +1105,26 @@ footer {
   }
 
   .goal-buttons button {
-    min-height: 41px;
-    padding: 9px 10px;
+    min-height: 39px;
+    padding: 8px 9px;
     font-size: 11px;
   }
 
   .month-matches .actions {
-    gap: 8px;
-    margin-top: 15px;
+    gap: 7px;
+    margin-top: 14px;
   }
 
   .month-matches .actions button {
-    min-height: 45px;
+    min-height: 44px;
     font-size: 12px;
   }
+
+  .type-row {
+    padding: 11px;
+  }
 }
-
-
-
-
-  　
-  
+ 
 </style>
   
 </head>
