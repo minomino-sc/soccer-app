@@ -82,6 +82,7 @@ let videoCache = [];
 let scoreCache = [];
 
 const collapsedMonths = new Set();
+let initializedScoreMonths = false;
 
 const $ = id => document.getElementById(id);
 
@@ -1381,6 +1382,26 @@ function makeMonthlyStats(list) {
 ========================================================= */
 
 function renderScores() {
+
+// 初回表示時、当月以外を折りたたむ
+if (!initializedScoreMonths) {
+  const now = new Date();
+  const currentMonth =
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  for (const score of scoreCache) {
+    const date = getMatchDate(score);
+    const month = date ? date.slice(0, 7) : "日付未設定";
+
+    if (month !== currentMonth) {
+      collapsedMonths.add(month);
+    }
+  }
+
+  initializedScoreMonths = true;
+}
+
+   
   const query = $("searchInput").value.trim();
 
   const filtered = [...scoreCache]
