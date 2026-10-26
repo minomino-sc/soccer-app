@@ -1027,45 +1027,46 @@
 
 
 /* =========================================
-   動画・得点シーンのボタンカラー
+   動画共有システム：ボタンカラー調整
 ========================================= */
 
 /* 試合動画：水色 */
-.month-matches .video-actions .link-button[href*="match"],
-.month-matches .video-actions .link-button.match-video,
-.video-play-button {
-  background: #b9e6f7;
-  border-color: #8fd2ed;
-  color: #164b63;
+.month-matches .video-actions a.link-button:first-child {
+  background-color: #b9e6f7 !important;
+  border-color: #8fd2ed !important;
+  color: #164b63 !important;
 }
 
-/* ゴールハイライト：薄肌色 */
-.month-matches .video-actions .link-button[href*="highlight"],
-.month-matches .video-actions .link-button.highlight-video {
-  background: #f8e3cf;
-  border-color: #edc9a8;
-  color: #70482d;
+/* ゴールハイライト：薄い肌色 */
+.month-matches .video-actions a.link-button:last-child {
+  background-color: #f8e3cf !important;
+  border-color: #edc9a8 !important;
+  color: #70482d !important;
 }
 
-/* 得点・失点シーン：薄ピンク色 */
+/* 得点・失点シーン：薄いピンク色 */
 .goal-buttons button {
-  background: #f9dce5;
-  border-color: #efb8ca;
-  color: #873c58;
+  background-color: #f9dce5 !important;
+  border-color: #efb8ca !important;
+  color: #873c58 !important;
+}
+
+/* 編集：従来の緑色系を維持 */
+.month-matches .actions button.secondary,
+.item .actions button.secondary {
+  background-color: #e8f5e9;
+  border-color: #a5d6a7;
+  color: #256029;
 }
 
 /* 削除：赤色 */
-.month-matches .actions button.danger,
-.month-matches .actions button.delete-button,
-.month-matches .actions button[id*="delete"] {
-  background: #d93636;
-  border-color: #d93636;
-  color: #fff;
+.item .actions button.danger {
+  background-color: #d93636 !important;
+  border-color: #d93636 !important;
+  color: #ffffff !important;
 }
-  
+
 </style>
-
-
   
 </head>
 
