@@ -1381,6 +1381,8 @@ function makeMonthlyStats(list) {
    ・勝敗別の試合カード
 ========================================================= */
 
+function renderScores() {
+
   // 初回のデータ読み込み後、当月以外を折りたたむ
   // scoreCache が空の間は初期化を完了させない
   if (!initializedScoreMonths && scoreCache.length > 0) {
