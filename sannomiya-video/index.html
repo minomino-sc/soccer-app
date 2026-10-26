@@ -1124,7 +1124,247 @@ footer {
     padding: 11px;
   }
 }
- 
+
+
+
+/* 試合結果カード刷新 */
+.match-card {
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #dce5df;
+  border-left: 5px solid #87918b;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #f5f8f6);
+  box-shadow: 0 5px 16px rgba(15, 40, 25, 0.08);
+  color: #17251d;
+}
+
+.match-card.score-win {
+  border-left-color: #159447;
+  background: linear-gradient(145deg, #ffffff, #eef9f1);
+}
+
+.match-card.score-draw {
+  border-left-color: #2478c5;
+  background: linear-gradient(145deg, #ffffff, #eff6fd);
+}
+
+.match-card.score-loss {
+  border-left-color: #7b8580;
+  background: linear-gradient(145deg, #ffffff, #f2f3f2);
+}
+
+.match-card .match-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.match-card .match-date {
+  color: #53645a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.match-card .match-type-label {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #e4eee7;
+  color: #205a37;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.match-card .match-competition {
+  margin: 10px 0 14px;
+  font-size: 14px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.match-card .match-scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 15px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.match-card .match-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  text-align: center;
+}
+
+.match-card .match-team strong {
+  font-size: clamp(11px, 3vw, 14px);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.match-card .match-team-emblem {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.match-card .match-opponent-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #d8e0da;
+  border-radius: 50%;
+  color: #65756a;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.match-card .match-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.match-card .match-score-numbers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-size: clamp(26px, 7vw, 38px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.match-card .match-score-separator {
+  color: #9aa69e;
+  font-size: 0.7em;
+}
+
+.match-card .match-outcome {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #53645a;
+}
+
+.match-card.score-win .match-outcome {
+  color: #12813c;
+}
+
+.match-card.score-draw .match-outcome {
+  color: #1768ad;
+}
+
+.match-card.score-loss .match-outcome {
+  color: #68716b;
+}
+
+.match-card .match-pk {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.match-card .match-memo {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(235, 241, 237, 0.75);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.match-card .video-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.match-card .video-actions .link-button {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 11px 8px;
+  border-radius: 9px;
+  background: #174f31;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.match-card .video-actions .link-button:hover {
+  background: #0e3b23;
+}
+
+.match-card .goal-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.match-card .goal-buttons button {
+  font-size: 12px;
+}
+
+.match-card .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.match-card .actions button {
+  flex: 1;
+}
+
+@media (max-width: 380px) {
+  .match-card {
+    padding: 10px;
+  }
+
+  .match-card .match-scoreboard {
+    gap: 4px;
+    padding: 12px 3px;
+  }
+
+  .match-card .match-team-emblem {
+    width: 36px;
+    height: 36px;
+  }
+
+  .match-card .match-score-numbers {
+    gap: 4px;
+    font-size: 25px;
+  }
+
+  .match-card .video-actions {
+    flex-direction: column;
+  }
+}
+
+
+
+
+  
 </style>
   
 </head>
