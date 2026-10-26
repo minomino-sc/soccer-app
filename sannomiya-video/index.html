@@ -1526,6 +1526,68 @@ footer {
 }
 
 
+/* =========================================
+   PREMIUM MATCH CENTER - CONTRAST FIX
+========================================= */
+
+/* 試合動画：明るいブルーで文字を読みやすく */
+.month-matches .video-actions a.link-button:first-child,
+.month-matches .video-actions a.link-button:first-child:hover {
+  background: linear-gradient(135deg, #164f7e, #103758) !important;
+  border: 1px solid #65c4ff !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* ゴールハイライト：ゴールド */
+.month-matches .video-actions a.link-button:last-child,
+.month-matches .video-actions a.link-button:last-child:hover {
+  background: linear-gradient(135deg, #59451f, #332819) !important;
+  border: 1px solid #e5c16d !important;
+  color: #ffe5a0 !important;
+  text-shadow: none !important;
+}
+
+/* 得点シーン：文字と背景のコントラストを強化 */
+.goal-buttons button,
+.goal-buttons button:hover {
+  background: linear-gradient(135deg, #153b5d, #102943) !important;
+  border: 1px solid #4b9bd7 !important;
+  color: #ffffff !important;
+}
+
+/* 編集ボタン */
+.month-matches .actions button.secondary,
+.item .actions button.secondary {
+  background: linear-gradient(135deg, #15513f, #10382e) !important;
+  border: 1px solid #56c49a !important;
+  color: #c2ffe4 !important;
+}
+
+/* 削除ボタン */
+.month-matches .actions button.danger,
+.item .actions button.danger {
+  background: linear-gradient(135deg, #d83f50, #a92337) !important;
+  border: 1px solid #ff7d88 !important;
+  color: #ffffff !important;
+}
+
+/* スコアボードを少し上質に */
+.match-scoreboard {
+  background: linear-gradient(135deg, #14263a, #0c1929) !important;
+  border: 1px solid #354e69 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+/* カードの輪郭と余白を統一 */
+.month-matches .item {
+  border-top-color: #304963 !important;
+  border-right-color: #304963 !important;
+  border-bottom-color: #304963 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
+}
+
   
   
 </style>
