@@ -1497,26 +1497,42 @@ function renderScores() {
               const matchType = getMatchType(score);
               const competition = getCompetition(score);
 
-              const timelineHtml = timeline.length ? `
-                <div class="meta">
-                  <strong>得点・失点シーン</strong>
-                  <div class="goal-buttons">
-                    ${timeline.map((item, index) => `
-                      <button
-                        type="button"
-                        class="secondary"
-                        data-action="play-goal"
-                        data-id="${escapeHtml(score.id)}"
-                        data-index="${index}">
-                        ${escapeHtml(secondsToTime(item.time))}
-                        ${item.team === "opponent"
-                          ? "相手得点"
-                          : "神戸三宮FC得点"}
-                      </button>
-                    `).join("")}
-                  </div>
-                </div>
-              ` : "";
+
+
+
+
+
+const timelineHtml = timeline.length ? `
+  <div class="goal-timeline">
+    <div class="goal-timeline-title">⚽️ 得点・失点シーン</div>
+    <div class="goal-buttons">
+      ${timeline.map((item, index) => {
+        const isAgainst = item.team === "opponent";
+
+        return `
+          <button
+            type="button"
+            class="goal-button ${isAgainst ? "goal-against" : "goal-for"}"
+            data-action="play-goal"
+            data-id="${escapeHtml(score.id)}"
+            data-index="${index}">
+            <span class="goal-icon">${isAgainst ? "🔴" : "⚽️"}</span>
+            <span class="goal-label">${isAgainst ? "失点" : "得点"}</span>
+            <span class="goal-time">${escapeHtml(secondsToTime(item.time))}</span>
+          </button>
+        `;
+      }).join("")}
+    </div>
+  </div>
+` : "";
+
+               
+              
+
+
+
+
+               
 
               const adminActions = currentRole === "admin" ? `
                 <div class="actions">
