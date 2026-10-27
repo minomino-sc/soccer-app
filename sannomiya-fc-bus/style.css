@@ -1496,3 +1496,70 @@ footer {
 .route-option-button:active {
   background: #eaf7f0;
 }
+
+
+/* =========================================================
+   TRANSFER GUIDE VIDEO
+   バス停からポートライナーへの乗り換え案内
+========================================================= */
+
+.transfer-guide-section {
+  margin-top: 22px;
+}
+
+.transfer-guide-card {
+  padding: 18px 16px;
+  border: 1px solid rgba(80, 220, 130, 0.22);
+  border-radius: 16px;
+  background: linear-gradient(
+    145deg,
+    rgba(10, 55, 34, 0.96),
+    rgba(3, 20, 12, 0.98)
+  );
+  color: #ffffff;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.transfer-guide-icon {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.transfer-guide-title {
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+.transfer-guide-description {
+  margin: 8px 0 16px;
+  color: #a9cbb7;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.transfer-guide-button {
+  display: block;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #35d978;
+  border-radius: 10px;
+  background: #35d978;
+  color: #03170c;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.18s;
+  -webkit-tap-highlight-color: rgba(50, 220, 120, 0.18);
+}
+
+.transfer-guide-button:hover {
+  background: #63e59a;
+}
+
+.transfer-guide-button:active {
+  transform: scale(0.98);
+}
