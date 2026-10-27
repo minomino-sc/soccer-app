@@ -1161,58 +1161,75 @@ footer {
 
 
 
-/* 得点・失点シーン：コンパクト表示 */
+
+/* =====================================================
+   得点・失点シーン：視認性向上・コンパクト表示
+===================================================== */
+
 .goal-timeline {
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #334c67;
 }
 
 .goal-timeline-title {
-  margin-bottom: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #374151;
+  margin-bottom: 7px;
+  color: #f3f6fc;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
 }
 
+/* ボタン配置 */
 .goal-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
 }
 
+/* 共通ボタン */
 .goal-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  min-height: 28px;
-  padding: 4px 8px;
+  gap: 0;
+  width: auto;
+  min-width: 0;
+  min-height: 30px;
+  margin: 0;
+  padding: 5px 10px;
   border: 1px solid;
-  border-radius: 5px;
-  font-size: 11px;
-  line-height: 1.2;
-  font-weight: 700;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 800;
   cursor: pointer;
   box-shadow: none;
+  transition: filter .16s ease, transform .16s ease;
 }
 
-.goal-for {
-  color: #166534;
-  background: #f0fdf4;
-  border-color: #86efac;
-}
-
-.goal-against {
-  color: #b91c1c;
-  background: #fef2f2;
-  border-color: #fca5a5;
-}
-
+/* アイコンを非表示 */
 .goal-icon {
-  font-size: 12px;
+  display: none !important;
 }
 
+/* 得点：青系 */
+.goal-for {
+  color: #d9efff;
+  background: linear-gradient(135deg, #17466d, #123453);
+  border-color: #438bc7;
+}
+
+/* 失点：赤系 */
+.goal-against {
+  color: #ffe1e5;
+  background: linear-gradient(135deg, #622b3b, #40202d);
+  border-color: #d85a70;
+}
+
+/* 時間表示 */
 .goal-label,
 .goal-time {
   white-space: nowrap;
@@ -1222,9 +1239,32 @@ footer {
   font-variant-numeric: tabular-nums;
 }
 
+/* 操作時 */
 .goal-button:hover {
-  filter: brightness(0.96);
+  filter: brightness(1.15);
 }
+
+.goal-button:active {
+  transform: scale(.97);
+}
+
+/* スマートフォン */
+@media (max-width: 480px) {
+  .goal-timeline-title {
+    font-size: 12px;
+  }
+
+  .goal-buttons {
+    gap: 6px;
+  }
+
+  .goal-button {
+    min-height: 28px;
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+}
+
 
 
 
@@ -1236,7 +1276,7 @@ footer {
 
 <body>
 <header>
-  <h1>⚽ 神戸三宮FC 動画共有システム</h1>
+  <h1>⚽ 神戸三宮FC 動画共有システム ⚽</h1>
   <p>KOBE SANNOMIYA FC · JUNIOR YOUTH</p>
 </header>
 
