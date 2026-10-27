@@ -470,13 +470,27 @@ iframe {
 }
 
 .month-header.open {
-  border-color: #354d67;
-  background: #101f32;
+  border-color: #c5a653;
+  background: linear-gradient(110deg, #203c55, #122740);
 }
 
 .month-header.closed {
-  border-color: #4a5260;
-  background: #142235;
+  border-color: #b89445;
+  background: linear-gradient(110deg, #263b50, #17283b);
+}
+
+/* 折りたたみ時も見出しの色を維持 */
+.month-header.closed .month-toggle {
+  background: transparent;
+  color: #f0cf79;
+}
+
+.month-header.closed .month-toggle .month-toggle-icon {
+  color: #f0cf79;
+}
+
+.month-header.closed .month-match-count {
+  color: #d7c18b;
 }
 
 .month-header .month-toggle {
