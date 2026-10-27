@@ -1158,7 +1158,78 @@ footer {
     padding: 11px;
   }
 }
- 
+
+
+
+/* 得点・失点シーン：コンパクト表示 */
+.goal-timeline {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.goal-timeline-title {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.goal-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.goal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.goal-for {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.goal-against {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.goal-icon {
+  font-size: 12px;
+}
+
+.goal-label,
+.goal-time {
+  white-space: nowrap;
+}
+
+.goal-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-button:hover {
+  filter: brightness(0.96);
+}
+
+
+
+
+  
 </style>
   
 </head>
