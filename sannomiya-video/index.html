@@ -421,27 +421,61 @@ iframe {
   filter: brightness(1.15);
 }
 
-/* 得点シーン */
+
+
+/* 得点・失点シーン */
 
 .goal-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .goal-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: auto;
-  min-height: 41px;
+  min-width: 0;
+  min-height: 44px;
   margin: 0;
-  padding: 9px 12px;
-  border: 1px solid #448fc2;
-  border-radius: 9px;
-  background: #123452;
-  color: #e6f5ff;
-  font-size: 12px;
-  font-weight: 800;
+  padding: 8px 16px;
+  border: 1px solid #173f67;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #12365a, #102e4e);
+  color: #49aaff;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.4;
+  box-shadow: none;
+  transition: filter .16s ease, transform .16s ease;
 }
 
+.goal-buttons button:hover {
+  filter: brightness(1.2);
+}
+
+.goal-buttons button:active {
+  transform: scale(.97);
+}
+
+@media (max-width: 480px) {
+  .goal-buttons {
+    gap: 8px;
+  }
+
+  .goal-buttons button {
+    min-height: 41px;
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+}
+
+
+
+  
 #videoMonthFilters {
   margin-bottom: 6px;
 }
