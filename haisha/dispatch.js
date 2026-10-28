@@ -763,12 +763,31 @@ const dutyDrivers =
 
 // =========================
 // コーチ
-// 配車回数が少ない順
+// 試合当番と同じ家族のコーチは除外
+// 復路希望あり → 配車回数が少ない順
 // 同じなら座席数が多い順
 // =========================
+
+const dutyFamilies = new Set(
+  dutyDrivers.map(d =>
+    d.name
+      .replace("さん号", "")
+      .replace(/　/g, " ")
+      .trim()
+  )
+);
+
 const coachDrivers =
   drivers
-    .filter(d => d.priority === 1)
+    .filter(d =>
+      d.priority === 1 &&
+      !dutyFamilies.has(
+        d.name
+          .replace("コーチ", "")
+          .replace(/　/g, " ")
+          .trim()
+      )
+    )
     .sort((a, b) => {
 
       // =========================
@@ -1211,6 +1230,45 @@ const assignDrivers =
       b.priority - a.priority
   );
 
+
+// =========================
+// 試合当番と同じ家族のコーチを優先配車
+// =========================
+dutyDrivers.forEach(dutyDriver => {
+
+  const dutyFamily =
+    dutyDriver.name
+      .replace("さん号", "")
+      .replace(/　/g, " ")
+      .trim();
+
+  const coachIndex =
+    targetPlayers.findIndex(p =>
+      p.role === "コーチ" &&
+      p.name
+        .replace("コーチ", "")
+        .replace(/　/g, " ")
+        .trim() === dutyFamily
+    );
+
+  if (
+    coachIndex >= 0 &&
+    dutyDriver.players.length < dutyDriver.seats
+  ) {
+
+    dutyDriver.players.push(
+      targetPlayers[coachIndex]
+    );
+
+    targetPlayers.splice(coachIndex, 1);
+
+  }
+
+});
+
+
+
+  
 // =========================
 // コーチ優先割り当て（均等割り）
 // =========================
