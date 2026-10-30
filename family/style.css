@@ -51,3 +51,6 @@ dialog::backdrop{background:#0009}
 .dialog-actions{margin-top:15px}.danger{background:#8d3038;color:white}
 [hidden]{display:none!important}
 @media(max-width:420px){body{padding:12px 8px 32px}.panel{padding:13px}.day{min-height:53px}.toolbar select{min-width:105px}.section-heading{align-items:flex-start}.section-heading h2{padding-top:7px}}
+
+.time-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:360px){.time-fields{grid-template-columns:1fr}}

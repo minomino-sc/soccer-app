@@ -103,6 +103,7 @@ function openEventForm(ev=null) {
   $("eventTitle").value=ev?.title||"";
   $("eventDate").value=ev?.date||selectedDate;
   $("eventTime").value=ev?.time||"";
+  $("eventEndTime").value=ev?.endTime||"";
   $("eventCategory").value=ev?.category||"家族";
   $("eventPlace").value=ev?.place||"";
   $("eventMemo").value=ev?.memo||"";
@@ -116,7 +117,8 @@ $("eventForm").addEventListener("submit",async e=>{
   if(!member){$("eventError").textContent="先に利用者の名前を選択してください。";return;}
   const data={
     title:$("eventTitle").value.trim(), date:$("eventDate").value,
-    time:$("eventTime").value, category:$("eventCategory").value,
+    time:$("eventTime").value, endTime:$("eventEndTime").value,
+    category:$("eventCategory").value,
     place:$("eventPlace").value.trim(), memo:$("eventMemo").value.trim(),
     createdBy: $("eventId").value ? (events.find(x=>x.id===$("eventId").value)?.createdBy||member) : member,
     updatedBy:member, updatedAt:new Date().toISOString()

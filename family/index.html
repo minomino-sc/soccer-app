@@ -32,7 +32,9 @@
           <label for="memberSelect">利用者</label>
           <select id="memberSelect">
             <option value="">名前を選択</option>
-            <option>二宮</option>
+            <option>父</option>
+            <option>母</option>
+            <option>一颯</option>
             <option>家族</option>
           </select>
         </div>
@@ -73,7 +75,10 @@
       <input id="eventId" type="hidden">
       <label>予定名<input id="eventTitle" maxlength="80" required placeholder="例：サッカーの試合"></label>
       <label>日付<input id="eventDate" type="date" required></label>
-      <label>開始時刻<input id="eventTime" type="time"></label>
+      <div class="time-fields">
+        <label>開始時刻<input id="eventTime" type="time"></label>
+        <label>終了時刻<input id="eventEndTime" type="time"></label>
+      </div>
       <label>カテゴリー
         <select id="eventCategory">
           <option>家族</option><option>サッカー</option><option>学校</option>
