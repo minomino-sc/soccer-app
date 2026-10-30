@@ -159,3 +159,203 @@ dialog {
   min-width: 0;
   max-width: 100%;
 }
+
+
+/* =========================================
+   FAMILY CALENDAR
+   LIGHT DESIGN
+========================================= */
+
+/* 全体 */
+:root {
+  color: #263449;
+  background: #f2f5f9;
+}
+
+body {
+  background: #f2f5f9;
+  color: #263449;
+}
+
+/* ヘッダー */
+.eyebrow {
+  color: #527ba8;
+}
+
+.sub {
+  color: #68788d;
+}
+
+/* パネル */
+.panel {
+  background: #ffffff;
+  border: 1px solid #e1e7ef;
+  box-shadow: 0 4px 14px rgba(35, 55, 80, 0.06);
+}
+
+h1, h2 {
+  color: #263449;
+}
+
+/* 入力欄 */
+input,
+select,
+textarea {
+  background: #ffffff;
+  color: #263449;
+  border: 1px solid #ccd6e2;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9aa8b8;
+}
+
+label {
+  color: #526176;
+}
+
+/* ボタン */
+.ghost {
+  background: #e8eef5;
+  color: #34465d;
+}
+
+.round {
+  background: #e8eef5;
+  color: #34465d;
+}
+
+.primary {
+  background: #347ed1;
+  color: #ffffff;
+}
+
+/* カレンダー */
+.weekdays {
+  color: #66768b;
+}
+
+.day {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #263449;
+}
+
+.day.today {
+  border: 2px solid #347ed1;
+}
+
+.day.selected {
+  background: #e6f1ff;
+  border: 2px solid #347ed1;
+}
+
+.day:nth-child(7n+1) .num {
+  color: #df5555;
+}
+
+.day:nth-child(7n) .num {
+  color: #347ed1;
+}
+
+.day.holiday .num,
+.day.sunday .num {
+  color: #df5555;
+}
+
+.day.saturday .num {
+  color: #347ed1;
+}
+
+/* 予定カード */
+.event-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(35, 55, 80, 0.04);
+}
+
+.event-name {
+  color: #263449;
+}
+
+.event-meta {
+  color: #68788d;
+}
+
+.event-actions button {
+  background: #e8eef5;
+  color: #34465d;
+}
+
+/* カテゴリー共通 */
+.category {
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+/* カテゴリー別カラー */
+.category.cat-family {
+  background: #e4efff;
+  color: #2763b5;
+}
+
+.category.cat-soccer {
+  background: #e1f5e8;
+  color: #25804b;
+}
+
+.category.cat-school {
+  background: #fff0dc;
+  color: #b86a16;
+}
+
+.category.cat-medical {
+  background: #ffe6ed;
+  color: #c34b70;
+}
+
+.category.cat-food {
+  background: #eee7ff;
+  color: #7651b5;
+}
+
+.category.cat-travel {
+  background: #dcf5f3;
+  color: #21847e;
+}
+
+.category.cat-other {
+  background: #edf0f3;
+  color: #687585;
+}
+
+/* ダイアログ */
+dialog {
+  background: #ffffff;
+  color: #263449;
+  border-color: #d7e0eb;
+}
+
+.close {
+  background: #e8eef5;
+  color: #34465d;
+}
+
+.danger {
+  background: #d94d59;
+  color: #ffffff;
+}
+
+/* 補助テキスト */
+.muted {
+  color: #718096;
+}
+
+.status {
+  color: #647b96;
+}
+
+.error {
+  color: #d94343;
+}
