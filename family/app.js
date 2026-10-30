@@ -195,8 +195,10 @@ $("eventForm").addEventListener("submit",async e=>{
     time:$("eventTime").value, endTime:$("eventEndTime").value,
     category:$("eventCategory").value,
     place:$("eventPlace").value.trim(), memo:$("eventMemo").value.trim(),
-    createdBy: $("eventId").value ? (events.find(x=>x.id===$("eventId").value)?.createdBy||member) : member,
-    updatedBy:member, updatedAt:new Date().toISOString()
+    // 編集時も、フォームで選び直した登録者を現在の登録者として保存する
+    createdBy:member,
+    updatedBy:member,
+    updatedAt:new Date().toISOString()
   };
   if(!data.title||!data.date)return;
   try{

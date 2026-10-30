@@ -101,3 +101,61 @@ dialog::backdrop{background:#0009}
   .day{padding-left:1px;padding-right:1px}
   .day .holiday-name{font-size:7px}
 }
+
+
+/* iPhone Safari：予定フォームの入力欄を同じ幅に統一 */
+dialog {
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  max-width: 520px;
+  padding: 18px;
+}
+.dialog-form {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.dialog-form > label {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.dialog-form input,
+.dialog-form select,
+.dialog-form textarea {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.dialog-form input[type="date"],
+.dialog-form input[type="time"] {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  font-size: 16px;
+  padding: 10px 8px;
+}
+.dialog-form .time-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.dialog-form .time-fields > label {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.dialog-form .time-fields > label > input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
