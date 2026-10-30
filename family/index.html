@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>二宮家ファミリーカレンダー</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <p class="eyebrow">FAMILY CALENDAR</p>
+      <h1>🏠 二宮家ファミリーカレンダー</h1>
+      <p class="sub">家族みんなの予定をひとつに</p>
+    </header>
+
+    <section id="loginPanel" class="panel login-panel">
+      <h2>🔐 パスワード入力</h2>
+      <p>家族専用のパスワードを入力してください。</p>
+      <form id="loginForm">
+        <input id="passwordInput" type="password" autocomplete="current-password"
+               placeholder="パスワード" required>
+        <button class="primary" type="submit">カレンダーを開く</button>
+      </form>
+      <p id="loginError" class="error" aria-live="polite"></p>
+    </section>
+
+    <section id="calendarPanel" hidden>
+      <div class="toolbar">
+        <div>
+          <label for="memberSelect">利用者</label>
+          <select id="memberSelect">
+            <option value="">名前を選択</option>
+            <option>二宮</option>
+            <option>家族</option>
+          </select>
+        </div>
+        <button id="logoutButton" class="ghost" type="button">ログアウト</button>
+      </div>
+
+      <section class="panel calendar-panel">
+        <div class="monthbar">
+          <button id="prevMonth" class="round" type="button" aria-label="前の月">‹</button>
+          <h2 id="monthLabel"></h2>
+          <button id="nextMonth" class="round" type="button" aria-label="次の月">›</button>
+        </div>
+        <div class="weekdays">
+          <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2 id="selectedDateLabel">予定一覧</h2>
+          <button id="addEventButton" class="primary small" type="button">＋ 予定を追加</button>
+        </div>
+        <div id="eventList" class="event-list">
+          <p class="muted">予定を読み込んでいます…</p>
+        </div>
+      </section>
+      <p id="statusMessage" class="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <dialog id="eventDialog">
+    <form id="eventForm" class="dialog-form">
+      <div class="section-heading">
+        <h2 id="dialogTitle">予定を追加</h2>
+        <button id="closeDialog" class="close" type="button" aria-label="閉じる">×</button>
+      </div>
+      <input id="eventId" type="hidden">
+      <label>予定名<input id="eventTitle" maxlength="80" required placeholder="例：サッカーの試合"></label>
+      <label>日付<input id="eventDate" type="date" required></label>
+      <label>開始時刻<input id="eventTime" type="time"></label>
+      <label>カテゴリー
+        <select id="eventCategory">
+          <option>家族</option><option>サッカー</option><option>学校</option>
+          <option>通院・整体</option><option>食事・飲み会</option><option>旅行</option><option>その他</option>
+        </select>
+      </label>
+      <label>場所<input id="eventPlace" maxlength="120" placeholder="場所（任意）"></label>
+      <label>メモ<textarea id="eventMemo" rows="3" maxlength="500" placeholder="詳細・持ち物など"></textarea></label>
+      <p id="eventError" class="error"></p>
+      <div class="dialog-actions">
+        <button id="deleteEventButton" class="danger" type="button" hidden>削除</button>
+        <button class="primary" type="submit">保存する</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
