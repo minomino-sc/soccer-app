@@ -24,6 +24,7 @@ button{border:0;border-radius:11px;padding:11px 15px;font:inherit;font-weight:70
 .toolbar>div{display:flex;align-items:center;gap:9px}
 .toolbar label{margin:0;white-space:nowrap}
 .toolbar select{width:auto;min-width:125px}
+.toolbar-end{justify-content:flex-end}
 .monthbar{justify-content:center;margin-bottom:15px}
 .monthbar h2{min-width:150px;text-align:center;font-size:20px}
 .round{width:40px;height:40px;padding:0;font-size:28px;background:#263b56;color:white}
@@ -46,7 +47,35 @@ button{border:0;border-radius:11px;padding:11px 15px;font:inherit;font-weight:70
 .muted{color:#9eacc1;font-size:13px}.status{text-align:center;color:#9fb9d8;font-size:12px;min-height:18px}
 dialog{width:min(94vw,520px);max-height:90vh;overflow:auto;border:1px solid #40516a;border-radius:18px;background:#152032;color:white;padding:18px;box-shadow:0 20px 60px #0009}
 dialog::backdrop{background:#0009}
-.dialog-form label{margin-top:13px}.dialog-form input,.dialog-form select,.dialog-form textarea{margin-top:6px}
+.dialog-form label{margin-top:13px;min-width:0}
+.dialog-form input,.dialog-form select,.dialog-form textarea{
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  margin-top:6px;
+}
+.dialog-form .time-fields{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:12px;
+  width:100%;
+  min-width:0;
+}
+.dialog-form .time-fields label{min-width:0}
+.dialog-form .time-fields input{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+}
+.dialog-form input[type="date"],
+.dialog-form input[type="time"]{
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  padding-left:8px;
+  padding-right:8px;
+}
 .close{background:#293d56;color:white;font-size:22px;padding:3px 11px}
 .dialog-actions{margin-top:15px}.danger{background:#8d3038;color:white}
 [hidden]{display:none!important}
@@ -54,3 +83,21 @@ dialog::backdrop{background:#0009}
 
 .time-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:360px){.time-fields{grid-template-columns:1fr}}
+
+/* 祝日・週末 */
+.day.holiday .num,.day.sunday .num{color:#ff8585}
+.day.saturday .num{color:#83baff}
+.day .holiday-name{
+  display:block;
+  margin-top:3px;
+  color:#ffaaaa;
+  font-size:8px;
+  line-height:1.15;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+@media(max-width:420px){
+  .day{padding-left:1px;padding-right:1px}
+  .day .holiday-name{font-size:7px}
+}

@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101827">
-  <title>スケジュール</title>
+  <title>二宮家ファミリーカレンダー</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <main class="app">
     <header class="top">
       <p class="eyebrow">FAMILY CALENDAR</p>
-      <h1>🏠 年間スケジュール</h1>
+      <h1>🏠 二宮家ファミリーカレンダー</h1>
       <p class="sub">家族みんなの予定をひとつに</p>
     </header>
 
@@ -27,17 +27,7 @@
     </section>
 
     <section id="calendarPanel" hidden>
-      <div class="toolbar">
-        <div>
-          <label for="memberSelect">利用者</label>
-          <select id="memberSelect">
-            <option value="">名前を選択</option>
-            <option>父</option>
-            <option>母</option>
-            <option>一颯</option>
-            <option>家族</option>
-          </select>
-        </div>
+      <div class="toolbar toolbar-end">
         <button id="logoutButton" class="ghost" type="button">ログアウト</button>
       </div>
 
@@ -75,6 +65,15 @@
       <input id="eventId" type="hidden">
       <label>予定名<input id="eventTitle" maxlength="80" required placeholder="例：サッカーの試合"></label>
       <label>日付<input id="eventDate" type="date" required></label>
+      <label>登録者
+        <select id="memberSelect" required>
+          <option value="">登録者を選択</option>
+          <option>父</option>
+          <option>母</option>
+          <option>一颯</option>
+          <option>家族</option>
+        </select>
+      </label>
       <div class="time-fields">
         <label>開始時刻<input id="eventTime" type="time"></label>
         <label>終了時刻<input id="eventEndTime" type="time"></label>
