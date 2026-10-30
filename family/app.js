@@ -92,7 +92,7 @@ function showCalendar() {
 $("loginForm").addEventListener("submit", e => {
   e.preventDefault();
   if ($("passwordInput").value === FAMILY_PASSWORD) {
-    sessionStorage.setItem(AUTH_KEY, "1");
+    localStorage.setItem(AUTH_KEY, "1");
     $("loginError").textContent = "";
     showCalendar();
   } else {
@@ -100,7 +100,7 @@ $("loginForm").addEventListener("submit", e => {
   }
 });
 $("logoutButton").addEventListener("click", () => {
-  sessionStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(AUTH_KEY);
   calendarPanel.hidden = true;
   loginPanel.hidden = false;
   $("passwordInput").value = "";
@@ -214,5 +214,5 @@ $("deleteEventButton").addEventListener("click",async()=>{
   catch(err){console.error(err);$("eventError").textContent="削除できませんでした。";}
 });
 
-if(sessionStorage.getItem(AUTH_KEY)==="1") showCalendar();
+if(localStorage.getItem(AUTH_KEY)==="1") showCalendar();
 else { loginPanel.hidden=false; calendarPanel.hidden=true; }
