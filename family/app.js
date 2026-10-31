@@ -203,7 +203,6 @@ function renderEvents() {
     return;
   }
 
-  // カテゴリー別カラー
   const categoryClasses = {
     "家族": "family",
     "サッカー": "soccer",
@@ -240,15 +239,35 @@ function renderEvents() {
     top.append(name,cat);
     card.append(top);
 
+    // 場所・メモ・登録者を項目ごとに表示
     const meta=document.createElement("div");
-    meta.className="event-meta";
-    meta.textContent=[
-      ev.place,
-      ev.memo,
-      `登録者：${ev.createdBy||"未設定"}`
-    ].filter(Boolean).join(" ／ ");
+    meta.className="event-meta-details";
 
-    card.append(meta);
+    const addDetail = (label, value) => {
+      if(!value) return;
+
+      const row=document.createElement("div");
+      row.className="event-detail";
+
+      const heading=document.createElement("span");
+      heading.className="event-detail-label";
+      heading.textContent=label;
+
+      const content=document.createElement("span");
+      content.className="event-detail-value";
+      content.textContent=value;
+
+      row.append(heading,content);
+      meta.append(row);
+    };
+
+    addDetail("場所", ev.place);
+    addDetail("メモ", ev.memo);
+    addDetail("登録者", ev.createdBy || "未設定");
+
+    if(meta.children.length){
+      card.append(meta);
+    }
 
     const actions=document.createElement("div");
     actions.className="event-actions";
@@ -263,6 +282,7 @@ function renderEvents() {
     root.append(card);
   });
 }
+
 
 function openEventForm(ev=null) {
   $("eventForm").reset();
