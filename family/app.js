@@ -125,7 +125,6 @@ async function loadEvents() {
   }
 }
 
-
 function renderCalendar() {
   const y=currentMonth.getFullYear(), m=currentMonth.getMonth();
   $("monthLabel").textContent = `${y}年 ${m+1}月`;
@@ -191,27 +190,80 @@ function renderCalendar() {
 
 function renderEvents() {
   $("selectedDateLabel").textContent = `${selectedDate.replaceAll("-","/")} の予定`;
-  const list=events.filter(x=>x.date===selectedDate).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
-  const root=$("eventList"); root.innerHTML="";
-  if(!list.length){root.innerHTML='<p class="muted">この日の予定はありません。</p>';return;}
+
+  const list=events
+    .filter(x=>x.date===selectedDate)
+    .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+
+  const root=$("eventList");
+  root.innerHTML="";
+
+  if(!list.length){
+    root.innerHTML='<p class="muted">この日の予定はありません。</p>';
+    return;
+  }
+
+  // カテゴリー別カラー
+  const categoryClasses = {
+    "家族": "family",
+    "サッカー": "soccer",
+    "学校": "school",
+    "通院・整体": "medical",
+    "食事・飲み会": "food",
+    "旅行": "travel",
+    "その他": "other"
+  };
+
   list.forEach(ev=>{
-    const card=document.createElement("article"); card.className="event-card";
-    const top=document.createElement("div"); top.className="event-top";
-    const name=document.createElement("div"); name.className="event-name";
+    const category = ev.category || "家族";
+    const colorClass = categoryClasses[category] || "other";
+
+    const card=document.createElement("article");
+    card.className=`event-card event-${colorClass}`;
+
+    const top=document.createElement("div");
+    top.className="event-top";
+
+    const name=document.createElement("div");
+    name.className="event-name";
+
     const timeText = ev.time
       ? ev.time + (ev.endTime ? "〜" + ev.endTime : "") + " "
       : (ev.endTime ? "終了 " + ev.endTime + " " : "");
+
     name.textContent=timeText+ev.title;
-    const cat=document.createElement("span"); cat.className="category"; cat.textContent=ev.category||"家族";
-    top.append(name,cat); card.append(top);
-    const meta=document.createElement("div"); meta.className="event-meta";
-    meta.textContent=[ev.place,ev.memo,`登録者：${ev.createdBy||"未設定"}`].filter(Boolean).join(" ／ ");
+
+    const cat=document.createElement("span");
+    cat.className=`category cat-${colorClass}`;
+    cat.textContent=category;
+
+    top.append(name,cat);
+    card.append(top);
+
+    const meta=document.createElement("div");
+    meta.className="event-meta";
+    meta.textContent=[
+      ev.place,
+      ev.memo,
+      `登録者：${ev.createdBy||"未設定"}`
+    ].filter(Boolean).join(" ／ ");
+
     card.append(meta);
-    const actions=document.createElement("div"); actions.className="event-actions";
-    const edit=document.createElement("button"); edit.textContent="編集"; edit.addEventListener("click",()=>openEventForm(ev));
-    actions.append(edit); card.append(actions); root.append(card);
+
+    const actions=document.createElement("div");
+    actions.className="event-actions";
+
+    const edit=document.createElement("button");
+    edit.textContent="編集";
+    edit.addEventListener("click",()=>openEventForm(ev));
+
+    actions.append(edit);
+    card.append(actions);
+
+    root.append(card);
   });
 }
+
 function openEventForm(ev=null) {
   $("eventForm").reset();
   $("eventId").value=ev?.id||"";
