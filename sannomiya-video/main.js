@@ -1161,13 +1161,44 @@ function renderVideos() {
    成績集計
 ========================================================= */
 
+/* =========================================================
+   勝敗判定
+   ・通常スコアで勝敗を判定
+   ・同点でPKスコアがある場合はPK結果で判定
+   ・同点でPKスコアがない場合は引き分け
+========================================================= */
+
 function scoreOutcome(score) {
   const home = getHomeScore(score);
   const away = getAwayScore(score);
 
+  // 通常スコアで勝敗が決まっている場合
   if (home > away) return "勝";
   if (home < away) return "敗";
 
+  // 通常スコアが同点の場合、PKスコアを確認
+  const pkHome = getPkHome(score);
+  const pkAway = getPkAway(score);
+
+  const hasPk =
+    pkHome !== null &&
+    pkHome !== undefined &&
+    pkHome !== "" &&
+    pkAway !== null &&
+    pkAway !== undefined &&
+    pkAway !== "";
+
+  if (hasPk) {
+    const pkH = Number(pkHome);
+    const pkA = Number(pkAway);
+
+    if (Number.isFinite(pkH) && Number.isFinite(pkA)) {
+      if (pkH > pkA) return "勝";
+      if (pkH < pkA) return "敗";
+    }
+  }
+
+  // PK戦なし、またはPKスコアも同点の場合
   return "分";
 }
 
