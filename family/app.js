@@ -124,29 +124,71 @@ async function loadEvents() {
     $("statusMessage").textContent = err.message;
   }
 }
+
+
 function renderCalendar() {
   const y=currentMonth.getFullYear(), m=currentMonth.getMonth();
   $("monthLabel").textContent = `${y}年 ${m+1}月`;
   const first=new Date(y,m,1), start=new Date(y,m,1-first.getDay());
   const today=dateKey(new Date());
-  const grid=$("calendarGrid"); grid.innerHTML="";
+  const grid=$("calendarGrid");
+  grid.innerHTML="";
+
+  const categoryClasses = {
+    "家族": "family",
+    "サッカー": "soccer",
+    "学校": "school",
+    "通院・整体": "medical",
+    "食事・飲み会": "food",
+    "旅行": "travel",
+    "その他": "other"
+  };
+
   for(let i=0;i<42;i++){
-    const d=new Date(start); d.setDate(start.getDate()+i);
-    const key=dateKey(d), dayEvents=events.filter(x=>x.date===key);
+    const d=new Date(start);
+    d.setDate(start.getDate()+i);
+
+    const key=dateKey(d);
+    const dayEvents=events.filter(x=>x.date===key);
     const holidayName=japaneseHolidays(d.getFullYear()).get(key);
+
+    // 同じカテゴリーの予定は1つのドットにまとめる
+    const categories = [...new Set(
+      dayEvents.map(ev => ev.category || "家族")
+    )];
+
+    const dotsHTML = categories.map(category => {
+      const colorClass = categoryClasses[category] || "other";
+      return `<i class="dot dot-${colorClass}"></i>`;
+    }).join("");
+
     const b=document.createElement("button");
     b.type="button";
-    b.className="day"+(d.getMonth()!==m?" outside":"")+
-      (key===today?" today":"")+(key===selectedDate?" selected":"")+
-      (holidayName?" holiday":"")+(d.getDay()===0?" sunday":"")+
+
+    b.className="day"+
+      (d.getMonth()!==m?" outside":"")+
+      (key===today?" today":"")+
+      (key===selectedDate?" selected":"")+
+      (holidayName?" holiday":"")+
+      (d.getDay()===0?" sunday":"")+
       (d.getDay()===6?" saturday":"");
-    b.innerHTML=`<span class="num">${d.getDate()}</span>`+
+
+    b.innerHTML=
+      `<span class="num">${d.getDate()}</span>`+
       (holidayName?`<span class="holiday-name">${holidayName}</span>`:"")+
-      `<span class="dots">${dayEvents.slice(0,4).map(()=>'<i class="dot"></i>').join("")}</span>`;
-    b.addEventListener("click",()=>{selectedDate=key;renderCalendar();renderEvents();});
+      `<span class="dots">${dotsHTML}</span>`;
+
+    b.addEventListener("click",()=>{
+      selectedDate=key;
+      renderCalendar();
+      renderEvents();
+    });
+
     grid.appendChild(b);
   }
 }
+
+
 function renderEvents() {
   $("selectedDateLabel").textContent = `${selectedDate.replaceAll("-","/")} の予定`;
   const list=events.filter(x=>x.date===selectedDate).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
