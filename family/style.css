@@ -417,3 +417,48 @@ dialog {
 .day .dot-other {
   background: #8995a5;
 }
+
+
+/* =========================================
+   予定一覧：カテゴリー別の左側ライン
+========================================= */
+
+.event-card {
+  border-left-width: 5px;
+  border-left-style: solid;
+}
+
+/* 家族 */
+.event-family {
+  border-left-color: #347ed1;
+}
+
+/* サッカー */
+.event-soccer {
+  border-left-color: #2caa62;
+}
+
+/* 学校 */
+.event-school {
+  border-left-color: #e99a32;
+}
+
+/* 通院・整体 */
+.event-medical {
+  border-left-color: #df6689;
+}
+
+/* 食事・飲み会 */
+.event-food {
+  border-left-color: #8966cc;
+}
+
+/* 旅行 */
+.event-travel {
+  border-left-color: #26a69a;
+}
+
+/* その他 */
+.event-other {
+  border-left-color: #8995a5;
+}
