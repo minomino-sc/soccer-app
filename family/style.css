@@ -534,3 +534,32 @@ dialog {
   color: #344256;
   overflow-wrap: anywhere;
 }
+
+/* =================================================
+   土曜日・日曜日・祝日の背景色
+================================================= */
+
+/* 土曜日：薄いブルー */
+.day.saturday {
+  background-color: #eef6ff;
+}
+
+/* 日曜日：薄いピンク */
+.day.sunday {
+  background-color: #fff0f1;
+}
+
+/* 祝日：薄いピンク（日曜日と同じ） */
+.day.holiday {
+  background-color: #fff0f1;
+}
+
+/* 選択中の日付は従来の選択表示を優先 */
+.day.selected {
+  background-color: #e5f0ff;
+}
+
+/* 月外の日付は薄く表示 */
+.day.outside {
+  opacity: 0.45;
+}
