@@ -359,3 +359,61 @@ dialog {
 .error {
   color: #d94343;
 }
+
+
+/* =========================================
+   カレンダーの日付ドット：カテゴリー別カラー
+========================================= */
+
+.day .dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+  min-height: 7px;
+}
+
+.day .dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+}
+
+/* 家族：ブルー */
+.day .dot-family {
+  background: #347ed1;
+}
+
+/* サッカー：グリーン */
+.day .dot-soccer {
+  background: #2caa62;
+}
+
+/* 学校：オレンジ */
+.day .dot-school {
+  background: #e99a32;
+}
+
+/* 通院・整体：ピンク */
+.day .dot-medical {
+  background: #df6689;
+}
+
+/* 食事・飲み会：パープル */
+.day .dot-food {
+  background: #8966cc;
+}
+
+/* 旅行：ターコイズ */
+.day .dot-travel {
+  background: #26a69a;
+}
+
+/* その他：グレー */
+.day .dot-other {
+  background: #8995a5;
+}
