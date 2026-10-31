@@ -462,3 +462,75 @@ dialog {
 .event-other {
   border-left-color: #8995a5;
 }
+
+
+/* =========================================
+   予定カード：情報を見やすく整理
+========================================= */
+
+/* 左側の色ラインを解除し、下側に変更 */
+.event-card {
+  border-left: 1px solid #e2e8f0 !important;
+  border-bottom: 4px solid #8995a5;
+  padding-bottom: 12px;
+}
+
+/* カテゴリー別の下側ライン */
+.event-card.event-family {
+  border-bottom-color: #347ed1;
+}
+
+.event-card.event-soccer {
+  border-bottom-color: #2caa62;
+}
+
+.event-card.event-school {
+  border-bottom-color: #e99a32;
+}
+
+.event-card.event-medical {
+  border-bottom-color: #df6689;
+}
+
+.event-card.event-food {
+  border-bottom-color: #8966cc;
+}
+
+.event-card.event-travel {
+  border-bottom-color: #26a69a;
+}
+
+.event-card.event-other {
+  border-bottom-color: #8995a5;
+}
+
+/* 場所・メモ・登録者 */
+.event-meta-details {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #edf0f4;
+}
+
+.event-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.event-detail-label {
+  flex: 0 0 58px;
+  color: #526b87;
+  font-weight: 700;
+}
+
+.event-detail-value {
+  flex: 1;
+  min-width: 0;
+  color: #344256;
+  overflow-wrap: anywhere;
+}
