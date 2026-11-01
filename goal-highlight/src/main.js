@@ -782,9 +782,99 @@ async function recognizeInitialScoreAtX(x, time, finalScore = null) {
   const worker =
     await getOCRWorker();
 
-  const ret =
-    await worker.recognize(canvas);
 
+
+
+  
+/*
+ * OCR用画像を作成
+ * 2倍拡大＋グレースケール＋コントラスト強調＋2値化
+ */
+
+const srcCanvas = canvas;
+
+const ocrCanvas =
+  document.createElement('canvas');
+
+ocrCanvas.width =
+  srcCanvas.width * 2;
+
+ocrCanvas.height =
+  srcCanvas.height * 2;
+
+const ocrCtx =
+  ocrCanvas.getContext(
+    '2d',
+    {
+      willReadFrequently: true
+    }
+  );
+
+ocrCtx.imageSmoothingEnabled = false;
+
+ocrCtx.drawImage(
+  srcCanvas,
+  0,
+  0,
+  ocrCanvas.width,
+  ocrCanvas.height
+);
+
+const image =
+  ocrCtx.getImageData(
+    0,
+    0,
+    ocrCanvas.width,
+    ocrCanvas.height
+  );
+
+const data = image.data;
+
+for (
+  let i = 0;
+  i < data.length;
+  i += 4
+) {
+
+  const r = data[i];
+  const g = data[i + 1];
+  const b = data[i + 2];
+
+  let gray =
+    0.299 * r +
+    0.587 * g +
+    0.114 * b;
+
+  gray =
+    ((gray - 128) * 2.2) + 128;
+
+  gray =
+    Math.max(
+      0,
+      Math.min(255, gray)
+    );
+
+  gray =
+    gray > 150 ? 255 : 0;
+
+  data[i] = gray;
+  data[i + 1] = gray;
+  data[i + 2] = gray;
+}
+
+ocrCtx.putImageData(
+  image,
+  0,
+  0
+);
+
+const ret =
+  await worker.recognize(ocrCanvas);
+
+
+
+
+  
   const raw =
     (ret.data.text || '')
       .replace(/\s/g, '');
