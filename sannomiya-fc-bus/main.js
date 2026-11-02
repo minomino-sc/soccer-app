@@ -518,8 +518,8 @@ dayType.textContent =
           name: "阪急バス → 地下鉄 → ポートライナー",
           legs: [
             timetableLeg(venue.go[0], 10),
-            timetableLeg(venue.go[1], 10, 5),
-            timetableLeg(venue.go[2], 2, 7),
+            timetableLeg(venue.go[1], 10, 7),
+            timetableLeg(venue.go[2], 2, 9),
             walkLeg("貿易センター駅 → 小野浜公園球技場", 8)
           ]
         },
@@ -528,7 +528,7 @@ dayType.textContent =
           name: "市バス64系統 → ポートライナー",
           legs: [
             timetableLeg(bus64Town, 35),
-            timetableLeg(venue.go[2], 2, 5),
+            timetableLeg(venue.go[2], 2, 7),
             walkLeg("貿易センター駅 → 小野浜公園球技場", 8)
           ]
         }
@@ -544,7 +544,7 @@ dayType.textContent =
             walkLeg("小野浜公園球技場 → 貿易センター駅", 8),
             timetableLeg(venue.return[0], 2),
             timetableLeg(venue.return[1], 10, 7),
-            timetableLeg(venue.return[2], 10, 5)
+            timetableLeg(venue.return[2], 10, 7)
           ]
         },
         {
@@ -567,8 +567,8 @@ dayType.textContent =
           name: "阪急バス → 地下鉄 → JR",
           legs: [
             timetableLeg(venue.go[0], 10),
-            timetableLeg(venue.go[1], 10, 5),
-            timetableLeg(venue.go[2], 2, 6),
+            timetableLeg(venue.go[1], 10, 7),
+            timetableLeg(venue.go[2], 2, 8),
             walkLeg("JR灘駅 → 神戸朝鮮初中級学校", 8)
           ]
         },
@@ -578,7 +578,7 @@ dayType.textContent =
           legs: [
             timetableLeg(bus64Town, 35),
             walkLeg("市バス三宮駅ターミナル前 → JR三ノ宮駅", 5),
-            timetableLeg(venue.go[2], 2, 3),
+            timetableLeg(venue.go[2], 2, 6),
             walkLeg("JR灘駅 → 神戸朝鮮初中級学校", 8)
           ]
         }
@@ -593,7 +593,7 @@ dayType.textContent =
           legs: [
             walkLeg("神戸朝鮮初中級学校 → JR灘駅", 8),
             timetableLeg(venue.return[0], 3),
-            timetableLeg(venue.return[1], 10, 6),
+            timetableLeg(venue.return[1], 10, 8),
             timetableLeg(venue.return[2], 10, 5)
           ]
         },
@@ -604,7 +604,7 @@ dayType.textContent =
             walkLeg("神戸朝鮮初中級学校 → JR灘駅", 8),
             timetableLeg(venue.return[0], 3),
             walkLeg("JR三ノ宮駅 → 市バス三宮駅ターミナル前", 5),
-            timetableLeg(bus64Home, 35, 5)
+            timetableLeg(bus64Home, 35, 7)
           ]
         }
       ];
