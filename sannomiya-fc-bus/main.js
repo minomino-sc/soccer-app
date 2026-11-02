@@ -926,44 +926,108 @@ dayType.textContent =
   ======================================================= */
 
 function findRoutes(definition, requestedMinutes, dateString) {
-    if (!Array.isArray(definition) || !definition.length) return [];
+  if (!Array.isArray(definition) || !definition.length) return [];
 
-    const dayType = getDayType(dateString);
-    const firstTimetableLeg = definition.find(leg => leg.type === "timetable");
-    if (!firstTimetableLeg?.timetable) return [];
+  const dayType = getDayType(dateString);
 
-    const departures = getAllDepartures(firstTimetableLeg.timetable, dayType);
-    const routes = [];
-    const seen = new Set();
+  const firstTimetableIndex = definition.findIndex(
+    leg => leg.type === "timetable"
+  );
 
-    if (definition[0].type !== "walk") {
-      for (const candidate of departures.filter(item => item.minutes >= requestedMinutes)) {
-        const route = buildRoute(definition, candidate.minutes, dayType);
-        if (route && !seen.has(route.firstVehicleDeparture)) {
-          routes.push(route);
-          seen.add(route.firstVehicleDeparture);
-        }
-        if (routes.length >= 3) break;
-      }
-      return routes;
-    }
+  if (firstTimetableIndex === -1) return [];
 
-    // 先頭が徒歩のルートは、徒歩を始める時刻を少しずつ進め、異なる交通便を3つ探す。
-    let cursor = requestedMinutes;
-    const maxSearch = requestedMinutes + 360;
-    while (cursor <= maxSearch && routes.length < 3) {
-      const route = buildRoute(definition, cursor, dayType);
-      if (route && route.firstVehicleDeparture !== null && !seen.has(route.firstVehicleDeparture)) {
+  const firstTimetableLeg = definition[firstTimetableIndex];
+
+  if (!firstTimetableLeg?.timetable) return [];
+
+  const departures = getAllDepartures(
+    firstTimetableLeg.timetable,
+    dayType
+  );
+
+  const routes = [];
+  const seen = new Set();
+
+  // 先頭に徒歩がないルートは従来どおり
+  if (firstTimetableIndex === 0) {
+
+    for (const candidate of departures.filter(
+      item => item.minutes >= requestedMinutes
+    )) {
+
+      const route = buildRoute(
+        definition,
+        candidate.minutes,
+        dayType
+      );
+
+      if (
+        route &&
+        !seen.has(route.firstVehicleDeparture)
+      ) {
         routes.push(route);
         seen.add(route.firstVehicleDeparture);
-        cursor = route.firstVehicleDeparture + 1;
-      } else {
-        cursor += 1;
       }
+
+      if (routes.length >= 3) break;
     }
+
     return routes;
   }
 
+  // 先頭の徒歩時間を合計
+  const leadingWalkMinutes = definition
+    .slice(0, firstTimetableIndex)
+    .reduce(
+      (total, leg) =>
+        total + (leg.type === "walk" ? leg.travel : 0),
+      0
+    );
+
+  // 最初の交通機関に乗るための乗り継ぎ時間
+  const transferMinutes =
+    firstTimetableLeg.transferBefore || 0;
+
+  // 徒歩時間を考慮して乗車可能な電車を順番に抽出
+  const earliestDeparture =
+    requestedMinutes +
+    leadingWalkMinutes +
+    transferMinutes;
+
+  const candidates = departures.filter(
+    item => item.minutes >= earliestDeparture
+  );
+
+  for (const candidate of candidates) {
+
+    // 電車の発車時刻から徒歩開始時刻を逆算
+    const walkStartMinutes = Math.max(
+      requestedMinutes,
+      candidate.minutes -
+        leadingWalkMinutes -
+        transferMinutes
+    );
+
+    const route = buildRoute(
+      definition,
+      walkStartMinutes,
+      dayType
+    );
+
+    if (
+      route &&
+      route.firstVehicleDeparture === candidate.minutes &&
+      !seen.has(route.firstVehicleDeparture)
+    ) {
+      routes.push(route);
+      seen.add(route.firstVehicleDeparture);
+    }
+
+    if (routes.length >= 3) break;
+  }
+
+  return routes;
+}
 
   /* =======================================================
      DURATION
