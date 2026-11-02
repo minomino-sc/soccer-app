@@ -553,7 +553,6 @@ dayType.textContent =
           legs: [
             walkLeg("小野浜公園球技場 → 貿易センター駅", 8),
             timetableLeg(venue.return[0], 2),
-            walkLeg("ポートライナー三宮駅 → 市バス三宮駅ターミナル前", 5),
             timetableLeg(bus64Home, 35, 7)
           ]
         }
@@ -577,7 +576,6 @@ dayType.textContent =
           name: "市バス64系統 → JR",
           legs: [
             timetableLeg(bus64Town, 35),
-            walkLeg("市バス三宮駅ターミナル前 → JR三ノ宮駅", 5),
             timetableLeg(venue.go[2], 2, 6),
             walkLeg("JR灘駅 → 神戸朝鮮初中級学校", 8)
           ]
@@ -603,7 +601,6 @@ dayType.textContent =
           legs: [
             walkLeg("神戸朝鮮初中級学校 → JR灘駅", 8),
             timetableLeg(venue.return[0], 3),
-            walkLeg("JR三ノ宮駅 → 市バス三宮駅ターミナル前", 5),
             timetableLeg(bus64Home, 35, 7)
           ]
         }
