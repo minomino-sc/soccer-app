@@ -576,7 +576,7 @@ dayType.textContent =
           name: "市バス64系統 → JR",
           legs: [
             timetableLeg(bus64Town, 35),
-            timetableLeg(venue.go[2], 2, 6),
+            timetableLeg(venue.go[2], 2, 7),
             walkLeg("JR灘駅 → 神戸朝鮮初中級学校", 8)
           ]
         }
