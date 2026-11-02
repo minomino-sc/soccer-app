@@ -543,7 +543,7 @@ dayType.textContent =
           legs: [
             walkLeg("小野浜公園球技場 → 貿易センター駅", 8),
             timetableLeg(venue.return[0], 2),
-            timetableLeg(venue.return[1], 10, 7),
+            timetableLeg(venue.return[1], 10, 9),
             timetableLeg(venue.return[2], 10, 7)
           ]
         },
@@ -554,7 +554,7 @@ dayType.textContent =
             walkLeg("小野浜公園球技場 → 貿易センター駅", 8),
             timetableLeg(venue.return[0], 2),
             walkLeg("ポートライナー三宮駅 → 市バス三宮駅ターミナル前", 5),
-            timetableLeg(bus64Home, 35, 5)
+            timetableLeg(bus64Home, 35, 7)
           ]
         }
       ];
@@ -594,7 +594,7 @@ dayType.textContent =
             walkLeg("神戸朝鮮初中級学校 → JR灘駅", 8),
             timetableLeg(venue.return[0], 3),
             timetableLeg(venue.return[1], 10, 8),
-            timetableLeg(venue.return[2], 10, 5)
+            timetableLeg(venue.return[2], 10, 7)
           ]
         },
         {
@@ -617,7 +617,7 @@ dayType.textContent =
           name: "阪急バス → 地下鉄",
           legs: [
             timetableLeg(venue.go[0], 10),
-            timetableLeg(venue.go[1], 10, 5),
+            timetableLeg(venue.go[1], 10, 7),
             walkLeg("三宮駅 → コミスタこうべ", 15)
           ]
         },
@@ -640,7 +640,7 @@ dayType.textContent =
           legs: [
             walkLeg("コミスタこうべ → 三宮駅", 15),
             timetableLeg(venue.return[0], 10),
-            timetableLeg(venue.return[1], 10, 5)
+            timetableLeg(venue.return[1], 10, 7)
           ]
         },
         {
