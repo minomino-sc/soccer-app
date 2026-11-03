@@ -99,14 +99,37 @@ $("loginForm").addEventListener("submit", e => {
     $("loginError").textContent = "パスワードが違います。もう一度入力してください。";
   }
 });
+
 $("logoutButton").addEventListener("click", () => {
+  if (!confirm("ログアウトしますか？")) return;
+
   localStorage.removeItem(AUTH_KEY);
+
   calendarPanel.hidden = true;
   loginPanel.hidden = false;
   $("passwordInput").value = "";
+
+  document.querySelector(".settings-menu").open = false;
 });
+
 $("prevMonth").addEventListener("click", () => { currentMonth.setMonth(currentMonth.getMonth()-1); renderCalendar(); });
 $("nextMonth").addEventListener("click", () => { currentMonth.setMonth(currentMonth.getMonth()+1); renderCalendar(); });
+// 今日に戻る
+$("todayButton").addEventListener("click", () => {
+  const today = new Date();
+
+  currentMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+
+  selectedDate = dateKey(today);
+
+  renderCalendar();
+  renderEvents();
+});
+
 $("addEventButton").addEventListener("click", () => openEventForm());
 $("closeDialog").addEventListener("click", () => dialog.close());
 
