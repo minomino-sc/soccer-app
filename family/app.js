@@ -163,11 +163,17 @@ async function loadEvents() {
 function renderCalendar() {
   const y=currentMonth.getFullYear(), m=currentMonth.getMonth();
   $("monthLabel").textContent = `${y}年 ${m+1}月`;
-  const first=new Date(y,m,1), start=new Date(y,m,1-first.getDay());
-  const today=dateKey(new Date());
-  const grid=$("calendarGrid");
-  grid.innerHTML="";
+  const first = new Date(y, m, 1);
+const start = new Date(y, m, 1 - first.getDay());
 
+const totalDays = Math.ceil(
+  (first.getDay() + new Date(y, m + 1, 0).getDate()) / 7
+) * 7;
+
+const today = dateKey(new Date());
+const grid = $("calendarGrid");
+grid.innerHTML = "";
+  
   const categoryClasses = {
     "家族": "family",
     "サッカー": "soccer",
@@ -178,7 +184,7 @@ function renderCalendar() {
     "その他": "other"
   };
 
-  for(let i=0;i<42;i++){
+  for (let i = 0; i < totalDays; i++) {
     const d=new Date(start);
     d.setDate(start.getDate()+i);
 
