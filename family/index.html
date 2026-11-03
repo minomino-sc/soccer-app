@@ -28,19 +28,24 @@
 
     <section id="calendarPanel" hidden>
 
- <div class="toolbar toolbar-end">
+<div class="toolbar toolbar-end">
   <details class="settings-menu">
     <summary>
       <span>⚙</span> 設定
     </summary>
+
     <div class="settings-content">
+      <button id="familyMembersButton" type="button">
+        <span>👨‍👩‍👦</span> 家族メンバー
+      </button>
+
       <button id="logoutButton" type="button">
-        ログアウト
+        <span>🚪</span> ログアウト
       </button>
     </div>
   </details>
 </div>
-   
+ 
       <section class="panel calendar-panel">
         <div class="monthbar">
           <button id="prevMonth" class="round" type="button" aria-label="前の月">‹</button>
@@ -87,8 +92,7 @@
           <option value="">登録者を選択</option>
           <option>父</option>
           <option>母</option>
-          <option>一颯</option>
-          <option>家族</option>
+          <option>息子</option>
         </select>
       </label>
       <div class="time-fields">
@@ -111,6 +115,22 @@
     </form>
   </dialog>
 
+<!-- 家族メンバー表示 -->
+<dialog id="familyMembersDialog">
+  <div class="family-dialog">
+    <div class="section-heading">
+      <h2>👨‍👩‍👦 家族メンバー</h2>
+      <button id="closeFamilyMembers" class="close" type="button">×</button>
+    </div>
+
+    <div class="family-member-list">
+      <div>👨 <span>父</span></div>
+      <div>👩 <span>母</span></div>
+      <div>🧒 <span>息子</span></div>
+    </div>
+  </div>
+</dialog>
+  
   <script type="module" src="./app.js"></script>
 </body>
 </html>
