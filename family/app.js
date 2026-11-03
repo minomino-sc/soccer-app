@@ -112,6 +112,18 @@ $("logoutButton").addEventListener("click", () => {
   document.querySelector(".settings-menu").open = false;
 });
 
+// 家族メンバー表示
+const familyMembersDialog = $("familyMembersDialog");
+
+$("familyMembersButton").addEventListener("click", () => {
+  document.querySelector(".settings-menu").open = false;
+  familyMembersDialog.showModal();
+});
+
+$("closeFamilyMembers").addEventListener("click", () => {
+  familyMembersDialog.close();
+});
+
 $("prevMonth").addEventListener("click", () => { currentMonth.setMonth(currentMonth.getMonth()-1); renderCalendar(); });
 $("nextMonth").addEventListener("click", () => { currentMonth.setMonth(currentMonth.getMonth()+1); renderCalendar(); });
 // 今日に戻る
