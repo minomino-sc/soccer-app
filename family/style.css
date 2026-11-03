@@ -681,3 +681,74 @@ dialog {
 .calendar-panel .monthbar {
   margin-bottom: 15px;
 }
+
+/* 設定メニュー */
+.settings-content {
+  width: 165px;
+  padding: 5px;
+}
+
+.settings-content button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 10px;
+  background: transparent;
+  color: #34465d;
+  border: none;
+  box-shadow: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.settings-content button:active {
+  background: #eef3f8;
+}
+
+.settings-content button:last-child {
+  color: #d45b65;
+}
+
+/* 家族メンバー画面 */
+#familyMembersDialog {
+  width: calc(100% - 40px);
+  max-width: 340px;
+  padding: 22px;
+  border: none;
+  border-radius: 18px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.2);
+}
+
+#familyMembersDialog::backdrop {
+  background: rgba(15,25,40,.48);
+}
+
+.family-dialog {
+  width: 100%;
+}
+
+.family-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.family-member-list > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  background: #f3f6fa;
+  border-radius: 11px;
+  color: #34465d;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+#familyMembersDialog .section-heading {
+  align-items: center;
+}
