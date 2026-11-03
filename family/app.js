@@ -188,18 +188,20 @@ function renderCalendar() {
 }
 
 
+
 function renderEvents() {
-  $("selectedDateLabel").textContent = `${selectedDate.replaceAll("-","/")} の予定`;
+  $("selectedDateLabel").textContent =
+    `${selectedDate.replaceAll("-", "/")} の予定`;
 
-  const list=events
-    .filter(x=>x.date===selectedDate)
-    .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  const list = events
+    .filter(x => x.date === selectedDate)
+    .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
 
-  const root=$("eventList");
-  root.innerHTML="";
+  const root = $("eventList");
+  root.innerHTML = "";
 
-  if(!list.length){
-    root.innerHTML='<p class="muted">この日の予定はありません。</p>';
+  if (!list.length) {
+    root.innerHTML = '<p class="muted">この日の予定はありません。</p>';
     return;
   }
 
@@ -213,68 +215,73 @@ function renderEvents() {
     "その他": "other"
   };
 
-  list.forEach(ev=>{
+  list.forEach(ev => {
     const category = ev.category || "家族";
     const colorClass = categoryClasses[category] || "other";
 
-    const card=document.createElement("article");
-    card.className=`event-card event-${colorClass}`;
+    const card = document.createElement("article");
+    card.className = `event-card event-${colorClass}`;
 
-    const top=document.createElement("div");
-    top.className="event-top";
+    // 予定名とカテゴリ
+    const top = document.createElement("div");
+    top.className = "event-top";
 
-    const name=document.createElement("div");
-    name.className="event-name";
+    const name = document.createElement("div");
+    name.className = "event-name";
+    name.textContent = ev.title;
 
-    const timeText = ev.time
-      ? ev.time + (ev.endTime ? "〜" + ev.endTime : "") + " "
-      : (ev.endTime ? "終了 " + ev.endTime + " " : "");
+    const cat = document.createElement("span");
+    cat.className = `category cat-${colorClass}`;
+    cat.textContent = category;
 
-    name.textContent=timeText+ev.title;
-
-    const cat=document.createElement("span");
-    cat.className=`category cat-${colorClass}`;
-    cat.textContent=category;
-
-    top.append(name,cat);
+    top.append(name, cat);
     card.append(top);
 
-    // 場所・メモ・登録者を項目ごとに表示
-    const meta=document.createElement("div");
-    meta.className="event-meta-details";
+    // 詳細情報
+    const meta = document.createElement("div");
+    meta.className = "event-meta-details";
 
-    const addDetail = (label, value) => {
-      if(!value) return;
+    const addDetail = (label, value, extraClass = "") => {
+      if (!value) return;
 
-      const row=document.createElement("div");
-      row.className="event-detail";
+      const row = document.createElement("div");
+      row.className = `event-detail ${extraClass}`;
 
-      const heading=document.createElement("span");
-      heading.className="event-detail-label";
-      heading.textContent=label;
+      const heading = document.createElement("span");
+      heading.className = "event-detail-label";
+      heading.textContent = label;
 
-      const content=document.createElement("span");
-      content.className="event-detail-value";
-      content.textContent=value;
+      const content = document.createElement("span");
+      content.className = "event-detail-value";
+      content.textContent = value;
 
-      row.append(heading,content);
+      row.append(heading, content);
       meta.append(row);
     };
 
+    // 時間
+    const timeText = ev.time
+      ? ev.time + (ev.endTime ? " ～ " + ev.endTime : "")
+      : (ev.endTime ? "終了 " + ev.endTime : "");
+
+    addDetail("時間", timeText, "event-time-detail");
+
+    // 場所・メモ・登録者
     addDetail("場所", ev.place);
     addDetail("メモ", ev.memo);
     addDetail("登録者", ev.createdBy || "未設定");
 
-    if(meta.children.length){
+    if (meta.children.length) {
       card.append(meta);
     }
 
-    const actions=document.createElement("div");
-    actions.className="event-actions";
+    // 編集ボタン
+    const actions = document.createElement("div");
+    actions.className = "event-actions";
 
-    const edit=document.createElement("button");
-    edit.textContent="編集";
-    edit.addEventListener("click",()=>openEventForm(ev));
+    const edit = document.createElement("button");
+    edit.textContent = "編集";
+    edit.addEventListener("click", () => openEventForm(ev));
 
     actions.append(edit);
     card.append(actions);
@@ -282,6 +289,7 @@ function renderEvents() {
     root.append(card);
   });
 }
+
 
 
 function openEventForm(ev=null) {
