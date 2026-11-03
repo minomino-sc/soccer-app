@@ -27,16 +27,33 @@
     </section>
 
     <section id="calendarPanel" hidden>
-      <div class="toolbar toolbar-end">
-        <button id="logoutButton" class="ghost" type="button">ログアウト</button>
-      </div>
 
+ <div class="toolbar toolbar-end">
+  <details class="settings-menu">
+    <summary>
+      <span>⚙</span> 設定
+    </summary>
+    <div class="settings-content">
+      <button id="logoutButton" type="button">
+        ログアウト
+      </button>
+    </div>
+  </details>
+</div>
+   
       <section class="panel calendar-panel">
         <div class="monthbar">
           <button id="prevMonth" class="round" type="button" aria-label="前の月">‹</button>
           <h2 id="monthLabel"></h2>
           <button id="nextMonth" class="round" type="button" aria-label="次の月">›</button>
         </div>
+
+<div class="calendar-actions">
+  <button id="todayButton" type="button">
+    今日に戻る
+  </button>
+</div>
+      
         <div class="weekdays">
           <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
         </div>
