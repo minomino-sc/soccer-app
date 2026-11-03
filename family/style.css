@@ -582,3 +582,102 @@ dialog {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* =========================================
+   ヘッダー調整
+========================================= */
+
+.top {
+  padding: 12px 8px 14px;
+}
+
+.eyebrow {
+  letter-spacing: 0.24em;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6485ad;
+  margin-bottom: 10px;
+}
+
+.top h1 {
+  font-size: clamp(23px, 5vw, 30px);
+}
+
+.sub {
+  margin-top: 8px;
+}
+
+/* =========================================
+   設定メニュー
+========================================= */
+
+.settings-menu {
+  position: relative;
+  z-index: 10;
+}
+
+.settings-menu summary {
+  list-style: none;
+  cursor: pointer;
+  background: #e8eef5;
+  color: #34465d;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.settings-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-menu summary:active {
+  background: #dce7f3;
+}
+
+.settings-content {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 160px;
+  padding: 7px;
+  background: #ffffff;
+  border: 1px solid #e1e7ef;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(35,55,80,.15);
+}
+
+.settings-content button {
+  width: 100%;
+  text-align: left;
+  background: #fff0f1;
+  color: #c74755;
+  font-size: 14px;
+}
+
+/* =========================================
+   今日に戻るボタン
+========================================= */
+
+.calendar-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: -3px 0 13px;
+}
+
+#todayButton {
+  background: #e8f1fc;
+  color: #347ed1;
+  font-size: 13px;
+  padding: 8px 15px;
+  border-radius: 9px;
+}
+
+#todayButton:active {
+  background: #d7e8fc;
+}
+
+/* カレンダー上部の余白調整 */
+.calendar-panel .monthbar {
+  margin-bottom: 15px;
+}
