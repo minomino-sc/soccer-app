@@ -752,3 +752,18 @@ dialog {
 #familyMembersDialog .section-heading {
   align-items: center;
 }
+
+/* 今日の日付：グリーン */
+.day.today:not(.selected) {
+  background-color: #DDF3E4;
+  border: 1px solid #65B783;
+  color: #247A43;
+}
+
+/* 選択中の日付：オレンジ */
+.day.selected {
+  background-color: #FFE3A8;
+  border: 2px solid #E5A32A;
+  color: #805000;
+  box-shadow: none;
+}
