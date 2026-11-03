@@ -563,3 +563,22 @@ dialog {
 .day.outside {
   opacity: 0.45;
 }
+
+/* 時間表示を少し強調 */
+.event-time-detail .event-detail-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #263b57;
+}
+
+/* 予定名とカテゴリの間隔 */
+.event-top {
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* 長い予定名にも対応 */
+.event-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
