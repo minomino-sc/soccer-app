@@ -50,11 +50,11 @@ self.addEventListener("push", event => {
 */
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-
-  const targetUrl = new URL(
-    event.notification.data?.url || "./",
-    self.location.origin
-  ).href;
+   
+const targetUrl = new URL(
+  event.notification.data?.url || "./",
+  self.registration.scope
+).href;
 
   event.waitUntil(
     self.clients.matchAll({
