@@ -1,0 +1,19 @@
+
+{
+  "name": "神戸三宮FC",
+  "short_name": "神戸三宮FC",
+  "description": "神戸三宮FC ジュニアユース メインメニュー",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020a06",
+  "theme_color": "#061a10",
+  "icons": [
+    {
+      "src": "../36DFB140-A00A-4A74-8352-88AB4126CB2E.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
