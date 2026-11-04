@@ -1,7 +1,7 @@
 import { db } from "./firebase.js";
 import {
   collection, addDoc, updateDoc, deleteDoc, doc, getDocs,
-  query, orderBy
+  query, orderBy, setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 家族カレンダー専用の簡易パスワード。変更するときはここを書き換えます。
@@ -111,6 +111,97 @@ $("logoutButton").addEventListener("click", () => {
 
   document.querySelector(".settings-menu").open = false;
 });
+
+
+// =========================================================
+// Web Push 通知登録
+// =========================================================
+
+const VAPID_PUBLIC_KEY =
+  "BAS6fTexJ54TUfONNslPJZkPADvkUTcME9Tw3vxhJEgyCmUBjOveS-OQZkJNy9cs3PLZbAgcxGjh0vBAEOK3gLc";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const raw = atob(base64);
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+
+async function enableNotifications() {
+  const button = $("notificationButton");
+
+  try {
+    if (!("serviceWorker" in navigator) ||
+        !("PushManager" in window) ||
+        !("Notification" in window)) {
+      alert("この端末・ブラウザはWeb Push通知に対応していません。");
+      return;
+    }
+
+    const member = prompt(
+      "この端末を使用する人の名前を入力してください。\n例：父・母・一颯"
+    );
+
+    if (!member || !member.trim()) return;
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      alert("通知が許可されていません。端末の設定を確認してください。");
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.register(
+      "./service-worker.js"
+    );
+
+    await navigator.serviceWorker.ready;
+
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const endpoint = subscription.endpoint;
+
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(endpoint)
+    );
+
+    const subscriptionId = Array.from(new Uint8Array(digest))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    await setDoc(
+      doc(db, "family_push_subscriptions", subscriptionId),
+      {
+        member: member.trim(),
+        subscription: subscription.toJSON(),
+        updatedAt: new Date().toISOString()
+      }
+    );
+
+    button.textContent = "🔔 通知は有効です";
+    alert(member.trim() + "の端末を通知登録しました。");
+
+  } catch (error) {
+    console.error("通知登録エラー:", error);
+    alert("通知登録に失敗しました。\n" + error.message);
+  }
+}
+
+$("notificationButton").addEventListener(
+  "click",
+  enableNotifications
+);
 
 // 家族メンバー表示
 const familyMembersDialog = $("familyMembersDialog");
@@ -345,6 +436,9 @@ function openEventForm(ev=null) {
   $("eventCategory").value=ev?.category||"家族";
   $("eventPlace").value=ev?.place||"";
   $("eventMemo").value=ev?.memo||"";
+$("eventNotifyTiming").value=ev?.notifyTiming||"none";
+
+  
   $("deleteEventButton").hidden=!ev;
   $("eventError").textContent="";
   dialog.showModal();
@@ -358,6 +452,7 @@ $("eventForm").addEventListener("submit",async e=>{
     time:$("eventTime").value, endTime:$("eventEndTime").value,
     category:$("eventCategory").value,
     place:$("eventPlace").value.trim(), memo:$("eventMemo").value.trim(),
+    notifyTiming:$("eventNotifyTiming").value||"none",
     // 編集時も、フォームで選び直した登録者を現在の登録者として保存する
     createdBy:member,
     updatedBy:member,
