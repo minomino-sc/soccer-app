@@ -1,12 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101827">
+  <link rel="manifest" href="./manifest.json">
 
-<link rel="manifest" href="./manifest.json">
-  
   <title>年間スケジュール</title>
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -30,24 +30,28 @@
 
     <section id="calendarPanel" hidden>
 
-<div class="toolbar toolbar-end">
-  <details class="settings-menu">
-    <summary>
-      <span>⚙</span> 設定
-    </summary>
+      <div class="toolbar toolbar-end">
+        <details class="settings-menu">
+          <summary>
+            <span>⚙</span> 設定
+          </summary>
 
-    <div class="settings-content">
-      <button id="familyMembersButton" type="button">
-        <span>👨‍👩‍👦</span> 家族メンバー
-      </button>
+          <div class="settings-content">
+            <button id="familyMembersButton" type="button">
+              <span>👨‍👩‍👦</span> 家族メンバー
+            </button>
 
-      <button id="logoutButton" type="button">
-        <span>🚪</span> ログアウト
-      </button>
-    </div>
-  </details>
-</div>
- 
+            <button id="notificationButton" type="button">
+              <span>🔔</span> 通知を有効にする
+            </button>
+
+            <button id="logoutButton" type="button">
+              <span>🚪</span> ログアウト
+            </button>
+          </div>
+        </details>
+      </div>
+
       <section class="panel calendar-panel">
         <div class="monthbar">
           <button id="prevMonth" class="round" type="button" aria-label="前の月">‹</button>
@@ -55,15 +59,17 @@
           <button id="nextMonth" class="round" type="button" aria-label="次の月">›</button>
         </div>
 
-<div class="calendar-actions">
-  <button id="todayButton" type="button">
-    今日に戻る
-  </button>
-</div>
-      
-        <div class="weekdays">
-          <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+        <div class="calendar-actions">
+          <button id="todayButton" type="button">
+            今日に戻る
+          </button>
         </div>
+
+        <div class="weekdays">
+          <span>日</span><span>月</span><span>火</span><span>水</span>
+          <span>木</span><span>金</span><span>土</span>
+        </div>
+
         <div id="calendarGrid" class="calendar-grid"></div>
       </section>
 
@@ -72,10 +78,12 @@
           <h2 id="selectedDateLabel">予定一覧</h2>
           <button id="addEventButton" class="primary small" type="button">＋ 予定を追加</button>
         </div>
+
         <div id="eventList" class="event-list">
           <p class="muted">予定を読み込んでいます…</p>
         </div>
       </section>
+
       <p id="statusMessage" class="status" aria-live="polite"></p>
     </section>
   </main>
@@ -86,10 +94,21 @@
         <h2 id="dialogTitle">予定を追加</h2>
         <button id="closeDialog" class="close" type="button" aria-label="閉じる">×</button>
       </div>
+
       <input id="eventId" type="hidden">
-      <label>予定名<input id="eventTitle" maxlength="80" required placeholder="例：サッカーの試合"></label>
-      <label>日付<input id="eventDate" type="date" required></label>
-      <label>登録者
+
+      <label>
+        予定名
+        <input id="eventTitle" maxlength="80" required placeholder="例：サッカーの試合">
+      </label>
+
+      <label>
+        日付
+        <input id="eventDate" type="date" required>
+      </label>
+
+      <label>
+        登録者
         <select id="memberSelect" required>
           <option value="">登録者を選択</option>
           <option>父</option>
@@ -97,19 +116,58 @@
           <option>息子</option>
         </select>
       </label>
+
       <div class="time-fields">
-        <label>開始時刻<input id="eventTime" type="time"></label>
-        <label>終了時刻<input id="eventEndTime" type="time"></label>
+        <label>
+          開始時刻
+          <input id="eventTime" type="time">
+        </label>
+
+        <label>
+          終了時刻
+          <input id="eventEndTime" type="time">
+        </label>
       </div>
-      <label>カテゴリー
+
+      <label>
+        カテゴリー
         <select id="eventCategory">
-          <option>家族</option><option>サッカー</option><option>学校</option>
-          <option>通院・整体</option><option>食事・飲み会</option><option>旅行</option><option>その他</option>
+          <option>家族</option>
+          <option>サッカー</option>
+          <option>学校</option>
+          <option>通院・整体</option>
+          <option>食事・飲み会</option>
+          <option>旅行</option>
+          <option>その他</option>
         </select>
       </label>
-      <label>場所<input id="eventPlace" maxlength="120" placeholder="場所（任意）"></label>
-      <label>メモ<textarea id="eventMemo" rows="3" maxlength="500" placeholder="詳細・持ち物など"></textarea></label>
+
+      <label>
+        場所
+        <input id="eventPlace" maxlength="120" placeholder="場所（任意）">
+      </label>
+
+      <label>
+        メモ
+        <textarea id="eventMemo" rows="3" maxlength="500" placeholder="詳細・持ち物など"></textarea>
+      </label>
+
+      <label>
+        🔔 通知タイミング
+        <select id="eventNotifyTiming">
+          <option value="none" selected>通知なし</option>
+          <option value="dayBefore">前日 18:00</option>
+          <option value="morning">当日 朝 6:00</option>
+          <option value="oneHour">1時間前</option>
+        </select>
+      </label>
+
+      <p class="muted">
+        通知を受け取るには、各端末で通知の有効化が必要です。
+      </p>
+
       <p id="eventError" class="error"></p>
+
       <div class="dialog-actions">
         <button id="deleteEventButton" class="danger" type="button" hidden>削除</button>
         <button class="primary" type="submit">保存する</button>
@@ -117,22 +175,22 @@
     </form>
   </dialog>
 
-<!-- 家族メンバー表示 -->
-<dialog id="familyMembersDialog">
-  <div class="family-dialog">
-    <div class="section-heading">
-      <h2>👨‍👩‍👦 家族メンバー</h2>
-      <button id="closeFamilyMembers" class="close" type="button">×</button>
-    </div>
+  <!-- 家族メンバー表示 -->
+  <dialog id="familyMembersDialog">
+    <div class="family-dialog">
+      <div class="section-heading">
+        <h2>👨‍👩‍👦 家族メンバー</h2>
+        <button id="closeFamilyMembers" class="close" type="button">×</button>
+      </div>
 
-    <div class="family-member-list">
-      <div>👨 <span>父</span></div>
-      <div>👩 <span>母</span></div>
-      <div>🧒 <span>息子</span></div>
+      <div class="family-member-list">
+        <div>👨 <span>父</span></div>
+        <div>👩 <span>母</span></div>
+        <div>🧒 <span>息子</span></div>
+      </div>
     </div>
-  </div>
-</dialog>
-  
+  </dialog>
+
   <script type="module" src="./app.js"></script>
 </body>
 </html>
