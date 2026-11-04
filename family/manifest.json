@@ -1,0 +1,19 @@
+
+{
+  "name": "二宮家 年間スケジュール",
+  "short_name": "年間スケジュール",
+  "description": "二宮家専用の家族スケジュール",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7f5",
+  "theme_color": "#247a43",
+  "icons": [
+    {
+      "src": "../36DFB140-A00A-4A74-8352-88AB4126CB2E.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
