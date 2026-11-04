@@ -49,18 +49,18 @@ function getTargetTime(event) {
     return jstDateTime(eventDate, 6, 0);
   }
 
-  if (event.notifyTiming === "oneHour") {
-    if (!event.time) return null;
+if (event.notifyTiming === "twoHours") {
+  if (!event.time) return null;
 
-    const [hour, minute] = event.time.split(":").map(Number);
-    const eventStart = jstDateTime(
-      new Date(year, month - 1, day),
-      hour,
-      minute
-    );
+  const [hour, minute] = event.time.split(":").map(Number);
+  const eventStart = jstDateTime(
+    new Date(year, month - 1, day),
+    hour,
+    minute
+  );
 
-    return new Date(eventStart.getTime() - 60 * 60 * 1000);
-  }
+  return new Date(eventStart.getTime() - 2 * 60 * 60 * 1000);
+}
 
   return null;
 }
@@ -110,7 +110,7 @@ async function main() {
     const timingLabel = {
       dayBefore: "明日の予定",
       morning: "今日の予定",
-      oneHour: "まもなく始まる予定"
+      twoHours: "まもなく始まる予定"
     }[timing];
 
     const bodyParts = [
