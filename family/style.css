@@ -768,9 +768,15 @@ dialog {
   box-shadow: none;
 }
 
-#modalClose,
-#modalClose:focus,
-#modalClose:focus-visible {
+#closeDialog.close,
+#closeDialog.close:hover,
+#closeDialog.close:focus,
+#closeDialog.close:focus-visible,
+#closeDialog.close:active {
   outline: none !important;
+  border: none !important;
   box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
