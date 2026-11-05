@@ -3,9 +3,7 @@ name: Family Calendar Notifications
 
 on:
   schedule:
-  schedule:
-  schedule:
-  - cron: "17 * * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
