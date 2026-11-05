@@ -767,3 +767,10 @@ dialog {
   color: #805000;
   box-shadow: none;
 }
+
+#modalClose,
+#modalClose:focus,
+#modalClose:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
