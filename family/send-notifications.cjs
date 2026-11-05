@@ -74,6 +74,12 @@ function makeLogId(value) {
 async function main() {
   const now = new Date();
 
+  console.log("========== 通知診断開始 ==========");
+  console.log(
+    "現在時刻（日本時間）:",
+    now.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+  );
+
   const [eventSnapshot, subscriptionSnapshot] = await Promise.all([
     db.collection(EVENTS).get(),
     db.collection(SUBSCRIPTIONS).get()
@@ -91,18 +97,49 @@ async function main() {
 
   let sentCount = 0;
 
+  console.log("登録予定数:", eventSnapshot.size);
+  console.log("通知登録端末数:", subscriptions.length);
+
   for (const eventDoc of eventSnapshot.docs) {
     const event = eventDoc.data();
+
+    console.log("--------------------------------");
+    console.log("予定名:", event.title || "名称なし");
+    console.log("予定日:", event.date);
+    console.log("開始時刻:", event.time || "未設定");
+    console.log("通知設定値:", event.notifyTiming);
+
     const target = getTargetTime(event);
 
-    if (!target) continue;
+    if (!target) {
+      console.log("判定結果：通知対象外（通知時刻を計算できません）");
+      continue;
+    }
+
+    console.log(
+      "通知予定時刻:",
+      target.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
+    );
 
     // 実行遅延を考慮し、予定時刻から6時間以内は送信対象とする
     const elapsed = now.getTime() - target.getTime();
 
-    if (elapsed < 0 || elapsed > 6 * 60 * 60 * 1000) {
+    console.log(
+      "通知予定時刻からの経過時間（分）:",
+      Math.round(elapsed / 60000)
+    );
+
+    if (elapsed < 0) {
+      console.log("判定結果：通知時刻より前のため対象外");
       continue;
     }
+
+    if (elapsed > 6 * 60 * 60 * 1000) {
+      console.log("判定結果：6時間を超過したため対象外");
+      continue;
+    }
+
+    console.log("判定結果：通知対象");
 
     const eventId = eventDoc.id;
     const timing = event.notifyTiming;
@@ -134,10 +171,20 @@ async function main() {
       );
 
       const logRef = db.collection(LOGS).doc(logId);
+
       const existingLog = await logRef.get();
 
-      if (existingLog.exists) continue;
+      if (existingLog.exists) {
+        console.log(
+          `送信スキップ：既に送信履歴があります（${sub.member || "端末"}）`
+        );
+        continue;
+      }
 
+      console.log(
+        `送信準備：${event.title} / ${sub.member || "端末"}`
+      );
+      
       try {
         await webpush.sendNotification(
           sub.subscription,
