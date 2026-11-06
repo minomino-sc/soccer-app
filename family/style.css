@@ -780,3 +780,20 @@ dialog {
   appearance: none !important;
   -webkit-tap-highlight-color: transparent !important;
 }
+
+/* メインメニューに戻る */
+.menu-back {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 9px 15px;
+  border-radius: 9px;
+  background: #e8f1fc;
+  color: #347ed1;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.menu-back:active {
+  background: #d7e8fc;
+}
