@@ -1,10 +1,11 @@
+
 import { db } from "./firebase.js";
 import {
   collection, addDoc, updateDoc, deleteDoc, doc, getDocs,
   query, orderBy, setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 家族カレンダー専用の簡易パスワード。変更するときはここを書き換えます。
+// 現在設定しているパスワードを、この行にそのまま残してください。
 const FAMILY_PASSWORD = "2no38ie";
 const AUTH_KEY = "ninomiya_family_calendar_unlocked";
 const COLLECTION = "family_calendar_events";
@@ -16,6 +17,20 @@ const dialog = $("eventDialog");
 let currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let selectedDate = dateKey(new Date());
 let events = [];
+
+const TIMING_IDS = {
+  dayBefore: "notifyTimingDayBefore",
+  morning: "notifyTimingMorning",
+  twoHours: "notifyTimingTwoHours"
+};
+
+const MEMBER_IDS = {
+  "父": "notifyMemberFather",
+  "母": "notifyMemberMother",
+  "息子": "notifyMemberSon"
+};
+
+const ALL_MEMBERS = ["父", "母", "息子"];
 
 function dateKey(d) {
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
@@ -51,7 +66,6 @@ function japaneseHolidays(year) {
   add(11,3,"文化の日");
   add(11,23,"勤労感謝の日");
 
-  // ハッピーマンデー
   add(1,nthWeekdayOfMonth(year,1,1,2),"成人の日");
   add(7,nthWeekdayOfMonth(year,7,1,3),"海の日");
   add(9,nthWeekdayOfMonth(year,9,1,3),"敬老の日");
@@ -60,7 +74,6 @@ function japaneseHolidays(year) {
   add(3,vernalEquinoxDay(year),"春分の日");
   add(9,autumnalEquinoxDay(year),"秋分の日");
 
-  // 国民の休日（祝日に挟まれた平日）
   const base = [...map.keys()].sort();
   for (let i=0;i<base.length-1;i++) {
     const a = new Date(`${base[i]}T00:00:00`);
@@ -72,7 +85,6 @@ function japaneseHolidays(year) {
     }
   }
 
-  // 振替休日（日曜と祝日が重なった場合、次の祝日でない日）
   const original = [...map.keys()].sort();
   for (const key of original) {
     const d = new Date(`${key}T00:00:00`);
@@ -84,11 +96,13 @@ function japaneseHolidays(year) {
   }
   return map;
 }
+
 function showCalendar() {
   loginPanel.hidden = true;
   calendarPanel.hidden = false;
   loadEvents();
 }
+
 $("loginForm").addEventListener("submit", e => {
   e.preventDefault();
   if ($("passwordInput").value === FAMILY_PASSWORD) {
@@ -102,16 +116,12 @@ $("loginForm").addEventListener("submit", e => {
 
 $("logoutButton").addEventListener("click", () => {
   if (!confirm("ログアウトしますか？")) return;
-
   localStorage.removeItem(AUTH_KEY);
-
   calendarPanel.hidden = true;
   loginPanel.hidden = false;
   $("passwordInput").value = "";
-
   document.querySelector(".settings-menu").open = false;
 });
-
 
 // =========================================================
 // Web Push 通知登録
@@ -125,7 +135,6 @@ function urlBase64ToUint8Array(base64String) {
   const base64 = (base64String + padding)
     .replace(/-/g, "+")
     .replace(/_/g, "/");
-
   const raw = atob(base64);
   return Uint8Array.from(raw, c => c.charCodeAt(0));
 }
@@ -142,22 +151,25 @@ async function enableNotifications() {
     }
 
     const member = prompt(
-      "この端末を使用する人の名前を入力してください。\n例：父・母・一颯"
+      "この端末を使用する人の名前を入力してください。\n「父」「母」「息子」のいずれかを入力してください。"
     );
 
     if (!member || !member.trim()) return;
 
-    const permission = await Notification.requestPermission();
+    const memberName = member.trim();
+    if (!ALL_MEMBERS.includes(memberName) &&
+        memberName !== "一颯") {
+      alert("名前は「父」「母」「息子」のいずれかで登録してください。");
+      return;
+    }
 
+    const permission = await Notification.requestPermission();
     if (permission !== "granted") {
       alert("通知が許可されていません。端末の設定を確認してください。");
       return;
     }
 
-    const registration = await navigator.serviceWorker.register(
-      "./service-worker.js"
-    );
-
+    const registration = await navigator.serviceWorker.register("./service-worker.js");
     await navigator.serviceWorker.ready;
 
     let subscription = await registration.pushManager.getSubscription();
@@ -170,27 +182,22 @@ async function enableNotifications() {
     }
 
     const endpoint = subscription.endpoint;
-
     const digest = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(endpoint)
     );
-
     const subscriptionId = Array.from(new Uint8Array(digest))
       .map(b => b.toString(16).padStart(2, "0"))
       .join("");
 
-    await setDoc(
-      doc(db, "family_push_subscriptions", subscriptionId),
-      {
-        member: member.trim(),
-        subscription: subscription.toJSON(),
-        updatedAt: new Date().toISOString()
-      }
-    );
+    await setDoc(doc(db, "family_push_subscriptions", subscriptionId), {
+      member: memberName === "一颯" ? "息子" : memberName,
+      subscription: subscription.toJSON(),
+      updatedAt: new Date().toISOString()
+    });
 
     button.textContent = "🔔 通知は有効です";
-    alert(member.trim() + "の端末を通知登録しました。");
+    alert(memberName + "の端末を通知登録しました。");
 
   } catch (error) {
     console.error("通知登録エラー:", error);
@@ -198,10 +205,7 @@ async function enableNotifications() {
   }
 }
 
-$("notificationButton").addEventListener(
-  "click",
-  enableNotifications
-);
+$("notificationButton").addEventListener("click", enableNotifications);
 
 // 家族メンバー表示
 const familyMembersDialog = $("familyMembersDialog");
@@ -215,20 +219,19 @@ $("closeFamilyMembers").addEventListener("click", () => {
   familyMembersDialog.close();
 });
 
-$("prevMonth").addEventListener("click", () => { currentMonth.setMonth(currentMonth.getMonth()-1); renderCalendar(); });
-$("nextMonth").addEventListener("click", () => { currentMonth.setMonth(currentMonth.getMonth()+1); renderCalendar(); });
-// 今日に戻る
+$("prevMonth").addEventListener("click", () => {
+  currentMonth.setMonth(currentMonth.getMonth()-1);
+  renderCalendar();
+});
+$("nextMonth").addEventListener("click", () => {
+  currentMonth.setMonth(currentMonth.getMonth()+1);
+  renderCalendar();
+});
+
 $("todayButton").addEventListener("click", () => {
   const today = new Date();
-
-  currentMonth = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    1
-  );
-
+  currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   selectedDate = dateKey(today);
-
   renderCalendar();
   renderEvents();
 });
@@ -255,39 +258,28 @@ function renderCalendar() {
   const y=currentMonth.getFullYear(), m=currentMonth.getMonth();
   $("monthLabel").textContent = `${y}年 ${m+1}月`;
   const first = new Date(y, m, 1);
-const start = new Date(y, m, 1 - first.getDay());
+  const start = new Date(y, m, 1 - first.getDay());
+  const totalDays = Math.ceil(
+    (first.getDay() + new Date(y, m + 1, 0).getDate()) / 7
+  ) * 7;
+  const today = dateKey(new Date());
+  const grid = $("calendarGrid");
+  grid.innerHTML = "";
 
-const totalDays = Math.ceil(
-  (first.getDay() + new Date(y, m + 1, 0).getDate()) / 7
-) * 7;
-
-const today = dateKey(new Date());
-const grid = $("calendarGrid");
-grid.innerHTML = "";
-  
   const categoryClasses = {
-    "家族": "family",
-    "サッカー": "soccer",
-    "学校": "school",
-    "通院・整体": "medical",
-    "食事・飲み会": "food",
-    "旅行": "travel",
-    "その他": "other"
+    "家族": "family", "サッカー": "soccer", "学校": "school",
+    "通院・整体": "medical", "食事・飲み会": "food",
+    "旅行": "travel", "その他": "other"
   };
 
   for (let i = 0; i < totalDays; i++) {
     const d=new Date(start);
     d.setDate(start.getDate()+i);
-
     const key=dateKey(d);
     const dayEvents=events.filter(x=>x.date===key);
     const holidayName=japaneseHolidays(d.getFullYear()).get(key);
 
-    // 同じカテゴリーの予定は1つのドットにまとめる
-    const categories = [...new Set(
-      dayEvents.map(ev => ev.category || "家族")
-    )];
-
+    const categories = [...new Set(dayEvents.map(ev => ev.category || "家族"))];
     const dotsHTML = categories.map(category => {
       const colorClass = categoryClasses[category] || "other";
       return `<i class="dot dot-${colorClass}"></i>`;
@@ -295,7 +287,6 @@ grid.innerHTML = "";
 
     const b=document.createElement("button");
     b.type="button";
-
     b.className="day"+
       (d.getMonth()!==m?" outside":"")+
       (key===today?" today":"")+
@@ -314,12 +305,9 @@ grid.innerHTML = "";
       renderCalendar();
       renderEvents();
     });
-
     grid.appendChild(b);
   }
 }
-
-
 
 function renderEvents() {
   $("selectedDateLabel").textContent =
@@ -338,91 +326,90 @@ function renderEvents() {
   }
 
   const categoryClasses = {
-    "家族": "family",
-    "サッカー": "soccer",
-    "学校": "school",
-    "通院・整体": "medical",
-    "食事・飲み会": "food",
-    "旅行": "travel",
-    "その他": "other"
+    "家族": "family", "サッカー": "soccer", "学校": "school",
+    "通院・整体": "medical", "食事・飲み会": "food",
+    "旅行": "travel", "その他": "other"
   };
 
   list.forEach(ev => {
     const category = ev.category || "家族";
     const colorClass = categoryClasses[category] || "other";
-
     const card = document.createElement("article");
     card.className = `event-card event-${colorClass}`;
 
-    // 予定名とカテゴリ
     const top = document.createElement("div");
     top.className = "event-top";
-
     const name = document.createElement("div");
     name.className = "event-name";
     name.textContent = ev.title;
-
     const cat = document.createElement("span");
     cat.className = `category cat-${colorClass}`;
     cat.textContent = category;
-
     top.append(name, cat);
     card.append(top);
 
-    // 詳細情報
     const meta = document.createElement("div");
     meta.className = "event-meta-details";
 
     const addDetail = (label, value, extraClass = "") => {
       if (!value) return;
-
       const row = document.createElement("div");
       row.className = `event-detail ${extraClass}`;
-
       const heading = document.createElement("span");
       heading.className = "event-detail-label";
       heading.textContent = label;
-
       const content = document.createElement("span");
       content.className = "event-detail-value";
       content.textContent = value;
-
       row.append(heading, content);
       meta.append(row);
     };
 
-    // 時間
     const timeText = ev.time
       ? ev.time + (ev.endTime ? " ～ " + ev.endTime : "")
       : (ev.endTime ? "終了 " + ev.endTime : "");
 
     addDetail("時間", timeText, "event-time-detail");
-
-    // 場所・メモ・登録者
     addDetail("場所", ev.place);
     addDetail("メモ", ev.memo);
     addDetail("登録者", ev.createdBy || "未設定");
 
-    if (meta.children.length) {
-      card.append(meta);
-    }
+    if (meta.children.length) card.append(meta);
 
-    // 編集ボタン
     const actions = document.createElement("div");
     actions.className = "event-actions";
-
     const edit = document.createElement("button");
     edit.textContent = "編集";
     edit.addEventListener("click", () => openEventForm(ev));
-
     actions.append(edit);
     card.append(actions);
-
     root.append(card);
   });
 }
 
+function getEventTimings(ev) {
+  if (Array.isArray(ev?.notifyTimings)) return ev.notifyTimings;
+  if (ev?.notifyTiming && ev.notifyTiming !== "none") return [ev.notifyTiming];
+  return [];
+}
 
+function getEventMembers(ev) {
+  // 旧データは従来どおり全員を通知先にする
+  if (!Array.isArray(ev?.notifyMembers)) return [...ALL_MEMBERS];
+  return ev.notifyMembers;
+}
+
+function setChecks(map, values) {
+  for (const [value, id] of Object.entries(map)) {
+    $(id).checked = values.includes(value);
+  }
+}
+
+function getCheckedValues(map) {
+  return Object.entries(map)
+    .filter(([, id]) => $(id).checked)
+    .map(([value]) => value);
+}
 
 function openEventForm(ev=null) {
   $("eventForm").reset();
@@ -436,41 +423,77 @@ function openEventForm(ev=null) {
   $("eventCategory").value=ev?.category||"家族";
   $("eventPlace").value=ev?.place||"";
   $("eventMemo").value=ev?.memo||"";
-$("eventNotifyTiming").value=ev?.notifyTiming||"none";
 
-  
+  setChecks(TIMING_IDS, ev ? getEventTimings(ev) : []);
+  setChecks(MEMBER_IDS, ev ? getEventMembers(ev) : []);
+
   $("deleteEventButton").hidden=!ev;
   $("eventError").textContent="";
   dialog.showModal();
 }
+
 $("eventForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const member=$("memberSelect").value;
-  if(!member){$("eventError").textContent="先に利用者の名前を選択してください。";return;}
+  if(!member){
+    $("eventError").textContent="先に利用者の名前を選択してください。";
+    return;
+  }
+
+  const notifyTimings = getCheckedValues(TIMING_IDS);
+  const notifyMembers = getCheckedValues(MEMBER_IDS);
+
   const data={
-    title:$("eventTitle").value.trim(), date:$("eventDate").value,
-    time:$("eventTime").value, endTime:$("eventEndTime").value,
+    title:$("eventTitle").value.trim(),
+    date:$("eventDate").value,
+    time:$("eventTime").value,
+    endTime:$("eventEndTime").value,
     category:$("eventCategory").value,
-    place:$("eventPlace").value.trim(), memo:$("eventMemo").value.trim(),
-    notifyTiming:$("eventNotifyTiming").value||"none",
-    // 編集時も、フォームで選び直した登録者を現在の登録者として保存する
+    place:$("eventPlace").value.trim(),
+    memo:$("eventMemo").value.trim(),
+    notifyTimings,
+    notifyMembers,
     createdBy:member,
     updatedBy:member,
     updatedAt:new Date().toISOString()
   };
+
   if(!data.title||!data.date)return;
+
   try{
-    if($("eventId").value) await updateDoc(doc(db,COLLECTION,$("eventId").value),data);
-    else await addDoc(collection(db,COLLECTION),{...data,createdAt:new Date().toISOString()});
-    selectedDate=data.date; currentMonth=new Date(data.date+"T00:00:00"); dialog.close(); await loadEvents();
-  }catch(err){console.error(err);$("eventError").textContent="保存できませんでした。Firebase設定・ルールを確認してください。";}
+    if($("eventId").value) {
+      await updateDoc(doc(db,COLLECTION,$("eventId").value),data);
+    } else {
+      await addDoc(collection(db,COLLECTION),{
+        ...data,
+        createdAt:new Date().toISOString()
+      });
+    }
+    selectedDate=data.date;
+    currentMonth=new Date(data.date+"T00:00:00");
+    dialog.close();
+    await loadEvents();
+  }catch(err){
+    console.error(err);
+    $("eventError").textContent="保存できませんでした。Firebase設定・ルールを確認してください。";
+  }
 });
+
 $("deleteEventButton").addEventListener("click",async()=>{
   const id=$("eventId").value;
   if(!id||!confirm("この予定を削除しますか？"))return;
-  try{await deleteDoc(doc(db,COLLECTION,id));dialog.close();await loadEvents();}
-  catch(err){console.error(err);$("eventError").textContent="削除できませんでした。";}
+  try{
+    await deleteDoc(doc(db,COLLECTION,id));
+    dialog.close();
+    await loadEvents();
+  }catch(err){
+    console.error(err);
+    $("eventError").textContent="削除できませんでした。";
+  }
 });
 
 if(localStorage.getItem(AUTH_KEY)==="1") showCalendar();
-else { loginPanel.hidden=false; calendarPanel.hidden=true; }
+else {
+  loginPanel.hidden=false;
+  calendarPanel.hidden=true;
+}
