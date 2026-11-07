@@ -811,32 +811,44 @@ dialog {
 
 
 /* =========================================
-   通知タイミング・通知先チェック欄
+   通知設定：シンプルデザイン
 ========================================= */
 
 .notify-settings {
-  margin-top: 18px;
-  padding: 14px;
-  background: #f4f7fb;
-  border: 1px solid #e1e7ef;
-  border-radius: 12px;
+  margin-top: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.notify-section {
+  margin-top: 20px;
+}
+
+.notify-section:first-child {
+  margin-top: 0;
 }
 
 .notify-heading {
   color: #34465d;
   font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 10px;
+  font-weight: 750;
+  margin: 0;
 }
 
-.notify-recipient-heading {
-  margin-top: 18px;
+.notify-caption {
+  margin: 3px 0 10px;
+  color: #8a98aa;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .notify-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 9px;
+  align-items: center;
+  gap: 16px 20px;
 }
 
 .dialog-form .notify-option {
@@ -844,14 +856,14 @@ dialog {
   align-items: center;
   gap: 7px;
   margin: 0;
-  padding: 9px 11px;
-  min-height: 40px;
-  border: 1px solid #d5dfeb;
-  border-radius: 9px;
-  background: #ffffff;
+  padding: 3px 0;
+  min-height: 32px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: #34465d;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .dialog-form .notify-option input[type="checkbox"] {
@@ -867,20 +879,18 @@ dialog {
 }
 
 .notify-help {
-  margin: 12px 0 0;
+  margin: 16px 0 0;
+  color: #8a98aa;
+  font-size: 11px;
   line-height: 1.6;
 }
 
 @media(max-width:420px) {
-  .notify-settings {
-    padding: 11px;
-  }
-
   .notify-options {
-    gap: 7px;
+    gap: 12px 16px;
   }
 
   .dialog-form .notify-option {
-    padding: 8px 9px;
+    padding: 3px 0;
   }
 }
