@@ -394,8 +394,7 @@ function getEventTimings(ev) {
 }
 
 function getEventMembers(ev) {
-  // 旧データは従来どおり全員を通知先にする
-  if (!Array.isArray(ev?.notifyMembers)) return [...ALL_MEMBERS];
+  if (!Array.isArray(ev?.notifyMembers)) return [];
   return ev.notifyMembers;
 }
 
