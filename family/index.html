@@ -6,17 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101827">
   <link rel="manifest" href="./manifest.json">
-
   <title>年間スケジュール</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <main class="app">
     <header class="top">
-  <p class="eyebrow">家族のスケジュールを一括管理</p>
-  <h1>🏠 年間スケジュール</h1>
-
-</header>
+      <p class="eyebrow">家族のスケジュールを一括管理</p>
+      <h1>🏠 年間スケジュール</h1>
+    </header>
 
     <section id="loginPanel" class="panel login-panel">
       <h2>🔐 パスワード入力</h2>
@@ -30,33 +28,27 @@
     </section>
 
     <section id="calendarPanel" hidden>
+      <div class="toolbar toolbar-end">
+        <a class="menu-back"
+           href="https://minomino-sc.github.io/soccer-app/sannomiya-fc-bus/menu/">
+          メインメニューに戻る
+        </a>
 
-<div class="toolbar toolbar-end">
-  <a class="menu-back"
-     href="https://minomino-sc.github.io/soccer-app/sannomiya-fc-bus/menu/">
-    メインメニューに戻る
-  </a>
-
-  <details class="settings-menu">
-    <summary>
-      <span>⚙</span> 設定
-    </summary>
-
-    <div class="settings-content">
-      <button id="familyMembersButton" type="button">
-        <span>👨‍👩‍👦</span> 家族メンバー
-      </button>
-
-      <button id="notificationButton" type="button">
-        <span>🔔</span> 通知を有効にする
-      </button>
-
-      <button id="logoutButton" type="button">
-        <span>🚪</span> ログアウト
-      </button>
-    </div>
-  </details>
-</div>
+        <details class="settings-menu">
+          <summary><span>⚙</span> 設定</summary>
+          <div class="settings-content">
+            <button id="familyMembersButton" type="button">
+              <span>👨‍👩‍👦</span> 家族メンバー
+            </button>
+            <button id="notificationButton" type="button">
+              <span>🔔</span> 通知を有効にする
+            </button>
+            <button id="logoutButton" type="button">
+              <span>🚪</span> ログアウト
+            </button>
+          </div>
+        </details>
+      </div>
 
       <section class="panel calendar-panel">
         <div class="monthbar">
@@ -66,16 +58,13 @@
         </div>
 
         <div class="calendar-actions">
-          <button id="todayButton" type="button">
-            今日に戻る
-          </button>
+          <button id="todayButton" type="button">今日に戻る</button>
         </div>
 
         <div class="weekdays">
           <span>日</span><span>月</span><span>火</span><span>水</span>
           <span>木</span><span>金</span><span>土</span>
         </div>
-
         <div id="calendarGrid" class="calendar-grid"></div>
       </section>
 
@@ -84,7 +73,6 @@
           <h2 id="selectedDateLabel">予定一覧</h2>
           <button id="addEventButton" class="primary small" type="button">＋ 予定を追加</button>
         </div>
-
         <div id="eventList" class="event-list">
           <p class="muted">予定を読み込んでいます…</p>
         </div>
@@ -128,7 +116,6 @@
           開始時刻
           <input id="eventTime" type="time">
         </label>
-
         <label>
           終了時刻
           <input id="eventEndTime" type="time">
@@ -158,19 +145,45 @@
         <textarea id="eventMemo" rows="3" maxlength="500" placeholder="詳細・持ち物など"></textarea>
       </label>
 
-      <label>
-        🔔 通知タイミング
-        <select id="eventNotifyTiming">
-          <option value="none" selected>通知なし</option>
-          <option value="dayBefore">前日 18:00</option>
-          <option value="morning">当日 朝 6:00</option>
-          <option value="twoHours">2時間前</option>
-        </select>
-      </label>
+      <div class="notify-settings">
+        <div class="notify-heading">🔔 通知タイミング（複数選択可）</div>
+        <div class="notify-options">
+          <label class="notify-option">
+            <input type="checkbox" id="notifyTimingDayBefore" value="dayBefore">
+            <span>前日 18:00</span>
+          </label>
+          <label class="notify-option">
+            <input type="checkbox" id="notifyTimingMorning" value="morning">
+            <span>当日 朝 6:00</span>
+          </label>
+          <label class="notify-option">
+            <input type="checkbox" id="notifyTimingTwoHours" value="twoHours">
+            <span>2時間前</span>
+          </label>
+        </div>
 
-      <p class="muted">
-        通知を受け取るには、各端末で通知の有効化が必要です。
-      </p>
+        <div class="notify-heading notify-recipient-heading">
+          通知先（複数選択可）
+        </div>
+        <div class="notify-options">
+          <label class="notify-option">
+            <input type="checkbox" id="notifyMemberFather" value="父">
+            <span>父</span>
+          </label>
+          <label class="notify-option">
+            <input type="checkbox" id="notifyMemberMother" value="母">
+            <span>母</span>
+          </label>
+          <label class="notify-option">
+            <input type="checkbox" id="notifyMemberSon" value="息子">
+            <span>息子</span>
+          </label>
+        </div>
+        <p class="muted notify-help">
+          通知を受け取るには、通知先の各端末で通知の有効化が必要です。
+          タイミングと通知先の両方を選択してください。
+        </p>
+      </div>
 
       <p id="eventError" class="error"></p>
 
@@ -181,14 +194,12 @@
     </form>
   </dialog>
 
-  <!-- 家族メンバー表示 -->
   <dialog id="familyMembersDialog">
     <div class="family-dialog">
       <div class="section-heading">
         <h2>👨‍👩‍👦 家族メンバー</h2>
         <button id="closeFamilyMembers" class="close" type="button">×</button>
       </div>
-
       <div class="family-member-list">
         <div>👨 <span>父</span></div>
         <div>👩 <span>母</span></div>
