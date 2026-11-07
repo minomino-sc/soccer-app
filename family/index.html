@@ -145,45 +145,49 @@
         <textarea id="eventMemo" rows="3" maxlength="500" placeholder="詳細・持ち物など"></textarea>
       </label>
 
-      <div class="notify-settings">
-        <div class="notify-heading">🔔 通知タイミング（複数選択可）</div>
-        <div class="notify-options">
-          <label class="notify-option">
-            <input type="checkbox" id="notifyTimingDayBefore" value="dayBefore">
-            <span>前日 18:00</span>
-          </label>
-          <label class="notify-option">
-            <input type="checkbox" id="notifyTimingMorning" value="morning">
-            <span>当日 朝 6:00</span>
-          </label>
-          <label class="notify-option">
-            <input type="checkbox" id="notifyTimingTwoHours" value="twoHours">
-            <span>2時間前</span>
-          </label>
-        </div>
+<div class="notify-settings">
+  <div class="notify-section">
+    <div class="notify-heading">🔔 通知タイミング</div>
+    <p class="notify-caption">任意・複数選択可</p>
+    <div class="notify-options">
+      <label class="notify-option">
+        <input type="checkbox" id="notifyTimingDayBefore" value="dayBefore">
+        <span>前日 18:00</span>
+      </label>
+      <label class="notify-option">
+        <input type="checkbox" id="notifyTimingMorning" value="morning">
+        <span>当日 朝 6:00</span>
+      </label>
+      <label class="notify-option">
+        <input type="checkbox" id="notifyTimingTwoHours" value="twoHours">
+        <span>2時間前</span>
+      </label>
+    </div>
+  </div>
 
-        <div class="notify-heading notify-recipient-heading">
-          通知先（複数選択可）
-        </div>
-        <div class="notify-options">
-          <label class="notify-option">
-            <input type="checkbox" id="notifyMemberFather" value="父">
-            <span>父</span>
-          </label>
-          <label class="notify-option">
-            <input type="checkbox" id="notifyMemberMother" value="母">
-            <span>母</span>
-          </label>
-          <label class="notify-option">
-            <input type="checkbox" id="notifyMemberSon" value="息子">
-            <span>息子</span>
-          </label>
-        </div>
-        <p class="muted notify-help">
-          通知を受け取るには、通知先の各端末で通知の有効化が必要です。
-          タイミングと通知先の両方を選択してください。
-        </p>
-      </div>
+  <div class="notify-section">
+    <div class="notify-heading">通知先</div>
+    <p class="notify-caption">任意・複数選択可</p>
+    <div class="notify-options">
+      <label class="notify-option">
+        <input type="checkbox" id="notifyMemberFather" value="父">
+        <span>父</span>
+      </label>
+      <label class="notify-option">
+        <input type="checkbox" id="notifyMemberMother" value="母">
+        <span>母</span>
+      </label>
+      <label class="notify-option">
+        <input type="checkbox" id="notifyMemberSon" value="息子">
+        <span>息子</span>
+      </label>
+    </div>
+  </div>
+
+  <p class="muted notify-help">
+    通知を受け取るには、通知先の各端末で通知の有効化が必要です。
+  </p>
+</div>
 
       <p id="eventError" class="error"></p>
 
