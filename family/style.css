@@ -808,3 +808,79 @@ dialog {
   align-items: center;
   gap: 8px;
 }
+
+
+/* =========================================
+   通知タイミング・通知先チェック欄
+========================================= */
+
+.notify-settings {
+  margin-top: 18px;
+  padding: 14px;
+  background: #f4f7fb;
+  border: 1px solid #e1e7ef;
+  border-radius: 12px;
+}
+
+.notify-heading {
+  color: #34465d;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.notify-recipient-heading {
+  margin-top: 18px;
+}
+
+.notify-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.dialog-form .notify-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 9px 11px;
+  min-height: 40px;
+  border: 1px solid #d5dfeb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #34465d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dialog-form .notify-option input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  min-height: 17px;
+  margin: 0;
+  padding: 0;
+  accent-color: #347ed1;
+}
+
+.notify-help {
+  margin: 12px 0 0;
+  line-height: 1.6;
+}
+
+@media(max-width:420px) {
+  .notify-settings {
+    padding: 11px;
+  }
+
+  .notify-options {
+    gap: 7px;
+  }
+
+  .dialog-form .notify-option {
+    padding: 8px 9px;
+  }
+}
