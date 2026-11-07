@@ -17,12 +17,19 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-
 webpush.setVapidDetails(subject, publicKey, privateKey);
 
 const EVENTS = "family_calendar_events";
 const SUBSCRIPTIONS = "family_push_subscriptions";
 const LOGS = "family_calendar_notification_logs";
+
+const ALL_MEMBERS = ["父", "母", "息子"];
+
+function normalizeMember(member) {
+  const name = String(member || "").trim();
+  if (name === "一颯") return "息子";
+  return name;
+}
 
 function jstDateTime(date, hour, minute) {
   const y = date.getFullYear();
@@ -34,35 +41,57 @@ function jstDateTime(date, hour, minute) {
   return new Date(`${y}-${m}-${d}T${h}:${min}:00+09:00`);
 }
 
-function getTargetTime(event) {
+function getTargetTime(event, timing) {
   if (!event.date) return null;
 
   const [year, month, day] = event.date.split("-").map(Number);
   const eventDate = new Date(year, month - 1, day);
 
-  if (event.notifyTiming === "dayBefore") {
+  if (timing === "dayBefore") {
     eventDate.setDate(eventDate.getDate() - 1);
     return jstDateTime(eventDate, 18, 0);
   }
 
-  if (event.notifyTiming === "morning") {
+  if (timing === "morning") {
     return jstDateTime(eventDate, 6, 0);
   }
 
-if (event.notifyTiming === "twoHours") {
-  if (!event.time) return null;
+  if (timing === "twoHours") {
+    if (!event.time) return null;
 
-  const [hour, minute] = event.time.split(":").map(Number);
-  const eventStart = jstDateTime(
-    new Date(year, month - 1, day),
-    hour,
-    minute
-  );
+    const [hour, minute] = event.time.split(":").map(Number);
+    const eventStart = jstDateTime(
+      new Date(year, month - 1, day),
+      hour,
+      minute
+    );
 
-  return new Date(eventStart.getTime() - 2 * 60 * 60 * 1000);
-}
+    return new Date(eventStart.getTime() - 2 * 60 * 60 * 1000);
+  }
 
   return null;
+}
+
+function getEventTimings(event) {
+  if (Array.isArray(event.notifyTimings)) {
+    return event.notifyTimings;
+  }
+
+  // 旧データとの互換性
+  if (event.notifyTiming && event.notifyTiming !== "none") {
+    return [event.notifyTiming];
+  }
+
+  return [];
+}
+
+function getEventMembers(event) {
+  // 古い予定は従来どおり全員を通知先とする
+  if (!Array.isArray(event.notifyMembers)) {
+    return [...ALL_MEMBERS];
+  }
+
+  return event.notifyMembers.map(normalizeMember);
 }
 
 function makeLogId(value) {
@@ -90,6 +119,9 @@ async function main() {
     ...doc.data()
   }));
 
+  console.log("登録予定数:", eventSnapshot.size);
+  console.log("通知登録端末数:", subscriptions.length);
+
   if (!subscriptions.length) {
     console.log("通知登録された端末はありません。");
     return;
@@ -97,118 +129,144 @@ async function main() {
 
   let sentCount = 0;
 
-  console.log("登録予定数:", eventSnapshot.size);
-  console.log("通知登録端末数:", subscriptions.length);
-
   for (const eventDoc of eventSnapshot.docs) {
     const event = eventDoc.data();
+    const eventId = eventDoc.id;
+    const timings = getEventTimings(event);
+    const selectedMembers = getEventMembers(event);
 
     console.log("--------------------------------");
     console.log("予定名:", event.title || "名称なし");
     console.log("予定日:", event.date);
     console.log("開始時刻:", event.time || "未設定");
-    console.log("通知設定値:", event.notifyTiming);
+    console.log("通知タイミング:", timings);
+    console.log("通知先:", selectedMembers);
 
-    const target = getTargetTime(event);
-
-    if (!target) {
-      console.log("判定結果：通知対象外（通知時刻を計算できません）");
+    if (!timings.length) {
+      console.log("判定結果：通知タイミング未設定");
       continue;
     }
 
-    console.log(
-      "通知予定時刻:",
-      target.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
-    );
-
-    // 実行遅延を考慮し、予定時刻から6時間以内は送信対象とする
-    const elapsed = now.getTime() - target.getTime();
-
-    console.log(
-      "通知予定時刻からの経過時間（分）:",
-      Math.round(elapsed / 60000)
-    );
-
-    if (elapsed < 0) {
-      console.log("判定結果：通知時刻より前のため対象外");
+    if (!selectedMembers.length) {
+      console.log("判定結果：通知先未設定");
       continue;
     }
 
-    if (elapsed > 6 * 60 * 60 * 1000) {
-      console.log("判定結果：6時間を超過したため対象外");
-      continue;
-    }
+    for (const timing of timings) {
+      const target = getTargetTime(event, timing);
 
-    console.log("判定結果：通知対象");
+      console.log("--------------------------------");
+      console.log("通知タイミング:", timing);
 
-    const eventId = eventDoc.id;
-    const timing = event.notifyTiming;
-
-    const timingLabel = {
-      dayBefore: "明日の予定",
-      morning: "今日の予定",
-      twoHours: "まもなく始まる予定"
-    }[timing];
-
-    const bodyParts = [
-      event.title || "予定のお知らせ",
-      event.time ? `時間：${event.time}` : "",
-      event.place ? `場所：${event.place}` : ""
-    ].filter(Boolean);
-
-    const payload = JSON.stringify({
-      title: `🏠 年間スケジュール｜${timingLabel}`,
-      body: bodyParts.join("\n"),
-      url: "./"
-    });
-
-    for (const sub of subscriptions) {
-      const endpoint = sub.subscription?.endpoint;
-      if (!endpoint) continue;
-
-      const logId = makeLogId(
-        `${eventId}|${timing}|${target.toISOString()}|${endpoint}`
-      );
-
-      const logRef = db.collection(LOGS).doc(logId);
-
-      const existingLog = await logRef.get();
-
-      if (existingLog.exists) {
-        console.log(
-          `送信スキップ：既に送信履歴があります（${sub.member || "端末"}）`
-        );
+      if (!target) {
+        console.log("判定結果：通知時刻を計算できません");
         continue;
       }
 
       console.log(
-        `送信準備：${event.title} / ${sub.member || "端末"}`
+        "通知予定時刻:",
+        target.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
       );
-      
-      try {
-        await webpush.sendNotification(
-          sub.subscription,
-          payload,
-          { TTL: 60 * 60 * 24 }
+
+      // 実行遅延を考慮し、予定時刻から6時間以内は送信対象
+      const elapsed = now.getTime() - target.getTime();
+
+      console.log(
+        "通知予定時刻からの経過時間（分）:",
+        Math.round(elapsed / 60000)
+      );
+
+      if (elapsed < 0) {
+        console.log("通知時刻より前のため対象外");
+        continue;
+      }
+
+      if (elapsed > 6 * 60 * 60 * 1000) {
+        console.log("6時間を超過したため対象外");
+        continue;
+      }
+
+      const timingLabel = {
+        dayBefore: "明日の予定",
+        morning: "今日の予定",
+        twoHours: "まもなく始まる予定"
+      }[timing] || "予定のお知らせ";
+
+      const bodyParts = [
+        event.title || "予定のお知らせ",
+        event.time ? `時間：${event.time}` : "",
+        event.place ? `場所：${event.place}` : ""
+      ].filter(Boolean);
+
+      const payload = JSON.stringify({
+        title: `🏠 年間スケジュール｜${timingLabel}`,
+        body: bodyParts.join("\n"),
+        url: "./"
+      });
+
+      // 選択された家族の端末だけに送信
+      const targetSubscriptions = subscriptions.filter(sub => {
+        return selectedMembers.includes(normalizeMember(sub.member));
+      });
+
+      console.log(
+        "今回の通知対象端末数:",
+        targetSubscriptions.length
+      );
+
+      for (const sub of targetSubscriptions) {
+        const endpoint = sub.subscription?.endpoint;
+        if (!endpoint) continue;
+
+        const logId = makeLogId(
+          `${eventId}|${timing}|${target.toISOString()}|${endpoint}`
         );
 
-        await logRef.set({
-          eventId,
-          timing,
-          targetTime: target.toISOString(),
-          sentAt: admin.firestore.FieldValue.serverTimestamp(),
-          subscriptionId: sub.id
-        });
+        const logRef = db.collection(LOGS).doc(logId);
+        const existingLog = await logRef.get();
 
-        sentCount++;
-        console.log(`通知送信成功：${event.title} / ${sub.member || "端末"}`);
+        if (existingLog.exists) {
+          console.log(
+            `送信スキップ：送信履歴あり（${sub.member || "端末"}）`
+          );
+          continue;
+        }
 
-      } catch (error) {
-        console.error("通知送信エラー:", error.statusCode, error.message);
+        console.log(
+          `送信準備：${event.title} / ${sub.member || "端末"}`
+        );
 
-        // 期限切れ・無効な購読情報を削除
-        if (error.statusCode === 404 || error.statusCode === 410) {
-          await db.collection(SUBSCRIPTIONS).doc(sub.id).delete();
+        try {
+          await webpush.sendNotification(
+            sub.subscription,
+            payload,
+            { TTL: 60 * 60 * 24 }
+          );
+
+          await logRef.set({
+            eventId,
+            timing,
+            targetTime: target.toISOString(),
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+            subscriptionId: sub.id
+          });
+
+          sentCount++;
+          console.log(
+            `通知送信成功：${event.title} / ${sub.member || "端末"}`
+          );
+
+        } catch (error) {
+          console.error(
+            "通知送信エラー:",
+            error.statusCode,
+            error.message
+          );
+
+          if (error.statusCode === 404 || error.statusCode === 410) {
+            await db.collection(SUBSCRIPTIONS).doc(sub.id).delete();
+            console.log("無効な通知登録を削除しました:", sub.member);
+          }
         }
       }
     }
