@@ -894,3 +894,8 @@ dialog {
     padding: 3px 0;
   }
 }
+
+/* メモ欄の改行を予定一覧にも反映 */
+.event-detail-value {
+  white-space: pre-line;
+}
