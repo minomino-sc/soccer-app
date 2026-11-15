@@ -1467,12 +1467,6 @@ activeDrivers.forEach(driver => {
 
 });
 
-
-
-
-
-  
-
 // =========================
 // 配車担当コーチの復路希望を解除
 //
@@ -1506,12 +1500,45 @@ activeDrivers
 
   });
 
+// =========================
+// 試合当番と同じ家族で乗車するコーチと子供の復路希望を解除
+// =========================
+activeDrivers
+  .filter(driver => driver.priority === 2)
+  .forEach(driver => {
 
+    const dutyFamily =
+      driver.name
+        .replace("さん号", "")
+        .replace(/　/g, " ")
+        .trim();
 
+    const sameFamilyCoach =
+      driver.players.find(player =>
+        player.role === "コーチ" &&
+        player.name
+          .replace("コーチ", "")
+          .replace(/　/g, " ")
+          .trim() === dutyFamily
+      );
 
+    if (!sameFamilyCoach) return;
 
+    const children =
+      COACH_CHILD[sameFamilyCoach.name] || [];
 
-  
+    driver.players.forEach(player => {
+
+      if (
+        player.name === sameFamilyCoach.name ||
+        children.includes(player.name)
+      ) {
+        player.returnTrip = false;
+      }
+
+    });
+
+  }); 
 
 // =========================
 // 復路配車
