@@ -1267,6 +1267,65 @@ dutyDrivers.forEach(dutyDriver => {
 });
 
 // =========================
+// ドライバーの子どもを先に自分の車へ乗せる
+// =========================
+activeDrivers.forEach(driver => {
+
+  let children = [];
+
+  // コーチ
+  if (driver.priority === 1) {
+
+    children =
+      COACH_CHILD[driver.name] || [];
+
+  }
+
+// 試合当番
+else if (driver.priority === 2) {
+
+  const parent =
+    driver.name.replace("号", "");
+
+  children =
+    PARENT_CHILD[parent] || [];
+
+}
+
+// 保護者
+else {
+
+  children = [
+    driver.playerName
+  ];
+
+}
+  
+  children.forEach(childName => {
+
+    const index =
+      targetPlayers.findIndex(
+        p => p.name === childName
+      );
+
+    if (
+      index >= 0 &&
+      driver.players.length < driver.seats
+    ) {
+
+      driver.players.push(
+        targetPlayers[index]
+      );
+
+      targetPlayers.splice(index, 1);
+
+    }
+
+  });
+
+});
+  
+// =========================
 // コーチ優先割り当て（均等割り）
 // =========================
 
@@ -1361,65 +1420,6 @@ while (
   if (!assigned) break;
 
 }
-   
-// =========================
-// ドライバーの子どもを先に自分の車へ乗せる
-// =========================
-activeDrivers.forEach(driver => {
-
-  let children = [];
-
-  // コーチ
-  if (driver.priority === 1) {
-
-    children =
-      COACH_CHILD[driver.name] || [];
-
-  }
-
-// 試合当番
-else if (driver.priority === 2) {
-
-  const parent =
-    driver.name.replace("号", "");
-
-  children =
-    PARENT_CHILD[parent] || [];
-
-}
-
-// 保護者
-else {
-
-  children = [
-    driver.playerName
-  ];
-
-}
-  
-  children.forEach(childName => {
-
-    const index =
-      targetPlayers.findIndex(
-        p => p.name === childName
-      );
-
-    if (
-      index >= 0 &&
-      driver.players.length < driver.seats
-    ) {
-
-      driver.players.push(
-        targetPlayers[index]
-      );
-
-      targetPlayers.splice(index, 1);
-
-    }
-
-  });
-
-});
   
 while (
   playerIndex < targetPlayers.length
