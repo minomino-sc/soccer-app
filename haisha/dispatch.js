@@ -1230,91 +1230,47 @@ const assignDrivers =
       b.priority - a.priority
   );
 
-// =========================
-// コーチと子どもを同じ車に優先配車
-// =========================
-function assignCoachGroup(driver, coachIndex) {
-
-  const coach = targetPlayers[coachIndex];
-
-  if (
-    !coach ||
-    driver.players.length >= driver.seats
-  ) {
-    return false;
-  }
-
-  // まずコーチ本人を乗せる
-  driver.players.push(coach);
-  targetPlayers.splice(coachIndex, 1);
-
-  // 続けてコーチの子どもを乗せる
-  const childNames =
-    COACH_CHILD[coach.name] || [];
-
-  childNames.forEach(childName => {
-
-    const childIndex =
-      targetPlayers.findIndex(p =>
-        p.role === "選手" &&
-        p.name === childName
-      );
-
-    if (childIndex < 0) return;
-
-    // 座席に余裕があれば同じ車
-    if (driver.players.length < driver.seats) {
-
-      driver.players.push(
-        targetPlayers[childIndex]
-      );
-
-      targetPlayers.splice(childIndex, 1);
-
-    }
-
-    // 座席が足りなければ残す
-    // 後の通常配車で別の車に割り当てる
-
-  });
-
-  return true;
-}
 
 // =========================
 // 試合当番と同じ家族のコーチを優先配車
 // =========================
-activeDrivers
-  .filter(d => d.priority === 2)
-  .forEach(dutyDriver => {
+dutyDrivers.forEach(dutyDriver => {
 
-    const dutyFamily =
-      dutyDriver.name
-        .replace("さん号", "")
+  const dutyFamily =
+    dutyDriver.name
+      .replace("さん号", "")
+      .replace(/　/g, " ")
+      .trim();
+
+  const coachIndex =
+    targetPlayers.findIndex(p =>
+      p.role === "コーチ" &&
+      p.name
+        .replace("コーチ", "")
         .replace(/　/g, " ")
-        .trim();
+        .trim() === dutyFamily
+    );
 
-    const coachIndex =
-      targetPlayers.findIndex(p =>
-        p.role === "コーチ" &&
-        p.name
-          .replace("コーチ", "")
-          .replace(/　/g, " ")
-          .trim() === dutyFamily
-      );
+  if (
+    coachIndex >= 0 &&
+    dutyDriver.players.length < dutyDriver.seats
+  ) {
 
-    if (coachIndex >= 0) {
-      assignCoachGroup(
-        dutyDriver,
-        coachIndex
-      );
-    }
+    dutyDriver.players.push(
+      targetPlayers[coachIndex]
+    );
 
-  });
+    targetPlayers.splice(coachIndex, 1);
 
+  }
+
+});
+
+
+
+  
 // =========================
-// コーチ優先割り当て
-// コーチと子どもを同じ車に優先配車
+// コーチ優先割り当て（均等割り）
 // =========================
 
 const coachCars =
@@ -1327,46 +1283,29 @@ let coachCarIndex = 0;
 while (
   targetPlayers.some(
     p => p.role === "コーチ"
-  )
+  ) &&
+  coachCars.length > 0
 ) {
 
-  const coachIndex =
+  const idx =
     targetPlayers.findIndex(
       p => p.role === "コーチ"
     );
 
-  if (coachIndex < 0) break;
+  if (idx === -1) break;
 
   let assigned = false;
 
-  // まずコーチの車を優先
-  const preferredCars = [
-    ...coachCars
-  ];
-
-  // コーチの車に空席がなければ他の車も候補
-  const otherCars =
-    activeDrivers.filter(
-      d => d.priority !== 1
-    );
-
-  const allCars = [
-    ...preferredCars,
-    ...otherCars
-  ];
-
-  if (allCars.length === 0) break;
-
   for (
     let i = 0;
-    i < allCars.length;
+    i < coachCars.length;
     i++
   ) {
 
     const driver =
-      allCars[
+      coachCars[
         (coachCarIndex + i) %
-        allCars.length
+        coachCars.length
       ];
 
     if (
@@ -1374,14 +1313,15 @@ while (
       driver.seats
     ) {
 
-      assignCoachGroup(
-        driver,
-        coachIndex
+      driver.players.push(
+        targetPlayers[idx]
       );
+
+      targetPlayers.splice(idx, 1);
 
       coachCarIndex =
         (coachCarIndex + i + 1) %
-        allCars.length;
+        coachCars.length;
 
       assigned = true;
 
@@ -1393,7 +1333,7 @@ while (
 
   if (!assigned) break;
 
-}  
+}
    
 // =========================
 // ドライバーの子どもを先に自分の車へ乗せる
