@@ -1962,9 +1962,39 @@ background:#f5f5f5;
 
 `;
 
-driver.players.forEach(
-  (player, index) => {
+// 表示用の並び替え（実際の配車データは変更しない）
+const displayPlayers =
+  [...driver.players].sort((a, b) => {
 
+    const coachChildren =
+      driver.players
+        .filter(p => p.role === "コーチ")
+        .flatMap(p => COACH_CHILD[p.name] || []);
+
+    const getRank = player => {
+
+      // コーチ本人
+      if (player.role === "コーチ") {
+        return 0;
+      }
+
+      // コーチの子供
+      if (coachChildren.includes(player.name)) {
+        return 1;
+      }
+
+      // その他
+      return 2;
+
+    };
+
+    return getRank(a) - getRank(b);
+
+  });
+
+displayPlayers.forEach(
+  (player, index) => {
+    
     html += `
 
 <tr
