@@ -598,6 +598,15 @@ drivers.push({
 });
 
   }
+
+// =========================
+// 家族例外の対象外となるOBコーチ
+// =========================
+const OB_COACHES = new Set([
+  "田中コーチ",
+  "梶原コーチ",
+  "川村コーチ"
+]);
   
 // =========================
 // 同じ家庭のドライバー重複削除
@@ -611,7 +620,14 @@ drivers.forEach(driver => {
   let family = "";
 
   // コーチ
-  if (driver.priority === 1) {
+if (driver.priority === 1) {
+
+  if (OB_COACHES.has(driver.name)) {
+
+    // OBコーチは独立した扱いにする
+    family = `OB_${driver.name}`;
+
+  } else {
 
     family =
       driver.name
@@ -619,6 +635,8 @@ drivers.forEach(driver => {
         .trim();
 
   }
+
+}
 
   // 試合当番
   if (driver.priority === 2) {
