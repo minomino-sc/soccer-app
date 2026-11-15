@@ -1266,9 +1266,6 @@ dutyDrivers.forEach(dutyDriver => {
 
 });
 
-
-
-  
 // =========================
 // コーチ優先割り当て（均等割り）
 // =========================
@@ -1313,11 +1310,41 @@ while (
       driver.seats
     ) {
 
+      const coachName =
+        targetPlayers[idx].name;
+
       driver.players.push(
         targetPlayers[idx]
       );
 
       targetPlayers.splice(idx, 1);
+
+      // 配車しないコーチの子供も同じ車へ
+      const children =
+        COACH_CHILD[coachName] || [];
+
+      children.forEach(childName => {
+
+        const childIndex =
+          targetPlayers.findIndex(p =>
+            p.role === "選手" &&
+            p.name === childName
+          );
+
+        if (
+          childIndex >= 0 &&
+          driver.players.length < driver.seats
+        ) {
+
+          driver.players.push(
+            targetPlayers[childIndex]
+          );
+
+          targetPlayers.splice(childIndex, 1);
+
+        }
+
+      }); 
 
       coachCarIndex =
         (coachCarIndex + i + 1) %
