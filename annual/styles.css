@@ -360,3 +360,52 @@ h1 {
 .list-month[open] > .list-month-title::after {
   content: "－";
 }
+
+
+/* =========================
+   上部ヘッダーをコンパクトに
+========================= */
+
+/* ヘッダー全体 */
+.header-fixed {
+  padding: 6px 12px;
+}
+
+/* 年間スケジュールのタイトル */
+.header-fixed h1 {
+  font-size: 20px !important;
+  margin: 4px 0 10px;
+  line-height: 1.3;
+}
+
+/* カレンダー・月別一覧 */
+.view-switch {
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+
+.view-btn {
+  padding: 7px 5px;
+  min-height: 38px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+/* 凡例・管理者モード */
+.top-btn {
+  padding: 5px 10px;
+  margin: 3px 3px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* 凡例 */
+#legendBox {
+  margin-top: 5px;
+}
+
+#calendarLegend {
+  gap: 7px;
+  margin-top: 5px;
+  font-size: 12px;
+}
