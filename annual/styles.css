@@ -329,3 +329,34 @@ h1 {
   color: #222;
   overflow-wrap: anywhere;
 }
+
+/* 月別一覧の折りたたみ見出し */
+.list-month {
+  scroll-margin-top: 220px;
+}
+
+.list-month-title {
+  display: block;
+  background: #2a8cff;
+  color: white;
+  padding: 9px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  list-style: none;
+}
+
+.list-month-title::-webkit-details-marker {
+  display: none;
+}
+
+.list-month-title::after {
+  content: "＋";
+  float: right;
+}
+
+.list-month[open] > .list-month-title::after {
+  content: "－";
+}
