@@ -209,3 +209,123 @@ h1 {
 #adminPanel textarea {
   min-height: 60px;     /* ↓ 小さくする（80 → 60） */
 }
+
+/* =========================
+   表示切替ボタン
+========================= */
+
+.view-switch {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 18px;
+}
+
+.view-btn {
+  flex: 1;
+  padding: 10px 6px;
+  border: 1px solid #2a8cff;
+  border-radius: 8px;
+  background: #fff;
+  color: #2a8cff;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.view-btn.active {
+  background: #2a8cff;
+  color: #fff;
+}
+
+/* =========================
+   月別一覧
+========================= */
+
+.list-month {
+  margin-bottom: 28px;
+}
+
+.list-month h2 {
+  background: #2a8cff;
+  color: white;
+  padding: 9px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.list-row {
+  display: flex;
+  align-items: stretch;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.list-date {
+  flex-shrink: 0;
+  width: 100px;
+  box-sizing: border-box;
+  padding: 12px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f3f7;
+  font-weight: bold;
+  font-size: 13px;
+  color: #333;
+}
+
+.list-content {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+}
+
+.list-event {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+.list-event + .list-event {
+  border-top: 1px solid #eee;
+}
+
+.list-team {
+  flex-shrink: 0;
+  min-width: 38px;
+  text-align: center;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #333;
+}
+
+.team-A {
+  background: #d6e4ff;
+}
+
+.team-B {
+  background: #d4f4dd;
+}
+
+.team-AB {
+  background: #e8d6f0;
+}
+
+.team-Z {
+  background: #ffe0e0;
+}
+
+.list-event-text {
+  font-size: 14px;
+  color: #222;
+  overflow-wrap: anywhere;
+}
