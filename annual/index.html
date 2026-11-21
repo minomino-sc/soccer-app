@@ -194,6 +194,25 @@ h1 {
 
   <h1>📅 2026年度 年間スケジュール</h1>
 
+<!-- 表示切替 -->
+<div class="view-switch">
+  <button
+    id="calendarViewBtn"
+    class="view-btn active"
+    onclick="switchView('calendar')"
+  >
+    📅 カレンダー
+  </button>
+
+  <button
+    id="listViewBtn"
+    class="view-btn"
+    onclick="switchView('list')"
+  >
+    📋 月別一覧
+  </button>
+</div>
+  
   <!-- 親システムに戻るボタン -->
   <button id="backBtn" style="display:none; margin-bottom:12px;">
     ← 戻る
@@ -270,25 +289,6 @@ h1 {
 
   </div>
 
-</div>
-
-<!-- 表示切替 -->
-<div class="view-switch">
-  <button
-    id="calendarViewBtn"
-    class="view-btn active"
-    onclick="switchView('calendar')"
-  >
-    📅 カレンダー
-  </button>
-
-  <button
-    id="listViewBtn"
-    class="view-btn"
-    onclick="switchView('list')"
-  >
-    📋 月別一覧
-  </button>
 </div>
 
 <!-- 既存カレンダー -->
