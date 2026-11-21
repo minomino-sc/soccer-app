@@ -272,7 +272,30 @@ h1 {
 
 </div>
 
+<!-- 表示切替 -->
+<div class="view-switch">
+  <button
+    id="calendarViewBtn"
+    class="view-btn active"
+    onclick="switchView('calendar')"
+  >
+    📅 カレンダー
+  </button>
+
+  <button
+    id="listViewBtn"
+    class="view-btn"
+    onclick="switchView('list')"
+  >
+    📋 月別一覧
+  </button>
+</div>
+
+<!-- 既存カレンダー -->
 <div id="calendarContainer"></div>
+
+<!-- 新しい月別一覧 -->
+<div id="monthListContainer" style="display:none;"></div>
 
 <div id="eventPopup"></div>
 
