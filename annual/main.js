@@ -222,6 +222,7 @@ function renderMonthList(){
 // 表示切替
 // =========================
 
+
 function switchView(view){
 
   const calendar =
@@ -251,6 +252,19 @@ function switchView(view){
 
     calendarBtn.classList.remove("active");
     listBtn.classList.add("active");
+
+    const now = new Date();
+
+    const target = document.getElementById(
+      `list-month-${now.getFullYear()}-${now.getMonth() + 1}`
+    );
+
+    if(target){
+      target.scrollIntoView({
+        behavior: "auto",
+        block: "start"
+      });
+    }
 
   }
 
