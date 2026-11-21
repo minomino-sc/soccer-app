@@ -90,12 +90,16 @@ function renderCalendar(){
 
 function renderMonthList(){
 
-const listContainer =
-  document.getElementById("monthListContainer");
+  const listContainer =
+    document.getElementById("monthListContainer");
 
-if (!listContainer) return;
+  if (!listContainer) return;
 
-listContainer.innerHTML = "";
+  listContainer.innerHTML = "";
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
 
   // 2026年4月〜2027年3月
   const months = [];
@@ -120,11 +124,23 @@ listContainer.innerHTML = "";
     // 予定がない月は表示しない
     if(monthEvents.length === 0) return;
 
-    const section = document.createElement("div");
+    // 月ごとの折りたたみ
+    const section = document.createElement("details");
     section.className = "list-month";
+    section.id = `list-month-${year}-${month}`;
 
-    const title = document.createElement("h2");
+    // 当月と未来の月は展開
+    if (
+      year > currentYear ||
+      (year === currentYear && month >= currentMonth)
+    ) {
+      section.open = true;
+    }
+
+    const title = document.createElement("summary");
+    title.className = "list-month-title";
     title.textContent = `${year}年 ${month}月`;
+
     section.appendChild(title);
 
     monthEvents.forEach(date => {
@@ -188,7 +204,6 @@ listContainer.innerHTML = "";
       row.appendChild(dateCell);
       row.appendChild(contentCell);
 
-      // タップすると従来の予定詳細を表示
       row.addEventListener("click", () => {
         showPopup(date);
       });
