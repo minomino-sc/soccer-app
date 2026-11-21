@@ -84,6 +84,163 @@ function renderCalendar(){
   scrollToCurrentMonth();
 }
 
+// =========================
+// 月別一覧表示
+// =========================
+
+function renderMonthList(){
+
+const listContainer =
+  document.getElementById("monthListContainer");
+
+if (!listContainer) return;
+
+listContainer.innerHTML = "";
+
+  // 2026年4月〜2027年3月
+  const months = [];
+
+  for(let m = 4; m <= 12; m++){
+    months.push({year:2026, month:m});
+  }
+
+  for(let m = 1; m <= 3; m++){
+    months.push({year:2027, month:m});
+  }
+
+  months.forEach(({year, month}) => {
+
+    const monthEvents = Object.keys(events)
+      .filter(date => {
+        const [y, m] = date.split("-").map(Number);
+        return y === year && m === month;
+      })
+      .sort();
+
+    // 予定がない月は表示しない
+    if(monthEvents.length === 0) return;
+
+    const section = document.createElement("div");
+    section.className = "list-month";
+
+    const title = document.createElement("h2");
+    title.textContent = `${year}年 ${month}月`;
+    section.appendChild(title);
+
+    monthEvents.forEach(date => {
+
+      const dateObj = new Date(date + "T00:00:00");
+
+      const weekdays = [
+        "日","月","火","水","木","金","土"
+      ];
+
+      const dateLabel =
+        `${month}/${Number(date.slice(8,10))}（${weekdays[dateObj.getDay()]}）`;
+
+      const row = document.createElement("div");
+      row.className = "list-row";
+
+      const dateCell = document.createElement("div");
+      dateCell.className = "list-date";
+      dateCell.textContent = dateLabel;
+
+      const contentCell = document.createElement("div");
+      contentCell.className = "list-content";
+
+      Object.keys(events[date]).forEach(team => {
+
+        events[date][team].forEach(ev => {
+
+          const typeInfo =
+            typeMap[ev.type] || {
+              emoji:"🔴",
+              label:"その他"
+            };
+
+          const teamLabel =
+            team === "A" ? "A"
+            : team === "B" ? "B"
+            : team === "AB" ? "A/B"
+            : "その他";
+
+          const item = document.createElement("div");
+          item.className = "list-event";
+
+          const teamTag = document.createElement("span");
+          teamTag.className = `list-team team-${team}`;
+          teamTag.textContent = teamLabel;
+
+          const eventText = document.createElement("span");
+          eventText.className = "list-event-text";
+          eventText.textContent =
+            `${typeInfo.emoji} ${ev.text}`;
+
+          item.appendChild(teamTag);
+          item.appendChild(eventText);
+
+          contentCell.appendChild(item);
+
+        });
+
+      });
+
+      row.appendChild(dateCell);
+      row.appendChild(contentCell);
+
+      // タップすると従来の予定詳細を表示
+      row.addEventListener("click", () => {
+        showPopup(date);
+      });
+
+      section.appendChild(row);
+
+    });
+
+    listContainer.appendChild(section);
+
+  });
+
+}
+
+// =========================
+// 表示切替
+// =========================
+
+function switchView(view){
+
+  const calendar =
+    document.getElementById("calendarContainer");
+
+  const list =
+    document.getElementById("monthListContainer");
+
+  const calendarBtn =
+    document.getElementById("calendarViewBtn");
+
+  const listBtn =
+    document.getElementById("listViewBtn");
+
+  if(view === "calendar"){
+
+    calendar.style.display = "block";
+    list.style.display = "none";
+
+    calendarBtn.classList.add("active");
+    listBtn.classList.remove("active");
+
+  } else {
+
+    calendar.style.display = "none";
+    list.style.display = "block";
+
+    calendarBtn.classList.remove("active");
+    listBtn.classList.add("active");
+
+  }
+
+}
+
 function createMonth(month,y){
   const monthDiv=document.createElement("div");
 
