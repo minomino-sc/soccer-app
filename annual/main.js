@@ -72,6 +72,7 @@ db.collection("calendar_events")
     });
 
     renderCalendar();
+    renderMonthList();
   });
 
 function renderCalendar(){
