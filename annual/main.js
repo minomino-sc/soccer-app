@@ -47,8 +47,8 @@ let futureEvents = {};
 // 過去の月別読み込みデータ
 const pastMonthCache = {};
 
-// 現在選択中の過去の月
-let selectedPastMonthKey = "";
+// 現在選択中の月（複数選択）
+let selectedPastMonthKeys = [];
 
 // =========================
 // 日付関連
@@ -134,16 +134,17 @@ function rebuildEvents() {
 
   events = {};
 
+  // 当月・未来の予定
   mergeEventData(futureEvents);
 
-  if (
-    selectedPastMonthKey &&
-    pastMonthCache[selectedPastMonthKey]
-  ) {
-    mergeEventData(
-      pastMonthCache[selectedPastMonthKey]
-    );
-  }
+  // 選択した月の予定を統合
+  selectedPastMonthKeys.forEach(key => {
+
+    if (pastMonthCache[key]) {
+      mergeEventData(pastMonthCache[key]);
+    }
+
+  });
 
   renderCalendar();
   renderMonthList();
@@ -260,7 +261,7 @@ function initializePastMonthSelect() {
 initializePastMonthSelect();
 
 // =========================
-// 選択した過去の月を読み込む
+// 選択した複数月を読み込む
 // =========================
 
 async function loadSelectedPastMonth() {
@@ -271,79 +272,87 @@ async function loadSelectedPastMonth() {
   const status =
     document.getElementById("pastMonthStatus");
 
-  if (!select || !select.value) return;
+  if (!select) return;
 
-  const key = select.value;
+  // 選択された月をすべて取得
+  const keys = Array.from(select.selectedOptions)
+    .map(option => option.value);
 
-  const [y, m] = key.split("-").map(Number);
-
-  const today = getTodayString();
-
-  const startDate = getMonthStart(key);
-
-  // 当月の場合は昨日まで
-  let endDate = getMonthEnd(y, m);
-
-  if (key === today.slice(0, 7)) {
-
-    const yesterday = new Date();
-
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    endDate = [
-      yesterday.getFullYear(),
-      String(yesterday.getMonth() + 1).padStart(2, "0"),
-      String(yesterday.getDate()).padStart(2, "0")
-    ].join("-");
-
-  }
-
-  if (endDate < startDate) {
-
-    selectedPastMonthKey = key;
-
-    pastMonthCache[key] = {};
-
-    rebuildEvents();
+  if (keys.length === 0) {
 
     status.textContent =
-      "この月には過去の予定はありません。";
+      "確認したい年月を選択してください。";
 
     return;
 
   }
 
-  selectedPastMonthKey = key;
-
-  // すでに読み込んだ月は再利用
-  if (pastMonthCache[key]) {
-
-    rebuildEvents();
-
-    status.textContent =
-      `${y}年${m}月の予定を表示しています。`;
-
-    return;
-
-  }
+  selectedPastMonthKeys = keys;
 
   status.textContent = "予定を読み込んでいます...";
 
   try {
 
-    const snapshot = await db
-      .collection("calendar_events")
-      .where("date", ">=", startDate)
-      .where("date", "<=", endDate)
-      .get();
+    // キャッシュがない月だけ読み込む
+    const loadTasks = keys.map(async key => {
 
-    pastMonthCache[key] =
-      snapshotToEvents(snapshot);
+      if (pastMonthCache[key]) return;
+
+      const [y, m] = key.split("-").map(Number);
+
+      const startDate = getMonthStart(key);
+
+      let endDate = getMonthEnd(y, m);
+
+      // 当月は昨日までを取得
+      if (key === getTodayString().slice(0, 7)) {
+
+        const yesterday = new Date();
+
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        endDate = [
+          yesterday.getFullYear(),
+          String(yesterday.getMonth() + 1).padStart(2, "0"),
+          String(yesterday.getDate()).padStart(2, "0")
+        ].join("-");
+
+      }
+
+      // まだ過去の日付がない場合
+      if (endDate < startDate) {
+
+        pastMonthCache[key] = {};
+
+        return;
+
+      }
+
+      const snapshot = await db
+        .collection("calendar_events")
+        .where("date", ">=", startDate)
+        .where("date", "<=", endDate)
+        .get();
+
+      pastMonthCache[key] =
+        snapshotToEvents(snapshot);
+
+    });
+
+    await Promise.all(loadTasks);
 
     rebuildEvents();
 
+    const labels = keys.map(key => {
+
+      const [y, m] = key.split("-").map(Number);
+
+      return `${y}年${m}月`;
+
+    });
+
     status.textContent =
-      `${y}年${m}月の予定を表示しています。`;
+      `${labels.join("・")}の予定を表示しています。`;
 
   } catch (error) {
 
@@ -371,7 +380,7 @@ async function refreshPastMonth(date) {
 
   delete pastMonthCache[key];
 
-  if (selectedPastMonthKey === key) {
+  if (selectedPastMonthKeys.includes(key)) {
 
     await loadSelectedPastMonth();
 
