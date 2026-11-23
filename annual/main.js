@@ -221,59 +221,39 @@ function initializePastMonthSelect() {
   if (!container) return;
 
   container.innerHTML = "";
+  container.style.display = "block";
 
   const now = new Date();
 
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
+  const currentFiscalYear =
+    currentMonth >= 4 ? currentYear : currentYear - 1;
+
   const firstYear = 2026;
   const firstMonth = 4;
 
-  // 2026年4月から当月の前月まで
+  // 年度ごとに月をまとめる
+  const fiscalYears = {};
+
   for (
     let y = firstYear, m = firstMonth;
     y < currentYear ||
     (y === currentYear && m < currentMonth);
   ) {
 
-    const key = getMonthKey(y, m);
+    const fiscalYear = m >= 4 ? y : y - 1;
 
-    const label = document.createElement("label");
+    if (!fiscalYears[fiscalYear]) {
+      fiscalYears[fiscalYear] = [];
+    }
 
-    label.style.cssText = `
-      display:flex;
-      align-items:center;
-      gap:5px;
-      padding:9px 5px;
-      background:#fff;
-      border:1px solid #ccc;
-      border-radius:6px;
-      font-size:14px;
-      cursor:pointer;
-      white-space:nowrap;
-    `;
-
-    const checkbox = document.createElement("input");
-
-    checkbox.type = "checkbox";
-    checkbox.value = key;
-
-    checkbox.style.cssText = `
-      width:18px;
-      height:18px;
-      margin:0;
-      flex-shrink:0;
-    `;
-
-    const text = document.createElement("span");
-
-    text.textContent = `${y}年${m}月`;
-
-    label.appendChild(checkbox);
-    label.appendChild(text);
-
-    container.appendChild(label);
+    fiscalYears[fiscalYear].push({
+      year: y,
+      month: m,
+      key: getMonthKey(y, m)
+    });
 
     m++;
 
@@ -283,6 +263,112 @@ function initializePastMonthSelect() {
     }
 
   }
+
+  // 新しい年度から表示
+  Object.keys(fiscalYears)
+    .map(Number)
+    .sort((a, b) => b - a)
+    .forEach(fiscalYear => {
+
+      const isCurrent =
+        fiscalYear === currentFiscalYear;
+
+      const monthGrid = document.createElement("div");
+
+      monthGrid.style.cssText = `
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:8px;
+        margin-top:10px;
+      `;
+
+      fiscalYears[fiscalYear].forEach(item => {
+
+        const label = document.createElement("label");
+
+        label.style.cssText = `
+          display:flex;
+          align-items:center;
+          gap:5px;
+          padding:9px 5px;
+          background:#fff;
+          border:1px solid #ccc;
+          border-radius:6px;
+          font-size:14px;
+          cursor:pointer;
+          white-space:nowrap;
+        `;
+
+        const checkbox = document.createElement("input");
+
+        checkbox.type = "checkbox";
+        checkbox.value = item.key;
+
+        checkbox.style.cssText = `
+          width:18px;
+          height:18px;
+          margin:0;
+          flex-shrink:0;
+        `;
+
+        const text = document.createElement("span");
+
+        text.textContent =
+          `${item.year}年${item.month}月`;
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+
+        monthGrid.appendChild(label);
+
+      });
+
+      if (isCurrent) {
+
+        // 今年度は折りたたまない
+        const section = document.createElement("div");
+
+        const title = document.createElement("div");
+
+        title.textContent = `${fiscalYear}年度`;
+
+        title.style.cssText = `
+          font-weight:bold;
+          font-size:16px;
+          margin-top:12px;
+        `;
+
+        section.appendChild(title);
+        section.appendChild(monthGrid);
+
+        container.appendChild(section);
+
+      } else {
+
+        // 過去年度は折りたたむ
+        const details = document.createElement("details");
+
+        details.style.marginTop = "12px";
+
+        const summary = document.createElement("summary");
+
+        summary.textContent = `${fiscalYear}年度`;
+
+        summary.style.cssText = `
+          font-weight:bold;
+          font-size:15px;
+          cursor:pointer;
+          padding:5px 0;
+        `;
+
+        details.appendChild(summary);
+        details.appendChild(monthGrid);
+
+        container.appendChild(details);
+
+      }
+
+    });
 
 }
 
