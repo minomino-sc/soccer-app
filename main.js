@@ -618,10 +618,11 @@ function ensureSearchBar(){
   input.id = "scoreSearchBar";
   input.className = "search-input";
   input.placeholder = "検索：種別・相手・会場・日付・得点・秒数";
-  input.addEventListener("input", (e)=>{
-    currentSearchQuery = (e.target.value||"").trim().toLowerCase();
-    loadScores();
-  });
+input.addEventListener("input", (e)=>{
+  currentSearchQuery = (e.target.value||"").trim().toLowerCase();
+  loadScores(false);
+});
+   
   const h2 = sec.querySelector("h2");
   if(h2) h2.after(input);
 }
@@ -742,7 +743,7 @@ function createPlayButton(videoId, timeSec){
 }
 
 /* ---------- スコア一覧読み込み（チームフィルタ） + 描画 ---------- */
-async function loadScores(){
+async function loadScores(refreshFromFirestore = true){
   const container = document.getElementById("scoreGroups");
   if(!container) return;
 
@@ -755,33 +756,33 @@ async function loadScores(){
     return;
   }
 
-  try{
-    const db = window._firebaseDB;
-    const { collection, query, where, getDocs } = window._firebaseFns;
-    const scoresCol = collection(db,"scores");
-const q = query(scoresCol, 
-  where("baseTeamName","==",team.baseTeamName)
-);
+  if(refreshFromFirestore){
+    try{
+      const db = window._firebaseDB;
+      const { collection, query, where, getDocs } = window._firebaseFns;
+      const scoresCol = collection(db,"scores");
+      const q = query(scoresCol, where("baseTeamName","==",team.baseTeamName));
 
-    const snap = await getDocs(q);
-    scores = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      const snap = await getDocs(q);
+      scores = snap.docs.map(d=>({ id:d.id, ...d.data() }));
 
-    // dedup
-    const seen = new Set();
-    scores = scores.filter(s=>{ if(!s.id || seen.has(s.id)) return false; seen.add(s.id); return true; });
+      // dedup
+      const seen = new Set();
+      scores = scores.filter(s=>{ if(!s.id || seen.has(s.id)) return false; seen.add(s.id); return true; });
 
-    // sort by date/newest first
-    scores.sort((a,b)=>{
-      const da = new Date(a.date || a.createdAt || 0);
-      const db = new Date(b.date || b.createdAt || 0);
-      return db - da;
-    });
+      // sort by date/newest first
+      scores.sort((a,b)=>{
+        const da = new Date(a.date || a.createdAt || 0);
+        const db = new Date(b.date || b.createdAt || 0);
+        return db - da;
+      });
 
-  }catch(err){
-    console.error("loadScores firestore error", err);
-    container.innerHTML = `<p class="muted small">データの読み込みに失敗しました。</p>`;
-    return;
-  }
+    }catch(err){
+      console.error("loadScores firestore error", err);
+      container.innerHTML = `<p class="muted small">データの読み込みに失敗しました。</p>`;
+      return;
+    }
+  }  
 
   if(!scores.length){
     container.innerHTML = `<p class="muted small">まだ試合がありません。</p>`;
