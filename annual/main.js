@@ -183,10 +183,19 @@ function mergeEventData(source) {
 // 当日・未来の予定を監視
 // =========================
 
-db.collection("calendar_events")
-  .where("date", ">=", getTodayString())
-  .onSnapshot(snapshot => {
+const now = new Date();
 
+const currentMonthStart = getMonthStart(
+  getMonthKey(
+    now.getFullYear(),
+    now.getMonth() + 1
+  )
+);
+
+db.collection("calendar_events")
+  .where("date", ">=", currentMonthStart)
+  .onSnapshot(snapshot => {
+    
     futureEvents = snapshotToEvents(snapshot);
 
     rebuildEvents();
@@ -542,7 +551,7 @@ function switchView(view) {
   const listBtn =
     document.getElementById("listViewBtn");
 
-  if (view === "calendar") {
+if (view === "calendar") {
 
     calendar.style.display = "block";
     list.style.display = "none";
@@ -550,7 +559,10 @@ function switchView(view) {
     calendarBtn.classList.add("active");
     listBtn.classList.remove("active");
 
-  } else {
+    // カレンダーに戻ったら当月までスクロール
+    scrollToCurrentMonth();
+
+  } else {  
 
     calendar.style.display = "none";
     list.style.display = "block";
