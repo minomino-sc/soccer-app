@@ -291,6 +291,56 @@ h1 {
 
 </div>
 
+
+<!-- 過去の予定を見る -->
+<div id="pastSchedulePanel" style="
+  margin: 10px 0 15px;
+  padding: 10px;
+  background: #f1f1f1;
+  border-radius: 8px;
+">
+  <div style="font-weight:bold; margin-bottom:8px;">
+    📚 過去の予定を見る
+  </div>
+
+  <div style="display:flex; gap:8px; align-items:center;">
+    <select id="pastMonthSelect" style="
+      flex:1;
+      min-width:0;
+      padding:9px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      background:#fff;
+      font-size:15px;
+    ">
+    </select>
+
+    <button
+      type="button"
+      onclick="loadSelectedPastMonth()"
+      style="
+        padding:9px 12px;
+        border:none;
+        border-radius:6px;
+        background:#2a8cff;
+        color:#fff;
+        font-weight:bold;
+        white-space:nowrap;
+      "
+    >
+      表示
+    </button>
+  </div>
+
+  <div id="pastMonthStatus" style="
+    margin-top:7px;
+    font-size:12px;
+    color:#666;
+  ">
+    確認したい年月を選択してください。
+  </div>
+</div>
+  
 <!-- 既存カレンダー -->
 <div id="calendarContainer"></div>
 
