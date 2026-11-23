@@ -210,17 +210,17 @@ db.collection("calendar_events")
   });
 
 // =========================
-// 過去の月を選択するプルダウン
+// 過去の月をチェックボックスで表示
 // =========================
 
 function initializePastMonthSelect() {
 
-  const select =
+  const container =
     document.getElementById("pastMonthSelect");
 
-  if (!select) return;
+  if (!container) return;
 
-  select.innerHTML = "";
+  container.innerHTML = "";
 
   const now = new Date();
 
@@ -230,18 +230,50 @@ function initializePastMonthSelect() {
   const firstYear = 2026;
   const firstMonth = 4;
 
+  // 2026年4月から当月の前月まで
   for (
     let y = firstYear, m = firstMonth;
     y < currentYear ||
     (y === currentYear && m < currentMonth);
   ) {
 
-    const option = document.createElement("option");
+    const key = getMonthKey(y, m);
 
-    option.value = getMonthKey(y, m);
-    option.textContent = `${y}年 ${m}月`;
+    const label = document.createElement("label");
 
-    select.appendChild(option);
+    label.style.cssText = `
+      display:flex;
+      align-items:center;
+      gap:5px;
+      padding:9px 5px;
+      background:#fff;
+      border:1px solid #ccc;
+      border-radius:6px;
+      font-size:14px;
+      cursor:pointer;
+      white-space:nowrap;
+    `;
+
+    const checkbox = document.createElement("input");
+
+    checkbox.type = "checkbox";
+    checkbox.value = key;
+
+    checkbox.style.cssText = `
+      width:18px;
+      height:18px;
+      margin:0;
+      flex-shrink:0;
+    `;
+
+    const text = document.createElement("span");
+
+    text.textContent = `${y}年${m}月`;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+
+    container.appendChild(label);
 
     m++;
 
@@ -262,22 +294,28 @@ initializePastMonthSelect();
 
 async function loadSelectedPastMonth() {
 
-  const select =
+  const container =
     document.getElementById("pastMonthSelect");
 
   const status =
     document.getElementById("pastMonthStatus");
 
-  if (!select) return;
+  if (!container || !status) return;
 
-  // 選択された月をすべて取得
-  const keys = Array.from(select.selectedOptions)
-    .map(option => option.value);
+  // チェックされた月をすべて取得
+  const keys = Array.from(
+    container.querySelectorAll('input[type="checkbox"]:checked')
+  ).map(input => input.value);
 
+  // 何も選択されていない場合
   if (keys.length === 0) {
 
+    selectedPastMonthKeys = [];
+
+    rebuildEvents();
+
     status.textContent =
-      "確認したい年月を選択してください。";
+      "確認したい月にチェックを入れてください。";
 
     return;
 
@@ -297,32 +335,7 @@ async function loadSelectedPastMonth() {
       const [y, m] = key.split("-").map(Number);
 
       const startDate = getMonthStart(key);
-
-      let endDate = getMonthEnd(y, m);
-
-      // 当月は昨日までを取得
-      if (key === getTodayString().slice(0, 7)) {
-
-        const yesterday = new Date();
-
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        endDate = [
-          yesterday.getFullYear(),
-          String(yesterday.getMonth() + 1).padStart(2, "0"),
-          String(yesterday.getDate()).padStart(2, "0")
-        ].join("-");
-
-      }
-
-      // まだ過去の日付がない場合
-      if (endDate < startDate) {
-
-        pastMonthCache[key] = {};
-
-        return;
-
-      }
+      const endDate = getMonthEnd(y, m);
 
       const snapshot = await db
         .collection("calendar_events")
