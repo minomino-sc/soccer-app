@@ -233,7 +233,7 @@ function initializePastMonthSelect() {
   for (
     let y = firstYear, m = firstMonth;
     y < currentYear ||
-    (y === currentYear && m <= currentMonth);
+    (y === currentYear && m < currentMonth);
   ) {
 
     const option = document.createElement("option");
@@ -250,10 +250,6 @@ function initializePastMonthSelect() {
       y++;
     }
 
-  }
-
-  if (select.options.length > 0) {
-    select.value = getMonthKey(currentYear, currentMonth);
   }
 
 }
