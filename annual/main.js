@@ -1,17 +1,21 @@
+
+// =========================
+// 年間スケジュール
+// 当日・未来：リアルタイム同期
+// 過去：月単位で必要なときだけ読み込み
+// =========================
+
 // 戻るボタン
 const backBtn = document.getElementById("backBtn");
 
-// URL パラメータ取得
 const params = new URLSearchParams(window.location.search);
 
-// パラメータがあればボタンを表示
 if (params.get("from") === "video") {
   backBtn.style.display = "inline-block";
 
-  // 戻るボタンクリック時の挙動
   backBtn.addEventListener("click", () => {
-    // GitHub Pages 上の動画共有システムのURLに戻す
-    window.location.href = "https://minomino-sc.github.io/soccer-app/";
+    window.location.href =
+      "https://minomino-sc.github.io/soccer-app/";
   });
 }
 
@@ -37,58 +41,360 @@ const typeMap = {
 
 let events = {};
 
-// 🔥 Firestoreリアルタイム同期
-db.collection("calendar_events")
-  //.orderBy("createdAt","asc")
-  .onSnapshot(snapshot => {
-    events = {};
+// 当日・未来の予定
+let futureEvents = {};
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
+// 過去の月別読み込みデータ
+const pastMonthCache = {};
 
-      const {
-        date,
-        team,
-        type,
-        text,
-        location,
-        time,
-        driveUrls,
-        practiceDuty
-      } = data;
+// 現在選択中の過去の月
+let selectedPastMonthKey = "";
 
-      if (!events[date]) events[date] = {};
-      if (!events[date][team]) events[date][team] = [];
+// =========================
+// 日付関連
+// =========================
 
-      events[date][team].push({
-        type,
-        text,
-        location,
-        time,
-        driveUrls,
-        practiceDuty,
-        id: doc.id
-      });
-    });
+function getTodayString() {
 
-    renderCalendar();
-    renderMonthList();
-  });
+  const now = new Date();
 
-function renderCalendar(){
-  container.innerHTML="";
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
 
-  for(let m=4;m<=12;m++) createMonth(m,year);
-  for(let m=1;m<=3;m++) createMonth(m,year+1);
+}
 
-  scrollToCurrentMonth();
+function getMonthKey(y, m) {
+  return `${y}-${String(m).padStart(2, "0")}`;
+}
+
+function getMonthStart(key) {
+  return `${key}-01`;
+}
+
+function getMonthEnd(y, m) {
+
+  const lastDay = new Date(y, m, 0).getDate();
+
+  return `${y}-${String(m).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
 }
 
 // =========================
-// 月別一覧表示
+// Firestoreデータを画面用データに変換
 // =========================
 
-function renderMonthList(){
+function snapshotToEvents(snapshot) {
+
+  const result = {};
+
+  snapshot.forEach(doc => {
+
+    const data = doc.data();
+
+    const {
+      date,
+      team,
+      type,
+      text,
+      location,
+      time,
+      driveUrls,
+      practiceDuty
+    } = data;
+
+    if (!date || !team) return;
+
+    if (!result[date]) result[date] = {};
+    if (!result[date][team]) result[date][team] = [];
+
+    result[date][team].push({
+      type,
+      text,
+      location,
+      time,
+      driveUrls,
+      practiceDuty,
+      id: doc.id
+    });
+
+  });
+
+  return result;
+
+}
+
+// =========================
+// データを統合
+// =========================
+
+function rebuildEvents() {
+
+  events = {};
+
+  mergeEventData(futureEvents);
+
+  if (
+    selectedPastMonthKey &&
+    pastMonthCache[selectedPastMonthKey]
+  ) {
+    mergeEventData(
+      pastMonthCache[selectedPastMonthKey]
+    );
+  }
+
+  renderCalendar();
+  renderMonthList();
+
+}
+
+function mergeEventData(source) {
+
+  Object.keys(source).forEach(date => {
+
+    if (!events[date]) events[date] = {};
+
+    Object.keys(source[date]).forEach(team => {
+
+      if (!events[date][team]) {
+        events[date][team] = [];
+      }
+
+      source[date][team].forEach(ev => {
+
+        const exists = events[date][team]
+          .some(item => item.id === ev.id);
+
+        if (!exists) {
+          events[date][team].push(ev);
+        }
+
+      });
+
+    });
+
+  });
+
+}
+
+// =========================
+// 当日・未来の予定を監視
+// =========================
+
+db.collection("calendar_events")
+  .where("date", ">=", getTodayString())
+  .onSnapshot(snapshot => {
+
+    futureEvents = snapshotToEvents(snapshot);
+
+    rebuildEvents();
+
+  }, error => {
+
+    console.error("未来の予定の読み込みエラー:", error);
+
+    alert("予定の読み込みに失敗しました。");
+
+  });
+
+// =========================
+// 過去の月を選択するプルダウン
+// =========================
+
+function initializePastMonthSelect() {
+
+  const select =
+    document.getElementById("pastMonthSelect");
+
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  const now = new Date();
+
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const firstYear = 2026;
+  const firstMonth = 4;
+
+  for (
+    let y = firstYear, m = firstMonth;
+    y < currentYear ||
+    (y === currentYear && m <= currentMonth);
+  ) {
+
+    const option = document.createElement("option");
+
+    option.value = getMonthKey(y, m);
+    option.textContent = `${y}年 ${m}月`;
+
+    select.appendChild(option);
+
+    m++;
+
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+
+  }
+
+  if (select.options.length > 0) {
+    select.value = getMonthKey(currentYear, currentMonth);
+  }
+
+}
+
+initializePastMonthSelect();
+
+// =========================
+// 選択した過去の月を読み込む
+// =========================
+
+async function loadSelectedPastMonth() {
+
+  const select =
+    document.getElementById("pastMonthSelect");
+
+  const status =
+    document.getElementById("pastMonthStatus");
+
+  if (!select || !select.value) return;
+
+  const key = select.value;
+
+  const [y, m] = key.split("-").map(Number);
+
+  const today = getTodayString();
+
+  const startDate = getMonthStart(key);
+
+  // 当月の場合は昨日まで
+  let endDate = getMonthEnd(y, m);
+
+  if (key === today.slice(0, 7)) {
+
+    const yesterday = new Date();
+
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    endDate = [
+      yesterday.getFullYear(),
+      String(yesterday.getMonth() + 1).padStart(2, "0"),
+      String(yesterday.getDate()).padStart(2, "0")
+    ].join("-");
+
+  }
+
+  if (endDate < startDate) {
+
+    selectedPastMonthKey = key;
+
+    pastMonthCache[key] = {};
+
+    rebuildEvents();
+
+    status.textContent =
+      "この月には過去の予定はありません。";
+
+    return;
+
+  }
+
+  selectedPastMonthKey = key;
+
+  // すでに読み込んだ月は再利用
+  if (pastMonthCache[key]) {
+
+    rebuildEvents();
+
+    status.textContent =
+      `${y}年${m}月の予定を表示しています。`;
+
+    return;
+
+  }
+
+  status.textContent = "予定を読み込んでいます...";
+
+  try {
+
+    const snapshot = await db
+      .collection("calendar_events")
+      .where("date", ">=", startDate)
+      .where("date", "<=", endDate)
+      .get();
+
+    pastMonthCache[key] =
+      snapshotToEvents(snapshot);
+
+    rebuildEvents();
+
+    status.textContent =
+      `${y}年${m}月の予定を表示しています。`;
+
+  } catch (error) {
+
+    console.error("過去の予定の読み込みエラー:", error);
+
+    status.textContent =
+      "読み込みに失敗しました。もう一度お試しください。";
+
+  }
+
+}
+
+// HTMLのボタンから呼び出すためにグローバル登録
+window.loadSelectedPastMonth = loadSelectedPastMonth;
+
+// =========================
+// 過去の月のキャッシュを更新
+// =========================
+
+async function refreshPastMonth(date) {
+
+  if (!date) return;
+
+  const key = date.slice(0, 7);
+
+  delete pastMonthCache[key];
+
+  if (selectedPastMonthKey === key) {
+
+    await loadSelectedPastMonth();
+
+  }
+
+}
+
+// =========================
+// カレンダー描画
+// =========================
+
+function renderCalendar() {
+
+  container.innerHTML = "";
+
+  for (let m = 4; m <= 12; m++) {
+    createMonth(m, year);
+  }
+
+  for (let m = 1; m <= 3; m++) {
+    createMonth(m, year + 1);
+  }
+
+  scrollToCurrentMonth();
+
+}
+
+// =========================
+// 月別一覧
+// =========================
+
+function renderMonthList() {
 
   const listContainer =
     document.getElementById("monthListContainer");
@@ -97,18 +403,13 @@ function renderMonthList(){
 
   listContainer.innerHTML = "";
 
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  // 2026年4月〜2027年3月
   const months = [];
 
-  for(let m = 4; m <= 12; m++){
+  for (let m = 4; m <= 12; m++) {
     months.push({year:2026, month:m});
   }
 
-  for(let m = 1; m <= 3; m++){
+  for (let m = 1; m <= 3; m++) {
     months.push({year:2027, month:m});
   }
 
@@ -116,28 +417,33 @@ function renderMonthList(){
 
     const monthEvents = Object.keys(events)
       .filter(date => {
+
         const [y, m] = date.split("-").map(Number);
+
         return y === year && m === month;
+
       })
       .sort();
 
-    // 予定がない月は表示しない
-    if(monthEvents.length === 0) return;
+    if (monthEvents.length === 0) return;
 
-    // 月ごとの折りたたみ
     const section = document.createElement("details");
+
     section.className = "list-month";
     section.id = `list-month-${year}-${month}`;
 
-    // 当月と未来の月は展開
+    const now = new Date();
+
     if (
-      year > currentYear ||
-      (year === currentYear && month >= currentMonth)
+      year > now.getFullYear() ||
+      (year === now.getFullYear() &&
+       month >= now.getMonth() + 1)
     ) {
       section.open = true;
     }
 
     const title = document.createElement("summary");
+
     title.className = "list-month-title";
     title.textContent = `${year}年 ${month}月`;
 
@@ -222,8 +528,7 @@ function renderMonthList(){
 // 表示切替
 // =========================
 
-
-function switchView(view){
+function switchView(view) {
 
   const calendar =
     document.getElementById("calendarContainer");
@@ -237,7 +542,7 @@ function switchView(view){
   const listBtn =
     document.getElementById("listViewBtn");
 
-  if(view === "calendar"){
+  if (view === "calendar") {
 
     calendar.style.display = "block";
     list.style.display = "none";
@@ -259,7 +564,7 @@ function switchView(view){
       `list-month-${now.getFullYear()}-${now.getMonth() + 1}`
     );
 
-    if(target){
+    if (target) {
       target.scrollIntoView({
         behavior: "auto",
         block: "start"
@@ -270,60 +575,76 @@ function switchView(view){
 
 }
 
-function createMonth(month,y){
-  const monthDiv=document.createElement("div");
+window.switchView = switchView;
+
+// =========================
+// カレンダーの月を作成
+// =========================
+
+function createMonth(month, y) {
+
+  const monthDiv = document.createElement("div");
 
   monthDiv.id = `month-${y}-${month}`;
 
-  const title=document.createElement("h2");
-  title.textContent=`${y}年 ${month}月`;
+  const title = document.createElement("h2");
+
+  title.textContent = `${y}年 ${month}月`;
+
   monthDiv.appendChild(title);
 
-  const calendar=document.createElement("div");
-  calendar.className="calendar";
+  const calendar = document.createElement("div");
 
-  ["日","月","火","水","木","金","土"].forEach((d,i)=>{
-    const h=document.createElement("div");
-    h.textContent=d;
-    h.className="weekday-header";
+  calendar.className = "calendar";
 
-    if(i===0)h.classList.add("sunday");
-    if(i===6)h.classList.add("saturday");
+  ["日","月","火","水","木","金","土"].forEach((d, i) => {
+
+    const h = document.createElement("div");
+
+    h.textContent = d;
+    h.className = "weekday-header";
+
+    if (i === 0) h.classList.add("sunday");
+    if (i === 6) h.classList.add("saturday");
 
     calendar.appendChild(h);
+
   });
 
-  const firstDay=new Date(y,month-1,1).getDay();
-  const days=new Date(y,month,0).getDate();
+  const firstDay = new Date(y, month - 1, 1).getDay();
 
-  for(let i=0;i<firstDay;i++){
+  const days = new Date(y, month, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
     calendar.appendChild(document.createElement("div"));
   }
 
-  for(let day=1;day<=days;day++){
+  for (let day = 1; day <= days; day++) {
 
-    const dateStr=
+    const dateStr =
       `${y}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
 
-    const dateObj=new Date(dateStr);
+    const dateObj = new Date(y, month - 1, day);
 
-    const dDiv=document.createElement("div");
-    dDiv.className="day";
+    const dDiv = document.createElement("div");
 
-    if(dateObj.getDay()===0)dDiv.classList.add("sunday");
-    if(dateObj.getDay()===6)dDiv.classList.add("saturday");
-    if(holidays.includes(dateStr))dDiv.classList.add("holiday");
+    dDiv.className = "day";
 
-    dDiv.innerHTML=`<div>${day}</div>`;
+    if (dateObj.getDay() === 0) dDiv.classList.add("sunday");
+    if (dateObj.getDay() === 6) dDiv.classList.add("saturday");
+    if (holidays.includes(dateStr)) dDiv.classList.add("holiday");
 
-    if(events[dateStr]){
+    dDiv.innerHTML = `<div>${day}</div>`;
 
-      Object.values(events[dateStr]).forEach(teamEvents=>{
+    if (events[dateStr]) {
 
-        teamEvents.forEach(ev=>{
+      Object.values(events[dateStr]).forEach(teamEvents => {
 
-          const l=document.createElement("div");
-          l.className="label";
+        teamEvents.forEach(ev => {
+
+          const l = document.createElement("div");
+
+          l.className = "label";
 
           l.textContent =
             typeMap[ev.type]
@@ -338,39 +659,61 @@ function createMonth(month,y){
 
     }
 
-    dDiv.addEventListener("click",e=>{
+    dDiv.addEventListener("click", e => {
+
       e.stopPropagation();
+
       showPopup(dateStr);
+
     });
 
     calendar.appendChild(dDiv);
+
   }
 
   monthDiv.appendChild(calendar);
+
   container.appendChild(monthDiv);
+
 }
 
-document.addEventListener("click", (e) => {
+// =========================
+// ポップアップ外をクリックしたとき閉じる
+// =========================
 
-  // popupの外 かつ dayセルでもない場合のみ閉じる
-  if (!popup.contains(e.target) && !e.target.closest(".day")) {
+document.addEventListener("click", e => {
+
+  if (
+    !popup.contains(e.target) &&
+    !e.target.closest(".day")
+  ) {
     popup.style.display = "none";
   }
 
 });
 
-function toggleAdmin(){
+// =========================
+// 管理者モード
+// =========================
 
-  const p=document.getElementById("adminPanel");
+function toggleAdmin() {
+
+  const p = document.getElementById("adminPanel");
 
   p.style.display =
-    p.style.display==="none"
+    p.style.display === "none"
       ? "block"
       : "none";
 
 }
 
-async function addEvent(){
+window.toggleAdmin = toggleAdmin;
+
+// =========================
+// 予定追加
+// =========================
+
+async function addEvent() {
 
   const date =
     document.getElementById("adminDate").value;
@@ -390,7 +733,6 @@ async function addEvent(){
   const time =
     document.getElementById("adminTime").value;
 
-  // 練習当番
   const practiceDutyInput =
     document.getElementById("adminPracticeDuty");
 
@@ -403,8 +745,7 @@ async function addEvent(){
     document.getElementById("adminFileUrl").value || "";
 
   const driveUrls =
-    raw
-      .split("\n")
+    raw.split("\n")
       .map(v => v.trim())
       .filter(v => v !== "");
 
@@ -418,58 +759,64 @@ async function addEvent(){
 
   await db.collection("calendar_events").add({
 
-    date: date,
-    team: team,
-    type: type,
-    text: text,
-    location: location,
-    time: time,
+    date,
+    team,
+    type,
+    text,
+    location,
+    time,
 
-    // 練習当番
-    // 練習以外の場合は空欄
     practiceDuty:
       type === "practice"
         ? practiceDuty
         : "",
 
-    driveUrls: driveUrls,
+    driveUrls,
 
     createdAt:
       firebase.firestore.FieldValue.serverTimestamp()
 
   });
 
-  // リセット
   document.getElementById("adminDate").value = "";
   document.getElementById("adminText").value = "";
   document.getElementById("adminLocation").value = "";
   document.getElementById("adminTime").value = "";
+  document.getElementById("adminFileUrl").value = "";
 
   if (practiceDutyInput) {
     practiceDutyInput.value = "";
   }
 
-  document.getElementById("adminFileUrl").value = "";
+  // 過去の日付に追加した場合は対象月を更新
+  if (date < getTodayString()) {
+    await refreshPastMonth(date);
+  }
 
 }
 
-function showPopup(date){
+window.addEvent = addEvent;
+
+// =========================
+// 予定詳細ポップアップ
+// =========================
+
+function showPopup(date) {
 
   let html = "";
 
-  if(events[date]){
+  if (events[date]) {
 
     Object.keys(events[date]).forEach(team => {
 
-      events[date][team].forEach((ev,i) => {
+      events[date][team].forEach((ev, i) => {
 
-        // チームごとの背景色
         let bgColor = "#f0f0f0";
 
-        if(team === "A") bgColor = "#d6e4ff";
-        if(team === "B") bgColor = "#d4f4dd";
-        if(team === "AB") bgColor = "#e8d6f0";
-        if(team === "Z") bgColor = "#ffe0e0";
+        if (team === "A") bgColor = "#d6e4ff";
+        if (team === "B") bgColor = "#d4f4dd";
+        if (team === "AB") bgColor = "#e8d6f0";
+        if (team === "Z") bgColor = "#ffe0e0";
 
         const typeInfo =
           typeMap[ev.type] || {
@@ -494,20 +841,13 @@ function showPopup(date){
             min-width:0;
           ">
 
-            <span style="
-              color:#000;
-              font-weight:bold;
-            ">
+            <span style="color:#000;font-weight:bold;">
               ${
-                team === "A"
-                  ? "チームA"
-                  : team === "B"
-                  ? "チームB"
-                  : team === "AB"
-                  ? "チームA/B"
-                  : team === "Z"
-                  ? "その他"
-                  : `チーム${team}`
+                team === "A" ? "チームA"
+                : team === "B" ? "チームB"
+                : team === "AB" ? "チームA/B"
+                : team === "Z" ? "その他"
+                : `チーム${team}`
               }
             </span>
 
@@ -524,12 +864,8 @@ function showPopup(date){
             ${ev.time || "未設定"}<br>
 
             ${
-              ev.type === "practice" &&
-              ev.practiceDuty
-                ? `
-                  <strong>練習当番:</strong>
-                  ${ev.practiceDuty}<br>
-                `
+              ev.type === "practice" && ev.practiceDuty
+                ? `<strong>練習当番:</strong>${ev.practiceDuty}<br>`
                 : ""
             }
 
@@ -575,12 +911,7 @@ function showPopup(date){
               box-shadow:0 1px 3px rgba(0,0,0,0.2);
               cursor:pointer;
             "
-            onclick="editEvent(
-              event,
-              '${date}',
-              '${team}',
-              ${i}
-            )">
+            onclick="editEvent(event,'${date}','${team}',${i})">
               ✏️
             </button>
 
@@ -593,18 +924,14 @@ function showPopup(date){
               box-shadow:0 1px 3px rgba(0,0,0,0.2);
               cursor:pointer;
             "
-            onclick="deleteEvent(
-              event,
-              '${date}',
-              '${team}',
-              ${i}
-            )">
+            onclick="deleteEvent(event,'${date}','${team}',${i})">
               🗑️
             </button>
 
           </div>
 
         </div>`;
+
       });
 
     });
@@ -616,6 +943,7 @@ function showPopup(date){
   }
 
   popup.innerHTML = html;
+
   popup.style.display = "block";
 
   Object.assign(popup.style, {
@@ -640,12 +968,17 @@ function showPopup(date){
 
 }
 
-async function editEvent(e, date, team, index){
+window.showPopup = showPopup;
+
+// =========================
+// 予定編集
+// =========================
+
+async function editEvent(e, date, team, index) {
 
   e.stopPropagation();
 
-  const ev =
-    events[date][team][index];
+  const ev = events[date][team][index];
 
   popup.innerHTML = `
 
@@ -656,80 +989,38 @@ async function editEvent(e, date, team, index){
       <label>チーム</label>
 
       <select id="editTeam">
-
-        <option value="A">
-          チームA
-        </option>
-
-        <option value="B">
-          チームB
-        </option>
-
-        <option value="AB">
-          チームA/B
-        </option>
-
-        <option value="Z">
-          その他
-        </option>
-
+        <option value="A">チームA</option>
+        <option value="B">チームB</option>
+        <option value="AB">チームA/B</option>
+        <option value="Z">その他</option>
       </select>
 
       <label>種別</label>
 
       <select id="editType">
-
-        <option value="practice">
-          練習
-        </option>
-
-        <option value="official">
-          公式戦
-        </option>
-
-        <option value="cup">
-          カップ戦
-        </option>
-
-        <option value="friendly">
-          交流戦
-        </option>
-
-        <option value="etc">
-          その他
-        </option>
-
+        <option value="practice">練習</option>
+        <option value="official">公式戦</option>
+        <option value="cup">カップ戦</option>
+        <option value="friendly">交流戦</option>
+        <option value="etc">その他</option>
       </select>
 
       <label>内容</label>
 
-      <input
-        type="text"
-        id="editText"
-        value="${ev.text}"
-      >
+      <input type="text" id="editText" value="${ev.text}">
 
       <label>場所</label>
 
-      <input
-        type="text"
-        id="editLocation"
-        value="${ev.location || ""}"
-      >
+      <input type="text" id="editLocation" value="${ev.location || ""}">
 
       <label>時間</label>
 
-      <input
-        type="text"
-        id="editTime"
-        value="${ev.time || ""}"
-      >
+      <input type="text" id="editTime" value="${ev.time || ""}">
 
       ${
         ev.type === "practice"
           ? `
             <label>練習当番</label>
-
             <input
               type="text"
               id="editPracticeDuty"
@@ -750,7 +1041,7 @@ async function editEvent(e, date, team, index){
 
         <button
           class="save-btn"
-          onclick="saveEdit('${ev.id}')">
+          onclick="saveEdit('${ev.id}','${date}')">
           保存
         </button>
 
@@ -767,15 +1058,19 @@ async function editEvent(e, date, team, index){
 
   popup.style.display = "block";
 
-  document.getElementById("editTeam").value =
-    team;
+  document.getElementById("editTeam").value = team;
 
-  document.getElementById("editType").value =
-    ev.type;
+  document.getElementById("editType").value = ev.type;
 
 }
 
-async function saveEdit(id){
+window.editEvent = editEvent;
+
+// =========================
+// 編集保存
+// =========================
+
+async function saveEdit(id, originalDate) {
 
   const newTeam =
     document.getElementById("editTeam").value;
@@ -792,17 +1087,13 @@ async function saveEdit(id){
   const newTime =
     document.getElementById("editTime").value;
 
-  // 練習当番
   let newPracticeDuty = "";
 
   const practiceDutyInput =
     document.getElementById("editPracticeDuty");
 
-  if(practiceDutyInput){
-
-    newPracticeDuty =
-      practiceDutyInput.value.trim();
-
+  if (practiceDutyInput) {
+    newPracticeDuty = practiceDutyInput.value.trim();
   }
 
   const newDriveUrls =
@@ -821,7 +1112,6 @@ async function saveEdit(id){
       location: newLocation,
       time: newTime,
 
-      // 練習の場合のみ保存
       practiceDuty:
         newType === "practice"
           ? newPracticeDuty
@@ -833,44 +1123,55 @@ async function saveEdit(id){
 
   popup.style.display = "none";
 
+  if (originalDate < getTodayString()) {
+    await refreshPastMonth(originalDate);
+  }
+
 }
 
-async function deleteEvent(e, date, team, index){
+window.saveEdit = saveEdit;
+
+// =========================
+// 予定削除
+// =========================
+
+async function deleteEvent(e, date, team, index) {
 
   e.stopPropagation();
 
-  const ev =
-    events[date][team][index];
+  const ev = events[date][team][index];
 
-  if(confirm("削除しますか？")){
+  if (confirm("削除しますか？")) {
 
     await db.collection("calendar_events")
       .doc(ev.id)
       .delete();
 
-    // 🔥 削除後にポップアップを再描画
-    showPopup(date);
+    popup.style.display = "none";
+
+    if (date < getTodayString()) {
+      await refreshPastMonth(date);
+    }
 
   }
 
 }
 
-function scrollToCurrentMonth(){
+window.deleteEvent = deleteEvent;
+
+// =========================
+// 現在の月までスクロール
+// =========================
+
+function scrollToCurrentMonth() {
 
   const now = new Date();
 
-  const currentYear =
-    now.getFullYear();
+  const target = document.getElementById(
+    `month-${now.getFullYear()}-${now.getMonth() + 1}`
+  );
 
-  const currentMonth =
-    now.getMonth() + 1;
-
-  const target =
-    document.getElementById(
-      `month-${currentYear}-${currentMonth}`
-    );
-
-  if(target){
+  if (target) {
 
     target.scrollIntoView({
       behavior: "auto",
@@ -881,10 +1182,13 @@ function scrollToCurrentMonth(){
 
 }
 
-function toggleLegend(){
+// =========================
+// 凡例
+// =========================
 
-  const box =
-    document.getElementById("legendBox");
+function toggleLegend() {
+
+  const box = document.getElementById("legendBox");
 
   box.style.display =
     box.style.display === "none"
@@ -892,3 +1196,5 @@ function toggleLegend(){
       : "none";
 
 }
+
+window.toggleLegend = toggleLegend;
