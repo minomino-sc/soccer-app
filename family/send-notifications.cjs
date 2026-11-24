@@ -109,13 +109,22 @@ async function main() {
     now.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
   );
 
-const todayJST = new Intl.DateTimeFormat("sv-SE", {
+  const jstFormatter = new Intl.DateTimeFormat("sv-SE", {
   timeZone: "Asia/Tokyo"
-}).format(now);
+});
+
+const todayJST = jstFormatter.format(now);
+
+const dayAfterTomorrow = new Date(
+  now.getTime() + 2 * 24 * 60 * 60 * 1000
+);
+
+const dayAfterTomorrowJST = jstFormatter.format(dayAfterTomorrow);
 
 const [eventSnapshot, subscriptionSnapshot] = await Promise.all([
   db.collection(EVENTS)
     .where("date", ">=", todayJST)
+    .where("date", "<=", dayAfterTomorrowJST)
     .get(),
 
   db.collection(SUBSCRIPTIONS).get()
