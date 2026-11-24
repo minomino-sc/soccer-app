@@ -109,11 +109,18 @@ async function main() {
     now.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
   );
 
-  const [eventSnapshot, subscriptionSnapshot] = await Promise.all([
-    db.collection(EVENTS).get(),
-    db.collection(SUBSCRIPTIONS).get()
-  ]);
+const todayJST = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Asia/Tokyo"
+}).format(now);
 
+const [eventSnapshot, subscriptionSnapshot] = await Promise.all([
+  db.collection(EVENTS)
+    .where("date", ">=", todayJST)
+    .get(),
+
+  db.collection(SUBSCRIPTIONS).get()
+]);
+  
   const subscriptions = subscriptionSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
